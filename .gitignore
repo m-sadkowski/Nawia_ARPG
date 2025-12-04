@@ -37,5 +37,46 @@
 *.out
 *.app
 
-# debug information files
+# Debug information files
 *.dwo
+
+# Build directories & cmake
+build/
+build_*/
+bin/
+lib/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+Makefile
+compile_commands.json
+
+# IDE & editors
+.vscode/
+.vs/
+*.user
+*.suo
+*.opensdf
+*.sdf
+.idea/
+cmake-build-*/
+.gradle/
+gradle-wrapper.jar
+local.properties
+out/
+captures/
+.cxx/
+.externalNativeBuild/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# OS specific
+.DS_Store
+Thumbs.db
+Desktop.ini
