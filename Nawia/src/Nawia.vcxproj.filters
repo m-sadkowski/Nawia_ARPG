@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Pliki źródłowe">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Pliki nagłówkowe">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Pliki zasobów">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="audio">
+      <UniqueIdentifier>{70029375-276b-4e23-9653-43e9e8ab7664}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{9799c987-7fb7-4ed5-b883-cfcafb0f6a20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\game">
+      <UniqueIdentifier>{c9734539-8f4e-4ec9-b91a-b57f69b8c568}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\system">
+      <UniqueIdentifier>{17772603-5cdd-4aca-93a8-8d37e9e47818}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\system\input">
+      <UniqueIdentifier>{d5d8d513-12fe-4e12-a9dc-7389352b7c30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\system\renderer">
+      <UniqueIdentifier>{e066c269-0c44-4b6f-8bcc-16ccd5c3f394}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\system\time">
+      <UniqueIdentifier>{044e3506-2e87-402c-b2cc-6776581c575a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\util">
+      <UniqueIdentifier>{e5a6e4c4-75ce-4f1f-9b86-d416d97d30ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="entity">
+      <UniqueIdentifier>{da96ad4f-9d03-4d0e-8363-9d163151e9f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="entity\actors">
+      <UniqueIdentifier>{0d45f62b-44d4-47e2-b17b-8556f57b7ff4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="entity\components">
+      <UniqueIdentifier>{fd508d7e-3f8d-424c-9d88-1a59940c0bb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="entity\systems">
+      <UniqueIdentifier>{ae775903-ffc2-46cc-9869-b970929c76f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{058ac191-60bb-4fb2-8b52-0c59c7bca8b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui\hud">
+      <UniqueIdentifier>{abdced1f-0981-4f38-b622-d699c10f3b0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui\menu">
+      <UniqueIdentifier>{d9ba12a7-ee5d-48fa-aa2c-e11d74bcebea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="world">
+      <UniqueIdentifier>{ac8a59fb-b03c-4b13-8420-7f4644d14189}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="world\map">
+      <UniqueIdentifier>{41cc5833-0aee-482f-a583-6a29a478d30e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="world\level">
+      <UniqueIdentifier>{30c6e39f-24d9-4514-9e4f-537c68ff6c30}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\Game.cpp">
+      <Filter>core\game</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="audio\Audio">
+      <Filter>audio</Filter>
+    </None>
+    <None Include="core\Core">
+      <Filter>core</Filter>
+    </None>
+    <None Include="core\system\System">
+      <Filter>core\system</Filter>
+    </None>
+    <None Include="core\system\input\Input">
+      <Filter>core\system\input</Filter>
+    </None>
+    <None Include="core\system\time\Time">
+      <Filter>core\system\renderer</Filter>
+    </None>
+    <None Include="core\util\Util">
+      <Filter>core\util</Filter>
+    </None>
+    <None Include="entity\components\Components">
+      <Filter>entity\components</Filter>
+    </None>
+    <None Include="entity\systems\Systems">
+      <Filter>entity\systems</Filter>
+    </None>
+    <None Include="ui\menu\Menu">
+      <Filter>ui\menu</Filter>
+    </None>
+    <None Include="ui\hud\Hud">
+      <Filter>ui\hud</Filter>
+    </None>
+    <None Include="ui\Ui">
+      <Filter>ui</Filter>
+    </None>
+    <None Include="world\World">
+      <Filter>world</Filter>
+    </None>
+    <None Include="world\level\Level">
+      <Filter>world\level</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="core\game\Game.h">
+      <Filter>core\game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\system\renderer\Renderer.h">
+      <Filter>core\system\time</Filter>
+    </ClInclude>
+    <ClInclude Include="entity\Entity.h">
+      <Filter>entity</Filter>
+    </ClInclude>
+    <ClInclude Include="entity\actors\Player.h">
+      <Filter>entity\actors</Filter>
+    </ClInclude>
+    <ClInclude Include="world\map\Map.h">
+      <Filter>world\map</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
