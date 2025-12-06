@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Nawia/Nawia.vcxproj" Id="5e34e1ec-a54f-441b-8e30-071d294f6183" />
+  <Project Path="src/Nawia.vcxproj" Id="5e34e1ec-a54f-441b-8e30-071d294f6183" />
 </Solution>

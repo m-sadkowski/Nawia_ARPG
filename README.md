@@ -38,27 +38,28 @@ It is intended to evolve into a full **Engineering Thesis**.
 The project follows a modular architecture, separating the core engine subsystems from the specific gameplay logic.
 
 ```text
-Nawia
-├── assets/          # Binary assets: textures, sounds, fonts, and level data.
-├── scripts/         # Python scripts for tooling, automation, or gameplay prototyping.
-└── src/             # Source code root.
-    ├── Core/        # ENGINE LAYER
-    │                # Low-level systems agnostic to the specific game. 
-    │                # Includes Camera handling, Math utilities, Render wrappers,
-    │                # and Memory management.
-    │
-    └── Game/        # GAMEPLAY LAYER
-        │            # High-level game logic specific to Nawia.
-        │            # Contains the main Game loop and state management.
-        ├── Entities/
-        │   # Game Objects implementation.
-        │   # Defines the inheritance hierarchy for dynamic actors 
-        │   # (Players, Enemies, Bosses) and their components/stats.
-        │
-        └── World/
-            # Environment management.
-            # Handles Map generation, Tile rendering, collision grids,
-            # and level streaming.
+Nawia/
+├── assets/             # Game multimedia resources (Graphics, Audio, Data)
+├── docs/               # Project documentation (GDD, Doxygen API docs)
+├── external/           # External libraries (SDL3, ImGui, etc.)
+├── scripts/            # Helper scripts (build scripts, utilities)
+├── src/                # Main C++ source code
+│   ├── audio/          # Systems and classes for managing sound and music
+│   ├── core/           # Engine foundations and main loops
+│   │   ├── game/       # The Game class (main loop, game states)
+│   │   ├── system/     # Low-level systems (Renderer, Input, Time)
+│   │   └── util/       # Utility classes (Math, data structures)
+│   ├── entity/         # Entity Component System (ECS) implementation
+│   │   ├── actors/     # Concrete entities (Player, NPC, Enemy)
+│   │   ├── components/ # Data components (Position, Health, Inventory)
+│   │   └── systems/    # Logic processing components (MovementSystem, CombatSystem)
+│   ├── ui/             # User Interface elements
+│   │   ├── hud/        # Head-Up Display elements (health bars, minimap)
+│   │   └── menu/       # Main menu, inventory screen, options
+│   └── world/          # World and map management
+│       ├── level/      # Level logic (triggers, enemy spawning)
+│       └── map/        # Map loading and rendering, tile handling
+└── tests/              # Unit and integration tests
 ````
 
 -----
