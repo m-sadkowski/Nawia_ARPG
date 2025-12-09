@@ -159,7 +159,9 @@ xcopy /y /d "$(SolutionDir)external\SDL3_mixer\bin\*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="core\game\Game.cpp" />
+    <ClCompile Include="core\Engine.cpp" />
+    <ClCompile Include="core\game\Map.cpp" />
+    <ClCompile Include="core\util\ResourceManager.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -178,8 +180,11 @@ xcopy /y /d "$(SolutionDir)external\SDL3_mixer\bin\*.dll" "$(OutDir)"</Command>
     <None Include="world\World" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="core\game\Game.h" />
+    <ClInclude Include="core\Engine.h" />
+    <ClInclude Include="core\game\Map.h" />
+    <ClInclude Include="core\game\Tile.h" />
     <ClInclude Include="core\system\renderer\Renderer.h" />
+    <ClInclude Include="core\util\ResourceManager.h" />
     <ClInclude Include="entity\actors\Player.h" />
     <ClInclude Include="entity\Entity.h" />
     <ClInclude Include="world\map\Map.h" />
