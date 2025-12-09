@@ -8,6 +8,7 @@ namespace Nawia::Core {
 		
 	}
 
+	// REMOVE - load test map
 	void Map::loadTestMap() {
 		_grid.clear();
 		int size = 10;
@@ -26,13 +27,21 @@ namespace Nawia::Core {
 	}
 
 	void Map::render() {
+		/*
+			Render map on OFFSET (x+400, y)
+
+			Using currently loaded map in _grid
+			To load a map use Map::loadMap(string filename) function
+			and pass JUST filename into it, for example
+			loadMap("CITY1.map") - loads a map from "../assets/maps/CITY1.map"
+		*/
 		for (auto y = 0; y < _grid.size(); y++) {
 			for (auto x = 0; x < _grid[y].size(); x++) {
 				Tile& tile = _grid[y][x];
 				
 
 				if (tile._texture) {
-					float isoX = (x - y) * (TILE_WIDTH / 2.0f) + 400;
+					float isoX = (x - y) * (TILE_WIDTH / 2.0f) + 500;
 					float isoY = (x + y) * (TILE_HEIGHT / 2.0f);
 
 					SDL_FRect destRect = { isoX, isoY, (float)TILE_WIDTH, (float)TILE_HEIGHT };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
+#include <string>
 #include "ResourceManager.h"
 #include "Map.h"
 
@@ -26,7 +27,9 @@ namespace Nawia::Core {
         SDL_Window* _window;
         SDL_Renderer* _renderer;
 
+        // Resource Manager - holds all loaded textures
         ResourceManager _resourceManager;
+
         std::unique_ptr<Map> _map;
     };
 

@@ -4,11 +4,9 @@ namespace Nawia::Core {
 
 	std::shared_ptr<SDL_Texture> ResourceManager::getTexture(const std::string& filename, SDL_Renderer* renderer) {
 		// if texture is already loaded, return it
-		if (!_textures.empty()) {
-			auto texture = _textures.find(filename);
-			if (texture != _textures.end()) {
-				return texture->second;
-			}
+		auto texture = _textures.find(filename);
+		if (texture != _textures.end()) {
+			return texture->second;
 		}
 
 		// if not, load it from file
@@ -16,18 +14,18 @@ namespace Nawia::Core {
 		// open file
 		SDL_IOStream* stream = SDL_IOFromFile(filename.c_str(), "r");
 		if (!stream) {
-			// ERROR - couldnt open the file
 			std::cerr << "[ERROR] Resource Manager - couldn't open file: '" << filename.c_str() << "'\n";
+			std::cerr << "[ERROR] SDL: " << SDL_GetError() << "\n";
 			return nullptr;
 		}
 		// DEBUG
-		printf("[DEBUG] Resource Manager - opened file: '%s'", filename.c_str());
+		std::cout << "[DEBUG] Resource Manager - opened file: '" << filename.c_str() << "'\n";
 
 		// create a SDL Surface
 		SDL_Surface* surface = IMG_LoadPNG_IO(stream);
 		if (!surface) {
-			// ERROR - couldnt create a surface
-			printf("[ERROR] Resource Manager - couldn't create a surface");
+			std::cerr << "[ERROR] Resource Manager - couldn't create a surface\n";
+			std::cerr << "[ERROR] SDL: " << SDL_GetError() << "\n";
 			return nullptr;
 		}
 
@@ -35,10 +33,12 @@ namespace Nawia::Core {
 		SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surface);
 		SDL_DestroySurface(surface);
 
-		// create a sharedptr
+		// create a sharedptr to put in map
 		std::shared_ptr<SDL_Texture> newTexture(tex, [](SDL_Texture* t) {
 			// destroy texture when not needed
 			SDL_DestroyTexture(t);
+			// DEBUG
+			std::cout << "[DEBUG] Resource Manager - removed resource\n";
 			});
 
 		_textures[filename] = newTexture;
