@@ -31,6 +31,14 @@ namespace Nawia::Core {
         // REMOVE - load test map
         _map->loadTestMap();
 
+        // player
+        auto playerTexture = _resourceManager.getTexture("../assets/textures/player.png", _renderer);
+
+        _player = std::make_unique<Entity::Player>(5.0f, 5.0f, playerTexture);
+
+        // clock
+        _lastTime = SDL_GetTicks();
+
         _is_running = true;
     }
 
@@ -48,8 +56,12 @@ namespace Nawia::Core {
 
     void Engine::run() {
         while (isRunning()) {
+            uint64_t currentTime = SDL_GetTicks();
+            float deltaTime = (currentTime - _lastTime) / 1000.0f;
+            _lastTime = currentTime;
+
             handleEvents();
-            update();
+            update(deltaTime);
             render();
         }
     }
@@ -60,10 +72,19 @@ namespace Nawia::Core {
             if (event.type == SDL_EVENT_QUIT) {
                 _is_running = false;
             }
+            else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    handleMouseClick(event.button.x, event.button.y);
+                }
+            }
         }
     }
 
-    void Engine::update() {}
+    void Engine::update(float deltaTime) {
+        if (_player) {
+            _player->update(deltaTime);
+        }
+    }
 
     void Engine::render() {
         // base background color
@@ -77,11 +98,32 @@ namespace Nawia::Core {
             _map->render();
         }
 
+        if (_player) {
+            _player->render(_renderer, 500.0f, 0.0f);
+        }
+
         /*
             RENDER END
         */
 
         SDL_RenderPresent(_renderer);
+    }
+
+    void Engine::handleMouseClick(float mouseX, float mouseY) {
+        if (!_player) return;
+
+        float adjX = mouseX - 500.0f;
+        float adjY = mouseY - 0.0f;
+
+        float halfW = 64.0f;
+        float halfH = 32.0f;
+
+        float worldY = (adjY / halfH - adjX / halfW) / 2.0f;
+        float worldX = (adjY / halfH + adjX / halfW) / 2.0f;
+
+        // DEBUG
+        std::cout << "[DEBUG] Klik: " << worldX << ", " << worldY << std::endl;
+        _player->moveTo(worldX, worldY);
     }
 
 }; // namespace Nawia::Core

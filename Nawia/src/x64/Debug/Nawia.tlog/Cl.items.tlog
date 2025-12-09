@@ -1,4 +1,7 @@
 C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\core\Engine.cpp;C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\x64\Debug\Engine.obj
 C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\core\game\Map.cpp;C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\x64\Debug\Map.obj
+C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\core\util\MathUtils.cpp;C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\x64\Debug\MathUtils.obj
 C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\core\util\ResourceManager.cpp;C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\x64\Debug\ResourceManager.obj
+C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\entity\actors\Player.cpp;C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\x64\Debug\Player.obj
+C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\entity\Entity.cpp;C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\x64\Debug\Entity.obj
 C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\main.cpp;C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\x64\Debug\main.obj

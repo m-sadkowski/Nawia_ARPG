@@ -81,6 +81,15 @@
     <ClCompile Include="core\game\Map.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="entity\Entity.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="entity\actors\Player.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="core\util\MathUtils.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="audio\Audio">
@@ -97,9 +106,6 @@
     </None>
     <None Include="core\system\time\Time">
       <Filter>core\system\renderer</Filter>
-    </None>
-    <None Include="core\util\Util">
-      <Filter>core\util</Filter>
     </None>
     <None Include="entity\components\Components">
       <Filter>entity\components</Filter>
@@ -124,9 +130,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="core\system\renderer\Renderer.h">
-      <Filter>core\system\time</Filter>
-    </ClInclude>
     <ClInclude Include="entity\Entity.h">
       <Filter>entity</Filter>
     </ClInclude>
