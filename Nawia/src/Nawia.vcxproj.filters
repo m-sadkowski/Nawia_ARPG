@@ -73,22 +73,25 @@
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="core\Engine.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="core\util\ResourceManager.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="core\game\Map.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="entity\Entity.cpp">
-      <Filter>Pliki źródłowe</Filter>
+      <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="entity\actors\Player.cpp">
-      <Filter>Pliki źródłowe</Filter>
+      <Filter>entity\actors</Filter>
     </ClCompile>
     <ClCompile Include="core\util\MathUtils.cpp">
-      <Filter>Pliki źródłowe</Filter>
+      <Filter>core\util</Filter>
+    </ClCompile>
+    <ClCompile Include="core\util\ResourceManager.cpp">
+      <Filter>core\util</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\Map.cpp">
+      <Filter>core\game</Filter>
+    </ClCompile>
+    <ClCompile Include="entity\Entity.cpp">
+      <Filter>entity</Filter>
+    </ClCompile>
+    <ClCompile Include="core\util\Logger.cpp">
+      <Filter>core\util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -136,23 +139,26 @@
     <ClInclude Include="entity\actors\Player.h">
       <Filter>entity\actors</Filter>
     </ClInclude>
-    <ClInclude Include="world\map\Map.h">
-      <Filter>world\map</Filter>
-    </ClInclude>
     <ClInclude Include="core\Engine.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="core\util\ResourceManager.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="core\game\Map.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="core\game\Tile.h">
-      <Filter>Pliki nagłówkowe</Filter>
+      <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="core\util\MathUtils.h">
+      <Filter>core\util</Filter>
+    </ClInclude>
+    <ClInclude Include="core\util\ResourceManager.h">
+      <Filter>core\util</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\Map.h">
+      <Filter>core\game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\Tile.h">
+      <Filter>core\game</Filter>
+    </ClInclude>
+    <ClInclude Include="world\map\Map.h">
       <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="core\util\Logger.h">
+      <Filter>core\util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

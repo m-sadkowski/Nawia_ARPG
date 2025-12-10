@@ -5,16 +5,16 @@ namespace Nawia::Entity {
 
 	class Player : public Entity {
 	public:
-		Player(float x, float y, std::shared_ptr<SDL_Texture> texture);
+		Player(float x, float y, const std::shared_ptr<SDL_Texture>& texture);
 
-		void update(float deltaTime) override;
+		void update(float delta_time) override;
 
 		void moveTo(float x, float y);
 
 	private:
-		float _targetX, _targetY;
+		float _target_x, _target_y;
 		float _speed;
-		bool _isMoving;
+		bool _is_moving;
 	};
 
-}
+} // namespace Nawia::Entity

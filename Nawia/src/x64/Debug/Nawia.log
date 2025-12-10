@@ -1,7 +1,9 @@
 ﻿  Engine.cpp
-  MathUtils.cpp
+  Logger.cpp
+  ResourceManager.cpp
+  Entity.cpp
   Generowanie kodu...
-  Nawia.vcxproj -> C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\x64\Debug\Nawia.exe
+  Nawia.vcxproj -> C:\Users\msadk\Documents\GitHub\Nawia_ARPG\Nawia\x64\Debug\Nawia.exe
   0 File(s) copied
   0 File(s) copied
   0 File(s) copied
