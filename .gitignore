@@ -64,6 +64,7 @@ out/
 captures/
 .cxx/
 .externalNativeBuild/
+*.tlog
 
 # Python
 __pycache__/
