@@ -64,7 +64,11 @@ out/
 captures/
 .cxx/
 .externalNativeBuild/
+*.log
+*.recipe
+*.lastbuildstate
 *.tlog
+*.idb
 
 # Python
 __pycache__/
@@ -77,3 +81,4 @@ venv/
 .DS_Store
 Thumbs.db
 Desktop.ini
+Nawia/src/logs.txt

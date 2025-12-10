@@ -14,3 +14,9 @@
 [DEBUG] Mouse click: 2.132812, 6.679688
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 7.078125, 2.046875
+[DEBUG] Mouse click: 7.390625, 5.171875
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
