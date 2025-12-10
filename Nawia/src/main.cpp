@@ -1,9 +1,9 @@
-﻿#include <Game.h>
+﻿#include <Engine.h>
 
 using namespace Nawia;
 
 int main(int argc, char* argv[]) {
-    Core::Game game;
+    Core::Engine game;
 
     if (game.isRunning()) {
         game.run();
