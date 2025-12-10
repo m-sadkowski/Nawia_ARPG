@@ -1,45 +1,37 @@
 #include "Engine.h"
+#include "MathUtils.h"
 
 #include <iostream>
-#include "MathUtils.h"
+
+#include "Logger.h"
 
 namespace Nawia::Core {
 
     Engine::Engine() : _is_running(false), _window(nullptr), _renderer(nullptr) {
-        // init SDL
         if (!SDL_Init(SDL_INIT_VIDEO)) {
-            std::cerr << SDL_GetError() << std::endl;
+            std::cerr << SDL_GetError() << "\n";
             return;
         }
 
-        // create window and renderer
-        if (!SDL_CreateWindowAndRenderer(
-            "Nawia",
-            WINDOW_WIDTH,
-            WINDOW_HEIGHT,
-            SDL_WINDOW_RESIZABLE,
-            &_window,
-            &_renderer
-        )) {
-            std::cerr << "Error while creating window" << SDL_GetError() << std::endl;
+        if (!SDL_CreateWindowAndRenderer("Nawia", WINDOW_WIDTH, WINDOW_HEIGHT,SDL_WINDOW_RESIZABLE, &_window, &_renderer)) {
+            Logger::errorLog("Error while creating window.");
+            Logger::errorLog("SDL: " + std::string(SDL_GetError()));
             SDL_Quit();
             return;
         }
 
         // initialize map object
-        _map = std::make_unique<Map>(_renderer, _resourceManager);
+        _map = std::make_unique<Map>(_renderer, _resource_manager);
 
         // REMOVE - load test map
         _map->loadTestMap();
 
         // player
-        auto playerTexture = _resourceManager.getTexture("../assets/textures/player.png", _renderer);
-        
-        _player = std::make_unique<Entity::Player>(5.0f, 5.0f, playerTexture);
+        auto player_texture = _resource_manager.getTexture("../assets/textures/player.png", _renderer);
+        _player = std::make_unique<Entity::Player>(5.0f, 5.0f, player_texture);
 
         // clock
-        _lastTime = SDL_GetTicks();
-
+        _last_time = SDL_GetTicks();
         _is_running = true;
     }
 
@@ -57,12 +49,12 @@ namespace Nawia::Core {
 
     void Engine::run() {
         while (isRunning()) {
-            uint64_t currentTime = SDL_GetTicks();
-            float deltaTime = (currentTime - _lastTime) / 1000.0f;
-            _lastTime = currentTime;
+            const uint64_t current_time = SDL_GetTicks();
+            const float delta_time = static_cast<float>(current_time - _last_time) / 1000.0f;
+            _last_time = current_time;
 
             handleEvents();
-            update(deltaTime);
+            update(delta_time);
             render();
         }
     }
@@ -81,20 +73,20 @@ namespace Nawia::Core {
         }
     }
 
-    void Engine::update(float deltaTime) {
+    void Engine::update(const float delta_time) {
         if (_player) {
-            _player->update(deltaTime);
+            _player->update(delta_time);
         }
     }
 
     void Engine::render() {
-        // base background color
-        SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
+        SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255); // base background color
         SDL_RenderClear(_renderer);
 
         /*
             RENDER START
         */
+
         if (_map) {
             _map->render();
         }
@@ -110,13 +102,13 @@ namespace Nawia::Core {
         SDL_RenderPresent(_renderer);
     }
 
-    void Engine::handleMouseClick(float mouseX, float mouseY) {
-        if (!_player) return;
+    void Engine::handleMouseClick(const float mouse_x, const float mouse_y) {
+        if (!_player)
+            return;
 
-        Point2D pos = Point2D::screenToIso(mouseX, mouseY);
+        Point2D pos = Point2D::screenToIso(mouse_x, mouse_y);
+        Logger::debugLog("Mouse click: " + std::to_string(pos.getX()) + ", " + std::to_string(pos.getY()));
 
-        // DEBUG
-        std::cout << "[DEBUG] Klik: " << pos.getX() << ", " << pos.getY() << std::endl;
         _player->moveTo(pos.getX(), pos.getY());
     }
 

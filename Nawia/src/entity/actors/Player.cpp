@@ -2,36 +2,33 @@
 
 namespace Nawia::Entity {
 
-	Player::Player(float x, float y, std::shared_ptr<SDL_Texture> texture)
-		: Entity(x, y, texture), _targetX(x), _targetY(y), _speed(4.0f), _isMoving(false) {
+	Player::Player(const float x, const float y, const std::shared_ptr<SDL_Texture>& texture)
+		: Entity(x, y, texture), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) {}
 
+	void Player::moveTo(const float x, const float y) {
+		_target_x = x;
+		_target_y = y;
+		_is_moving = true;
 	}
 
-	void Player::moveTo(float x, float y) {
-		_targetX = x;
-		_targetY = y;
-		_isMoving = true;
-	}
-
-	void Player::update(float deltaTime) {
-		if (!_isMoving) {
+	void Player::update(const float delta_time) {
+		if (!_is_moving) 
 			return;
-		}
 
-		float dx = _targetX - _pos->getX();
-		float dy = _targetY - _pos->getY();
+		const float dx = _target_x - _pos->getX();
+		const float dy = _target_y - _pos->getY();
 
-		float distance = std::sqrt(dx * dx + dy * dy);
+		const float distance = std::sqrt(dx * dx + dy * dy);
 
 		if (distance < 0.1f) {
-			_pos->setX(_targetX);
-			_pos->setY(_targetY);
-			_isMoving = false;
+			_pos->setX(_target_x);
+			_pos->setY(_target_y);
+			_is_moving = false;
 		}
 		else {
-			_pos->setX(_pos->getX() + (dx / distance) * _speed * deltaTime);
-			_pos->setY(_pos->getY() + (dy / distance) * _speed * deltaTime);
+			_pos->setX(_pos->getX() + (dx / distance) * _speed * delta_time);
+			_pos->setY(_pos->getY() + (dy / distance) * _speed * delta_time);
  		}
 	}
 
-}
+} // namespace Nawia::Entity

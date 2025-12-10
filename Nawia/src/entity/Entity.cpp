@@ -1,23 +1,32 @@
 #include "Entity.h"
 
+#include <Map.h>
+
+#include <Logger.h>
+
 namespace Nawia::Entity {
 
-	void Entity::render(SDL_Renderer* renderer, float offsetX, float offsetY) {
+	Entity::Entity(float start_x, float start_y, const std::shared_ptr<SDL_Texture>& texture) : _texture(texture)
+	{
+		_pos = std::make_unique<Core::Point2D>(start_x, start_y);
+	}
+
+	void Entity::render(SDL_Renderer* renderer, const float offset_x, const float offset_y) {
 		if (!_texture) {
-			std::cerr << "[ERROR] Entity - Couldn't load texture.\n";
+			Core::Logger::errorLog("Entity - Could not load texture.");
 			return;
 		}
 
-		float screenX = (_pos->getX() - _pos->getY()) * (Core::TILE_WIDTH / 2.0f) + offsetX;
-		float screenY = (_pos->getX() + _pos->getY()) * (Core::TILE_HEIGHT / 2.0f) + offsetY;
+		float screen_x = (_pos->getX() - _pos->getY()) * (Core::TILE_WIDTH / 2.0f) + offset_x;
+		float screen_y = (_pos->getX() + _pos->getY()) * (Core::TILE_HEIGHT / 2.0f) + offset_y;
 
 		// offset so the players FEET (BOTTOM OF THE TEXTURE)
 		// is rendered exactly where the position is (_x, _y)
-		screenX += (Core::TILE_WIDTH / 2.0f) - (ENTITY_TEXTURE_WIDTH);
-		screenY += (ENTITY_TEXTURE_HEIGHT / 2.0f - Core::TILE_HEIGHT * 1.5f);
+		screen_x += (Core::TILE_WIDTH / 2.0f) - (ENTITY_TEXTURE_WIDTH);
+		screen_y += (ENTITY_TEXTURE_HEIGHT / 2.0f - Core::TILE_HEIGHT * 1.5f);
 
-		SDL_FRect destRect = { screenX, screenY, ENTITY_TEXTURE_WIDTH, ENTITY_TEXTURE_HEIGHT };
-		SDL_RenderTexture(renderer, _texture.get(), nullptr, &destRect);
+		const SDL_FRect dest_rect = { screen_x, screen_y, ENTITY_TEXTURE_WIDTH, ENTITY_TEXTURE_HEIGHT };
+		SDL_RenderTexture(renderer, _texture.get(), nullptr, &dest_rect);
 	}
 
-}
+} // namespace Nawia::Entity

@@ -1,11 +1,10 @@
 #pragma once
-
-#include <SDL3/SDL.h>
-#include <string>
-
 #include "ResourceManager.h"
 #include "Map.h"
-#include "Player.h"
+
+#include <Player.h>
+
+#include <SDL3/SDL.h>
 
 namespace Nawia::Core {
 
@@ -18,27 +17,24 @@ namespace Nawia::Core {
         ~Engine();
 
         void run();
-        bool isRunning() const;
+        [[nodiscard]] bool isRunning() const;
 
     private:
         void handleEvents();
-        void update(float deltaTime);
+        void update(float delta_time);
         void render();
 
-        void handleMouseClick(float mouseX, float mouseY);
+        void handleMouseClick(float mouse_x, float mouse_y);
 
         bool _is_running;
         SDL_Window* _window;
         SDL_Renderer* _renderer;
 
         // Resource Manager - holds all loaded textures
-        ResourceManager _resourceManager;
-
+        ResourceManager _resource_manager;
         std::unique_ptr<Map> _map;
-
         std::unique_ptr<Entity::Player> _player;
-
-        uint64_t _lastTime;
+        uint64_t _last_time;
     };
 
 } // namespace Nawia::Core

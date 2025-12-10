@@ -1,14 +1,12 @@
 #pragma once
-#include "Map.h"
 
 namespace Nawia::Core {
 
 	class Point2D {
 	public:
-		Point2D(float x, float y)
-			: _x(x), _y(y) { }
+		Point2D(const float x, const float y) : _x(x), _y(y) {}
 
-		static Point2D screenToIso(float mouseX, float mouseY);
+		static Point2D screenToIso(float mouse_x, float mouse_y);
 
 		float getX() { return _x; }
 		float getY() { return _y; }
@@ -19,4 +17,4 @@ namespace Nawia::Core {
 		float _x, _y;
 	};
 
-}
+} // namespace Nawia::Core

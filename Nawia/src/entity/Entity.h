@@ -1,11 +1,9 @@
 #pragma once
+#include <MathUtils.h>
+
 #include <SDL3/SDL.h>
 #include <memory>
 #include <iostream>
-#include <string>
-#include <ResourceManager.h>
-#include <MathUtils.h>
-
 
 namespace Nawia::Entity {
 
@@ -14,16 +12,12 @@ namespace Nawia::Entity {
 
 	class Entity {
 	public:
-		Entity(float startX, float startY, std::shared_ptr<SDL_Texture> texture)
-			: _texture(texture) {
-			_pos = std::make_unique<Core::Point2D>(startX, startY);
-		}
-
+		Entity(float start_x, float start_y, const std::shared_ptr<SDL_Texture>& texture);
 		virtual ~Entity() = default;
 
-		virtual void update(float deltaTime) = 0;
+		virtual void update(float delta_time) = 0;
+		virtual void render(SDL_Renderer* renderer, float offset_x, float offset_y);
 
-		virtual void render(SDL_Renderer* renderer, float offsetX, float offsetY);
 	protected:
 		// position in game - uses Point2D
 		// while creating an entity, pass (x, y)
@@ -33,4 +27,4 @@ namespace Nawia::Entity {
 		std::shared_ptr<SDL_Texture> _texture;
 	};
 
-}
+} // namespace Nawia::Entity
