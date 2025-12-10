@@ -12,6 +12,9 @@ namespace Nawia::Core {
 	constexpr int TILE_WIDTH = 128;
 	constexpr int TILE_HEIGHT = 64;
 
+	constexpr float MAP_OFFSET_X = 500.0f;
+	constexpr float MAP_OFFSET_Y = 0.0f;
+
 	class Map {
 	public:
 		Map(SDL_Renderer* renderer, ResourceManager& resMgr)

@@ -1,6 +1,6 @@
 ﻿  Engine.cpp
-C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\core\Engine.cpp(9,21): warning C4804: "<": niebezpieczne użycie typu "bool" w operacji
-C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\core\Engine.cpp(15,40): warning C4804: "<": niebezpieczne użycie typu "bool" w operacji
+  MathUtils.cpp
+  Generowanie kodu...
   Nawia.vcxproj -> C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\x64\Debug\Nawia.exe
   0 File(s) copied
   0 File(s) copied

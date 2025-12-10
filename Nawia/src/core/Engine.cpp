@@ -1,25 +1,26 @@
 #include "Engine.h"
 
 #include <iostream>
+#include "MathUtils.h"
 
 namespace Nawia::Core {
 
     Engine::Engine() : _is_running(false), _window(nullptr), _renderer(nullptr) {
         // init SDL
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        if (!SDL_Init(SDL_INIT_VIDEO)) {
             std::cerr << SDL_GetError() << std::endl;
             return;
         }
 
         // create window and renderer
-        if (SDL_CreateWindowAndRenderer(
+        if (!SDL_CreateWindowAndRenderer(
             "Nawia",
             WINDOW_WIDTH,
             WINDOW_HEIGHT,
             SDL_WINDOW_RESIZABLE,
             &_window,
             &_renderer
-        ) < 0) {
+        )) {
             std::cerr << "Error while creating window" << SDL_GetError() << std::endl;
             SDL_Quit();
             return;
@@ -33,7 +34,7 @@ namespace Nawia::Core {
 
         // player
         auto playerTexture = _resourceManager.getTexture("../assets/textures/player.png", _renderer);
-
+        
         _player = std::make_unique<Entity::Player>(5.0f, 5.0f, playerTexture);
 
         // clock
@@ -112,18 +113,11 @@ namespace Nawia::Core {
     void Engine::handleMouseClick(float mouseX, float mouseY) {
         if (!_player) return;
 
-        float adjX = mouseX - 500.0f;
-        float adjY = mouseY - 0.0f;
-
-        float halfW = 64.0f;
-        float halfH = 32.0f;
-
-        float worldY = (adjY / halfH - adjX / halfW) / 2.0f;
-        float worldX = (adjY / halfH + adjX / halfW) / 2.0f;
+        Point2D pos = Point2D::screenToIso(mouseX, mouseY);
 
         // DEBUG
-        std::cout << "[DEBUG] Klik: " << worldX << ", " << worldY << std::endl;
-        _player->moveTo(worldX, worldY);
+        std::cout << "[DEBUG] Klik: " << pos.getX() << ", " << pos.getY() << std::endl;
+        _player->moveTo(pos.getX(), pos.getY());
     }
 
 }; // namespace Nawia::Core

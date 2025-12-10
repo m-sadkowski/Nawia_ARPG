@@ -18,19 +18,19 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		float dx = _targetX - _x;
-		float dy = _targetY - _y;
+		float dx = _targetX - _pos->getX();
+		float dy = _targetY - _pos->getY();
 
 		float distance = std::sqrt(dx * dx + dy * dy);
 
 		if (distance < 0.1f) {
-			_x = _targetX;
-			_y = _targetY;
+			_pos->setX(_targetX);
+			_pos->setY(_targetY);
 			_isMoving = false;
 		}
 		else {
-			_x += (dx / distance) * _speed * deltaTime;
-			_y += (dy / distance) * _speed * deltaTime;
+			_pos->setX(_pos->getX() + (dx / distance) * _speed * deltaTime);
+			_pos->setY(_pos->getY() + (dy / distance) * _speed * deltaTime);
  		}
 	}
 

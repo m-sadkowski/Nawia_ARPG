@@ -4,7 +4,8 @@
 #include <iostream>
 #include <string>
 #include <ResourceManager.h>
-#include <Map.h>
+#include <MathUtils.h>
+
 
 namespace Nawia::Entity {
 
@@ -13,24 +14,23 @@ namespace Nawia::Entity {
 
 	class Entity {
 	public:
-		Entity(float x, float y, std::shared_ptr<SDL_Texture> texture)
-			: _x(x), _y(y), _texture(texture) {}
+		Entity(float startX, float startY, std::shared_ptr<SDL_Texture> texture)
+			: _texture(texture) {
+			_pos = std::make_unique<Core::Point2D>(startX, startY);
+		}
 
 		virtual ~Entity() = default;
 
 		virtual void update(float deltaTime) = 0;
 
 		virtual void render(SDL_Renderer* renderer, float offsetX, float offsetY);
-
-		float getX() const { return _x; }
-		float getY() const { return _y; }
-
 	protected:
-		// position in game
-		float _x, _y;
+		// position in game - uses Point2D
+		// while creating an entity, pass (x, y)
+		// and it will be converted to a Point2D assigned to said entity
+		// to get/set values use _pos->getX/Y or _pos->setX/Y
+		std::unique_ptr<Core::Point2D> _pos;
 		std::shared_ptr<SDL_Texture> _texture;
-
-
 	};
 
 }

@@ -1,19 +1,15 @@
-#include "Map.h"
+#include "MathUtils.h"
 
 namespace Nawia::Core {
-	struct Point2D {
-		float x, y;
-	};
-
-	Point2D ScreenToIso(float mouseX, float mouseY, float offsetX, float offsetY) {
-		float adjX = mouseX - offsetX;
-		float adjY = mouseY - offsetY;
+	Point2D Point2D::screenToIso(float mouseX, float mouseY) {
+		float adjX = mouseX - MAP_OFFSET_X;
+		float adjY = mouseY - MAP_OFFSET_Y;
 
 		float halfW = TILE_WIDTH / 2.0f;
 		float halfH = TILE_HEIGHT / 2.0f;
 		
-		float isoY = (adjY / halfH + adjX / halfW) / 2.0f;
-		float isoX = (adjY / halfH - adjX / halfW) / 2.0f;
+		float isoY = (adjY / halfH - adjX / halfW) / 2.0f;
+		float isoX = (adjY / halfH + adjX / halfW) / 2.0f;
 
 		return { isoX, isoY };
 	}
