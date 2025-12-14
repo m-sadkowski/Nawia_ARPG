@@ -176,6 +176,7 @@ xcopy /y /d "$(SolutionDir)external\SDL3_mixer\bin\*.dll" "$(OutDir)"</Command>
     <None Include="core\system\time\Time" />
     <None Include="entity\components\Components" />
     <None Include="entity\systems\Systems" />
+    <None Include="README.md" />
     <None Include="ui\hud\Hud" />
     <None Include="ui\menu\Menu" />
     <None Include="ui\Ui" />

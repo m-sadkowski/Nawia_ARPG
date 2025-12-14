@@ -48,7 +48,14 @@ namespace Nawia::Core {
 				std::string _raw_path = _tile_def["image"];
 				std::string _filename = std::filesystem::path(_raw_path).filename().string();
 
-				// properties
+				/*
+				 * PROPERTIES
+				 * 
+				 * Addding a new property:
+				 * - create a temporary variable
+				 * - in for loop get the desired variable
+				 * - add it to _tiles.emplace_back
+				 */
 				bool _walkable = true;
 				if (_tile_def.contains("properties")) {
 					for (const auto& prop : _tile_def["properties"]) {
@@ -57,9 +64,22 @@ namespace Nawia::Core {
 						}
 					}
 				}
+				/*
+				 * END OF PROPERTIES
+				 */
 
 				// load into vector
-				_tiles.emplace_back(0, _resource_manager.getTexture("../assets/textures/" + _filename, _renderer), _walkable);
+				_tiles.emplace_back(0, _resource_manager.getTexture("../assets/textures/" + _filename, _renderer));
+
+				/*
+				 * SETTING PROPERTIES
+				 */
+
+				_tiles.back().setIsWalkable(_walkable);
+
+				/*
+				 * END OF SETTING PROPERTIES
+				 */
 			}
 		}
 		return true;

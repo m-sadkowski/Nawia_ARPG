@@ -173,3 +173,11 @@
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
