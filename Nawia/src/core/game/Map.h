@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <json.hpp>
 
 namespace Nawia::Core {
 
@@ -17,8 +19,9 @@ namespace Nawia::Core {
 
 	class Map {
 	public:
-		Map(SDL_Renderer* renderer, ResourceManager& resource_manager) : _renderer(renderer), _resource_manager(resource_manager) {}
+		Map(SDL_Renderer* renderer, ResourceManager& resource_manager);
 
+		bool loadTiles();
 		void loadMap(const std::string& filename);
 		void loadTestMap();
 		void render();
@@ -28,6 +31,8 @@ namespace Nawia::Core {
 	private:
 		SDL_Renderer* _renderer;
 		ResourceManager& _resource_manager;
+
+		std::vector<Tile> _tiles;
 		std::vector<std::vector<Tile>> _grid;
 	};
 

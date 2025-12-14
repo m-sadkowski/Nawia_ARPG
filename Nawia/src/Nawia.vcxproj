@@ -77,7 +77,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\SDL3\include;$(SolutionDir)external\SDL3_image\include;$(SolutionDir)external\SDL3_mixer\include;$(ProjectDir)audio;$(ProjectDir)core;$(ProjectDir)core\game;$(ProjectDir)core\util;$(ProjectDir)core\system;$(ProjectDir)core\system\input;$(ProjectDir)core\system\time;$(ProjectDir)core\system\renderer;$(ProjectDir)entity;$(ProjectDir)entity\actors;$(ProjectDir)entity\components;$(ProjectDir)entity\systems;$(ProjectDir)world;$(ProjectDir)world\map;$(ProjectDir)world\level;$(ProjectDir)ui;$(ProjectDir)ui\hud;$(ProjectDir)ui\menu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\json;$(SolutionDir)external\SDL3\include;$(SolutionDir)external\SDL3_image\include;$(SolutionDir)external\SDL3_mixer\include;$(ProjectDir)audio;$(ProjectDir)core;$(ProjectDir)core\game;$(ProjectDir)core\util;$(ProjectDir)core\system;$(ProjectDir)core\system\input;$(ProjectDir)core\system\time;$(ProjectDir)core\system\renderer;$(ProjectDir)entity;$(ProjectDir)entity\actors;$(ProjectDir)entity\components;$(ProjectDir)entity\systems;$(ProjectDir)world;$(ProjectDir)world\map;$(ProjectDir)world\level;$(ProjectDir)ui;$(ProjectDir)ui\hud;$(ProjectDir)ui\menu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -100,7 +100,7 @@ xcopy /y /d "$(SolutionDir)external\SDL3_mixer\bin\*.dll" "$(OutDir)"</Command>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\SDL3\include;$(SolutionDir)external\SDL3_image\include;$(SolutionDir)external\SDL3_mixer\include;$(ProjectDir)audio;$(ProjectDir)core;$(ProjectDir)core\game;$(ProjectDir)core\util;$(ProjectDir)core\system;$(ProjectDir)core\system\input;$(ProjectDir)core\system\time;$(ProjectDir)core\system\renderer;$(ProjectDir)entity;$(ProjectDir)entity\actors;$(ProjectDir)entity\components;$(ProjectDir)entity\systems;$(ProjectDir)world;$(ProjectDir)world\map;$(ProjectDir)world\level;$(ProjectDir)ui;$(ProjectDir)ui\hud;$(ProjectDir)ui\menu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\json;$(SolutionDir)external\SDL3\include;$(SolutionDir)external\SDL3_image\include;$(SolutionDir)external\SDL3_mixer\include;$(ProjectDir)audio;$(ProjectDir)core;$(ProjectDir)core\game;$(ProjectDir)core\util;$(ProjectDir)core\system;$(ProjectDir)core\system\input;$(ProjectDir)core\system\time;$(ProjectDir)core\system\renderer;$(ProjectDir)entity;$(ProjectDir)entity\actors;$(ProjectDir)entity\components;$(ProjectDir)entity\systems;$(ProjectDir)world;$(ProjectDir)world\map;$(ProjectDir)world\level;$(ProjectDir)ui;$(ProjectDir)ui\hud;$(ProjectDir)ui\menu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,7 +121,7 @@ xcopy /y /d "$(SolutionDir)external\SDL3_mixer\bin\*.dll" "$(OutDir)"</Command>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\SDL3\include;$(SolutionDir)external\SDL3_image\include;$(SolutionDir)external\SDL3_mixer\include;$(ProjectDir)audio;$(ProjectDir)core;$(ProjectDir)core\game;$(ProjectDir)core\util;$(ProjectDir)core\system;$(ProjectDir)core\system\input;$(ProjectDir)core\system\time;$(ProjectDir)core\system\renderer;$(ProjectDir)entity;$(ProjectDir)entity\actors;$(ProjectDir)entity\components;$(ProjectDir)entity\systems;$(ProjectDir)world;$(ProjectDir)world\map;$(ProjectDir)world\level;$(ProjectDir)ui;$(ProjectDir)ui\hud;$(ProjectDir)ui\menu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\json;$(SolutionDir)external\SDL3\include;$(SolutionDir)external\SDL3_image\include;$(SolutionDir)external\SDL3_mixer\include;$(ProjectDir)audio;$(ProjectDir)core;$(ProjectDir)core\game;$(ProjectDir)core\util;$(ProjectDir)core\system;$(ProjectDir)core\system\input;$(ProjectDir)core\system\time;$(ProjectDir)core\system\renderer;$(ProjectDir)entity;$(ProjectDir)entity\actors;$(ProjectDir)entity\components;$(ProjectDir)entity\systems;$(ProjectDir)world;$(ProjectDir)world\map;$(ProjectDir)world\level;$(ProjectDir)ui;$(ProjectDir)ui\hud;$(ProjectDir)ui\menu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,7 +144,7 @@ xcopy /y /d "$(SolutionDir)external\SDL3_mixer\bin\*.dll" "$(OutDir)"</Command>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\SDL3\include;$(SolutionDir)external\SDL3_image\include;$(SolutionDir)external\SDL3_mixer\include;$(ProjectDir)audio;$(ProjectDir)core;$(ProjectDir)core\game;$(ProjectDir)core\util;$(ProjectDir)core\system;$(ProjectDir)core\system\input;$(ProjectDir)core\system\time;$(ProjectDir)core\system\renderer;$(ProjectDir)entity;$(ProjectDir)entity\actors;$(ProjectDir)entity\components;$(ProjectDir)entity\systems;$(ProjectDir)world;$(ProjectDir)world\map;$(ProjectDir)world\level;$(ProjectDir)ui;$(ProjectDir)ui\hud;$(ProjectDir)ui\menu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\json;$(SolutionDir)external\SDL3\include;$(SolutionDir)external\SDL3_image\include;$(SolutionDir)external\SDL3_mixer\include;$(ProjectDir)audio;$(ProjectDir)core;$(ProjectDir)core\game;$(ProjectDir)core\util;$(ProjectDir)core\system;$(ProjectDir)core\system\input;$(ProjectDir)core\system\time;$(ProjectDir)core\system\renderer;$(ProjectDir)entity;$(ProjectDir)entity\actors;$(ProjectDir)entity\components;$(ProjectDir)entity\systems;$(ProjectDir)world;$(ProjectDir)world\map;$(ProjectDir)world\level;$(ProjectDir)ui;$(ProjectDir)ui\hud;$(ProjectDir)ui\menu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

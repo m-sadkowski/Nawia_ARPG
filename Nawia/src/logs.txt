@@ -20,3 +20,29 @@
 [DEBUG] Mouse click: 7.390625, 5.171875
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[ERROR] Resource Manager - could not open file: ../assets/textures/stone.png
+[ERROR] SDL: Couldn't open ../assets/textures/stone.png: Nie można odnaleźć określonego pliku.
+[ERROR] Resource Manager - could not open file: ../assets/textures/water.png
+[ERROR] SDL: Couldn't open ../assets/textures/water.png: Nie można odnaleźć określonego pliku.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 6.242188, 3.664062
+[DEBUG] Mouse click: 4.117188, 5.601562
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[ERROR] Resource Manager - could not open file: ../assets/textures/stone.png
+[ERROR] SDL: Couldn't open ../assets/textures/stone.png: Nie można odnaleźć określonego pliku.
+[ERROR] Resource Manager - could not open file: ../assets/textures/water.png
+[ERROR] SDL: Couldn't open ../assets/textures/water.png: Nie można odnaleźć określonego pliku.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
