@@ -183,7 +183,9 @@ xcopy /y /d "$(SolutionDir)external\SDL3_mixer\bin\*.dll" "$(OutDir)"</Command>
     <None Include="world\World" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="core\Constants.h" />
     <ClInclude Include="core\Engine.h" />
+    <ClInclude Include="core\game\Camera.h" />
     <ClInclude Include="core\game\Map.h" />
     <ClInclude Include="core\game\Tile.h" />
     <ClInclude Include="core\util\Logger.h" />

@@ -76,6 +76,8 @@ namespace Nawia::Core {
     void Engine::update(const float delta_time) {
         if (_player) {
             _player->update(delta_time);
+
+            _camera.follow(_player.get());
         }
     }
 
@@ -88,11 +90,11 @@ namespace Nawia::Core {
         */
 
         if (_map) {
-            _map->render();
+            _map->render(_camera._x, _camera._y);
         }
 
         if (_player) {
-            _player->render(_renderer, 500.0f, 0.0f);
+            _player->render(_renderer, _camera._x, _camera._y);
         }
 
         /*
@@ -106,7 +108,7 @@ namespace Nawia::Core {
         if (!_player)
             return;
 
-        Point2D pos = Point2D::screenToIso(mouse_x, mouse_y);
+        Point2D pos = Point2D::screenToIso(mouse_x, mouse_y, _camera._x, _camera._y);
         Logger::debugLog("Mouse click: " + std::to_string(pos.getX()) + ", " + std::to_string(pos.getY()));
 
         _player->moveTo(pos.getX(), pos.getY());

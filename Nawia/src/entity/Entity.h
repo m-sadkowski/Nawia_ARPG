@@ -1,14 +1,12 @@
 #pragma once
-#include <MathUtils.h>
+#include "MathUtils.h"
+#include "Constants.h"
 
 #include <SDL3/SDL.h>
 #include <memory>
 #include <iostream>
 
 namespace Nawia::Entity {
-
-	constexpr int ENTITY_TEXTURE_WIDTH = 128;
-	constexpr int ENTITY_TEXTURE_HEIGHT = 64;
 
 	class Entity {
 	public:
@@ -17,6 +15,9 @@ namespace Nawia::Entity {
 
 		virtual void update(float delta_time) = 0;
 		virtual void render(SDL_Renderer* renderer, float offset_x, float offset_y);
+
+		float getX() { return _pos->getX(); }
+		float getY() { return _pos->getY(); }
 
 	protected:
 		// position in game - uses Point2D

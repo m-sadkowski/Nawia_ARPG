@@ -1,6 +1,7 @@
 #pragma once
 #include "ResourceManager.h"
 #include "Tile.h"
+#include "Constants.h"
 
 #include <SDL3/SDL.h>
 #include <vector>
@@ -9,12 +10,6 @@
 
 namespace Nawia::Core {
 
-	constexpr int TILE_WIDTH = 128;
-	constexpr int TILE_HEIGHT = 64;
-
-	constexpr float MAP_OFFSET_X = 500.0f;
-	constexpr float MAP_OFFSET_Y = 0.0f;
-
 	class Map {
 	public:
 		Map(SDL_Renderer* renderer, ResourceManager& resource_manager);
@@ -22,7 +17,7 @@ namespace Nawia::Core {
 		bool loadTiles();
 		void loadMap(const std::string& filename);
 		void loadTestMap();
-		void render();
+		void render(float offsetX, float offsetY);
 
 		[[nodiscard]] bool isWalkable(int grid_x, int grid_y) const;
 
