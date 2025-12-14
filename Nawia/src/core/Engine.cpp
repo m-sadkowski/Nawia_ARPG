@@ -24,7 +24,7 @@ namespace Nawia::Core {
         _map = std::make_unique<Map>(_renderer, _resource_manager);
 
         // REMOVE - load test map
-        _map->loadTestMap();
+        _map->loadMap("map1.json");
 
         // player
         auto player_texture = _resource_manager.getTexture("../assets/textures/player.png", _renderer);

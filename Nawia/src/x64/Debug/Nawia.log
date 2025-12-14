@@ -1,5 +1,6 @@
 ﻿  Map.cpp
-C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\core\game\Map.cpp(33,35): warning C4101: "e": lokalna zmienna, do której nie istnieje odwołanie
+C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\core\game\Map.cpp(37,35): warning C4101: "e": lokalna zmienna, do której nie istnieje odwołanie
+C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\src\core\game\Map.cpp(80,31): warning C4101: "e": lokalna zmienna, do której nie istnieje odwołanie
   Nawia.vcxproj -> C:\Users\dawid\Desktop\Nawia_ARPG\Nawia\x64\Debug\Nawia.exe
   0 File(s) copied
   0 File(s) copied

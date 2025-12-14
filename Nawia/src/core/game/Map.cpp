@@ -1,6 +1,10 @@
 #include "Map.h"
-
 #include "Logger.h"
+
+#include <iostream>
+#include <fstream>
+#include <limits>
+#include <algorithm>
 
 using json = nlohmann::json;
 
@@ -62,7 +66,96 @@ namespace Nawia::Core {
 	}
 
 	void Map::loadMap(const std::string& filename) {
-		// std::ifstream file(filename);
+		std::ifstream file("../assets/maps/" + filename);
+		if (!file.is_open())
+		{
+			Logger::errorLog("Load Map - Couldn't open file " + filename);
+			return;
+		}
+
+		json _map_data;
+		try
+		{
+			file >> _map_data;
+		} catch (json::parse_error& e)
+		{
+			Logger::errorLog("Load Map - Couldn't parse file " + filename);
+		}
+
+		int _min_x = std::numeric_limits<int>::max();
+		int _min_y = std::numeric_limits<int>::max();
+		int _max_x = std::numeric_limits<int>::lowest();
+		int _max_y = std::numeric_limits<int>::lowest();
+
+		auto& _layers = _map_data["layers"];
+		for (const auto& _layer : _layers)
+		{
+			if (_layer["type"] == "tilelayer" && _layer.contains("chunks"))
+			{
+				for (const auto& _chunk : _layer["chunks"])
+				{
+					int _cx = _chunk["x"];
+					int _cy = _chunk["y"];
+					int _cw = _chunk["width"];
+					int _ch = _chunk["height"];
+
+					if (_cx < _min_x) _min_x = _cx;
+					if (_cy < _min_y) _min_y = _cy;
+					if (_cx + _cw > _max_x) _max_x = _cx + _cw;
+					if (_cy + _ch > _max_y) _max_y = _cy + _ch;
+				}
+			}
+		}
+
+		// if map empty, return
+		if (_min_x == std::numeric_limits<int>::max()) return;
+
+		int _total_width = _max_x - _min_x;
+		int _total_height = _max_y - _min_y;
+
+		// resize grid
+		_grid.clear();
+		_grid.resize(_total_height, std::vector<Tile>(_total_width, Tile()));
+
+		int _first_gid = _map_data["tilesets"][0]["firstgid"];
+
+		for (const auto& _layer : _layers)
+		{
+			if (_layer["type"] == "tilelayer" && _layer.contains("chunks"))
+			{
+				for (const auto& _chunk : _layer["chunks"])
+				{
+					int _chunk_x = _chunk["x"];
+					int _chunk_y = _chunk["y"];
+					int _width = _chunk["width"];
+					int _height = _chunk["height"];
+					const auto& _data = _chunk["data"];
+
+					int _data_index = 0;
+					for (int y = 0; y < _height; ++y)
+					{
+						for (int x = 0; x < _width; ++x)
+						{
+							int _gid = _data[_data_index];
+							_data_index++;
+
+							if (_gid > 0)
+							{
+								int _tile_id = _gid - _first_gid;
+
+								if (_tile_id >= 0 && _tile_id < _tiles.size())
+								{
+									int _grid_x = (_chunk_x + x) - _min_x;
+									int _grid_y = (_chunk_y + y) - _min_y;
+
+									_grid[_grid_y][_grid_x] = _tiles[_tile_id];
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	// REMOVE - load test map

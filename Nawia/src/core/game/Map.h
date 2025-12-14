@@ -5,8 +5,6 @@
 #include <SDL3/SDL.h>
 #include <vector>
 #include <string>
-#include <iostream>
-#include <fstream>
 #include <json.hpp>
 
 namespace Nawia::Core {
