@@ -7,10 +7,27 @@ namespace Nawia::Core {
 	struct Tile {
 		int type_id;
 		std::shared_ptr<SDL_Texture> texture;
+
+		/*
+		 * PROPERTIES
+		 */
+
 		bool is_walkable;
 
-		Tile(int id, const std::shared_ptr<SDL_Texture>& tex, const bool walkable = true) : type_id(id), texture(tex), is_walkable(walkable) {}
+		/*
+		 * END OF PROPERTIES
+		 */
+
+		Tile(int id, const std::shared_ptr<SDL_Texture>& tex) : type_id(id), texture(tex) {}
 		Tile() : type_id(-1), is_walkable(false) {}
+
+		/*
+		 * PROPERTIES SETTERS
+		 */
+		void setIsWalkable(bool isWalkable) { is_walkable = true; }
+		/*
+		 * END OF PROPERTIES SETTERS
+		 */
 	};
 
 } // namespace Nawia::Core

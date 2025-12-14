@@ -1,9 +1,181 @@
 #include "Map.h"
+#include "Logger.h"
+
+#include <iostream>
+#include <fstream>
+#include <limits>
+#include <algorithm>
+
+using json = nlohmann::json;
 
 namespace Nawia::Core {
 
+	Map::Map(SDL_Renderer* renderer, ResourceManager& resource_manager) 
+		: _renderer(renderer), _resource_manager(resource_manager) {
+	
+		if (!loadTiles()) {
+			Logger::errorLog("Map - Couldn't load tiles from file.");
+		}
+
+	}
+
+	/*
+		LOADS ALL TILES INTO _tiles
+		Always save tile file into /assets/maps/tiles.json
+	*/
+	bool Map::loadTiles() {
+		std::ifstream file("../assets/maps/tiles.json");
+		if (!file.is_open()) {
+			Logger::errorLog("Load Tiles - Couldn't open file /assets/maps/tiles.json");
+			return false;
+		}
+
+		json _tiles_data;
+		try {
+			file >> _tiles_data;
+		}
+		catch (const json::parse_error& e) {
+			Logger::errorLog("Load Tiles - Couldn't parse json file");
+			return false;
+		}
+
+		// load tiles from json file
+		if (_tiles_data.contains("tiles")) {
+			for (const auto& _tile_def : _tiles_data["tiles"]) {
+				int _id = _tile_def["id"];
+
+				// filename
+				std::string _raw_path = _tile_def["image"];
+				std::string _filename = std::filesystem::path(_raw_path).filename().string();
+
+				/*
+				 * PROPERTIES
+				 * 
+				 * Addding a new property:
+				 * - create a temporary variable
+				 * - in for loop get the desired variable
+				 * - add it to _tiles.emplace_back
+				 */
+				bool _walkable = true;
+				if (_tile_def.contains("properties")) {
+					for (const auto& prop : _tile_def["properties"]) {
+						if (prop["name"] == "isWalkable") {
+							_walkable = prop["value"];
+						}
+					}
+				}
+				/*
+				 * END OF PROPERTIES
+				 */
+
+				// load into vector
+				_tiles.emplace_back(0, _resource_manager.getTexture("../assets/textures/" + _filename, _renderer));
+
+				/*
+				 * SETTING PROPERTIES
+				 */
+
+				_tiles.back().setIsWalkable(_walkable);
+
+				/*
+				 * END OF SETTING PROPERTIES
+				 */
+			}
+		}
+		return true;
+	}
+
 	void Map::loadMap(const std::string& filename) {
-		// std::ifstream file(filename);
+		std::ifstream file("../assets/maps/" + filename);
+		if (!file.is_open())
+		{
+			Logger::errorLog("Load Map - Couldn't open file " + filename);
+			return;
+		}
+
+		json _map_data;
+		try
+		{
+			file >> _map_data;
+		} catch (json::parse_error& e)
+		{
+			Logger::errorLog("Load Map - Couldn't parse file " + filename);
+		}
+
+		int _min_x = std::numeric_limits<int>::max();
+		int _min_y = std::numeric_limits<int>::max();
+		int _max_x = std::numeric_limits<int>::lowest();
+		int _max_y = std::numeric_limits<int>::lowest();
+
+		auto& _layers = _map_data["layers"];
+		for (const auto& _layer : _layers)
+		{
+			if (_layer["type"] == "tilelayer" && _layer.contains("chunks"))
+			{
+				for (const auto& _chunk : _layer["chunks"])
+				{
+					int _cx = _chunk["x"];
+					int _cy = _chunk["y"];
+					int _cw = _chunk["width"];
+					int _ch = _chunk["height"];
+
+					if (_cx < _min_x) _min_x = _cx;
+					if (_cy < _min_y) _min_y = _cy;
+					if (_cx + _cw > _max_x) _max_x = _cx + _cw;
+					if (_cy + _ch > _max_y) _max_y = _cy + _ch;
+				}
+			}
+		}
+
+		// if map empty, return
+		if (_min_x == std::numeric_limits<int>::max()) return;
+
+		int _total_width = _max_x - _min_x;
+		int _total_height = _max_y - _min_y;
+
+		// resize grid
+		_grid.clear();
+		_grid.resize(_total_height, std::vector<Tile>(_total_width, Tile()));
+
+		int _first_gid = _map_data["tilesets"][0]["firstgid"];
+
+		for (const auto& _layer : _layers)
+		{
+			if (_layer["type"] == "tilelayer" && _layer.contains("chunks"))
+			{
+				for (const auto& _chunk : _layer["chunks"])
+				{
+					int _chunk_x = _chunk["x"];
+					int _chunk_y = _chunk["y"];
+					int _width = _chunk["width"];
+					int _height = _chunk["height"];
+					const auto& _data = _chunk["data"];
+
+					int _data_index = 0;
+					for (int y = 0; y < _height; ++y)
+					{
+						for (int x = 0; x < _width; ++x)
+						{
+							int _gid = _data[_data_index];
+							_data_index++;
+
+							if (_gid > 0)
+							{
+								int _tile_id = _gid - _first_gid;
+
+								if (_tile_id >= 0 && _tile_id < _tiles.size())
+								{
+									int _grid_x = (_chunk_x + x) - _min_x;
+									int _grid_y = (_chunk_y + y) - _min_y;
+
+									_grid[_grid_y][_grid_x] = _tiles[_tile_id];
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	// REMOVE - load test map
@@ -14,17 +186,14 @@ namespace Nawia::Core {
 		for (int y = 0; y < size; ++y) {
 			std::vector<Tile> row;
 			for (int x = 0; x < size; ++x) {
-				int id;
-				if (x == 0 || y == 0 || x == size - 1 || y == size - 1) id = 0;
-				else if (x == 5 && y == 5) id = 0;
-
-				row.emplace_back(0, _resource_manager.getTexture("../assets/textures/grass.png", _renderer), true);
+				Tile t = _tiles[0];
+				row.push_back(t);
 			}
 			_grid.push_back(row);
 		}
 	}
 
-	void Map::render() {
+	void Map::render(float offsetX, float offsetY) {
 		/*
 			Render map on OFFSET (x+400, y)
 
@@ -38,8 +207,8 @@ namespace Nawia::Core {
 				Tile& tile = _grid[y][x];
 
 				if (tile.texture) {
-					const float iso_x = static_cast<float>(x - y) * (TILE_WIDTH / 2.0f) + 500;
-					const float iso_y = static_cast<float>(x + y) * (TILE_HEIGHT / 2.0f);
+					const float iso_x = static_cast<float>(x - y) * (TILE_WIDTH / 2.0f) + offsetX;
+					const float iso_y = static_cast<float>(x + y) * (TILE_HEIGHT / 2.0f) + offsetY;
 
 					SDL_FRect dest_rect = { iso_x, iso_y, static_cast<float>(TILE_WIDTH), static_cast<float>(TILE_HEIGHT) };
 					SDL_RenderTexture(_renderer, tile.texture.get(), nullptr, &dest_rect);

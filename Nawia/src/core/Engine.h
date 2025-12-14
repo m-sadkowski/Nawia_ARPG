@@ -1,15 +1,14 @@
 #pragma once
 #include "ResourceManager.h"
 #include "Map.h"
+#include "Camera.h"
+#include "Constants.h"
 
 #include <Player.h>
 
 #include <SDL3/SDL.h>
 
 namespace Nawia::Core {
-
-    constexpr int WINDOW_WIDTH = 1280;
-    constexpr int WINDOW_HEIGHT = 720;
 
     class Engine {
     public:
@@ -35,6 +34,8 @@ namespace Nawia::Core {
         std::unique_ptr<Map> _map;
         std::unique_ptr<Entity::Player> _player;
         uint64_t _last_time;
+
+        Camera _camera;
     };
 
 } // namespace Nawia::Core

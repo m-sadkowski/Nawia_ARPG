@@ -22,10 +22,10 @@ namespace Nawia::Entity {
 
 		// offset so the players FEET (BOTTOM OF THE TEXTURE)
 		// is rendered exactly where the position is (_x, _y)
-		screen_x += (Core::TILE_WIDTH / 2.0f) - (ENTITY_TEXTURE_WIDTH);
-		screen_y += (ENTITY_TEXTURE_HEIGHT / 2.0f - Core::TILE_HEIGHT * 1.5f);
+		screen_x += (Core::TILE_WIDTH / 2.0f) - (Core::ENTITY_TEXTURE_WIDTH);
+		screen_y += (Core::ENTITY_TEXTURE_HEIGHT / 2.0f - Core::TILE_HEIGHT * 1.5f);
 
-		const SDL_FRect dest_rect = { screen_x, screen_y, ENTITY_TEXTURE_WIDTH, ENTITY_TEXTURE_HEIGHT };
+		const SDL_FRect dest_rect = { screen_x, screen_y, Core::ENTITY_TEXTURE_WIDTH, Core::ENTITY_TEXTURE_HEIGHT };
 		SDL_RenderTexture(renderer, _texture.get(), nullptr, &dest_rect);
 	}
 

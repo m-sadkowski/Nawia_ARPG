@@ -20,3 +20,164 @@
 [DEBUG] Mouse click: 7.390625, 5.171875
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[ERROR] Resource Manager - could not open file: ../assets/textures/stone.png
+[ERROR] SDL: Couldn't open ../assets/textures/stone.png: Nie można odnaleźć określonego pliku.
+[ERROR] Resource Manager - could not open file: ../assets/textures/water.png
+[ERROR] SDL: Couldn't open ../assets/textures/water.png: Nie można odnaleźć określonego pliku.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 6.242188, 3.664062
+[DEBUG] Mouse click: 4.117188, 5.601562
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[ERROR] Resource Manager - could not open file: ../assets/textures/stone.png
+[ERROR] SDL: Couldn't open ../assets/textures/stone.png: Nie można odnaleźć określonego pliku.
+[ERROR] Resource Manager - could not open file: ../assets/textures/water.png
+[ERROR] SDL: Couldn't open ../assets/textures/water.png: Nie można odnaleźć określonego pliku.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[ERROR] Load Map - Couldn't open file map1.json
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 7.703125, 10.609375
+[DEBUG] Mouse click: 8.250000, 12.468750
+[DEBUG] Mouse click: 8.296875, 13.265625
+[DEBUG] Mouse click: 7.890625, 14.046875
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 6.414062, 10.460938
+[DEBUG] Mouse click: 7.931526, 11.956291
+[DEBUG] Mouse click: 8.842857, 12.881989
+[DEBUG] Mouse click: 10.190758, 13.474773
+[DEBUG] Mouse click: 10.726736, 13.460112
+[DEBUG] Mouse click: 10.870449, 13.807316
+[DEBUG] Mouse click: 10.763515, 13.979315
+[DEBUG] Mouse click: 11.313442, 14.763983
+[DEBUG] Mouse click: 11.260748, 15.663538
+[DEBUG] Mouse click: 10.346685, 15.765100
+[DEBUG] Mouse click: 10.760748, 16.788538
+[DEBUG] Mouse click: 12.604498, 17.601038
+[DEBUG] Mouse click: 13.864559, 17.236155
+[DEBUG] Mouse click: 13.540157, 15.640297
+[DEBUG] Mouse click: 12.278137, 14.340897
+[DEBUG] Mouse click: 13.862889, 14.194161
+[DEBUG] Mouse click: 15.579084, 13.885069
+[DEBUG] Mouse click: 17.100016, 13.718069
+[DEBUG] Mouse click: 18.376522, 14.578613
+[DEBUG] Mouse click: 19.306210, 17.180176
+[DEBUG] Mouse click: 20.057026, 19.401421
+[DEBUG] Mouse click: 19.021156, 20.018059
+[DEBUG] Mouse click: 17.210266, 20.853462
+[DEBUG] Mouse click: 15.495400, 20.802017
+[DEBUG] Mouse click: 14.481776, 19.886639
+[DEBUG] Mouse click: 13.668697, 19.538250
+[DEBUG] Mouse click: 14.293697, 15.569500
+[DEBUG] Mouse click: 12.248245, 15.863508
+[DEBUG] Mouse click: 10.670313, 16.154165
+[DEBUG] Mouse click: 10.824465, 16.593260
+[DEBUG] Mouse click: 13.230715, 16.624510
+[DEBUG] Mouse click: 14.651096, 16.892262
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 7.117188, 9.632812
+[DEBUG] Mouse click: 7.862794, 11.800646
+[DEBUG] Mouse click: 8.739763, 13.292501
+[DEBUG] Mouse click: 9.397081, 13.702663
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 6.015625, 11.234375
+[DEBUG] Mouse click: 6.743078, 12.985689
+[DEBUG] Mouse click: 7.882132, 14.324827
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 7.867188, 12.257812
+[DEBUG] Mouse click: 8.096905, 13.898449
+[DEBUG] Mouse click: 7.974090, 13.750378
+[DEBUG] Mouse click: 12.906700, 15.417723
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 6.523438, 8.914062
+[DEBUG] Mouse click: 7.682960, 11.021827
+[DEBUG] Mouse click: 10.261085, 13.006202
+[DEBUG] Mouse click: 11.714210, 14.365577
+[DEBUG] Mouse click: 13.472022, 15.764014
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 7.765625, 9.609375
+[DEBUG] Mouse click: 8.108936, 10.327366
+[DEBUG] Mouse click: 8.574880, 11.086337
+[DEBUG] Mouse click: 11.500112, 13.832503
+[DEBUG] Mouse click: 12.507924, 14.512191
+[DEBUG] Mouse click: 14.046987, 15.066878
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.

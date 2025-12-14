@@ -30,6 +30,7 @@ include_directories(
     external/SDL3/include
     external/SDL3_image/include
     external/SDL3_mixer/include
+    external/json
 )
 
 # Library directories

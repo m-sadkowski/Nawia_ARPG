@@ -131,6 +131,7 @@
     <None Include="world\level\Level">
       <Filter>world\level</Filter>
     </None>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="entity\Entity.h">
@@ -159,6 +160,12 @@
     </ClInclude>
     <ClInclude Include="core\util\Logger.h">
       <Filter>core\util</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\Camera.h">
+      <Filter>core\game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\Constants.h">
+      <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
