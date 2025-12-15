@@ -113,6 +113,17 @@ namespace Nawia::Core {
         Logger::debugLog("Mouse raw: " + std::to_string(mouse_x) + ", " + std::to_string(mouse_y));
         Logger::debugLog("Iso float: " + std::to_string(pos.getX()) + ", " + std::to_string(pos.getY()));
 
+        // DEBUG - REMOVE
+        // check if mouse over works for player
+        bool clicked_player = false;
+        if (_player->isMouseOver(mouse_x, mouse_y, _camera._x, _camera._y))
+        {
+            Logger::debugLog("Player clicked");
+            clicked_player = true;
+        }
+        if (clicked_player) return;
+        // END DEBUG
+
         // point on grid
         int target_x = static_cast<int>(std::floor(pos.getX()));
         int target_y = static_cast<int>(std::floor(pos.getY()));
