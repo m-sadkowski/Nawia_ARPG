@@ -70,6 +70,9 @@
     <Filter Include="entity\actors\enemies">
       <UniqueIdentifier>{58c560d0-1110-4a7a-b3bf-f1491a39d44e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="entity\effects">
+      <UniqueIdentifier>{da5fc254-5007-4b2c-be30-f77823553340}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -99,6 +102,21 @@
     <ClCompile Include="entity\actors\Enemy.cpp">
       <Filter>entity\actors\enemies</Filter>
     </ClCompile>
+    <ClCompile Include="core\system\input\PlayerController.cpp">
+      <Filter>core\system\input</Filter>
+    </ClCompile>
+    <ClCompile Include="entity\effects\Projectile.cpp">
+      <Filter>entity\effects</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\FireballSpell.cpp">
+      <Filter>core\game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\Spell.cpp">
+      <Filter>core\game</Filter>
+    </ClCompile>
+    <ClCompile Include="entity\effects\SpellEffect.cpp">
+      <Filter>entity\effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="audio\Audio">
@@ -109,9 +127,6 @@
     </None>
     <None Include="core\system\System">
       <Filter>core\system</Filter>
-    </None>
-    <None Include="core\system\input\Input">
-      <Filter>core\system\input</Filter>
     </None>
     <None Include="core\system\time\Time">
       <Filter>core\system\renderer</Filter>
@@ -175,6 +190,21 @@
     </ClInclude>
     <ClInclude Include="entity\actors\Enemy.h">
       <Filter>entity\actors\enemies</Filter>
+    </ClInclude>
+    <ClInclude Include="core\system\input\PlayerController.h">
+      <Filter>core\system\input</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\Spell.h">
+      <Filter>core\game</Filter>
+    </ClInclude>
+    <ClInclude Include="entity\effects\SpellEffect.h">
+      <Filter>entity\effects</Filter>
+    </ClInclude>
+    <ClInclude Include="entity\effects\Projectile.h">
+      <Filter>entity\effects</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\FireballSpell.h">
+      <Filter>core\game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
