@@ -4042,3 +4042,248 @@
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;13); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;14); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;7); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (15;8); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (15;9); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (15;10); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (15;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;7); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (16;8); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (16;9); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (16;10); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (16;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;8); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (17;9); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (17;10); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (17;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (18;10); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (18;11); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (18;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;10); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (19;11); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (19;12); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (19;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (20;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (20;12); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (20;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (21;7); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (21;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (21;12); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (21;13); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (21;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (22;8); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (22;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;9); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;10); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;11); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;12); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;13); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;14); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (27;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (17;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (17;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;16); isWalkable=1
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 596.000000, 426.000000
+[DEBUG] Iso float: 10.187500, 11.875000
+[DEBUG] Grid int: 10, 11
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 553.000000, 484.000000
+[DEBUG] Iso float: 10.945312, 14.992188
+[DEBUG] Grid int: 10, 14
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 653.000000, 362.000000
+[DEBUG] Iso float: 10.578125, 15.421875
+[DEBUG] Grid int: 10, 15
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 693.000000, 394.000000
+[DEBUG] Iso float: 11.390625, 15.609375
+[DEBUG] Grid int: 11, 15
+[DEBUG] isWalkable: 1
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.

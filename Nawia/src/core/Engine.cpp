@@ -108,10 +108,12 @@ namespace Nawia::Core {
         if (!_map || !_player)
             return;
 
+        // pos = exact point where user clicked on world
         Point2D pos = Point2D::screenToIso(mouse_x, mouse_y, _camera._x, _camera._y);
         Logger::debugLog("Mouse raw: " + std::to_string(mouse_x) + ", " + std::to_string(mouse_y));
         Logger::debugLog("Iso float: " + std::to_string(pos.getX()) + ", " + std::to_string(pos.getY()));
 
+        // point on grid
         int target_x = static_cast<int>(std::floor(pos.getX()));
         int target_y = static_cast<int>(std::floor(pos.getY()));
 

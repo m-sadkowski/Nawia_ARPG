@@ -221,16 +221,14 @@ namespace Nawia::Core {
 
 	bool Map::isWalkable(int world_x, int world_y) const
 	{
-		int _grid_x = world_x;
-		int _grid_y = world_y;
 
-		if (_grid_y < 0 || _grid_y >= _grid.size()) return false;
-		if (_grid_x < 0 || _grid_x >= _grid[_grid_y].size()) return false;
+		if (world_y < 0 || world_y >= _grid.size()) return false;
+		if (world_x < 0 || world_x >= _grid[world_y].size()) return false;
 
-		Logger::debugLog("Grid int: " + std::to_string(_grid_x) + ", " + std::to_string(_grid_y));
-		Logger::debugLog("isWalkable: " + std::to_string(_grid[_grid_y][_grid_x].is_walkable));
+		Logger::debugLog("Grid int: " + std::to_string(world_x) + ", " + std::to_string(world_y));
+		Logger::debugLog("isWalkable: " + std::to_string(_grid[world_y][world_x].is_walkable));
 
-		return _grid[_grid_y][_grid_x].is_walkable;
+		return _grid[world_y][world_x].is_walkable;
 	}
 
 } // namespace Nawia::Core
