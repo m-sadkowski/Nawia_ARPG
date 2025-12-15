@@ -24,7 +24,7 @@ namespace Nawia::Core {
 		/*
 		 * PROPERTIES SETTERS
 		 */
-		void setIsWalkable(bool isWalkable) { is_walkable = true; }
+		void setIsWalkable(bool isWalkable) { is_walkable = isWalkable; }
 		/*
 		 * END OF PROPERTIES SETTERS
 		 */

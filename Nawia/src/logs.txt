@@ -181,3 +181,4109 @@
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 6.351562, 7.867188
+[DEBUG] Mouse click: 7.395634, 10.871586
+[DEBUG] Mouse click: 7.756295, 13.112011
+[DEBUG] Mouse click: 9.350504, 13.808344
+[DEBUG] Mouse click: 11.449354, 13.658659
+[DEBUG] Mouse click: 11.916132, 13.720175
+[DEBUG] Mouse click: 14.104408, 15.110794
+[DEBUG] Mouse click: 15.271212, 15.694040
+[DEBUG] Mouse click: 15.701503, 17.088718
+[DEBUG] Mouse click: 15.445110, 18.753979
+[DEBUG] Mouse click: 14.838246, 19.918835
+[DEBUG] Mouse click: 15.855541, 19.811981
+[DEBUG] Mouse click: 19.374432, 18.643604
+[DEBUG] Mouse click: 19.064312, 16.927361
+[DEBUG] Mouse click: 16.788929, 15.725720
+[DEBUG] Mouse click: 15.879613, 14.592753
+[DEBUG] Mouse click: 14.172699, 14.462421
+[DEBUG] Mouse click: 13.412571, 15.511345
+[DEBUG] Mouse click: 14.236454, 17.605663
+[DEBUG] Mouse click: 15.999079, 19.127214
+[DEBUG] Mouse click: 17.496025, 19.291306
+[DEBUG] Mouse click: 18.033569, 17.854973
+[DEBUG] Mouse click: 17.262386, 15.537723
+[DEBUG] Mouse click: 15.473324, 18.108036
+[DEBUG] Mouse click: 13.585019, 16.750141
+[DEBUG] Mouse click: 12.762676, 15.724548
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 7.007812, 8.960938
+[DEBUG] Mouse click: 8.001849, 11.008565
+[DEBUG] Mouse click: 8.350476, 12.434747
+[DEBUG] Mouse click: 8.210726, 13.785723
+[DEBUG] Mouse click: 8.020769, 15.043747
+[DEBUG] Mouse click: 7.193651, 15.452684
+[DEBUG] Mouse click: 7.838060, 16.666500
+[DEBUG] Mouse click: 8.114308, 17.648174
+[DEBUG] Mouse click: 8.342175, 17.921291
+[DEBUG] Mouse click: 9.289079, 18.499741
+[DEBUG] Mouse click: 10.794072, 20.208141
+[DEBUG] Mouse click: 11.825387, 21.661415
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 7.578125, 9.109375
+[DEBUG] Mouse click: 8.968750, 10.843750
+[DEBUG] Mouse click: 7.843750, 12.593750
+[DEBUG] Mouse click: 7.406250, 13.437500
+[DEBUG] Mouse click: 6.867188, 13.507812
+[DEBUG] Mouse click: 6.445312, 13.242188
+[DEBUG] Mouse click: 7.484375, 12.828125
+[DEBUG] Mouse click: 8.234375, 11.984375
+[DEBUG] Mouse click: 9.054688, 11.507812
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 10.156250, 11.468750
+[DEBUG] Mouse click: 11.796875, 13.265625
+[DEBUG] Mouse click: 10.218750, 10.812500
+[DEBUG] Mouse click: 10.546875, 11.671875
+[DEBUG] Mouse click: 10.132812, 11.679688
+[DEBUG] Mouse click: 10.429688, 12.132812
+[DEBUG] Mouse click: 10.750000, 12.312500
+[DEBUG] Mouse click: 10.984375, 12.484375
+[DEBUG] Mouse click: 10.507812, 12.710938
+[DEBUG] Mouse click: 11.531250, 13.875000
+[DEBUG] Mouse click: 11.484375, 14.265625
+[DEBUG] Mouse click: 12.085938, 14.414062
+[DEBUG] Mouse click: 12.804688, 14.101562
+[DEBUG] Mouse click: 13.195312, 12.992188
+[DEBUG] Mouse click: 12.986626, 12.126129
+[DEBUG] Mouse click: 12.702945, 11.236144
+[DEBUG] Mouse click: 12.097427, 10.320450
+[DEBUG] Mouse click: 10.633482, 10.356663
+[DEBUG] Mouse click: 11.050552, 11.242325
+[DEBUG] Mouse click: 10.354767, 11.807892
+[DEBUG] Mouse click: 11.370865, 9.828262
+[DEBUG] Mouse click: 12.573990, 8.468887
+[DEBUG] Mouse click: 14.620865, 8.859512
+[DEBUG] Mouse click: 14.128677, 10.757950
+[DEBUG] Mouse click: 12.417740, 12.593887
+[DEBUG] Mouse click: 10.738052, 15.086075
+[DEBUG] Mouse click: 11.753677, 14.851700
+[DEBUG] Mouse click: 10.831802, 15.086075
+[DEBUG] Mouse click: 11.050552, 15.179825
+[DEBUG] Mouse click: 11.441177, 15.226700
+[DEBUG] Mouse click: 11.902115, 16.203262
+[DEBUG] Mouse click: 10.456802, 16.398575
+[DEBUG] Mouse click: 10.425552, 16.398575
+[DEBUG] Mouse click: 10.511490, 16.000137
+[DEBUG] Mouse click: 10.550552, 15.804825
+[DEBUG] Mouse click: 10.777115, 15.234512
+[DEBUG] Mouse click: 11.081802, 15.211075
+[DEBUG] Mouse click: 10.863457, 14.606823
+[DEBUG] Mouse click: 11.175552, 15.398575
+[DEBUG] Mouse click: 11.230240, 15.593887
+[DEBUG] Mouse click: 11.128677, 15.882950
+[DEBUG] Mouse click: 11.019302, 16.179825
+[DEBUG] Mouse click: 10.886490, 16.500137
+[DEBUG] Mouse click: 10.808365, 16.515762
+[DEBUG] Mouse click: 10.644302, 16.586075
+[DEBUG] Mouse click: 10.402115, 16.265762
+[DEBUG] Mouse click: 10.386490, 16.250137
+[DEBUG] Mouse click: 10.277115, 16.234512
+[DEBUG] Mouse click: 9.995865, 16.234512
+[DEBUG] Mouse click: 10.683365, 15.703262
+[DEBUG] Mouse click: 10.261490, 14.875137
+[DEBUG] Mouse click: 10.011490, 14.843887
+[DEBUG] Mouse click: 11.027115, 14.953262
+[DEBUG] Mouse click: 11.175552, 14.242325
+[DEBUG] Mouse click: 11.183365, 14.797012
+[DEBUG] Mouse click: 11.019302, 15.336075
+[DEBUG] Mouse click: 10.855240, 15.875137
+[DEBUG] Mouse click: 10.863052, 15.867325
+[DEBUG] Mouse click: 11.042740, 16.000137
+[DEBUG] Mouse click: 11.011490, 16.687637
+[DEBUG] Mouse click: 10.956802, 17.398575
+[DEBUG] Mouse click: 10.691177, 17.164200
+[DEBUG] Mouse click: 10.659927, 17.164200
+[DEBUG] Mouse click: 10.495865, 17.047012
+[DEBUG] Mouse click: 10.706802, 17.023575
+[DEBUG] Mouse click: 10.816177, 17.039200
+[DEBUG] Mouse click: 10.980240, 17.062637
+[DEBUG] Mouse click: 11.034927, 17.101700
+[DEBUG] Mouse click: 10.886490, 16.625137
+[DEBUG] Mouse click: 10.863052, 16.586075
+[DEBUG] Mouse click: 10.839615, 16.578262
+[DEBUG] Mouse click: 11.011490, 16.593887
+[DEBUG] Mouse click: 12.191177, 17.976700
+[DEBUG] Mouse click: 11.292740, 18.093887
+[DEBUG] Mouse click: 11.183365, 16.953262
+[DEBUG] Mouse click: 10.136490, 17.000137
+[DEBUG] Mouse click: 10.238052, 17.023575
+[DEBUG] Mouse click: 10.292740, 17.031387
+[DEBUG] Mouse click: 10.316177, 17.039200
+[DEBUG] Mouse click: 11.105240, 18.000137
+[DEBUG] Mouse click: 11.089615, 18.672012
+[DEBUG] Mouse click: 11.019302, 18.304825
+[DEBUG] Mouse click: 10.988052, 17.742325
+[DEBUG] Mouse click: 11.011490, 17.531387
+[DEBUG] Mouse click: 11.003677, 16.757950
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 10.804688, 11.851562
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 10.632812, 14.992188
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 12.375000, 12.343750
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 11.812500, 13.687500
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 11.515625, 15.921875
+[DEBUG] sWalkable: 
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 10.523438, 11.382812
+[DEBUG] 
+[DEBUG] Mouse click: 10.515625, 11.421875
+[DEBUG] 
+[DEBUG] Mouse click: 11.140625, 11.546875
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 13.101562, 13.554688
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 15.000000, 16.593750
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 13.320312, 15.335938
+[DEBUG] isWalkable: 
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 10.468750, 11.125000
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 11.890625, 12.984375
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 11.328125, 14.671875
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 10.734375, 16.359375
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 11.742188, 15.757812
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 12.015625, 15.765625
+[DEBUG] isWalkable: 
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 10.984375, 11.953125
+[DEBUG] Grid click: x=10 y=11
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 11.000000, 14.812500
+[DEBUG] Grid click: x=11 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 7.796875, 10.953125
+[DEBUG] Grid click: x=7 y=10
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 7.796875, 10.953125
+[DEBUG] Grid click: x=7 y=10
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 8.976562, 10.929688
+[DEBUG] Grid click: x=8 y=10
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 8.976562, 11.898438
+[DEBUG] Grid click: x=8 y=11
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 9.078125, 10.890625
+[DEBUG] Grid click: x=9 y=10
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 9.640625, 11.046875
+[DEBUG] Grid click: x=9 y=11
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 8.750000, 11.000000
+[DEBUG] Grid click: x=8 y=11
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 8.000000, 11.000000
+[DEBUG] Grid click: x=8 y=11
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 6.992188, 10.851562
+[DEBUG] Grid click: x=6 y=10
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 6.585938, 10.789062
+[DEBUG] Grid click: x=6 y=10
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 7.929688, 11.132812
+[DEBUG] Grid click: x=7 y=11
+[DEBUG] isWalkable: 
+[DEBUG] Mouse click: 8.710938, 11.757812
+[DEBUG] Grid click: x=8 y=11
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.968750, 14.937500
+[DEBUG] Grid click: x=10 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 10.859375, 12.859375
+[DEBUG] Grid click: x=10 y=12
+[DEBUG] sWalkable: 
+[DEBUG] water 14/10: 0
+[DEBUG] Mouse click: 11.031250, 14.937500
+[DEBUG] Grid click: x=11 y=14
+[DEBUG] sWalkable: 
+[DEBUG] water 14/10: 0
+[DEBUG] Mouse click: 11.851562, 14.210938
+[DEBUG] Grid click: x=11 y=14
+[DEBUG] sWalkable: 
+[DEBUG] water 14/10: 0
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 10.664062, 12.898438
+[DEBUG] Grid click: x=10 y=12
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 12.039315, 13.553521
+[DEBUG] Grid click: x=12 y=13
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 13.914315, 15.584771
+[DEBUG] Grid click: x=13 y=15
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 15.937752, 17.655083
+[DEBUG] Grid click: x=15 y=17
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 17.976814, 19.741020
+[DEBUG] Grid click: x=17 y=19
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 20.031502, 21.811333
+[DEBUG] Grid click: x=20 y=21
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 17.039314, 18.897270
+[DEBUG] Grid click: x=17 y=18
+[DEBUG] sWalkable: 
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[ERROR] Resource Manager - could not open file: bedrock.png
+[ERROR] SDL: Couldn't open bedrock.png: Nie można odnaleźć określonego pliku.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 12.500000, 13.687500
+[DEBUG] Grid click: x=12 y=13
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 13.239129, 14.480422
+[DEBUG] Grid click: x=13 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 11.012567, 14.019485
+[DEBUG] Grid click: x=11 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[ERROR] Resource Manager - could not open file: bedrock.png
+[ERROR] SDL: Couldn't open bedrock.png: Nie można odnaleźć określonego pliku.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 11.062500, 13.968750
+[DEBUG] Grid click: x=11 y=13
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 11.968750, 14.031250
+[DEBUG] Grid click: x=11 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 12.007812, 15.148438
+[DEBUG] Grid click: x=12 y=15
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.914062, 14.898438
+[DEBUG] Grid click: x=10 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 11.031250, 13.968750
+[DEBUG] Grid click: x=11 y=13
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.937500, 14.906250
+[DEBUG] Grid click: x=10 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.039062, 4.648438
+[DEBUG] Grid click: x=10 y=4
+[DEBUG] isWalkable: 
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[DEBUG] Resource Manager - opened file:: ../assets/textures/bedrock.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 10.976562, 13.804688
+[DEBUG] Grid click: x=10 y=13
+[DEBUG] sWalkable: 
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[DEBUG] Resource Manager - opened file:: ../assets/textures/bedrock.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse click: 10.906250, 13.906250
+[DEBUG] Grid click: x=10 y=13
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 11.015625, 14.015625
+[DEBUG] Grid click: x=11 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 11.242188, 13.882812
+[DEBUG] Grid click: x=11 y=13
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.664062, 13.710938
+[DEBUG] Grid click: x=10 y=13
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.750000, 13.750000
+[DEBUG] Grid click: x=10 y=13
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 11.250000, 14.312500
+[DEBUG] Grid click: x=11 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.835938, 14.289062
+[DEBUG] Grid click: x=10 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.710938, 14.664062
+[DEBUG] Grid click: x=10 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.710938, 14.757812
+[DEBUG] Grid click: x=10 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 11.132812, 14.742188
+[DEBUG] Grid click: x=11 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.804688, 14.695312
+[DEBUG] Grid click: x=10 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.781250, 13.687500
+[DEBUG] Grid click: x=10 y=13
+[DEBUG] sWalkable: 
+[DEBUG] Mouse click: 10.757812, 14.710938
+[DEBUG] Grid click: x=10 y=14
+[DEBUG] sWalkable: 
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[DEBUG] Resource Manager - opened file:: ../assets/textures/bedrock.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 594.000000, 464.000000
+[DEBUG] Iso float: 11.265625, 11.984375
+[DEBUG] Grid int: 11, 11
+[DEBUG] Mouse raw: 430.000000, 430.000000
+[DEBUG] Iso float: 10.718750, 14.718750
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 638.000000, 393.000000
+[DEBUG] Iso float: 11.218750, 15.250000
+[DEBUG] Grid int: 11, 15
+[DEBUG] Mouse raw: 669.000000, 348.000000
+[DEBUG] Iso float: 11.257812, 14.835938
+[DEBUG] Grid int: 11, 14
+[DEBUG] Mouse raw: 586.000000, 357.000000
+[DEBUG] Iso float: 10.789062, 15.210938
+[DEBUG] Grid int: 10, 15
+[DEBUG] Mouse raw: 729.000000, 314.000000
+[DEBUG] Iso float: 10.765625, 13.796875
+[DEBUG] Grid int: 10, 13
+[DEBUG] Mouse raw: 636.000000, 386.000000
+[DEBUG] Iso float: 11.140625, 14.234375
+[DEBUG] Grid int: 11, 14
+[DEBUG] Mouse raw: 613.000000, 351.000000
+[DEBUG] Iso float: 10.789062, 14.304688
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 706.000000, 360.000000
+[DEBUG] Iso float: 11.304688, 13.789062
+[DEBUG] Grid int: 11, 13
+[DEBUG] Mouse raw: 604.000000, 375.000000
+[DEBUG] Iso float: 11.257812, 14.304688
+[DEBUG] Grid int: 11, 14
+[DEBUG] Mouse raw: 642.000000, 364.000000
+[DEBUG] Iso float: 11.335938, 14.351562
+[DEBUG] Grid int: 11, 14
+[DEBUG] Mouse raw: 636.000000, 328.000000
+[DEBUG] Iso float: 10.804688, 13.882812
+[DEBUG] Grid int: 10, 13
+[DEBUG] Mouse raw: 607.000000, 375.000000
+[DEBUG] Iso float: 10.781250, 14.375000
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 673.000000, 381.000000
+[DEBUG] Iso float: 11.367188, 14.445312
+[DEBUG] Grid int: 11, 14
+[DEBUG] Mouse raw: 641.000000, 321.000000
+[DEBUG] Iso float: 10.765625, 13.828125
+[DEBUG] Grid int: 10, 13
+[DEBUG] Mouse raw: 645.000000, 350.000000
+[DEBUG] Iso float: 10.648438, 13.632812
+[DEBUG] Grid int: 10, 13
+[DEBUG] Mouse raw: 667.000000, 386.000000
+[DEBUG] Iso float: 11.265625, 13.828125
+[DEBUG] Grid int: 11, 13
+[DEBUG] Mouse raw: 577.000000, 364.000000
+[DEBUG] Iso float: 10.835938, 14.382812
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 671.000000, 376.000000
+[DEBUG] Iso float: 11.328125, 14.390625
+[DEBUG] Grid int: 11, 14
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[DEBUG] Resource Manager - opened file:: ../assets/textures/bedrock.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 455.000000, 508.000000
+[DEBUG] Iso float: 10.867188, 13.757812
+[DEBUG] Grid int: 10, 13
+[DEBUG] Mouse raw: 597.000000, 376.000000
+[DEBUG] Iso float: 10.781250, 14.343750
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 671.000000, 379.000000
+[DEBUG] Iso float: 11.320312, 14.398438
+[DEBUG] Grid int: 11, 14
+[DEBUG] Mouse raw: 680.000000, 338.000000
+[DEBUG] Iso float: 11.289062, 13.742188
+[DEBUG] Grid int: 11, 13
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[DEBUG] Resource Manager - opened file:: ../assets/textures/bedrock.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 456.000000, 501.000000
+[DEBUG] Iso float: 10.265625, 14.140625
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 661.000000, 384.000000
+[DEBUG] Iso float: 10.304688, 14.851562
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 737.000000, 372.000000
+[DEBUG] Iso float: 10.750000, 14.781250
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 732.000000, 348.000000
+[DEBUG] Iso float: 10.781250, 14.375000
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 675.000000, 351.000000
+[DEBUG] Iso float: 10.414062, 14.460938
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 703.000000, 348.000000
+[DEBUG] Iso float: 10.218750, 14.281250
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 707.000000, 369.000000
+[DEBUG] Iso float: 10.382812, 14.398438
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 674.000000, 368.000000
+[DEBUG] Iso float: 10.273438, 14.757812
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 729.000000, 372.000000
+[DEBUG] Iso float: 10.656250, 14.750000
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 725.000000, 354.000000
+[DEBUG] Iso float: 10.726562, 14.492188
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 688.000000, 366.000000
+[DEBUG] Iso float: 10.695312, 14.710938
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 687.000000, 344.000000
+[DEBUG] Iso float: 10.312500, 14.593750
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 718.000000, 355.000000
+[DEBUG] Iso float: 10.343750, 14.406250
+[DEBUG] Grid int: 10, 14
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[DEBUG] Resource Manager - opened file:: ../assets/textures/bedrock.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 469.000000, 515.000000
+[DEBUG] Iso float: 10.585938, 14.257812
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 690.000000, 361.000000
+[DEBUG] Iso float: 10.492188, 14.382812
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 667.000000, 364.000000
+[DEBUG] Iso float: 10.265625, 14.734375
+[DEBUG] Grid int: 10, 14
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[DEBUG] Resource Manager - opened file:: ../assets/textures/bedrock.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 459.000000, 507.000000
+[DEBUG] Iso float: 10.382812, 14.210938
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 695.000000, 374.000000
+[DEBUG] Iso float: 10.531250, 14.500000
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 660.000000, 363.000000
+[DEBUG] Iso float: 10.234375, 14.890625
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 684.000000, 358.000000
+[DEBUG] Iso float: 10.046875, 15.015625
+[DEBUG] Grid int: 10, 15
+[DEBUG] Mouse raw: 763.000000, 387.000000
+[DEBUG] Iso float: 10.929688, 14.976562
+[DEBUG] Grid int: 10, 14
+[DEBUG] Mouse raw: 662.000000, 364.000000
+[DEBUG] Iso float: 10.664062, 15.367188
+[DEBUG] Grid int: 10, 15
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8)
+[DEBUG] Loaded tile 0 at pos (11;9)
+[DEBUG] Loaded tile 0 at pos (11;10)
+[DEBUG] Loaded tile 0 at pos (11;11)
+[DEBUG] Loaded tile 0 at pos (11;12)
+[DEBUG] Loaded tile 0 at pos (11;13)
+[DEBUG] Loaded tile 1 at pos (11;15)
+[DEBUG] Loaded tile 0 at pos (12;6)
+[DEBUG] Loaded tile 0 at pos (12;7)
+[DEBUG] Loaded tile 0 at pos (12;8)
+[DEBUG] Loaded tile 0 at pos (12;9)
+[DEBUG] Loaded tile 0 at pos (12;10)
+[DEBUG] Loaded tile 0 at pos (12;11)
+[DEBUG] Loaded tile 0 at pos (12;12)
+[DEBUG] Loaded tile 0 at pos (12;13)
+[DEBUG] Loaded tile 0 at pos (12;14)
+[DEBUG] Loaded tile 1 at pos (12;15)
+[DEBUG] Loaded tile 0 at pos (13;5)
+[DEBUG] Loaded tile 0 at pos (13;6)
+[DEBUG] Loaded tile 0 at pos (13;7)
+[DEBUG] Loaded tile 0 at pos (13;8)
+[DEBUG] Loaded tile 0 at pos (13;9)
+[DEBUG] Loaded tile 0 at pos (13;10)
+[DEBUG] Loaded tile 0 at pos (13;11)
+[DEBUG] Loaded tile 0 at pos (13;12)
+[DEBUG] Loaded tile 0 at pos (13;13)
+[DEBUG] Loaded tile 0 at pos (13;14)
+[DEBUG] Loaded tile 0 at pos (13;15)
+[DEBUG] Loaded tile 0 at pos (14;5)
+[DEBUG] Loaded tile 0 at pos (14;6)
+[DEBUG] Loaded tile 0 at pos (14;7)
+[DEBUG] Loaded tile 0 at pos (14;8)
+[DEBUG] Loaded tile 0 at pos (14;9)
+[DEBUG] Loaded tile 0 at pos (14;10)
+[DEBUG] Loaded tile 0 at pos (14;11)
+[DEBUG] Loaded tile 0 at pos (14;12)
+[DEBUG] Loaded tile 0 at pos (14;13)
+[DEBUG] Loaded tile 0 at pos (14;14)
+[DEBUG] Loaded tile 0 at pos (14;15)
+[DEBUG] Loaded tile 0 at pos (15;5)
+[DEBUG] Loaded tile 0 at pos (15;6)
+[DEBUG] Loaded tile 0 at pos (15;7)
+[DEBUG] Loaded tile 2 at pos (15;8)
+[DEBUG] Loaded tile 2 at pos (15;9)
+[DEBUG] Loaded tile 2 at pos (15;10)
+[DEBUG] Loaded tile 0 at pos (15;11)
+[DEBUG] Loaded tile 0 at pos (15;12)
+[DEBUG] Loaded tile 0 at pos (15;13)
+[DEBUG] Loaded tile 0 at pos (15;14)
+[DEBUG] Loaded tile 0 at pos (15;15)
+[DEBUG] Loaded tile 1 at pos (11;16)
+[DEBUG] Loaded tile 1 at pos (11;17)
+[DEBUG] Loaded tile 1 at pos (12;16)
+[DEBUG] Loaded tile 1 at pos (12;17)
+[DEBUG] Loaded tile 1 at pos (12;18)
+[DEBUG] Loaded tile 1 at pos (12;19)
+[DEBUG] Loaded tile 1 at pos (13;16)
+[DEBUG] Loaded tile 1 at pos (13;17)
+[DEBUG] Loaded tile 1 at pos (13;18)
+[DEBUG] Loaded tile 1 at pos (13;19)
+[DEBUG] Loaded tile 1 at pos (13;20)
+[DEBUG] Loaded tile 0 at pos (14;16)
+[DEBUG] Loaded tile 0 at pos (14;17)
+[DEBUG] Loaded tile 1 at pos (14;18)
+[DEBUG] Loaded tile 1 at pos (14;19)
+[DEBUG] Loaded tile 1 at pos (14;20)
+[DEBUG] Loaded tile 1 at pos (14;21)
+[DEBUG] Loaded tile 0 at pos (15;16)
+[DEBUG] Loaded tile 0 at pos (15;17)
+[DEBUG] Loaded tile 0 at pos (15;18)
+[DEBUG] Loaded tile 1 at pos (15;19)
+[DEBUG] Loaded tile 1 at pos (15;20)
+[DEBUG] Loaded tile 1 at pos (15;21)
+[DEBUG] Loaded tile 0 at pos (16;5)
+[DEBUG] Loaded tile 0 at pos (16;6)
+[DEBUG] Loaded tile 0 at pos (16;7)
+[DEBUG] Loaded tile 2 at pos (16;8)
+[DEBUG] Loaded tile 2 at pos (16;9)
+[DEBUG] Loaded tile 2 at pos (16;10)
+[DEBUG] Loaded tile 0 at pos (16;11)
+[DEBUG] Loaded tile 0 at pos (16;12)
+[DEBUG] Loaded tile 0 at pos (16;13)
+[DEBUG] Loaded tile 0 at pos (16;14)
+[DEBUG] Loaded tile 0 at pos (16;15)
+[DEBUG] Loaded tile 0 at pos (17;5)
+[DEBUG] Loaded tile 0 at pos (17;6)
+[DEBUG] Loaded tile 0 at pos (17;7)
+[DEBUG] Loaded tile 0 at pos (17;8)
+[DEBUG] Loaded tile 2 at pos (17;9)
+[DEBUG] Loaded tile 2 at pos (17;10)
+[DEBUG] Loaded tile 0 at pos (17;11)
+[DEBUG] Loaded tile 0 at pos (17;12)
+[DEBUG] Loaded tile 0 at pos (17;13)
+[DEBUG] Loaded tile 0 at pos (17;14)
+[DEBUG] Loaded tile 0 at pos (17;15)
+[DEBUG] Loaded tile 0 at pos (18;5)
+[DEBUG] Loaded tile 0 at pos (18;6)
+[DEBUG] Loaded tile 0 at pos (18;7)
+[DEBUG] Loaded tile 0 at pos (18;8)
+[DEBUG] Loaded tile 0 at pos (18;9)
+[DEBUG] Loaded tile 2 at pos (18;10)
+[DEBUG] Loaded tile 2 at pos (18;11)
+[DEBUG] Loaded tile 0 at pos (18;12)
+[DEBUG] Loaded tile 0 at pos (18;13)
+[DEBUG] Loaded tile 0 at pos (18;14)
+[DEBUG] Loaded tile 0 at pos (18;15)
+[DEBUG] Loaded tile 0 at pos (19;6)
+[DEBUG] Loaded tile 0 at pos (19;7)
+[DEBUG] Loaded tile 0 at pos (19;8)
+[DEBUG] Loaded tile 0 at pos (19;9)
+[DEBUG] Loaded tile 0 at pos (19;10)
+[DEBUG] Loaded tile 2 at pos (19;11)
+[DEBUG] Loaded tile 2 at pos (19;12)
+[DEBUG] Loaded tile 0 at pos (19;13)
+[DEBUG] Loaded tile 0 at pos (19;14)
+[DEBUG] Loaded tile 0 at pos (19;15)
+[DEBUG] Loaded tile 1 at pos (20;7)
+[DEBUG] Loaded tile 0 at pos (20;8)
+[DEBUG] Loaded tile 0 at pos (20;9)
+[DEBUG] Loaded tile 0 at pos (20;10)
+[DEBUG] Loaded tile 0 at pos (20;11)
+[DEBUG] Loaded tile 2 at pos (20;12)
+[DEBUG] Loaded tile 0 at pos (20;13)
+[DEBUG] Loaded tile 0 at pos (20;14)
+[DEBUG] Loaded tile 0 at pos (20;15)
+[DEBUG] Loaded tile 1 at pos (21;7)
+[DEBUG] Loaded tile 1 at pos (21;8)
+[DEBUG] Loaded tile 0 at pos (21;9)
+[DEBUG] Loaded tile 0 at pos (21;10)
+[DEBUG] Loaded tile 0 at pos (21;11)
+[DEBUG] Loaded tile 2 at pos (21;12)
+[DEBUG] Loaded tile 2 at pos (21;13)
+[DEBUG] Loaded tile 0 at pos (21;14)
+[DEBUG] Loaded tile 0 at pos (21;15)
+[DEBUG] Loaded tile 1 at pos (22;8)
+[DEBUG] Loaded tile 1 at pos (22;9)
+[DEBUG] Loaded tile 0 at pos (22;10)
+[DEBUG] Loaded tile 0 at pos (22;11)
+[DEBUG] Loaded tile 0 at pos (22;12)
+[DEBUG] Loaded tile 0 at pos (22;13)
+[DEBUG] Loaded tile 0 at pos (22;14)
+[DEBUG] Loaded tile 0 at pos (22;15)
+[DEBUG] Loaded tile 1 at pos (23;9)
+[DEBUG] Loaded tile 1 at pos (23;10)
+[DEBUG] Loaded tile 0 at pos (23;11)
+[DEBUG] Loaded tile 0 at pos (23;12)
+[DEBUG] Loaded tile 0 at pos (23;13)
+[DEBUG] Loaded tile 0 at pos (23;14)
+[DEBUG] Loaded tile 0 at pos (23;15)
+[DEBUG] Loaded tile 1 at pos (24;10)
+[DEBUG] Loaded tile 1 at pos (24;11)
+[DEBUG] Loaded tile 0 at pos (24;12)
+[DEBUG] Loaded tile 0 at pos (24;13)
+[DEBUG] Loaded tile 0 at pos (24;14)
+[DEBUG] Loaded tile 0 at pos (24;15)
+[DEBUG] Loaded tile 1 at pos (25;11)
+[DEBUG] Loaded tile 1 at pos (25;12)
+[DEBUG] Loaded tile 0 at pos (25;13)
+[DEBUG] Loaded tile 0 at pos (25;14)
+[DEBUG] Loaded tile 0 at pos (25;15)
+[DEBUG] Loaded tile 1 at pos (26;12)
+[DEBUG] Loaded tile 1 at pos (26;13)
+[DEBUG] Loaded tile 1 at pos (26;14)
+[DEBUG] Loaded tile 1 at pos (26;15)
+[DEBUG] Loaded tile 1 at pos (27;14)
+[DEBUG] Loaded tile 0 at pos (16;16)
+[DEBUG] Loaded tile 0 at pos (16;17)
+[DEBUG] Loaded tile 0 at pos (16;18)
+[DEBUG] Loaded tile 1 at pos (16;19)
+[DEBUG] Loaded tile 1 at pos (16;20)
+[DEBUG] Loaded tile 1 at pos (16;21)
+[DEBUG] Loaded tile 0 at pos (17;16)
+[DEBUG] Loaded tile 0 at pos (17;17)
+[DEBUG] Loaded tile 0 at pos (17;18)
+[DEBUG] Loaded tile 0 at pos (17;19)
+[DEBUG] Loaded tile 1 at pos (17;20)
+[DEBUG] Loaded tile 1 at pos (17;21)
+[DEBUG] Loaded tile 0 at pos (18;16)
+[DEBUG] Loaded tile 0 at pos (18;17)
+[DEBUG] Loaded tile 0 at pos (18;18)
+[DEBUG] Loaded tile 0 at pos (18;19)
+[DEBUG] Loaded tile 0 at pos (18;20)
+[DEBUG] Loaded tile 0 at pos (19;16)
+[DEBUG] Loaded tile 0 at pos (19;17)
+[DEBUG] Loaded tile 0 at pos (19;18)
+[DEBUG] Loaded tile 0 at pos (19;19)
+[DEBUG] Loaded tile 0 at pos (19;20)
+[DEBUG] Loaded tile 0 at pos (19;21)
+[DEBUG] Loaded tile 0 at pos (20;16)
+[DEBUG] Loaded tile 0 at pos (20;17)
+[DEBUG] Loaded tile 0 at pos (20;18)
+[DEBUG] Loaded tile 0 at pos (20;19)
+[DEBUG] Loaded tile 0 at pos (20;20)
+[DEBUG] Loaded tile 0 at pos (20;21)
+[DEBUG] Loaded tile 0 at pos (20;22)
+[DEBUG] Loaded tile 0 at pos (21;16)
+[DEBUG] Loaded tile 0 at pos (21;17)
+[DEBUG] Loaded tile 0 at pos (21;18)
+[DEBUG] Loaded tile 0 at pos (21;19)
+[DEBUG] Loaded tile 0 at pos (21;20)
+[DEBUG] Loaded tile 0 at pos (21;21)
+[DEBUG] Loaded tile 0 at pos (21;22)
+[DEBUG] Loaded tile 0 at pos (22;16)
+[DEBUG] Loaded tile 0 at pos (22;17)
+[DEBUG] Loaded tile 0 at pos (22;18)
+[DEBUG] Loaded tile 0 at pos (22;19)
+[DEBUG] Loaded tile 0 at pos (22;20)
+[DEBUG] Loaded tile 0 at pos (22;21)
+[DEBUG] Loaded tile 0 at pos (22;22)
+[DEBUG] Loaded tile 0 at pos (23;16)
+[DEBUG] Loaded tile 1 at pos (23;17)
+[DEBUG] Loaded tile 1 at pos (23;18)
+[DEBUG] Loaded tile 0 at pos (23;19)
+[DEBUG] Loaded tile 0 at pos (23;20)
+[DEBUG] Loaded tile 1 at pos (24;16)
+[DEBUG] Loaded tile 1 at pos (24;17)
+[DEBUG] Loaded tile 1 at pos (24;18)
+[DEBUG] Loaded tile 1 at pos (25;16)
+[DEBUG] Loaded tile 1 at pos (25;17)
+[DEBUG] Loaded tile 1 at pos (25;18)
+[DEBUG] Loaded tile 1 at pos (26;16)
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 384.000000, 547.000000
+[DEBUG] Iso float: 10.421875, 15.421875
+[DEBUG] Grid int: 10, 15
+[DEBUG] sWalkable: 
+[DEBUG] Mouse raw: 639.000000, 337.000000
+[DEBUG] Iso float: 9.554688, 15.570312
+[DEBUG] Grid int: 9, 15
+[DEBUG] sWalkable: 
+[DEBUG] Mouse raw: 769.000000, 386.000000
+[DEBUG] Iso float: 10.468750, 15.468750
+[DEBUG] Grid int: 10, 15
+[DEBUG] sWalkable: 
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;13); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;14); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;7); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (15;8); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (15;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (15;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;7); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (16;8); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (16;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (16;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;8); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (17;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (17;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (18;10); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (18;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;10); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (19;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (19;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (20;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (20;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (21;7); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (21;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (21;12); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (21;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (22;8); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (22;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;9); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;10); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;11); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;12); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;13); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;14); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (27;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (17;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (17;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;16); isWalkable=1
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;13); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;14); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;7); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (15;8); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (15;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (15;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;7); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (16;8); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (16;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (16;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;8); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (17;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (17;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (18;10); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (18;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;10); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (19;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (19;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (20;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (20;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (21;7); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (21;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (21;12); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (21;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (22;8); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (22;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;9); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;10); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;11); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;12); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;13); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;14); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (27;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (17;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (17;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;16); isWalkable=1
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 477.000000, 469.000000
+[DEBUG] Iso float: 9.929688, 13.476562
+[DEBUG] Grid int: 9, 13
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 612.000000, 440.000000
+[DEBUG] Iso float: 10.460938, 15.445312
+[DEBUG] Grid int: 10, 15
+[DEBUG] isWalkable: 1
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;13); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;14); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;7); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (15;8); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (15;9); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (15;10); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (15;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;7); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (16;8); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (16;9); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (16;10); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (16;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;8); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (17;9); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (17;10); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (17;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (18;10); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (18;11); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (18;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;10); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (19;11); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (19;12); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (19;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (20;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (20;12); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (20;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (21;7); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (21;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (21;12); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (21;13); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (21;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (22;8); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (22;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;9); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;10); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;11); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;12); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;13); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;14); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (27;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (17;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (17;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;16); isWalkable=1
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 404.000000, 552.000000
+[DEBUG] Iso float: 10.656250, 15.343750
+[DEBUG] Grid int: 10, 15
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 437.000000, 524.000000
+[DEBUG] Iso float: 10.476562, 14.648438
+[DEBUG] Grid int: 10, 14
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 666.000000, 378.000000
+[DEBUG] Iso float: 10.460938, 15.226562
+[DEBUG] Grid int: 10, 15
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 692.000000, 407.000000
+[DEBUG] Iso float: 11.117188, 15.476562
+[DEBUG] Grid int: 11, 15
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 680.000000, 405.000000
+[DEBUG] Iso float: 11.632812, 16.367188
+[DEBUG] Grid int: 11, 16
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 644.000000, 364.000000
+[DEBUG] Iso float: 11.226562, 16.898438
+[DEBUG] Grid int: 11, 16
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 646.000000, 353.000000
+[DEBUG] Iso float: 10.664062, 17.242188
+[DEBUG] Grid int: 10, 17
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 666.000000, 390.000000
+[DEBUG] Iso float: 11.398438, 17.664062
+[DEBUG] Grid int: 11, 17
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 665.000000, 354.000000
+[DEBUG] Iso float: 11.000000, 17.875000
+[DEBUG] Grid int: 11, 17
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 660.000000, 353.000000
+[DEBUG] Iso float: 10.546875, 18.109375
+[DEBUG] Grid int: 10, 18
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 695.000000, 362.000000
+[DEBUG] Iso float: 10.960938, 17.976562
+[DEBUG] Grid int: 10, 17
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 695.000000, 362.000000
+[DEBUG] Iso float: 10.960938, 17.976562
+[DEBUG] Grid int: 10, 17
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 696.000000, 365.000000
+[DEBUG] Iso float: 11.015625, 18.015625
+[DEBUG] Grid int: 11, 18
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 699.000000, 358.000000
+[DEBUG] Iso float: 10.929688, 17.882812
+[DEBUG] Grid int: 10, 17
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 699.000000, 361.000000
+[DEBUG] Iso float: 10.976562, 17.929688
+[DEBUG] Grid int: 10, 17
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 703.000000, 364.000000
+[DEBUG] Iso float: 11.054688, 17.945312
+[DEBUG] Grid int: 11, 17
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 753.000000, 351.000000
+[DEBUG] Iso float: 11.296875, 17.421875
+[DEBUG] Grid int: 11, 17
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 811.000000, 350.000000
+[DEBUG] Iso float: 11.976562, 16.429688
+[DEBUG] Grid int: 11, 16
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 787.000000, 434.000000
+[DEBUG] Iso float: 13.781250, 16.937500
+[DEBUG] Grid int: 13, 16
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 713.000000, 485.000000
+[DEBUG] Iso float: 15.089614, 18.619095
+[DEBUG] Grid int: 15, 18
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 552.000000, 481.000000
+[DEBUG] Iso float: 14.712351, 20.692049
+[DEBUG] Grid int: 14, 20
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 566.000000, 337.000000
+[DEBUG] Iso float: 12.958303, 20.024904
+[DEBUG] Grid int: 12, 20
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 648.000000, 262.000000
+[DEBUG] Iso float: 12.743601, 19.598299
+[DEBUG] Grid int: 12, 19
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 753.000000, 297.000000
+[DEBUG] Iso float: 14.110788, 19.324862
+[DEBUG] Grid int: 14, 19
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 797.000000, 234.000000
+[DEBUG] Iso float: 13.070696, 17.088766
+[DEBUG] Grid int: 13, 17
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 793.000000, 228.000000
+[DEBUG] Iso float: 12.280870, 15.583769
+[DEBUG] Grid int: 12, 15
+[DEBUG] isWalkable: 1
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Loaded tile 0 at pos (11;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (11;13); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (12;14); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (13;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;7); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (15;8); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (15;9); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (15;10); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (15;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (11;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (12;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (13;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (14;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (14;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (15;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (15;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;7); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (16;8); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (16;9); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (16;10); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (16;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;8); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (17;9); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (17;10); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (17;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;5); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;9); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (18;10); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (18;11); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (18;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;15); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;6); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;10); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (19;11); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (19;12); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (19;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (20;7); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (20;12); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (20;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (21;7); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (21;8); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;11); isWalkable=1
+[DEBUG] Loaded tile 2 at pos (21;12); isWalkable=0
+[DEBUG] Loaded tile 2 at pos (21;13); isWalkable=0
+[DEBUG] Loaded tile 0 at pos (21;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (22;8); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (22;9); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;9); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;10); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;10); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;11); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (24;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;11); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;12); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;13); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (25;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;12); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;13); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;14); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;15); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (27;14); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (16;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (16;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (17;19); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (17;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (17;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (18;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (19;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (20;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (21;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;16); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;17); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;20); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;21); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (22;22); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (23;18); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;19); isWalkable=1
+[DEBUG] Loaded tile 0 at pos (23;20); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (24;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;16); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;17); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (25;18); isWalkable=1
+[DEBUG] Loaded tile 1 at pos (26;16); isWalkable=1
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 596.000000, 426.000000
+[DEBUG] Iso float: 10.187500, 11.875000
+[DEBUG] Grid int: 10, 11
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 553.000000, 484.000000
+[DEBUG] Iso float: 10.945312, 14.992188
+[DEBUG] Grid int: 10, 14
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 653.000000, 362.000000
+[DEBUG] Iso float: 10.578125, 15.421875
+[DEBUG] Grid int: 10, 15
+[DEBUG] isWalkable: 0
+[DEBUG] Mouse raw: 693.000000, 394.000000
+[DEBUG] Iso float: 11.390625, 15.609375
+[DEBUG] Grid int: 11, 15
+[DEBUG] isWalkable: 1
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.

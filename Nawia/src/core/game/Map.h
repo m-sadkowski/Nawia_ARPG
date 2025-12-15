@@ -19,11 +19,13 @@ namespace Nawia::Core {
 		void loadTestMap();
 		void render(float offsetX, float offsetY);
 
-		[[nodiscard]] bool isWalkable(int grid_x, int grid_y) const;
+		[[nodiscard]] bool isWalkable(int world_x, int world_y) const;
 
 	private:
 		SDL_Renderer* _renderer;
 		ResourceManager& _resource_manager;
+
+		int _offset_x, _offset_y;
 
 		std::vector<Tile> _tiles;
 		std::vector<std::vector<Tile>> _grid;

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
+#include <cmath>
 #include <algorithm>
 
 using json = nlohmann::json;
@@ -169,6 +170,7 @@ namespace Nawia::Core {
 									int _grid_y = (_chunk_y + y) - _min_y;
 
 									_grid[_grid_y][_grid_x] = _tiles[_tile_id];
+									Logger::debugLog("Loaded tile " + std::to_string(_tile_id) + " at pos (" + std::to_string(_grid_y) + ";" + std::to_string(_grid_x) + "); isWalkable=" + std::to_string(_tiles[_tile_id].is_walkable));
 								}
 							}
 						}
@@ -215,6 +217,18 @@ namespace Nawia::Core {
 				}
 			}
 		}
+	}
+
+	bool Map::isWalkable(int world_x, int world_y) const
+	{
+
+		if (world_y < 0 || world_y >= _grid.size()) return false;
+		if (world_x < 0 || world_x >= _grid[world_y].size()) return false;
+
+		Logger::debugLog("Grid int: " + std::to_string(world_x) + ", " + std::to_string(world_y));
+		Logger::debugLog("isWalkable: " + std::to_string(_grid[world_y][world_x].is_walkable));
+
+		return _grid[world_y][world_x].is_walkable;
 	}
 
 } // namespace Nawia::Core

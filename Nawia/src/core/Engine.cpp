@@ -28,7 +28,7 @@ namespace Nawia::Core {
 
         // player
         auto player_texture = _resource_manager.getTexture("../assets/textures/player.png", _renderer);
-        _player = std::make_unique<Entity::Player>(5.0f, 5.0f, player_texture);
+        _player = std::make_unique<Entity::Player>(10.0f, 10.0f, player_texture);
 
         // clock
         _last_time = SDL_GetTicks();
@@ -105,13 +105,22 @@ namespace Nawia::Core {
     }
 
     void Engine::handleMouseClick(const float mouse_x, const float mouse_y) {
-        if (!_player)
+        if (!_map || !_player)
             return;
 
+        // pos = exact point where user clicked on world
         Point2D pos = Point2D::screenToIso(mouse_x, mouse_y, _camera._x, _camera._y);
-        Logger::debugLog("Mouse click: " + std::to_string(pos.getX()) + ", " + std::to_string(pos.getY()));
+        Logger::debugLog("Mouse raw: " + std::to_string(mouse_x) + ", " + std::to_string(mouse_y));
+        Logger::debugLog("Iso float: " + std::to_string(pos.getX()) + ", " + std::to_string(pos.getY()));
 
-        _player->moveTo(pos.getX(), pos.getY());
+        // point on grid
+        int target_x = static_cast<int>(std::floor(pos.getX()));
+        int target_y = static_cast<int>(std::floor(pos.getY()));
+
+        if (_map->isWalkable(target_x, target_y))
+        {
+            _player->moveTo(pos.getX(), pos.getY());
+        }
     }
 
 }; // namespace Nawia::Core
