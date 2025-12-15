@@ -67,6 +67,9 @@
     <Filter Include="world\level">
       <UniqueIdentifier>{30c6e39f-24d9-4514-9e4f-537c68ff6c30}</UniqueIdentifier>
     </Filter>
+    <Filter Include="entity\actors\enemies">
+      <UniqueIdentifier>{58c560d0-1110-4a7a-b3bf-f1491a39d44e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -92,6 +95,9 @@
     </ClCompile>
     <ClCompile Include="core\util\Logger.cpp">
       <Filter>core\util</Filter>
+    </ClCompile>
+    <ClCompile Include="entity\actors\Enemy.cpp">
+      <Filter>entity\actors\enemies</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -166,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="core\Constants.h">
       <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="entity\actors\Enemy.h">
+      <Filter>entity\actors\enemies</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

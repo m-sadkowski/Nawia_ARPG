@@ -3,7 +3,7 @@
 namespace Nawia::Entity {
 
 	Player::Player(const float x, const float y, const std::shared_ptr<SDL_Texture>& texture)
-		: Entity(x, y, texture), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) {}
+		: Entity(x, y, texture, 200), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) {}
 
 	void Player::moveTo(const float x, const float y) {
 		_target_x = x;
