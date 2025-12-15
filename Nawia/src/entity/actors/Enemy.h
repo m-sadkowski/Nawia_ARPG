@@ -3,6 +3,7 @@
 
 namespace Nawia::Entity
 {
+
 	class Enemy : public Entity
 	{
 	public:

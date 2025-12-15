@@ -1,7 +1,8 @@
 #pragma once
 #include "Entity.h"
 
-namespace Nawia::Entity {
+namespace Nawia::Entity 
+{
 
     class SpellEffect : public Entity {
     public:

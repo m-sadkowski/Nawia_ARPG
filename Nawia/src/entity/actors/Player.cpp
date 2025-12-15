@@ -1,6 +1,7 @@
 #include "Player.h"
 
-namespace Nawia::Entity {
+namespace Nawia::Entity 
+{
 
 	Player::Player(const float x, const float y, const std::shared_ptr<SDL_Texture>& texture)
 		: Entity(x, y, texture, 200), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) {}

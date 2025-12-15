@@ -9,15 +9,12 @@
 
 using json = nlohmann::json;
 
-namespace Nawia::Core {
+namespace Nawia::Core
+{
 
-	Map::Map(SDL_Renderer* renderer, ResourceManager& resource_manager) 
-		: _renderer(renderer), _resource_manager(resource_manager) {
-	
-		if (!loadTiles()) {
+	Map::Map(SDL_Renderer* renderer, ResourceManager& resource_manager) : _renderer(renderer), _resource_manager(resource_manager) {
+		if (!loadTiles())
 			Logger::errorLog("Map - Couldn't load tiles from file.");
-		}
-
 	}
 
 	/*
@@ -36,6 +33,7 @@ namespace Nawia::Core {
 			file >> _tiles_data;
 		}
 		catch (const json::parse_error& e) {
+			SDL_UNUSED(e);
 			Logger::errorLog("Load Tiles - Couldn't parse json file");
 			return false;
 		}
@@ -100,6 +98,7 @@ namespace Nawia::Core {
 			file >> _map_data;
 		} catch (json::parse_error& e)
 		{
+			SDL_UNUSED(e);
 			Logger::errorLog("Load Map - Couldn't parse file " + filename);
 		}
 

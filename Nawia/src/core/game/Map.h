@@ -8,7 +8,8 @@
 #include <string>
 #include <json.hpp>
 
-namespace Nawia::Core {
+namespace Nawia::Core 
+{
 
 	class Map {
 	public:

@@ -3,7 +3,8 @@
 #include <Map.h>
 #include <Logger.h>
 
-namespace Nawia::Entity {
+namespace Nawia::Entity 
+{
 
 	Entity::Entity(float start_x, float start_y, const std::shared_ptr<SDL_Texture>& texture, const int max_hp) : _texture(texture), _max_hp(max_hp)
 	{

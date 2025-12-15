@@ -3,6 +3,7 @@
 
 namespace Nawia::Core
 {
+
     class FireballSpell : public Spell {
     public:
         FireballSpell(const std::shared_ptr<SDL_Texture>& projectile_tex);
