@@ -129,9 +129,10 @@ namespace Nawia::Core
 	  }
 
 	  // handle collisions
+	  // TEMPORARY
+	  // TODO: should be handled by ability itself or entitymanager
 	  for (auto &entity1 : _active_entities) {
-	    if (const auto projectile =
-	            dynamic_cast<Entity::Projectile *>(entity1.get())) {
+	    if (const auto projectile = dynamic_cast<Entity::Projectile*>(entity1.get())) {
 	      if (projectile->isExpired())
 	        continue;
 
