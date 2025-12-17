@@ -34,10 +34,10 @@ namespace Nawia::Core
 	  _map = std::make_unique<Map>(_renderer, _resource_manager);
 	  _map->loadMap("map1.json");
 
-	  // initialize player
-	  auto player_texture =
-	      _resource_manager.getTexture("../assets/textures/player.png", _renderer);
-	  _player = std::make_shared<Entity::Player>(10.0f, 10.0f, player_texture);
+        // initialize player
+        auto player_texture = _resource_manager.getTexture("../assets/textures/player.png", _renderer);
+        Point2D player_spawn_pos = _map->getPlayerSpawnPos();
+        _player = std::make_unique<Entity::Player>(player_spawn_pos.getX(), player_spawn_pos.getY(), player_texture);
 
 	  // TEMPORARY SOLUTION
 	  // initialize spells

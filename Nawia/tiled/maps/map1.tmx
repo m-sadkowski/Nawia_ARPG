@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="isometric" renderorder="right-down" width="30" height="20" tilewidth="128" tileheight="64" infinite="1" nextlayerid="2" nextobjectid="1">
+<map version="1.10" tiledversion="1.11.2" orientation="isometric" renderorder="right-down" width="30" height="20" tilewidth="128" tileheight="64" infinite="1" nextlayerid="4" nextobjectid="3">
  <editorsettings>
-  <export format="json"/>
+  <export target="../../assets/maps/map1.json" format="json"/>
  </editorsettings>
  <tileset firstgid="1" source="../tiles.tsx"/>
  <layer id="1" name="Warstwa Kafelków 1" width="30" height="20">
@@ -80,4 +80,9 @@
 </chunk>
   </data>
  </layer>
+ <objectgroup id="3" name="spawn">
+  <object id="1" name="playerspawn" x="91" y="283">
+   <point/>
+  </object>
+ </objectgroup>
 </map>

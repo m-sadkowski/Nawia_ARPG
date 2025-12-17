@@ -8,8 +8,9 @@
 #include <string>
 #include <json.hpp>
 
-namespace Nawia::Core 
-{
+#include "MathUtils.h"
+
+namespace Nawia::Core {
 
 	class Map {
 	public:
@@ -19,6 +20,8 @@ namespace Nawia::Core
 		void loadMap(const std::string& filename);
 		void loadTestMap();
 		void render(float offsetX, float offsetY);
+
+		Point2D getPlayerSpawnPos() { return _player_spawn_pos; }
 
 		[[nodiscard]] bool isWalkable(int world_x, int world_y) const;
 
@@ -30,6 +33,8 @@ namespace Nawia::Core
 
 		std::vector<Tile> _tiles;
 		std::vector<std::vector<Tile>> _grid;
+
+		Point2D _player_spawn_pos;
 	};
 
 } // namespace Nawia::Core
