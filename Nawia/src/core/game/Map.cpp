@@ -4,8 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
-#include <cmath>
-#include <algorithm>
 
 using json = nlohmann::json;
 
@@ -17,7 +15,6 @@ namespace Nawia::Core {
 		if (!loadTiles()) {
 			Logger::errorLog("Map - Couldn't load tiles from file.");
 		}
-
 	}
 
 	/*
@@ -170,9 +167,38 @@ namespace Nawia::Core {
 									int _grid_y = (_chunk_y + y) - _min_y;
 
 									_grid[_grid_y][_grid_x] = _tiles[_tile_id];
-									Logger::debugLog("Loaded tile " + std::to_string(_tile_id) + " at pos (" + std::to_string(_grid_y) + ";" + std::to_string(_grid_x) + "); isWalkable=" + std::to_string(_tiles[_tile_id].is_walkable));
 								}
 							}
+						}
+					}
+				}
+			}
+			else if (_layer["type"] == "objectgroup")
+			{
+				if (_layer.contains("objects"))
+				{
+					for (const auto& obj : _layer["objects"])
+					{
+						if (obj["name"] == "playerspawn")
+						{
+							float raw_x = obj["x"];
+							float raw_y = obj["y"];
+
+							if (_map_data.contains("tileheight"))
+							{
+								float th = _map_data["tileheight"];
+
+								float grid_x = (raw_x / th);
+								float grid_y = (raw_y / th);
+
+								grid_x -= _min_x;
+								grid_y -= _min_y;
+
+								_player_spawn_pos.setX(grid_x);
+								_player_spawn_pos.setY(grid_y);
+								Logger::debugLog("Map - Loaded player spawn point");
+							}
+							
 						}
 					}
 				}

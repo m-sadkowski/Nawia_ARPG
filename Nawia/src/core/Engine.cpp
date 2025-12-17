@@ -28,7 +28,8 @@ namespace Nawia::Core {
 
         // player
         auto player_texture = _resource_manager.getTexture("../assets/textures/player.png", _renderer);
-        _player = std::make_unique<Entity::Player>(10.0f, 10.0f, player_texture);
+        Point2D player_spawn_pos = _map->getPlayerSpawnPos();
+        _player = std::make_unique<Entity::Player>(player_spawn_pos.getX(), player_spawn_pos.getY(), player_texture);
 
         // clock
         _last_time = SDL_GetTicks();
