@@ -6176,3 +6176,294 @@
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
 [DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] Mouse raw: 819.000000, 175.000000
+[DEBUG] Iso float: -0.570312, 0.632812
+[DEBUG] Mouse raw: 849.000000, 159.000000
+[DEBUG] Iso float: -0.585938, 0.148438
+[DEBUG] Mouse raw: 881.000000, 143.000000
+[DEBUG] Iso float: -0.585938, -0.351562
+[DEBUG] Mouse raw: 963.000000, 131.000000
+[DEBUG] Iso float: -0.132812, -1.179688
+[DEBUG] Mouse raw: 936.000000, 165.000000
+[DEBUG] Iso float: 0.187500, -0.437500
+[DEBUG] Mouse raw: 981.000000, 211.000000
+[DEBUG] Iso float: 1.257812, -0.070312
+[DEBUG] Mouse raw: 991.000000, 162.000000
+[DEBUG] Iso float: 0.570312, -0.914062
+[DEBUG] Mouse raw: 1013.000000, 160.000000
+[DEBUG] Iso float: 0.710938, -1.117188
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 1.421875, 4.421875
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 1.421875, 4.421875
+[DEBUG] Mouse raw: 518.000000, 644.000000
+[DEBUG] Iso float: 12.984375, 15.890625
+[DEBUG] Grid int: 12, 15
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 587.000000, 645.000000
+[DEBUG] Iso float: 16.523438, 21.257812
+[DEBUG] Grid int: 16, 21
+[DEBUG] isWalkable: 1
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 2.843750, 8.843750
+[DEBUG] Mouse raw: 576.000000, 588.000000
+[DEBUG] Iso float: 12.562500, 14.562500
+[DEBUG] Grid int: 12, 14
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 614.000000, 623.000000
+[DEBUG] Iso float: 14.501245, 16.762060
+[DEBUG] Grid int: 14, 16
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 645.000000, 598.000000
+[DEBUG] Iso float: 16.092806, 18.587652
+[DEBUG] Grid int: 16, 18
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 690.000000, 454.000000
+[DEBUG] Iso float: 15.996752, 18.298525
+[DEBUG] Grid int: 15, 18
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 708.000000, 376.000000
+[DEBUG] Iso float: 15.508581, 17.624105
+[DEBUG] Grid int: 15, 17
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 648.000000, 517.000000
+[DEBUG] Iso float: 17.524206, 20.514730
+[DEBUG] Grid int: 17, 20
+[DEBUG] isWalkable: 1
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 2.843750, 8.843750
+[DEBUG] Mouse raw: 655.000000, 615.000000
+[DEBUG] Iso float: 13.601562, 14.367188
+[DEBUG] Grid int: 13, 14
+[DEBUG] isWalkable: 1
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 2.843750, 8.843750
+[DEBUG] Mouse raw: 639.000000, 522.000000
+[DEBUG] Iso float: 12.023438, 13.039062
+[DEBUG] Grid int: 12, 13
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 631.000000, 406.000000
+[DEBUG] Iso float: 12.171875, 14.328125
+[DEBUG] Grid int: 12, 14
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 666.000000, 375.000000
+[DEBUG] Iso float: 12.109375, 14.859375
+[DEBUG] Grid int: 12, 14
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 692.000000, 363.000000
+[DEBUG] Iso float: 12.062500, 15.000000
+[DEBUG] Grid int: 12, 15
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 805.000000, 357.000000
+[DEBUG] Iso float: 12.804688, 14.164062
+[DEBUG] Grid int: 12, 14
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 702.000000, 369.000000
+[DEBUG] Iso float: 12.929688, 14.320312
+[DEBUG] Grid int: 12, 14
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 703.000000, 380.000000
+[DEBUG] Iso float: 13.234375, 14.640625
+[DEBUG] Grid int: 13, 14
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 706.000000, 388.000000
+[DEBUG] Iso float: 13.687500, 15.062500
+[DEBUG] Grid int: 13, 15
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 706.000000, 395.000000
+[DEBUG] Iso float: 14.250000, 15.593750
+[DEBUG] Grid int: 14, 15
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 704.000000, 400.000000
+[DEBUG] Iso float: 14.875000, 16.218750
+[DEBUG] Grid int: 14, 16
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 705.000000, 404.000000
+[DEBUG] Iso float: 15.570312, 16.898438
+[DEBUG] Grid int: 15, 16
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 705.000000, 406.000000
+[DEBUG] Iso float: 16.296875, 17.609375
+[DEBUG] Grid int: 16, 17
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 705.000000, 413.000000
+[DEBUG] Iso float: 17.132812, 18.429688
+[DEBUG] Grid int: 17, 18
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 709.000000, 359.000000
+[DEBUG] Iso float: 17.156250, 18.375000
+[DEBUG] Player clicked
+[DEBUG] Mouse raw: 709.000000, 359.000000
+[DEBUG] Iso float: 17.156250, 18.375000
+[DEBUG] Player clicked
+[DEBUG] Mouse raw: 704.000000, 288.000000
+[DEBUG] Iso float: 16.007812, 17.304688
+[DEBUG] Grid int: 16, 17
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 702.000000, 288.000000
+[DEBUG] Iso float: 14.867188, 16.195312
+[DEBUG] Grid int: 14, 16
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 702.000000, 288.000000
+[DEBUG] Iso float: 13.726562, 15.085938
+[DEBUG] Grid int: 13, 15
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 702.000000, 288.000000
+[DEBUG] Iso float: 12.585938, 13.976562
+[DEBUG] Grid int: 12, 13
+[DEBUG] isWalkable: 1
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 0.710938, 2.210938
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 0.710938, 2.210938
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 0.710938, 2.210938
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 0.710938, 2.210938
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 0.710938, 2.210938
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 0.710938, 2.210938
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 0.710938, 2.210938
+[DEBUG] Mouse raw: 771.000000, 327.000000
+[DEBUG] Iso float: 17.507812, 21.460938
+[DEBUG] Grid int: 17, 21
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 771.000000, 327.000000
+[DEBUG] Iso float: 17.515625, 20.421875
+[DEBUG] Grid int: 17, 20
+[DEBUG] isWalkable: 1
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 0.710938, 2.210938
+[DEBUG] Mouse raw: 703.000000, 364.000000
+[DEBUG] Iso float: 17.554688, 20.570312
+[DEBUG] Grid int: 17, 20
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 694.000000, 354.000000
+[DEBUG] Iso float: 17.382812, 20.554688
+[DEBUG] Player clicked
+[DEBUG] Mouse raw: 685.000000, 355.000000
+[DEBUG] Iso float: 17.328125, 20.640625
+[DEBUG] Player clicked
+[DEBUG] Mouse raw: 638.000000, 311.000000
+[DEBUG] Iso float: 16.273438, 20.320312
+[DEBUG] Grid int: 16, 20
+[DEBUG] isWalkable: 1
+[DEBUG] Mouse raw: 758.000000, 399.000000
+[DEBUG] Iso float: 17.304688, 20.507812
+[DEBUG] Grid int: 17, 20
+[DEBUG] isWalkable: 1
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - removed resource.
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 16.710938, 18.210938
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 16.710938, 18.210938
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Przed 0.710938, 2.210938
+[DEBUG] Po 16.710938, 18.210938
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 16.710938, 18.210938
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png
+[DEBUG] PLAYER POS: 17.421875, 20.421875
+[DEBUG] Resource Manager - opened file:: ../assets/textures/grass.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/stone.png
+[DEBUG] Resource Manager - opened file:: ../assets/textures/water.png
+[DEBUG] Map - Loaded player spawn point
+[DEBUG] Resource Manager - opened file:: ../assets/textures/player.png

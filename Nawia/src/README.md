@@ -22,3 +22,11 @@ Loading a map:
 * Create a map in Tiled (orientation: iso; format: csv; order: right-bottom; size: infinite; width: 128; height: 64), save it as .tmx in /tiled/maps and export it as .json in /assets/maps
 * Use Map::loadMap function and pass a file, ex. loadMap("map1.json").
 * **REMEMBER TO USE THE SAME TILES (.TSX) FILE FOR ALL MAPS**
+
+Create player default spawnpoint:
+* New layer -> Object layer
+* "Insert Point" tool on toolbar
+* Click on a desired point
+* In properties, set name to "playerspawn"
+
+## After any changes remember to export the file with .json format
