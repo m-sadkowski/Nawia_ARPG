@@ -1,10 +1,10 @@
 #pragma once
-#include "SpellEffect.h"
+#include "AbilityEffect.h"
 
 namespace Nawia::Entity
 {
 
-    class Projectile : public SpellEffect {
+    class Projectile : public AbilityEffect {
     public:
         Projectile(float x, float y, float target_x, float target_y, float speed, const std::shared_ptr<SDL_Texture>& tex, int damage, float duration);
 

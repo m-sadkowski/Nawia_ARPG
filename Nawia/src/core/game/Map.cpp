@@ -221,7 +221,7 @@ namespace Nawia::Core
 		}
 	}
 
-	void Map::render(float offsetX, float offsetY) {
+	void Map::render(float offsetX, float offset_y) {
 		/*
 			Render map on OFFSET (x+400, y)
 
@@ -236,7 +236,7 @@ namespace Nawia::Core
 
 				if (tile.texture) {
 					const float iso_x = static_cast<float>(x - y) * (TILE_WIDTH / 2.0f) + offsetX;
-					const float iso_y = static_cast<float>(x + y) * (TILE_HEIGHT / 2.0f) + offsetY;
+					const float iso_y = static_cast<float>(x + y) * (TILE_HEIGHT / 2.0f) + offset_y;
 
 					SDL_FRect dest_rect = { iso_x, iso_y, static_cast<float>(TILE_WIDTH), static_cast<float>(TILE_HEIGHT) };
 					SDL_RenderTexture(_renderer, tile.texture.get(), nullptr, &dest_rect);

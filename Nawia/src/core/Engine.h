@@ -3,6 +3,7 @@
 #include "Constants.h"
 #include "Map.h"
 #include "ResourceManager.h"
+#include "EntityManager.h"
 
 #include <Player.h>
 
@@ -19,33 +20,28 @@ public:
 
   void run();
   [[nodiscard]] bool isRunning() const;
-  void spawnEntity(std::shared_ptr<Entity::Entity> new_entity);
-  std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y);
+
+  std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y) const;
+  void spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const;
 
 private:
-  void handleEvents();
   void update(float delta_time);
-  void render();
-
-  void handleMouseClick(float mouse_x, float mouse_y);
+  void render() const;
+  void handleEvents();
+  void handleMouseClick(float mouse_x, float mouse_y) const;
 
   bool _is_running;
+  uint64_t _last_time;
+
   SDL_Window* _window;
   SDL_Renderer* _renderer;
 
-  // Resource Manager - holds all loaded textures
   ResourceManager _resource_manager;
-
+  Camera _camera;
   std::unique_ptr<Map> _map;
-
+  std::unique_ptr<EntityManager> _entity_manager;
   std::shared_ptr<Entity::Player> _player;
   std::unique_ptr<PlayerController> _controller;
-
-  uint64_t _last_time;
-
-  Camera _camera;
-
-  std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
 };
 
 } // namespace Nawia::Core
