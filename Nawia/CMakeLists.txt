@@ -62,3 +62,10 @@ add_custom_command(TARGET Nawia POST_BUILD
         "${CMAKE_SOURCE_DIR}/external/SDL3_mixer/bin"
         $<TARGET_FILE_DIR:Nawia>
 )
+
+# Post-build copy assets
+# TODO: fix /../, change all paths in project to constants without ../ and remove /../ from here
+add_custom_command(TARGET Nawia POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:Nawia>/../assets")
