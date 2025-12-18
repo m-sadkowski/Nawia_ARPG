@@ -69,11 +69,7 @@ captures/
 *.lastbuildstate
 *.tlog
 *.idb
-*.tlog
-*.log
 *.exe.recipe
-*.idb
-*.pdb
 
 # Python
 __pycache__/

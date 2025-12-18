@@ -21,6 +21,7 @@ include_directories(
     src/entity/actors
     src/entity/components
     src/entity/systems
+    src/entity/effects
     src/world
     src/world/map
     src/world/level

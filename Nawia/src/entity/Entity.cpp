@@ -3,9 +3,10 @@
 #include <Map.h>
 #include <Logger.h>
 
-namespace Nawia::Entity {
+namespace Nawia::Entity 
+{
 
-	Entity::Entity(float start_x, float start_y, const std::shared_ptr<SDL_Texture>& texture, int max_hp) : _texture(texture), _max_hp(max_hp)
+	Entity::Entity(float start_x, float start_y, const std::shared_ptr<SDL_Texture>& texture, const int max_hp) : _texture(texture), _max_hp(max_hp)
 	{
 		_pos = std::make_unique<Core::Point2D>(start_x, start_y);
 
@@ -28,10 +29,13 @@ namespace Nawia::Entity {
 	void Entity::takeDamage(int dmg)
 	{
 		_hp -= dmg;
-		if (_hp < 0) _hp = 0;
+		if (_hp < 0) {
+			_hp = 0;
+			Core::Logger::debugLog("Entity died!");
+		}
 	}
 
-	bool Entity::isMouseOver(float mouse_x, float mouse_y, float cam_x, float cam_y) const
+	bool Entity::isMouseOver(const float mouse_x, const float mouse_y, const float cam_x, const float cam_y) const
 	{
 		Core::Point2D screen_pos = getScreenPos(mouse_x, mouse_y, cam_x, cam_y);
 
@@ -43,8 +47,10 @@ namespace Nawia::Entity {
 			mouse_y >= screen_pos.getY() && mouse_y <= screen_pos.getY() + Core::ENTITY_TEXTURE_HEIGHT);
 	}
 
-	Core::Point2D Entity::getScreenPos(float mouse_x, float mouse_y, float cam_x, float cam_y) const
+	Core::Point2D Entity::getScreenPos(const float mouse_x, const float mouse_y, const float cam_x, const float cam_y) const
 	{
+		SDL_UNUSED(mouse_x);
+		SDL_UNUSED(mouse_y);
 		float screen_x = (_pos->getX() - _pos->getY()) * (Core::TILE_WIDTH / 2.0f) + cam_x;
 		float screen_y = (_pos->getX() + _pos->getY()) * (Core::TILE_HEIGHT / 2.0f) + cam_y;
 		screen_x += (Core::TILE_WIDTH / 2.0f) - (Core::ENTITY_TEXTURE_WIDTH / 2.0f);

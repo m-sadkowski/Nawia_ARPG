@@ -1,8 +1,8 @@
 #pragma once
-#include "ResourceManager.h"
-#include "Map.h"
 #include "Camera.h"
 #include "Constants.h"
+#include "Map.h"
+#include "ResourceManager.h"
 
 #include <Player.h>
 
@@ -10,32 +10,42 @@
 
 namespace Nawia::Core {
 
-    class Engine {
-    public:
-        Engine();
-        ~Engine();
+class PlayerController;
 
-        void run();
-        [[nodiscard]] bool isRunning() const;
+class Engine {
+public:
+  Engine();
+  ~Engine();
 
-    private:
-        void handleEvents();
-        void update(float delta_time);
-        void render();
+  void run();
+  [[nodiscard]] bool isRunning() const;
+  void spawnEntity(std::shared_ptr<Entity::Entity> new_entity);
+  std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y);
 
-        void handleMouseClick(float mouse_x, float mouse_y);
+private:
+  void handleEvents();
+  void update(float delta_time);
+  void render();
 
-        bool _is_running;
-        SDL_Window* _window;
-        SDL_Renderer* _renderer;
+  void handleMouseClick(float mouse_x, float mouse_y);
 
-        // Resource Manager - holds all loaded textures
-        ResourceManager _resource_manager;
-        std::unique_ptr<Map> _map;
-        std::unique_ptr<Entity::Player> _player;
-        uint64_t _last_time;
+  bool _is_running;
+  SDL_Window* _window;
+  SDL_Renderer* _renderer;
 
-        Camera _camera;
-    };
+  // Resource Manager - holds all loaded textures
+  ResourceManager _resource_manager;
+
+  std::unique_ptr<Map> _map;
+
+  std::shared_ptr<Entity::Player> _player;
+  std::unique_ptr<PlayerController> _controller;
+
+  uint64_t _last_time;
+
+  Camera _camera;
+
+  std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
+};
 
 } // namespace Nawia::Core
