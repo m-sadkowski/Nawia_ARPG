@@ -43,7 +43,7 @@ namespace Nawia::Core
 	  _controller = std::make_unique<PlayerController>(this, _player);
 
 		// initialize entity manager
-	  _entity_manager = std::make_unique<EntityManager>();
+	  _entity_manager = std::make_shared<EntityManager>();
 
 	  // spawn test enemy
 	  auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png", _renderer);
@@ -72,6 +72,10 @@ namespace Nawia::Core
 	void Engine::spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const
 	{
 		_entity_manager->addEntity(new_entity);
+	}
+
+	std::shared_ptr<EntityManager> Engine::getEntityManager() const {
+		return _entity_manager;
 	}
 
 	void Engine::run() {
