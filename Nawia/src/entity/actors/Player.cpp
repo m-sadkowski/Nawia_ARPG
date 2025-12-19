@@ -4,7 +4,7 @@ namespace Nawia::Entity
 {
 
 	Player::Player(const float x, const float y, const std::shared_ptr<SDL_Texture>& texture)
-		: Entity(x, y, texture, 200), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) {}
+		: Entity(x, y, texture, 100), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) {}
 
 	void Player::moveTo(const float x, const float y) 
 	{
@@ -36,20 +36,20 @@ namespace Nawia::Entity
  		}
 	}
 
-	void Player::addSpell(const std::shared_ptr<Core::Spell>& spell) 
+	void Player::addAbility(const std::shared_ptr<Ability>& ability)
 	{
-		_spellbook.push_back(spell);
+		_abilities.push_back(ability);
 	}
 
-	std::shared_ptr<Core::Spell> Player::getSpell(const int index)
+	std::shared_ptr<Ability> Player::getAbility(const int index)
 	{
-		if (index >= 0 && index < _spellbook.size()) return _spellbook[index];
+		if (index >= 0 && index < _abilities.size()) return _abilities[index];
 		return nullptr;
 	}
 
-	void Player::updateSpells(const float dt) const
+	void Player::updateAbilities(const float dt) const
 	{
-		for (auto& s : _spellbook) s->update(dt);
+		for (auto& s : _abilities) s->update(dt);
 	}
 
 } // namespace Nawia::Entity

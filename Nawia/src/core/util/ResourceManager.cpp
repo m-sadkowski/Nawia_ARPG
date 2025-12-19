@@ -1,9 +1,8 @@
 #include "ResourceManager.h"
+#include "Logger.h"
 
 #include <iostream>
 #include <SDL3_image/SDL_image.h>
-
-#include "Logger.h"
 
 namespace Nawia::Core {
 

@@ -1,11 +1,10 @@
 #include "Engine.h"
 #include "Enemy.h"
-#include "FireballSpell.h"
+#include <FireballAbility.h>
 #include "Logger.h"
 #include "MathUtils.h"
 #include "PlayerController.h"
 #include "Projectile.h"
-#include "Spell.h"
 
 #include <algorithm>
 #include <iostream>
@@ -13,17 +12,13 @@
 namespace Nawia::Core 
 {
 
-	Engine::Engine()
-	    : _is_running(false), _window(nullptr), _renderer(nullptr),
-	      _controller(nullptr) {
+	Engine::Engine() : _is_running(false), _window(nullptr), _renderer(nullptr), _controller(nullptr) {
 	  if (!SDL_Init(SDL_INIT_VIDEO)) {
 	    std::cerr << SDL_GetError() << "\n";
 	    return;
 	  }
 
-	  if (!SDL_CreateWindowAndRenderer("Nawia", WINDOW_WIDTH, WINDOW_HEIGHT,
-	                                   SDL_WINDOW_RESIZABLE, &_window,
-	                                   &_renderer)) {
+	  if (!SDL_CreateWindowAndRenderer("Nawia", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE, &_window, &_renderer)) {
 	    Logger::errorLog("Error while creating window.");
 	    Logger::errorLog("SDL: " + std::string(SDL_GetError()));
 	    SDL_Quit();
@@ -41,17 +36,18 @@ namespace Nawia::Core
 
 	  // TEMPORARY SOLUTION
 	  // initialize spells
-	  auto fireball_tex = _resource_manager.getTexture(
-	      "../assets/textures/fireball.png", _renderer);
-	  _player->addSpell(std::make_shared<FireballSpell>(fireball_tex));
+	  auto fireball_tex = _resource_manager.getTexture("../assets/textures/fireball.png", _renderer);
+	  _player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex));
 
 	  // initialize player controller
 	  _controller = std::make_unique<PlayerController>(this, _player);
 
+		// initialize entity manager
+	  _entity_manager = std::make_shared<EntityManager>();
+
 	  // spawn test enemy
-	  auto enemy_tex =
-	      _resource_manager.getTexture("../assets/textures/enemy.png", _renderer);
-	  spawnEntity(std::make_unique<Entity::Enemy>(15.0f, 15.0f, enemy_tex, 100));
+	  auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png", _renderer);
+	  _entity_manager->addEntity(std::make_unique<Entity::Enemy>(15.0f, 15.0f, enemy_tex, 100));
 
 	  // clock
 	  _last_time = SDL_GetTicks();
@@ -68,6 +64,20 @@ namespace Nawia::Core
 
 	bool Engine::isRunning() const { return _is_running; }
 
+	std::shared_ptr<Entity::Entity> Engine::getEntityAt(const float screen_x, const float screen_y) const
+	{
+		return _entity_manager->getEntityAt(screen_x, screen_y, _camera);
+	}
+
+	void Engine::spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const
+	{
+		_entity_manager->addEntity(new_entity);
+	}
+
+	std::shared_ptr<EntityManager> Engine::getEntityManager() const {
+		return _entity_manager;
+	}
+
 	void Engine::run() {
 	  while (isRunning()) {
 	    const uint64_t current_time = SDL_GetTicks();
@@ -81,125 +91,63 @@ namespace Nawia::Core
 	  }
 	}
 
-	void Engine::spawnEntity(std::shared_ptr<Entity::Entity> new_entity) {
-	  _active_entities.push_back(std::move(new_entity));
-	}
-
-	std::shared_ptr<Entity::Entity> Engine::getEntityAt(const float screen_x,
-	                                                    const float screen_y) {
-	  for (const auto &entity : _active_entities) {
-	    if (entity->isMouseOver(screen_x, screen_y, _camera._x, _camera._y)) {
-	      return entity;
-	    }
-	  }
-	  return nullptr;
-	}
-
 	void Engine::handleEvents() {
 	  SDL_Event event;
 
 	  // transform mouse location to position in world
 	  float mouse_screen_x, mouse_screen_y;
 	  SDL_GetMouseState(&mouse_screen_x, &mouse_screen_y);
-	  Point2D mouse_world_pos = Point2D::screenToIso(mouse_screen_x, mouse_screen_y,
-	                                                 _camera._x, _camera._y);
+	  Point2D mouse_world_pos = Point2D::screenToIso(mouse_screen_x, mouse_screen_y,_camera.x, _camera.y);
 
 	  while (SDL_PollEvent(&event)) {
 	    if (event.type == SDL_EVENT_QUIT) {
 	      _is_running = false;
-	    } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-	      if (event.button.button == SDL_BUTTON_LEFT) {
+	    } 
+	  	else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+	      if (event.button.button == SDL_BUTTON_LEFT) 
 	        handleMouseClick(event.button.x, event.button.y);
-	      }
 	    }
 
-	    if (_controller) {
-	      _controller->handleInput(event, mouse_world_pos.getX(),
-	                               mouse_world_pos.getY(), mouse_screen_x,
-	                               mouse_screen_y);
-	    }
+	    if (_controller) 
+	      _controller->handleInput(event, mouse_world_pos.getX(),mouse_world_pos.getY(), mouse_screen_x,mouse_screen_y);
 	  }
 	}
 
 	void Engine::update(const float delta_time) {
-	  if (_player) {
-	    _player->update(delta_time);
-	    _player->updateSpells(delta_time);
-	    _camera.follow(_player.get());
-	  }
+		if (!_player || !_entity_manager)
+			return;
 
-	  // handle collisions
-	  // TEMPORARY
-	  // TODO: should be handled by ability itself or entitymanager
-	  for (auto &entity1 : _active_entities) {
-	    if (const auto projectile = dynamic_cast<Entity::Projectile*>(entity1.get())) {
-	      if (projectile->isExpired())
-	        continue;
+		_player->update(delta_time);
+		_player->updateAbilities(delta_time);
+		_camera.follow(_player.get());
 
-	      for (auto &entity2 : _active_entities) {
-	        if (entity1 == entity2)
-	          continue; // skip self
-
-	        if (const auto enemy = dynamic_cast<Entity::Enemy *>(entity2.get())) {
-	          if (enemy->isDead())
-	            continue;
-
-	          const float dx = projectile->getX() - enemy->getX();
-	          const float dy = projectile->getY() - enemy->getY();
-
-	          if (dx * dx + dy * dy < 0.25f) { // 0.5 * 0.5
-	            enemy->takeDamage(projectile->getDamage());
-	            projectile->takeDamage(9999); // destroy projectile
-	            Logger::debugLog("Hit Enemy!");
-	          }
-	        }
-	      }
-	    }
-	  }
-
-	  // update active entities
-	  for (auto it = _active_entities.begin(); it != _active_entities.end();) {
-	    auto &entity = *it;
-	    entity->update(delta_time);
-
-	    const auto spell_effect = dynamic_cast<Entity::SpellEffect *>(entity.get());
-	    const bool expired = (spell_effect && spell_effect->isExpired());
-
-	    if (entity->isDead() || expired)
-	      it = _active_entities.erase(it);
-	    else
-	      ++it;
-	  }
+		_entity_manager->handleEntitiesCollisions();
+		_entity_manager->updateEntities(delta_time);
 	}
 
-	void Engine::render() {
+	void Engine::render() const {
 	  SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
 	  SDL_RenderClear(_renderer);
 
+	  if (!_map || !_player || !_entity_manager)
+		  return;
+
 	  /* RENDER START */
-
-	  if (_map) {
-	    _map->render(_camera._x, _camera._y);
-	  }
-
-	  for (const auto &entity : _active_entities) {
-	    entity->render(_renderer, _camera._x, _camera._y);
-	  }
-
-	  if (_player) {
-	    _player->render(_renderer, _camera._x, _camera._y);
-	  }
+		
+		_map->render(_camera.x, _camera.y);
+		_entity_manager->renderEntities(_renderer, _camera);
+		_player->render(_renderer, _camera.x, _camera.y);
 
 	  /* RENDER END */
 
 	  SDL_RenderPresent(_renderer);
 	}
 
-	void Engine::handleMouseClick(const float mouse_x, const float mouse_y) {
+	void Engine::handleMouseClick(const float mouse_x, const float mouse_y) const {
 	  if (!_map || !_player)
 	    return;
 
-	  Point2D pos = Point2D::screenToIso(mouse_x, mouse_y, _camera._x, _camera._y);
+	  Point2D pos = Point2D::screenToIso(mouse_x, mouse_y, _camera.x, _camera.y);
 	  int target_x = static_cast<int>(std::floor(pos.getX()));
 	  int target_y = static_cast<int>(std::floor(pos.getY()));
 

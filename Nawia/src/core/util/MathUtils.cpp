@@ -1,6 +1,5 @@
 #include "MathUtils.h"
-
-#include <Map.h>
+#include "Map.h"
 
 namespace Nawia::Core {
 

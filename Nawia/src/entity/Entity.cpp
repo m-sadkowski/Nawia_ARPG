@@ -6,12 +6,9 @@
 namespace Nawia::Entity 
 {
 
-	Entity::Entity(float start_x, float start_y, const std::shared_ptr<SDL_Texture>& texture, const int max_hp) : _texture(texture), _max_hp(max_hp)
+	Entity::Entity(float start_x, float start_y, const std::shared_ptr<SDL_Texture>& texture, const int max_hp) : _texture(texture), _max_hp(max_hp), _hp(max_hp)
 	{
 		_pos = std::make_unique<Core::Point2D>(start_x, start_y);
-
-		// set hp
-		_hp = _max_hp;
 	}
 
 	void Entity::render(SDL_Renderer* renderer, const float offset_x, const float offset_y) {
@@ -26,7 +23,7 @@ namespace Nawia::Entity
 		SDL_RenderTexture(renderer, _texture.get(), nullptr, &dest_rect);
 	}
 
-	void Entity::takeDamage(int dmg)
+	void Entity::takeDamage(const int dmg)
 	{
 		_hp -= dmg;
 		if (_hp < 0) {
@@ -39,8 +36,8 @@ namespace Nawia::Entity
 	{
 		Core::Point2D screen_pos = getScreenPos(mouse_x, mouse_y, cam_x, cam_y);
 
-//		Core::Logger::debugLog("MouseOver Click Raw: " + std::to_string(mouse_x) + ", " + std::to_string(mouse_y));
-//		Core::Logger::debugLog("MouseOver Click Screen: " + std::to_string(screen_x) + ", " + std::to_string(screen_y));
+//		Core::Logger::debugLog("MouseOver click raw: " + std::to_string(mouse_x) + ", " + std::to_string(mouse_y));
+//		Core::Logger::debugLog("MouseOver click screen: " + std::to_string(screen_x) + ", " + std::to_string(screen_y));
 //		Core::Logger::debugLog("MouseOver Entity: " + std::to_string(_pos->getX()) + ", " + std::to_string(_pos->getY()));
 
 		return (mouse_x >= screen_pos.getX() && mouse_x <= screen_pos.getX() + Core::ENTITY_TEXTURE_WIDTH &&

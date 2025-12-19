@@ -1,5 +1,4 @@
 #pragma once
-#include "Constants.h"
 #include "MathUtils.h"
 
 
@@ -24,6 +23,7 @@ public:
   bool isDead() const { return _hp <= 0; }
   int getHP() const { return _hp; }
   int getMaxHP() const { return _max_hp; }
+  std::string getName() { return ""; };
 
   bool isMouseOver(float mouse_x, float mouse_y, float cam_x,
                    float cam_y) const;

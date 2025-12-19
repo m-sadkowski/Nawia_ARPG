@@ -1,6 +1,6 @@
 #pragma once
 #include "Entity.h"
-#include "Spell.h"
+#include <Ability.h>
 
 namespace Nawia::Entity {
 
@@ -12,15 +12,16 @@ namespace Nawia::Entity {
 
 		void moveTo(float x, float y);
 
-		void addSpell(const std::shared_ptr<Core::Spell>& spell);
-		std::shared_ptr<Core::Spell> getSpell(int index);
-		void updateSpells(float dt) const;
+		// ability system
+		void addAbility(const std::shared_ptr<Ability>& ability);
+		std::shared_ptr<Ability> getAbility(int index);
+		void updateAbilities(float dt) const;
 
 	private:
 		float _target_x, _target_y;
 		float _speed;
 		bool _is_moving;
-		std::vector<std::shared_ptr<Core::Spell>> _spellbook;
+		std::vector<std::shared_ptr<Ability>> _abilities;
 	};
 
 } // namespace Nawia::Entity

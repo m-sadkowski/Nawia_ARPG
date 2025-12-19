@@ -2,13 +2,12 @@
 #include "ResourceManager.h"
 #include "Tile.h"
 #include "Constants.h"
+#include "MathUtils.h"
 
 #include <SDL3/SDL.h>
 #include <vector>
 #include <string>
 #include <json.hpp>
-
-#include "MathUtils.h"
 
 namespace Nawia::Core {
 
@@ -19,7 +18,7 @@ namespace Nawia::Core {
 		bool loadTiles();
 		void loadMap(const std::string& filename);
 		void loadTestMap();
-		void render(float offsetX, float offsetY);
+		void render(float offset_x, float offset_y);
 
 		Point2D getPlayerSpawnPos() { return _player_spawn_pos; }
 
