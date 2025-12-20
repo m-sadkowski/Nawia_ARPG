@@ -16,6 +16,7 @@ namespace Nawia::Entity {
 		AbilityEffect::update(dt);
 	}
 
+	// we override render from Entity beacuse we want to spawn sword rotated
 	void SwordSlashEffect::render(SDL_Renderer *renderer, const float camera_x, const float camera_y) 
 	{
 	  if (!_texture) 

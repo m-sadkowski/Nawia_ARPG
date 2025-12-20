@@ -29,6 +29,7 @@ namespace Nawia::Entity {
 				}
 			}
 		}
+		return false;
 	}
 
 	void AbilityEffect::addHit(const std::shared_ptr<Entity>& target)

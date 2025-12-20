@@ -3,9 +3,9 @@
 
 namespace Nawia::Core {
 
-	Point2D Point2D::screenToIso(float mouse_x, float mouse_y, float offsetX, float offsetY) {
-		float adj_x = mouse_x - offsetX;
-		const float adj_y = mouse_y - offsetY;
+	Point2D Point2D::screenToIso(const float mouse_x, const float mouse_y, const float offset_x, const float offset_y) {
+		float adj_x = mouse_x - offset_x;
+		const float adj_y = mouse_y - offset_y;
 
 		constexpr float half_width = TILE_WIDTH / 2.0f;
 		constexpr float half_height = TILE_HEIGHT / 2.0f;
