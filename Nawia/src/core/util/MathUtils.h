@@ -2,6 +2,8 @@
 
 namespace Nawia::Core {
 
+	constexpr double pi = 3.1415;
+
 	class Point2D {
 	public:
 		Point2D() : _x(0.0f), _y(0.0f) {}

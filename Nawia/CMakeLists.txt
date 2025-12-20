@@ -24,6 +24,7 @@ include_directories(
     src/entity/effects
     src/entity/abilities
     src/entity/abilities/Fireball
+    src/entity/abilities/SwordSlash
     src/world
     src/world/map
     src/world/level
