@@ -11,13 +11,12 @@ public:
   void update(float dt) override;
   void render(SDL_Renderer *renderer, float camera_x, float camera_y) override;
 
-  float getAngle() const { return _angle; }
-  bool hasHit(const void* entity) const;
-  void addHit(const void* entity);
+  [[nodiscard]] float getAngle() const { return _angle; }
+  [[nodiscard]] bool checkCollision(const std::shared_ptr<Entity>& target) const override;
+  void onCollision(const std::shared_ptr<Entity>& target) override;
 
 private:
   float _angle;
-  std::vector<const void*> _hit_entities;
 };
 
 } // namespace Nawia::Entity
