@@ -23,7 +23,6 @@ public:
 
   std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y) const;
   void spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const;
-  std::shared_ptr<EntityManager> getEntityManager() const;
 
 private:
   void update(float delta_time);
@@ -40,7 +39,7 @@ private:
   ResourceManager _resource_manager;
   Camera _camera;
   std::unique_ptr<Map> _map;
-  std::shared_ptr<EntityManager> _entity_manager;
+  std::unique_ptr<EntityManager> _entity_manager;
   std::shared_ptr<Entity::Player> _player;
   std::unique_ptr<PlayerController> _controller;
 };

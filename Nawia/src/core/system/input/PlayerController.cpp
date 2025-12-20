@@ -36,8 +36,6 @@ namespace Nawia::Core
 				useAbility(abilityIndex, mouse_world_x, mouse_world_y);
   				break;
 	        case Entity::AbilityTargetType::SELF:
-
-	            break;
   			default:
   				break;
   			}
