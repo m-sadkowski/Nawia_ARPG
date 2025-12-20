@@ -28,11 +28,11 @@ namespace Nawia::Core
 	  // initialize map object
 	  _map = std::make_unique<Map>(_renderer, _resource_manager);
 	  _map->loadMap("map1.json");
-
-        // initialize player
+		
+		// initialize player
         auto player_texture = _resource_manager.getTexture("../assets/textures/player.png", _renderer);
         Point2D player_spawn_pos = _map->getPlayerSpawnPos();
-        _player = std::make_unique<Entity::Player>(player_spawn_pos.getX(), player_spawn_pos.getY(), player_texture);
+        _player = std::make_shared<Entity::Player>(player_spawn_pos.getX(), player_spawn_pos.getY(), player_texture);
 
 	  // TEMPORARY SOLUTION
 	  // initialize spells
@@ -43,7 +43,7 @@ namespace Nawia::Core
 	  _controller = std::make_unique<PlayerController>(this, _player);
 
 		// initialize entity manager
-	  _entity_manager = std::make_shared<EntityManager>();
+	  _entity_manager = std::make_unique<EntityManager>();
 
 	  // spawn test enemy
 	  auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png", _renderer);
@@ -72,10 +72,6 @@ namespace Nawia::Core
 	void Engine::spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const
 	{
 		_entity_manager->addEntity(new_entity);
-	}
-
-	std::shared_ptr<EntityManager> Engine::getEntityManager() const {
-		return _entity_manager;
 	}
 
 	void Engine::run() {
