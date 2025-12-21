@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include "Checkpoint.h"
+
 namespace Nawia::Core 
 {
 
@@ -52,6 +54,7 @@ namespace Nawia::Core
 
 		// initialize entity manager
 		_entity_manager = std::make_unique<EntityManager>();
+		_entity_manager->setPlayer(_player);
 
 		// spawn test enemy
 		auto enemy_tex =_resource_manager.getTexture("../assets/textures/enemy.png", _renderer);
@@ -62,6 +65,9 @@ namespace Nawia::Core
 		_entity_manager->addEntity(std::make_unique<Entity::Chest>(10.0f, 15.0f, chest_tex));
 
 
+		//spawn test trigger obj 
+		auto checkpoint_tex = _resource_manager.getTexture("../assets/textures/checkpoint.png", _renderer);
+		_entity_manager->addEntity(std::make_unique<Entity::Checkpoint>(5.0f, 15.0f, checkpoint_tex));
 		// clock
 		_last_time = SDL_GetTicks();
 		_is_running = true;

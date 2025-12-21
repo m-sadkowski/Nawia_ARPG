@@ -3,7 +3,7 @@
 #include <InteractiveObject.h>
 #include <Trigger.h>
 #include <Player.h>
-#include <Enemy.h>
+
 #include "Logger.h"
 
 #include <AbilityEffect.h>
@@ -15,7 +15,13 @@ namespace Nawia::Core {
 
 	void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity) 
 	{
+		
 	  _active_entities.push_back(std::move(new_entity));
+	}
+
+	void EntityManager::setPlayer(std::shared_ptr<Entity::Player> new_player)
+	{
+		_player = new_player;
 	}
 
 	std::shared_ptr<Entity::Entity> EntityManager::getEntityAt(const float screen_x, const float screen_y, const Camera camera) const 
@@ -33,21 +39,16 @@ namespace Nawia::Core {
 	    entity->render(renderer, camera.x, camera.y);
 	}
 
+
 	void EntityManager::handleEntitiesCollisions() const
 	{
+		
+		
 
-		Entity::Player* player = nullptr;
-		for (auto& entity : _active_entities) {
-			if (auto p = dynamic_cast<Entity::Player*>(entity.get())) {
-				player = p;
-				break;
-			}
-		}
 
 		for (auto& entity1 : _active_entities)
 		{
 			
-
 
 			if (const auto ability = dynamic_cast<Entity::AbilityEffect*>(entity1.get()))
 			{
@@ -65,12 +66,16 @@ namespace Nawia::Core {
 			}
 			else if (const auto trigger = dynamic_cast<Entity::Trigger*>(entity1.get())){
 
+
+
 				if (!trigger->isInteractive()) continue;
 
-				// Trigger sprawdzamy TYLKO wzgl�dem gracza
-				if (player && trigger->checkCollision(player))
+				
+				if (_player && trigger->checkCollision(_player))
 				{
-					trigger->interaction(); // Aktywuj np. checkpoint lub pu�apk�
+
+					Logger::debugLog("collision with trigger");
+					trigger->interaction(); 
 				}
 
 			}

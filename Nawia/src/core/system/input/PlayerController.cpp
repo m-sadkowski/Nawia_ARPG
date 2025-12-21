@@ -4,7 +4,7 @@
 
 #include <EnemyInterface.h>
 #include "Usable.h"
-#include <Enemy.h>
+
 
 namespace Nawia::Core {
 

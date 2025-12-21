@@ -5,7 +5,7 @@
 namespace Nawia::Entity {
 
     Checkpoint::Checkpoint(float x, float y, const std::shared_ptr<SDL_Texture>& texture)
-        : InteractiveObject(x, y, texture, 1), _activated(false)
+        : Trigger(x, y, texture, 100,5, 5), _activated(false)
     {
     }
 

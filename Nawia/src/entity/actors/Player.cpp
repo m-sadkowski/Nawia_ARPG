@@ -35,7 +35,7 @@ namespace Nawia::Entity
 			_pos->setY(_pos->getY() + (dy / distance) * _speed * delta_time);
  		}
 	}
-
+	
 	void Player::addAbility(const std::shared_ptr<Ability>& ability)
 	{
 		_abilities.push_back(ability);
