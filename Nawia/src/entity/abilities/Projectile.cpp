@@ -1,6 +1,7 @@
 #include "Projectile.h"
-#include "Enemy.h"
+#include "EnemyInterface.h"
 #include "Logger.h"
+
 #include <cmath>
 
 namespace Nawia::Entity {
@@ -26,7 +27,7 @@ namespace Nawia::Entity {
 
 	bool Projectile::checkCollision(const std::shared_ptr<Entity>& target) const
 	{
-		if (const auto enemy = std::dynamic_pointer_cast<Enemy>(target))
+		if (const auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target))
 	  {
 	    if (enemy->isDead())
 	      return false;
@@ -40,7 +41,7 @@ namespace Nawia::Entity {
 
 	void Projectile::onCollision(const std::shared_ptr<Entity>& target)
 	{
-		if (const auto enemy = std::dynamic_pointer_cast<Enemy>(target))
+		if (const auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target))
 	  {
 	    enemy->takeDamage(getDamage());
 	    takeDamage(9999);

@@ -1,6 +1,8 @@
 #include "SwordSlashEffect.h"
-#include "Constants.h"
-#include "Enemy.h"
+#include "EnemyInterface.h"
+
+#include <Constants.h>
+
 #include <Logger.h>
 #include <algorithm>
 #include <cmath>
@@ -34,7 +36,7 @@ namespace Nawia::Entity {
 
 	bool SwordSlashEffect::checkCollision(const std::shared_ptr<Entity>& target) const
 	{
-		if (const auto enemy = std::dynamic_pointer_cast<Enemy>(target))
+		if (const auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target))
 	  {
 	    if (enemy->isDead())
 	      return false;
@@ -63,7 +65,7 @@ namespace Nawia::Entity {
 
 	void SwordSlashEffect::onCollision(const std::shared_ptr<Entity>& target)
 	{
-		if (const auto enemy = std::dynamic_pointer_cast<Enemy>(target))
+		if (const auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target))
 		{
 			enemy->takeDamage(getDamage());
 			addHit(enemy);
