@@ -1,5 +1,4 @@
 #include "Engine.h"
-#include "Enemy.h"
 #include "Logger.h"
 #include "MathUtils.h"
 #include "PlayerController.h"
@@ -7,6 +6,7 @@
 #include <FireballAbility.h>
 #include <Projectile.h>
 #include <SwordSlashAbility.h>
+#include <Dummy.h>
 
 #include <algorithm>
 #include <iostream>
@@ -51,8 +51,8 @@ namespace Nawia::Core
 		_entity_manager = std::make_unique<EntityManager>();
 
 		// spawn test enemy
-		auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png", _renderer);
-		_entity_manager->addEntity(std::make_unique<Entity::Enemy>(15.0f, 15.0f, enemy_tex, 100));
+		auto enemy_tex =_resource_manager.getTexture("../assets/textures/enemy.png", _renderer);
+		_entity_manager->addEntity(std::make_unique<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get()));
 
 		// clock
 		_last_time = SDL_GetTicks();

@@ -1,15 +1,23 @@
 ﻿#pragma once
 #include "Entity.h"
 
+namespace Nawia::Core
+{
+	class Map;
+}
+
 namespace Nawia::Entity
 {
 
 	class Enemy : public Entity
 	{
 	public:
-		Enemy(float x, float y, std::shared_ptr<SDL_Texture> tex, int max_hp);
+		Enemy(float x, float y, const std::shared_ptr<SDL_Texture>& tex, int max_hp, Core::Map* map);
 
-		void update(float dt) override;
+	protected:
+		bool _is_moving;
+		Core::Map* _map;
+
 	};
 
 }
