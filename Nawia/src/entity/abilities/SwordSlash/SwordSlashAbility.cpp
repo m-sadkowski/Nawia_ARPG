@@ -7,7 +7,7 @@ namespace Nawia::Entity
 {
 
 	SwordSlashAbility::SwordSlashAbility(const std::shared_ptr<SDL_Texture> &slash_tex) 
-		: Ability("Sword Slash", 0.5f, 2.0f, AbilityTargetType::POINT), _slash_tex(slash_tex) {}
+		: Ability("Sword Slash", 1.0f, 2.0f, AbilityTargetType::POINT), _slash_tex(slash_tex) {}
 
 	std::unique_ptr<Entity> SwordSlashAbility::cast(Entity* caster, const float target_x, const float target_y) {
 	  startCooldown();
