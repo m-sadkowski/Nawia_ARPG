@@ -8,6 +8,7 @@
 #include <SwordSlashAbility.h>
 #include <Dummy.h>
 
+#include <Chest.h>
 #include <algorithm>
 #include <iostream>
 
@@ -44,6 +45,8 @@ namespace Nawia::Core
 		auto fireball_tex = _resource_manager.getTexture("../assets/textures/fireball.png", _renderer);
 		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex));
 
+
+
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
 
@@ -53,6 +56,11 @@ namespace Nawia::Core
 		// spawn test enemy
 		auto enemy_tex =_resource_manager.getTexture("../assets/textures/enemy.png", _renderer);
 		_entity_manager->addEntity(std::make_unique<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get()));
+		
+		//spawn test interactive object -> chest 
+		auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png", _renderer);
+		_entity_manager->addEntity(std::make_unique<Entity::Chest>(10.0f, 15.0f, chest_tex));
+
 
 		// clock
 		_last_time = SDL_GetTicks();

@@ -3,6 +3,8 @@
 #include "Logger.h"
 
 #include <EnemyInterface.h>
+#include "Usable.h"
+#include <Enemy.h>
 
 namespace Nawia::Core {
 
@@ -17,10 +19,22 @@ namespace Nawia::Core {
     			if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(entity))
 				{
 					_target_enemy = enemy;
+					_target_object = nullptr;
 					return;
+				}
+
+				if (const auto interactive = std::dynamic_pointer_cast<Entity::Usable>(entity))
+				{
+					if (interactive->isInteractive()) {
+						_target_object = interactive;
+						_target_enemy = nullptr; // Przestajemy goni� wroga, je�li klikn�li�my skrzyni�
+						return;
+					}
 				}
 		    }
 
+
+			_target_object == nullptr;
 		    _target_enemy = nullptr;
 		    _player->moveTo(mouse_world_x, mouse_world_y);
 		}
@@ -67,31 +81,56 @@ namespace Nawia::Core {
 
 	void PlayerController::update(float dt) 
 	{
-		if (!_target_enemy)
-			return;
+		if (_target_object) {
+			
+			if (!_target_object->isInteractive()) {
+				_target_object = nullptr;
+				return;
+			}
 
-		if (_target_enemy->isDead()) {
-			_target_enemy = nullptr;
+			const float dx = _target_object->getX() - _player->getX();
+			const float dy = _target_object->getY() - _player->getY();
+			const float dist_sq = dx * dx + dy * dy;
+			const float range = _target_object->getInteractionRange();
+
+			if (dist_sq > range * range) {
+				
+				_player->moveTo(_target_object->getX(), _target_object->getY());
+			}
+			else {
+				
+				_player->moveTo(_player->getX(), _player->getY());
+				_target_object->interaction();
+				_target_object = nullptr; 
+			}
 			return;
 		}
-
-		const float dx = _target_enemy->getX() - _player->getX();
-		const float dy = _target_enemy->getY() - _player->getY();
-		const float dist_sq = dx * dx + dy * dy;
 		
-		constexpr int auto_attack_index = 0;
-		const float attack_cast_range = _player->getAbility(auto_attack_index)->getCastRange();
+		if (_target_enemy) {
+			if (_target_enemy->isDead()) {
+				_target_enemy = nullptr;
+				return;
+			}
 
-		if (dist_sq > attack_cast_range * attack_cast_range)
-		{
-			_player->moveTo(_target_enemy->getX(), _target_enemy->getY());
-		} 
-		else 
-		{
-			// we stop the player by moving him to his current location
-			_player->moveTo(_player->getX(), _player->getY());
-			useAbility(auto_attack_index, _target_enemy->getX(), _target_enemy->getY());
+			const float dx = _target_enemy->getX() - _player->getX();
+			const float dy = _target_enemy->getY() - _player->getY();
+			const float dist_sq = dx * dx + dy * dy;
+
+			constexpr int auto_attack_index = 0;
+			const float attack_cast_range = _player->getAbility(auto_attack_index)->getCastRange();
+
+			if (dist_sq > attack_cast_range * attack_cast_range)
+			{
+				_player->moveTo(_target_enemy->getX(), _target_enemy->getY());
+			}
+			else
+			{
+				// we stop the player by moving him to his current location
+				_player->moveTo(_player->getX(), _player->getY());
+				useAbility(auto_attack_index, _target_enemy->getX(), _target_enemy->getY());
+			}
 		}
+		
 	}
 
 	void PlayerController::useAbility(const int index, const float target_x, const float target_y) const 

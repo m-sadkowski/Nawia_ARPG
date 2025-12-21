@@ -3,6 +3,7 @@
 
 #include <SDL3/SDL.h>
 #include <memory>
+#include <InteractiveObject.h>
 
 namespace Nawia::Core {
 
@@ -19,7 +20,7 @@ namespace Nawia::Core {
 		Engine* _engine;
 		std::shared_ptr<Entity::Player> _player;
 		std::shared_ptr<Entity::Entity> _target_enemy;
-
+		std::shared_ptr<Entity::InteractiveObject> _target_object;
 		void useAbility(int index, float target_x, float target_y) const;
 	};
 

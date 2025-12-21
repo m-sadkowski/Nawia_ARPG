@@ -36,9 +36,9 @@ namespace Nawia::Entity
 	{
 		Core::Point2D screen_pos = getScreenPos(mouse_x, mouse_y, cam_x, cam_y);
 
-//		Core::Logger::debugLog("MouseOver click raw: " + std::to_string(mouse_x) + ", " + std::to_string(mouse_y));
-//		Core::Logger::debugLog("MouseOver click screen: " + std::to_string(screen_x) + ", " + std::to_string(screen_y));
-//		Core::Logger::debugLog("MouseOver Entity: " + std::to_string(_pos->getX()) + ", " + std::to_string(_pos->getY()));
+		Core::Logger::debugLog("MouseOver click raw: " + std::to_string(mouse_x) + ", " + std::to_string(mouse_y));
+	//	Core::Logger::debugLog("MouseOver click screen: " + std::to_string(screen_x) + ", " + std::to_string(screen_y));
+		Core::Logger::debugLog("MouseOver Entity: " + std::to_string(_pos->getX()) + ", " + std::to_string(_pos->getY()));
 
 		return (mouse_x >= screen_pos.getX() && mouse_x <= screen_pos.getX() + Core::ENTITY_TEXTURE_WIDTH &&
 			mouse_y >= screen_pos.getY() && mouse_y <= screen_pos.getY() + Core::ENTITY_TEXTURE_HEIGHT);

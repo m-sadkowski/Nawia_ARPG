@@ -34,6 +34,10 @@ public:
   Core::Point2D getScreenPos(float mouse_x, float mouse_y, float cam_x,
                              float cam_y) const;
 
+  void setTexture(const std::shared_ptr<SDL_Texture>& texture) {
+      this->_texture = std::move(texture);
+  }
+
 protected:
   // position in game - uses Point2D
   // while creating an entity, pass (x, y)
