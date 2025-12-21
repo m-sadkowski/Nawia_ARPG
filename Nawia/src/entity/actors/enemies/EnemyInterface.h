@@ -9,10 +9,10 @@ namespace Nawia::Core
 namespace Nawia::Entity
 {
 
-	class Enemy : public Entity
+	class EnemyInterface : public Entity
 	{
 	public:
-		Enemy(float x, float y, const std::shared_ptr<SDL_Texture>& tex, int max_hp, Core::Map* map);
+		EnemyInterface(float x, float y, const std::shared_ptr<SDL_Texture>& tex, int max_hp, Core::Map* map);
 
 	protected:
 		bool _is_moving;

@@ -2,7 +2,7 @@
 #include "Engine.h"
 #include "Logger.h"
 
-#include <Enemy.h>
+#include <EnemyInterface.h>
 
 namespace Nawia::Core {
 
@@ -14,7 +14,7 @@ namespace Nawia::Core {
 		{
 		    if (const auto entity = _engine->getEntityAt(screen_x, screen_y)) 
 			{
-    			if (const auto enemy = std::dynamic_pointer_cast<Entity::Enemy>(entity))
+    			if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(entity))
 				{
 					_target_enemy = enemy;
 					return;
@@ -51,7 +51,7 @@ namespace Nawia::Core {
 		    	{
 					case Entity::AbilityTargetType::UNIT:
 						if (const auto target = _engine->getEntityAt(screen_x, screen_y))
-						if (const auto enemy = std::dynamic_pointer_cast<Entity::Enemy>(target))
+						if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
 							useAbility(ability_index, enemy->getX(), enemy->getY());
 						break;
 					case Entity::AbilityTargetType::POINT:

@@ -1,7 +1,9 @@
 #include "EntityManager.h"
-#include "AbilityEffect.h"
-#include "Enemy.h"
 #include "Logger.h"
+
+#include <AbilityEffect.h>
+#include <EnemyInterface.h>
+
 #include <cmath>
 
 namespace Nawia::Core {

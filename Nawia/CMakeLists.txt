@@ -19,6 +19,7 @@ include_directories(
     src/core/system/renderer
     src/entity
     src/entity/actors
+    src/entity/actors/enemies
     src/entity/components
     src/entity/systems
     src/entity/effects

@@ -7,7 +7,7 @@ namespace Nawia::Entity
 {
 
 	Dummy::Dummy(const float x, const float y, const std::shared_ptr<SDL_Texture>& tex, const int max_hp, Core::Map* map)
-		: Enemy(x, y, tex, max_hp, map), _stay_timer(0.0f)
+		: EnemyInterface(x, y, tex, max_hp, map), _stay_timer(0.0f)
 	{
 		pickNewTarget();
 	}

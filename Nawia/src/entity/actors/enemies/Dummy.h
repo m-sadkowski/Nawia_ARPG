@@ -1,11 +1,11 @@
 #pragma once
-#include "Enemy.h"
+#include "EnemyInterface.h"
 
 #include <Map.h>
 
 namespace Nawia::Entity {
 
-	class Dummy : public Enemy 
+	class Dummy : public EnemyInterface 
 	{
 	public:
 		Dummy(float x, float y, const std::shared_ptr<SDL_Texture>& tex, int max_hp, Core::Map* map);
