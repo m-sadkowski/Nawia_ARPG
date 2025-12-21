@@ -1,9 +1,9 @@
 #pragma once
 #include "Camera.h"
 #include "Constants.h"
+#include "EntityManager.h"
 #include "Map.h"
 #include "ResourceManager.h"
-#include "EntityManager.h"
 
 #include <Player.h>
 
@@ -28,7 +28,6 @@ private:
   void update(float delta_time);
   void render() const;
   void handleEvents();
-  void handleMouseClick(float mouse_x, float mouse_y) const;
 
   bool _is_running;
   uint64_t _last_time;

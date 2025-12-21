@@ -22,10 +22,12 @@ namespace Nawia::Entity
 		virtual ~Ability() = default;
 
 		void update(float dt);
-		bool isReady() const;
+
+		[[nodiscard]] bool isReady() const;
 		virtual std::unique_ptr<Entity> cast(Entity* caster, float target_x, float target_y) = 0;
-		std::string getName() const;
-		AbilityTargetType getTargetType() const;
+		[[nodiscard]] std::string getName() const;
+		[[nodiscard]] float getCastRange() const;
+		[[nodiscard]] AbilityTargetType getTargetType() const;
 
 	protected:
 		std::string _name;

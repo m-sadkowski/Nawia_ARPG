@@ -20,7 +20,7 @@ namespace Nawia::Core {
 	  return nullptr;
 	}
 
-	void EntityManager::renderEntities(SDL_Renderer *renderer, const Camera camera) const 
+	void EntityManager::renderEntities(SDL_Renderer *renderer, const Camera& camera) const 
 	{
 	  for (const auto &entity : _active_entities) 
 	    entity->render(renderer, camera.x, camera.y);

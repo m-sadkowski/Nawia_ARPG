@@ -14,6 +14,8 @@ namespace Nawia::Entity
 			_cooldown_timer -= dt;
 	}
 
+	float Ability::getCastRange() const { return _cast_range; }
+
 	bool Ability::isReady() const { return _cooldown_timer <= 0.0f; }
 
 	std::string Ability::getName() const { return _name; }
