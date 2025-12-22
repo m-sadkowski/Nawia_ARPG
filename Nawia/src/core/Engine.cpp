@@ -3,45 +3,36 @@
 #include "MathUtils.h"
 #include "PlayerController.h"
 
+#include <Dummy.h>
 #include <FireballAbility.h>
 #include <Projectile.h>
 #include <SwordSlashAbility.h>
-#include <Dummy.h>
 
 #include <algorithm>
 #include <iostream>
 
-namespace Nawia::Core 
-{
+namespace Nawia::Core {
 
-	Engine::Engine() : _is_running(false), _window(nullptr), _renderer(nullptr), _controller(nullptr)
+	Engine::Engine() : _is_running(false), _controller(nullptr) 
 	{
-		if (!SDL_Init(SDL_INIT_VIDEO)) {
-			std::cerr << SDL_GetError() << "\n";
-			return;
-		}
+		InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Nawia");
+		SetTargetFPS(60);
 
-		if (!SDL_CreateWindowAndRenderer("Nawia", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE, &_window, &_renderer)) {
-			Logger::errorLog("Error while creating window.");
-			Logger::errorLog("SDL: " + std::string(SDL_GetError()));
-			SDL_Quit();
-			return;
-		}
-
+		// TEMPORARY SOLUTION
 		// initialize map object
-		_map = std::make_unique<Map>(_renderer, _resource_manager);
+		_map = std::make_unique<Map>(_resource_manager);
 		_map->loadMap("map1.json");
 
 		// initialize player
-		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png", _renderer);
+		// TODO: Load Model here eventually, for now maybe texture
+		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
 		Point2D player_spawn_pos = _map->getPlayerSpawnPos();
 		_player = std::make_shared<Entity::Player>(player_spawn_pos.getX(), player_spawn_pos.getY(), player_texture);
 
-		// TEMPORARY SOLUTION
 		// initialize spells
-		auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png", _renderer);
+		auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");
 		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_tex));
-		auto fireball_tex = _resource_manager.getTexture("../assets/textures/fireball.png", _renderer);
+		auto fireball_tex = _resource_manager.getTexture("../assets/textures/fireball.png");
 		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex));
 
 		// initialize player controller
@@ -51,31 +42,28 @@ namespace Nawia::Core
 		_entity_manager = std::make_unique<EntityManager>();
 
 		// spawn test enemy
-		auto enemy_tex =_resource_manager.getTexture("../assets/textures/enemy.png", _renderer);
+		auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
 		_entity_manager->addEntity(std::make_unique<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get()));
 
-		// clock
-		_last_time = SDL_GetTicks();
 		_is_running = true;
 	}
 
-	Engine::~Engine() 
+	Engine::~Engine()
 	{
-		if (_renderer)
-			SDL_DestroyRenderer(_renderer);
-		if (_window)
-			SDL_DestroyWindow(_window);
-		SDL_Quit();
+		CloseWindow();
 	}
 
-	bool Engine::isRunning() const { return _is_running; }
+	bool Engine::isRunning() const
+	{
+		return _is_running && !WindowShouldClose();
+	}
 
 	std::shared_ptr<Entity::Entity> Engine::getEntityAt(const float screen_x, const float screen_y) const 
 	{
 		return _entity_manager->getEntityAt(screen_x, screen_y, _camera);
 	}
 
-	void Engine::spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const 
+	void Engine::spawnEntity(const std::shared_ptr<Entity::Entity> &new_entity) const 
 	{
 		_entity_manager->addEntity(new_entity);
 	}
@@ -84,34 +72,27 @@ namespace Nawia::Core
 	{
 		while (isRunning()) 
 		{
-			const uint64_t current_time = SDL_GetTicks();
-			const float delta_time = static_cast<float>(current_time - _last_time) / 1000.0f;
-			_last_time = current_time;
-		    handleEvents();
-		    update(delta_time);
-		    render();
+			const float delta_time = GetFrameTime();
+			handleInput();
+			update(delta_time);
+			render();
 		}
 	}
 
-	void Engine::handleEvents() 
+	void Engine::handleInput() 
 	{
-		SDL_Event event;
-
 		// transform mouse location to position in world
-		float mouse_screen_x, mouse_screen_y;
-		SDL_GetMouseState(&mouse_screen_x, &mouse_screen_y);
-		Point2D mouse_world_pos = Point2D::screenToIso(mouse_screen_x, mouse_screen_y, _camera.x, _camera.y);
+		Vector2 mouse_pos = GetMousePosition();
+		Point2D mouse_world_pos =  Point2D::screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
 
-		while (SDL_PollEvent(&event)) 
-		{
-			if (event.type == SDL_EVENT_QUIT) 
-				_is_running = false;
-			if (_controller)
-				_controller->handleInput(event, mouse_world_pos.getX(), mouse_world_pos.getY(), mouse_screen_x, mouse_screen_y);
-		}
+		if (!_controller)
+			return;
+
+		_controller->handleInput(mouse_world_pos.getX(), mouse_world_pos.getY(), mouse_pos.x, mouse_pos.y);
 	}
 
-	void Engine::update(const float delta_time) {
+	void Engine::update(const float delta_time) 
+	{
 		if (!_player || !_entity_manager)
 			return;
 
@@ -126,21 +107,26 @@ namespace Nawia::Core
 
 	void Engine::render() const 
 	{
-		SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
-		SDL_RenderClear(_renderer);
+		BeginDrawing();
+		ClearBackground(BLACK);
 
-		if (!_map || !_player || !_entity_manager)
+		if (!_map || !_player || !_entity_manager) 
+		{
+			EndDrawing();
 			return;
+		}
 
 		/* RENDER START */
 
+		// BeginMode2D(_camera); // If we use Raylib Camera2D, otherwise manual offset
+
 		_map->render(_camera.x, _camera.y);
-		_entity_manager->renderEntities(_renderer, _camera);
-		_player->render(_renderer, _camera.x, _camera.y);
+		_entity_manager->renderEntities(_camera);
+		_player->render(_camera.x, _camera.y);
 
 		/* RENDER END */
 
-		SDL_RenderPresent(_renderer);
+		EndDrawing();
 	}
 
-}; // namespace Nawia::Core
+} // namespace Nawia::Core

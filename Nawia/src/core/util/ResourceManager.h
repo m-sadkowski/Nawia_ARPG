@@ -1,17 +1,19 @@
 #pragma once
-#include <string>
+#include <raylib.h>
 #include <map>
 #include <memory>
-#include <SDL3/SDL.h>
+#include <string>
+
 
 namespace Nawia::Core {
-	
+
 	class ResourceManager {
 	public:
-		std::shared_ptr<SDL_Texture> getTexture(const std::string& filename, SDL_Renderer* renderer);
+		// returns a shared_ptr to a Texture2D, the last shared_ptr dies, the custom deleter will call UnloadTexture.
+		std::shared_ptr<Texture2D> getTexture(const std::string& filename);
 
 	private:
-		std::map<std::string, std::shared_ptr<SDL_Texture>> _textures;
+		std::map<std::string, std::shared_ptr<Texture2D>> _textures;
 	};
 
-} // Nawia::Core
+} // namespace Nawia::Core

@@ -32,38 +32,18 @@ include_directories(
     src/ui
     src/ui/hud
     src/ui/menu
-    external/SDL3/include
-    external/SDL3_image/include
-    external/SDL3_mixer/include
     external/json
 )
 
-# Library directories
-link_directories(
-    external/SDL3/lib/x64
-    external/SDL3_image/lib/x64
-    external/SDL3_mixer/lib
+
+include(FetchContent)
+FetchContent_Declare(
+    raylib
+    URL https://github.com/raysan5/raylib/archive/refs/tags/5.5.tar.gz
 )
+FetchContent_MakeAvailable(raylib)
 
 add_executable(Nawia ${SOURCES})
 
 # Link libraries
-target_link_libraries(Nawia PRIVATE
-    SDL3
-    SDL3_image
-    SDL3_mixer
-)
-
-# Post-build copy dlls
-add_custom_command(TARGET Nawia POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/external/SDL3/lib/x64/SDL3.dll"
-        $<TARGET_FILE_DIR:Nawia>
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/external/SDL3_image/lib/x64/SDL3_image.dll"
-        $<TARGET_FILE_DIR:Nawia>
-    # SDL3_mixer has multiple DLLs in bin/ which might be needed
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/external/SDL3_mixer/bin"
-        $<TARGET_FILE_DIR:Nawia>
-)
+target_link_libraries(Nawia PRIVATE raylib)
