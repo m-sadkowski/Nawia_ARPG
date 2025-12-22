@@ -1,7 +1,7 @@
 #pragma once
 #include <Player.h>
 
-#include <SDL3/SDL.h>
+#include <raylib.h>
 #include <memory>
 
 namespace Nawia::Core {
@@ -10,9 +10,9 @@ namespace Nawia::Core {
 
 	class PlayerController {
 	public:
-		PlayerController(Engine* engine, std::shared_ptr<Entity::Player> player);
+		PlayerController(Engine *engine, std::shared_ptr<Entity::Player> player);
 
-		void handleInput(const SDL_Event &event, float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
+		void handleInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
 		void update(float dt);
 
 	private:

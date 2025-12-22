@@ -1,12 +1,12 @@
 # Nawia: Slavic Action-RPG
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B20-blue.svg)
-![Library](https://img.shields.io/badge/library-SDL3-orange.svg)
+![Library](https://img.shields.io/badge/library-raylib-orange.svg)
 ![Status](https://img.shields.io/badge/status-In%20Development-yellow)
 
 **Nawia** is an isometric, top-down Action RPG built on a custom game engine. Set in a dark fantasy world deeply rooted in **Slavic mythology**, the game focuses on dynamic combat, epic boss encounters, and atmospheric storytelling.
 
-This project is developed from scratch using **C++** and **SDL3**, emphasizing performance and architectural modularity.
+This project is developed from scratch using **C++** and **raylib**, emphasizing performance and architectural modularity.
 
 ---
 
@@ -25,7 +25,7 @@ It is intended to evolve into a full **Engineering Thesis**.
 
 ## ⚔️ Key Features
 
-* **Custom Engine:** Built purely in C++ with SDL3 for low-level control over rendering and inputs.
+* **Custom Engine:** Built purely in C++ with raylib for low-level control over rendering and inputs.
 * **Slavic Atmosphere:** Visuals and narrative inspired by the myths, legends, and bestiaries of ancient Slavs.
 * **Dynamic Combat:** Fast-paced hack'n'slash gameplay inspired by genre classics like *Diablo 3*.
 * **Advanced AI:** Smart enemy behaviors and challenging, multi-stage boss fights.
@@ -41,7 +41,7 @@ The project follows a modular architecture, separating the core engine subsystem
 Nawia/
 ├── assets/             # Game multimedia resources (Graphics, Audio, Data)
 ├── docs/               # Project documentation (GDD, Doxygen API docs)
-├── external/           # External libraries (SDL3, ImGui, etc.)
+├── external/           # External libraries (raylib, ImGui, etc.)
 ├── scripts/            # Helper scripts (build scripts, utilities)
 ├── src/                # Main C++ source code
 │   ├── audio/          # Systems and classes for managing sound and music
@@ -67,7 +67,7 @@ Nawia/
 ## 🛠️ Tech Stack
 
   * **Language:** C++ (Standard 20/23)
-  * **Graphics & Input:** SDL3 (Simple DirectMedia Layer 3)
+  * **Graphics & Input:** raylib
   * **Build System:** CMake
   * **Scripting/Tooling:** Python
 

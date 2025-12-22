@@ -5,10 +5,9 @@
 
 namespace Nawia::Entity {
 
-	class Dummy : public EnemyInterface 
-	{
+	class Dummy : public EnemyInterface {
 	public:
-		Dummy(float x, float y, const std::shared_ptr<SDL_Texture>& tex, int max_hp, Core::Map* map);
+		Dummy(float x, float y, const std::shared_ptr<Texture2D>& tex, int max_hp, Core::Map* map);
 
 		void update(float dt) override;
 

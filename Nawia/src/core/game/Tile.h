@@ -1,33 +1,18 @@
 #pragma once
-#include <SDL3/SDL.h>
+#include "raylib.h"
 #include <memory>
 
 namespace Nawia::Core {
 
 	struct Tile {
-		int type_id;
-		std::shared_ptr<SDL_Texture> texture;
-
-		/*
-		 * PROPERTIES
-		 */
-
-		bool is_walkable;
-
-		/*
-		 * END OF PROPERTIES
-		 */
-
-		Tile(int id, const std::shared_ptr<SDL_Texture>& tex) : type_id(id), texture(tex) {}
+		Tile(const int id, const std::shared_ptr<Texture2D>& tex) : type_id(id), texture(tex), is_walkable(true) {}
 		Tile() : type_id(-1), is_walkable(false) {}
 
-		/*
-		 * PROPERTIES SETTERS
-		 */
-		void setIsWalkable(bool isWalkable) { is_walkable = isWalkable; }
-		/*
-		 * END OF PROPERTIES SETTERS
-		 */
+		void setIsWalkable(const bool walkable) { is_walkable = walkable; }
+
+		int type_id;
+		std::shared_ptr<Texture2D> texture;
+		bool is_walkable;
 	};
 
 } // namespace Nawia::Core

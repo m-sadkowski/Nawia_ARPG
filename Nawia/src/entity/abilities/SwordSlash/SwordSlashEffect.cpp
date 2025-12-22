@@ -2,15 +2,14 @@
 #include "EnemyInterface.h"
 
 #include <Constants.h>
-
 #include <Logger.h>
+
 #include <algorithm>
 #include <cmath>
 
-
 namespace Nawia::Entity {
 
-	SwordSlashEffect::SwordSlashEffect(const float x, const float y, const float angle, const std::shared_ptr<SDL_Texture> &tex, const int damage) 
+	SwordSlashEffect::SwordSlashEffect(const float x, const float y, const float angle, const std::shared_ptr<Texture2D>& tex, const int damage)
 		: AbilityEffect(x, y, tex, 0.2f, damage), _angle(angle) {}
 
 	void SwordSlashEffect::update(const float dt)
@@ -18,49 +17,47 @@ namespace Nawia::Entity {
 		AbilityEffect::update(dt);
 	}
 
-	// we override render from Entity beacuse we want to spawn sword rotated
-	void SwordSlashEffect::render(SDL_Renderer *renderer, const float camera_x, const float camera_y) 
+	void SwordSlashEffect::render(const float camera_x, const float camera_y)
 	{
-	  if (!_texture) 
-	  {
-	    Core::Logger::errorLog("SwordSlashEffect - Could not load texture.");
-	    return;
-	  }
+		if (!_texture) {
+			Core::Logger::errorLog("SwordSlashEffect - Could not load texture.");
+			return;
+		}
 
-	  Core::Point2D screen_pos = getScreenPos(_pos->getX(), _pos->getY(), camera_x, camera_y);
-	  const SDL_FRect dest_rect = {screen_pos.getX(), screen_pos.getY(), Core::ENTITY_TEXTURE_WIDTH, Core::ENTITY_TEXTURE_HEIGHT};
-	  constexpr SDL_FPoint center = {Core::ENTITY_TEXTURE_WIDTH / 4.0f, Core::ENTITY_TEXTURE_HEIGHT / 4.0f};
+		Core::Point2D screen_pos = getScreenPos(_pos->getX(), _pos->getY(), camera_x, camera_y);
 
-	  SDL_RenderTextureRotated(renderer, _texture.get(), nullptr, &dest_rect, _angle + 70.0f, &center, SDL_FLIP_NONE);
+		const float source_texture_width = static_cast<float>(_texture->width);
+		const float source_texture_height = static_cast<float>(_texture->height);
+		constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
+		constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
+
+
+		const Rectangle source = { 0.0f, 0.0f, source_texture_width, source_texture_height };
+		const Rectangle dest = { screen_pos.getX(), screen_pos.getY(), dest_texture_width, dest_texture_height };
+		constexpr Vector2 origin = { dest_texture_width, dest_texture_height};
+
+		DrawTexturePro(*_texture, source, dest, origin, _angle, WHITE);
 	}
 
 	bool SwordSlashEffect::checkCollision(const std::shared_ptr<Entity>& target) const
 	{
-		if (const auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target))
-	  {
-	    if (enemy->isDead())
-	      return false;
-		if (hasHit(enemy))
+		const auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target);
+
+		if (!enemy || enemy->isDead() || hasHit(enemy))
 			return false;
 
 		const float dx = enemy->getX() - getX();
 		const float dy = enemy->getY() - getY();
 		const float distance_squared = dx * dx + dy * dy;
 
-		// range check
-		if (distance_squared < 2.5f * 2.5f)
-		{
-			const float angle_to_enemy = static_cast<float>(std::atan2(dy, dx) * 180.0f / Core::pi);
-			const float slash_angle = getAngle();
-			float angle_diff = angle_to_enemy - slash_angle;
-			while (angle_diff > 180.0f) angle_diff -= 360.0f;
-			while (angle_diff < -180.0f) angle_diff += 360.0f;
+		constexpr float range = 2.5f;
+		if (distance_squared > range * range)
+			return false;
 
-			if (std::abs(angle_diff) < 45.0f)
-				return true;
-		}
-		}
-		return false;
+		const float angle_to_enemy = static_cast<float>(std::atan2(dy, dx) * 180.0f / Core::pi);
+		const float slash_angle = getAngle();
+		const float angle_diff = std::remainder(angle_to_enemy - slash_angle, 360.0f);
+		return std::abs(angle_diff) < 45.0f;
 	}
 
 	void SwordSlashEffect::onCollision(const std::shared_ptr<Entity>& target)

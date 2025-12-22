@@ -1,18 +1,19 @@
 #pragma once
 #include "Ability.h"
 
-namespace Nawia::Entity
-{
+#include <raylib.h>
+#include <memory>
 
-    class FireballAbility : public Ability {
-    public:
-        FireballAbility(const std::shared_ptr<SDL_Texture>& projectile_tex);
+namespace Nawia::Entity {
 
-        std::unique_ptr<Entity> cast(Entity* caster, float target_x, float target_y) override;
+	class FireballAbility : public Ability {
+	public:
+		FireballAbility(const std::shared_ptr<Texture2D>& projectile_tex);
 
-    private:
-        std::shared_ptr<SDL_Texture> _texture;
-    };
-	
+		std::unique_ptr<Entity> cast(Entity* caster, float target_x, float target_y) override;
+
+	private:
+		std::shared_ptr<Texture2D> _texture;
+	};
+
 } // namespace Nawia::Entity
-

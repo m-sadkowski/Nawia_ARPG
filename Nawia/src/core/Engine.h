@@ -7,40 +7,36 @@
 
 #include <Player.h>
 
-#include <SDL3/SDL.h>
+#include <raylib.h>
 
 namespace Nawia::Core {
 
-class PlayerController;
+	class PlayerController;
 
-class Engine {
-public:
-  Engine();
-  ~Engine();
+	class Engine {
+	public:
+		Engine();
+		~Engine();
 
-  void run();
-  [[nodiscard]] bool isRunning() const;
+		void run();
+		[[nodiscard]] bool isRunning() const;
 
-  std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y) const;
-  void spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const;
+		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y) const;
+		void spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const;
 
-private:
-  void update(float delta_time);
-  void render() const;
-  void handleEvents();
+	private:
+		void update(float delta_time);
+		void render() const;
+		void handleInput();
 
-  bool _is_running;
-  uint64_t _last_time;
+		bool _is_running;
 
-  SDL_Window* _window;
-  SDL_Renderer* _renderer;
-
-  ResourceManager _resource_manager;
-  Camera _camera;
-  std::unique_ptr<Map> _map;
-  std::unique_ptr<EntityManager> _entity_manager;
-  std::shared_ptr<Entity::Player> _player;
-  std::unique_ptr<PlayerController> _controller;
-};
+		ResourceManager _resource_manager;
+		Camera _camera;
+		std::unique_ptr<Map> _map;
+		std::unique_ptr<EntityManager> _entity_manager;
+		std::shared_ptr<Entity::Player> _player;
+		std::unique_ptr<PlayerController> _controller;
+	};
 
 } // namespace Nawia::Core
