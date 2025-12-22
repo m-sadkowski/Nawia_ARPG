@@ -7,8 +7,7 @@
 namespace Nawia::Entity {
 
 	EnemyInterface::EnemyInterface(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
-		: Entity(x, y, tex, max_hp), _is_moving(false), _map(map) {
-	}
+		: Entity(x, y, tex, max_hp), _is_moving(false), _map(map) {}
 
 	void EnemyInterface::update(const float dt)
 	{
