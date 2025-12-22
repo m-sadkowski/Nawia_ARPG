@@ -35,7 +35,7 @@ namespace Nawia::Core {
 			const auto ability = dynamic_cast<Entity::AbilityEffect*>(entity1.get());
 
 			if (!ability || ability->isExpired())
-				return;
+				continue;
 
 			for (auto& entity2 : _active_entities) 
 			{
