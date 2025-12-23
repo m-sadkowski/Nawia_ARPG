@@ -1,4 +1,6 @@
 #include "Dummy.h"
+#include "Ability.h"
+#include "FireballAbility.h"
 
 #include <MathUtils.h>
 
@@ -8,17 +10,39 @@
 namespace Nawia::Entity {
 
 	Dummy::Dummy(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
-		: EnemyInterface(x, y, tex, max_hp, map), _stay_timer(0.0f)
+		: EnemyInterface(x, y, tex, max_hp, map), _stay_timer(0.0f), _fireball_cooldown_timer(0.0f)
 	{
 		loadModel("../assets/models/dummy.glb");
 		addAnimation("walk", "../assets/models/dummy_walk.glb");
 		playAnimation("default");
+		
 		pickNewTarget();
 	}
 
 	void Dummy::update(const float dt)
 	{
-		EnemyInterface::update(dt); // update animation internal timer
+		// updates the base enemy logic including animations and state management
+		EnemyInterface::update(dt);
+		updateAbilities(dt);
+
+		if (_fireball_cooldown_timer > 0.0f)
+			_fireball_cooldown_timer -= dt;
+
+		if (_target && !_target->isDead())
+		{
+			// attempts to cast the first available ability if conditions are met
+			if (auto fireball = getAbility(0))
+			{
+				if (_fireball_cooldown_timer <= 0.0f && fireball->isReady())
+				{
+					if (auto effect = fireball->cast(_target->getX(), _target->getY()))
+					{
+						addPendingSpawn(std::move(effect));
+						_fireball_cooldown_timer = 5.0f; // 5 seconds cooldown
+					}
+				}
+			}
+		}
 
 		if (_is_moving)
 		{

@@ -39,6 +39,7 @@ namespace Nawia::Entity {
 	void Player::update(const float delta_time)
 	{
 		Entity::update(delta_time);
+		updateAbilities(delta_time);
 
 		if (!_is_moving)
 			return;
@@ -62,23 +63,7 @@ namespace Nawia::Entity {
 		}
 	}
 
-	void Player::addAbility(const std::shared_ptr<Ability>& ability) 
-	{
-		_abilities.push_back(ability);
-	}
+	
 
-	std::shared_ptr<Ability> Player::getAbility(const int index)
-	{
-		if (index >= 0 && index < _abilities.size())
-			return _abilities[index];
-
-		return nullptr;
-	}
-
-	void Player::updateAbilities(const float dt) const 
-	{
-		for (auto &s : _abilities)
-			s->update(dt);
-	}
 
 } // namespace Nawia::Entity

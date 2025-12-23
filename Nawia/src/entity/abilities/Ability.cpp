@@ -1,12 +1,14 @@
 #pragma once
 #include "Ability.h"
+#include "Entity.h"
+
 #include <string>
 
 namespace Nawia::Entity
 {
 
 	Ability::Ability(std::string name, const AbilityStats& stats, AbilityTargetType target_type)
-		: _name(std::move(name)), _stats(stats), _cooldown_timer(0.0f), _target_type(target_type) {}
+		: _name(std::move(name)), _stats(stats), _cooldown_timer(0.0f), _target_type(target_type), _caster(nullptr) {}
 
 	void Ability::update(const float dt) 
 	{

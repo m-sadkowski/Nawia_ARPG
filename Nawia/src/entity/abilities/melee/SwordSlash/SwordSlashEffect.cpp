@@ -31,7 +31,6 @@ namespace Nawia::Entity {
 		constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
 		constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
 
-
 		const Rectangle source = { 0.0f, 0.0f, source_texture_width, source_texture_height };
 		const Rectangle dest = { screen_pos.getX(), screen_pos.getY(), dest_texture_width, dest_texture_height };
 		constexpr Vector2 origin = { dest_texture_width, dest_texture_height};
@@ -46,6 +45,7 @@ namespace Nawia::Entity {
 		if (!enemy || enemy->isDead() || hasHit(enemy))
 			return false;
 
+		// checks if the target is within the radius of the slash attack before calculating the angle
 		const float dx = enemy->getX() - getX();
 		const float dy = enemy->getY() - getY();
 		const float distance_squared = dx * dx + dy * dy;

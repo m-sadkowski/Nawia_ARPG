@@ -4,6 +4,7 @@
 #include <Entity.h>
 
 #include <vector>
+#include <memory>
 
 namespace Nawia::Core {
 
@@ -14,11 +15,14 @@ namespace Nawia::Core {
 
 	private:
 		void addEntity(std::shared_ptr<Entity::Entity> new_entity);
-		[[nodiscard]] std::shared_ptr<Entity::Entity>
-		[[nodiscard]] getEntityAt(float screen_x, float screen_y, Camera camera) const;
+		
+		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, Camera camera) const;
+		
 		void renderEntities(const Camera& camera) const;
 		void handleEntitiesCollisions() const;
 		void updateEntities(float delta_time);
+
+		[[nodiscard]] const std::vector<std::shared_ptr<Entity::Entity>>& getEntities() const { return _active_entities; }
 
 		std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
 

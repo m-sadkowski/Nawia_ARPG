@@ -10,7 +10,7 @@ namespace Nawia::Entity {
 	public:
 		SwordSlashAbility(const std::shared_ptr<Texture2D>& slash_tex);
 
-		std::unique_ptr<Entity> cast(Entity* caster, float target_x, float target_y) override;
+		std::unique_ptr<Entity> cast(float target_x, float target_y) override;
 
 	private:
 		std::shared_ptr<Texture2D> _slash_tex;

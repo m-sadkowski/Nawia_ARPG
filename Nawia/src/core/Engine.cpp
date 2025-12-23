@@ -25,7 +25,6 @@ namespace Nawia::Core {
 		_map->loadMap("map1.json");
 
 		// initialize player
-		// TODO: Load Model here eventually, for now maybe texture
 		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
 		Point2D player_spawn_pos = _map->getPlayerSpawnPos();
 		_player = std::make_shared<Entity::Player>(player_spawn_pos.getX(), player_spawn_pos.getY(), player_texture);
@@ -43,8 +42,15 @@ namespace Nawia::Core {
 		_entity_manager = std::make_unique<EntityManager>();
 
 		// spawn test enemy
+		// manual setup of a test enemy with specific abilities
 		auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
-		_entity_manager->addEntity(std::make_unique<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get()));
+		auto dummy = std::make_shared<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get());
+		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex));
+		dummy->setTarget(_player);
+		_entity_manager->addEntity(dummy);
+
+		// add player to entity manager so it can be hit by enemies
+		_entity_manager->addEntity(_player);
 
 		_is_running = true;
 	}
@@ -97,13 +103,29 @@ namespace Nawia::Core {
 		if (!_player || !_entity_manager)
 			return;
 
-		_player->update(delta_time);
-		_player->updateAbilities(delta_time);
 		_camera.follow(_player.get());
 		_controller->update(delta_time);
 
 		_entity_manager->handleEntitiesCollisions();
 		_entity_manager->updateEntities(delta_time);
+
+		// collects new entities spawned by existing ones (like projectiles) and adds them to the game world
+		std::vector<std::shared_ptr<Entity::Entity>> new_spawns;
+		const auto& entities = _entity_manager->getEntities(); 
+		for (const auto& entity : entities)
+		{
+			auto spawns = entity->getPendingSpawns();
+			if (!spawns.empty())
+			{
+				new_spawns.insert(new_spawns.end(), spawns.begin(), spawns.end());
+				entity->clearPendingSpawns();
+			}
+		}
+
+		for (const auto& spawn : new_spawns)
+		{
+			spawnEntity(spawn);
+		}
 	}
 
 	void Engine::render() const 
@@ -123,7 +145,6 @@ namespace Nawia::Core {
 
 		_map->render(_camera.x, _camera.y);
 		_entity_manager->renderEntities(_camera);
-		_player->render(_camera.x, _camera.y);
 
 		/* RENDER END */
 

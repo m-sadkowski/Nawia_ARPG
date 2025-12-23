@@ -143,22 +143,42 @@ MyAbility::MyAbility(...)
 ```
 
 **Must Override:**
--   `cast(Entity* caster, float x, float y)`: Returns a `unique_ptr` to the spawned `AbilityEffect`.
+-   `cast(float x, float y)`: Returns a `unique_ptr` to the spawned `AbilityEffect`.
+    -   *Note:* The `caster` is now stored in the `Ability` class. Access it via `getCaster()`.
+
+**Example Cast Implementation:**
+```cpp
+std::unique_ptr<Entity> MyAbility::cast(float target_x, float target_y) {
+    // Pass the caster to the effect so it doesn't hit the one who fired it!
+    return std::make_unique<MyProjectile>(getCaster()->getX(), getCaster()->getY(), 
+                                          target_x, target_y, _texture, _stats, getCaster());
+}
+```
 
 ### Creating a New Ability Effect
-Inherit from `Nawia::Entity::AbilityEffect`. This represents the actual projectile or area of effect.
+Inherit from `Nawia::Entity::AbilityEffect` (or `Projectile`). This represents the actual projectile or area of effect.
 
 **Constructor:**
-Pass the `AbilityStats` object to the base constructor.
+Pass the `AbilityStats` and the `caster` to the base constructor/projectile.
 
 ```cpp
-MyEffect::MyEffect(..., const AbilityStats& stats) 
-    : AbilityEffect(x, y, texture, stats) 
+MyProjectile::MyProjectile(..., const AbilityStats& stats, Entity* caster) 
+    : Projectile(x, y, target_x, target_y, texture, stats, caster) 
 { ... }
 ```
 
 **Must Override:**
 -   `onCollision(std::shared_ptr<Entity>& target)`: What happens when it hits something?
+    -   *Collision Logic:* The base `Projectile` class handles ignoring the caster and other effects. Ensure you pass the `caster` correctly!
+
+## 5. Entity Management & collision
+**CRITICAL:** For an entity to participate in collision checks (e.g. to be hit by projectiles), it **MUST** be added to the `EntityManager`.
+
+```cpp
+// In Engine.cpp or similar setup code:
+_entity_manager->addEntity(my_entity);
+```
+If you only render/update an entity manually without adding it to the manager, it will differ from the rest of the game world (ghost mode).
 
 ---
 

@@ -2,6 +2,7 @@
 #include <json.hpp>
 #include <fstream>
 #include <raymath.h>
+#include "Ability.h"
 
 #include <Logger.h>
 #include <Map.h>
@@ -153,6 +154,7 @@ namespace Nawia::Entity {
 
 	void Entity::takeDamage(const int dmg) 
 	{
+		Core::Logger::debugLog("Entity " + getName() + " taking damage: " + std::to_string(dmg) + ". Current HP: " + std::to_string(_hp));
 		_hp -= dmg;
 		if (_hp < 0) 
 		{
@@ -240,6 +242,26 @@ namespace Nawia::Entity {
 		
 		Core::Logger::errorLog("Entity - Ability not found: " + name);
 		return {};
+	}
+
+	void Entity::addAbility(const std::shared_ptr<Ability>& ability) 
+	{
+		ability->setCaster(this);
+		_abilities.push_back(ability);
+	}
+
+	std::shared_ptr<Ability> Entity::getAbility(const int index)
+	{
+		if (index >= 0 && index < _abilities.size())
+			return _abilities[index];
+
+		return nullptr;
+	}
+
+	void Entity::updateAbilities(const float dt) const 
+	{
+		for (auto &s : _abilities)
+			s->update(dt);
 	}
 
 } // namespace Nawia::Entity
