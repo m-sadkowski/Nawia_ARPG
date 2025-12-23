@@ -1,5 +1,6 @@
 #pragma once
 #include "AbilityEffect.h"
+#include "AbilityStats.h"
 
 #include <vector>
 
@@ -7,7 +8,7 @@ namespace Nawia::Entity {
 
 	class SwordSlashEffect : public AbilityEffect {
 	public:
-		SwordSlashEffect(float x, float y, float angle, const std::shared_ptr<Texture2D>& tex, int damage);
+		SwordSlashEffect(float x, float y, float angle, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats);
 
 		void update(float dt) override;
 		void render(float camera_x, float camera_y) override;

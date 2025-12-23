@@ -7,15 +7,15 @@
 
 namespace Nawia::Entity {
 
-	Projectile::Projectile(const float x, const float y, const float target_x, const float target_y, const float speed,
-	                       const std::shared_ptr<Texture2D> &tex, const int damage, const float duration)
-		: AbilityEffect(x, y, tex, duration, damage), _speed(speed) 
+	Projectile::Projectile(const float x, const float y, const float target_x, const float target_y, 
+	                       const std::shared_ptr<Texture2D> &tex, const AbilityStats& stats)
+		: AbilityEffect(x, y, tex, stats), _speed(stats.projectile_speed)
 	{
 		const float dx = target_x - x;
 		const float dy = target_y - y;
 		const float length = std::sqrt(dx * dx + dy * dy);
-		_vel_x = (dx / length) * speed;
-		_vel_y = (dy / length) * speed;
+		_vel_x = (dx / length) * _speed;
+		_vel_y = (dy / length) * _speed;
 	}
 
 	void Projectile::update(const float dt) 

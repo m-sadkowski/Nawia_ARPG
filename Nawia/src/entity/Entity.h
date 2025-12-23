@@ -18,10 +18,20 @@ namespace Nawia::Entity {
 		virtual void update(float delta_time);
 		virtual void render(float offset_x, float offset_y);
 
+
 		[[nodiscard]] float getX() const { return _pos->getX(); }
 		[[nodiscard]] float getY() const { return _pos->getY(); }
+		void setX(float x) { _pos->setX(x); }
+		void setY(float y) { _pos->setY(y); }
+
 		[[nodiscard]] Core::Point2D getScreenPos(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
 		[[nodiscard]] virtual bool isMouseOver(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
+
+		// Transform & Physics
+		void setVelocity(float x, float y) { _velocity.setX(x); _velocity.setY(y); }
+		[[nodiscard]] Core::Point2D getVelocity() const { return _velocity; }
+		void setScale(float scale) { _scale = scale; }
+		[[nodiscard]] float getScale() const { return _scale; }
 
 		virtual void takeDamage(int dmg);
 		void die();
@@ -38,6 +48,8 @@ namespace Nawia::Entity {
 
 	protected:
 		std::unique_ptr<Core::Point2D> _pos;
+		Core::Point2D _velocity;
+		float _scale;
 		std::shared_ptr<Texture2D> _texture;
 
 		int _hp;

@@ -4,7 +4,7 @@
 namespace Nawia::Entity {
 
 	FireballAbility::FireballAbility(const std::shared_ptr<Texture2D>& projectile_tex)
-		: Ability("Fireball", 1.0f, 10.0f, AbilityTargetType::UNIT), _texture(projectile_tex) {}
+		: Ability("Fireball", {20, 1.0f, 10.0f, 10.0f, 0.5f, 1.0f}, AbilityTargetType::UNIT), _texture(projectile_tex) {}
 
 	std::unique_ptr<Entity> FireballAbility::cast(Entity* caster, float target_x, float target_y) 
 	{
@@ -13,11 +13,7 @@ namespace Nawia::Entity {
 
 		startCooldown();
 
-		constexpr float speed = 10.0f;
-		constexpr int damage = 20;
-		const float duration = _cast_range / speed;
-
-		return std::make_unique<Projectile>(caster->getX(), caster->getY(), target_x, target_y, speed, _texture, damage, duration);
+		return std::make_unique<Projectile>(caster->getX(), caster->getY(), target_x, target_y, _texture, _stats);
 	}
 
 } // namespace Nawia::Entity

@@ -1,5 +1,6 @@
 #pragma once
 #include "Entity.h"
+#include "AbilityStats.h"
 
 #include <vector>
 
@@ -7,11 +8,12 @@ namespace Nawia::Entity {
 
 	class AbilityEffect : public Entity {
 	public:
-		AbilityEffect(float x, float y, const std::shared_ptr<Texture2D>& tex, float duration, int damage);
+		AbilityEffect(float x, float y, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats);
 
 		void update(float dt) override;
 		[[nodiscard]] bool isExpired() const;
 		[[nodiscard]] int getDamage() const;
+		[[nodiscard]] const AbilityStats& getStats() const { return _stats; }
 
 		// collision handling
 		[[nodiscard]] virtual bool checkCollision(const std::shared_ptr<Entity>& target) const;
@@ -20,9 +22,8 @@ namespace Nawia::Entity {
 		void addHit(const std::shared_ptr<Entity>& target);
 
 	protected:
-		float _duration;
+		AbilityStats _stats;
 		float _timer;
-		int _damage;
 		std::vector<std::weak_ptr<Entity>> _hit_entities;
 	};
 
