@@ -5,8 +5,8 @@
 namespace Nawia::Entity
 {
 
-	Ability::Ability(std::string name, const float cooldown, const float cast_range, AbilityTargetType target_type)
-		: _name(std::move(name)), _cooldown_max(cooldown), _cast_range(cast_range), _cooldown_timer(0.0f), _target_type(target_type) {}
+	Ability::Ability(std::string name, const AbilityStats& stats, AbilityTargetType target_type)
+		: _name(std::move(name)), _stats(stats), _cooldown_timer(0.0f), _target_type(target_type) {}
 
 	void Ability::update(const float dt) 
 	{
@@ -16,7 +16,7 @@ namespace Nawia::Entity
 
 	float Ability::getCastRange() const
 	{
-		return _cast_range;
+		return _stats.cast_range;
 	}
 
 	bool Ability::isReady() const

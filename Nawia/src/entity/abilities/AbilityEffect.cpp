@@ -4,8 +4,8 @@
 
 namespace Nawia::Entity {
 
-	AbilityEffect::AbilityEffect(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const float duration, const int damage) 
-		: Entity(x, y, tex, 1), _duration(duration), _damage(damage), _timer(0.0f) {}
+	AbilityEffect::AbilityEffect(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats) 
+		: Entity(x, y, tex, 1), _stats(stats), _timer(0.0f) {}
 
 	void AbilityEffect::update(const float dt)
 	{
@@ -14,12 +14,12 @@ namespace Nawia::Entity {
 
 	bool AbilityEffect::isExpired() const
 	{
-		return _timer >= _duration;
+		return _timer >= _stats.duration;
 	}
 
 	int AbilityEffect::getDamage() const
 	{
-		return _damage;
+		return _stats.damage;
 	}
 
 	bool AbilityEffect::checkCollision(const std::shared_ptr<Entity>& target) const
@@ -35,7 +35,7 @@ namespace Nawia::Entity {
 	bool AbilityEffect::hasHit(const std::shared_ptr<Entity>& target) const 
 	{
 		// checks if target exists in the hit list, safely handling expired pointers
-		return std::ranges::any_of(_hit_entities, [&target](const auto& weak_ref) 
+		return std::any_of(_hit_entities.begin(), _hit_entities.end(), [&target](const auto& weak_ref) 
 			{
 				return weak_ref.lock() == target;
 			}

@@ -15,6 +15,7 @@ namespace Nawia::Core {
 
 	Engine::Engine() : _is_running(false), _controller(nullptr) 
 	{
+		SetTraceLogLevel(LOG_ERROR);
 		InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Nawia");
 		SetTargetFPS(60);
 

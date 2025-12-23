@@ -1,6 +1,7 @@
 #pragma once
 #include "Entity.h"
 #include "AbilityEffect.h"
+#include "AbilityStats.h"
 #include <functional>
 #include <vector>
 #include <string>
@@ -17,7 +18,7 @@ namespace Nawia::Entity
 
 	class Ability {
 	public:
-		Ability(std::string name, float cooldown, float cast_range, AbilityTargetType target_type);
+		Ability(std::string name, const AbilityStats& stats, AbilityTargetType target_type);
 
 		virtual ~Ability() = default;
 
@@ -28,15 +29,15 @@ namespace Nawia::Entity
 		[[nodiscard]] std::string getName() const;
 		[[nodiscard]] float getCastRange() const;
 		[[nodiscard]] AbilityTargetType getTargetType() const;
+		[[nodiscard]] const AbilityStats& getStats() const { return _stats; }
 
 	protected:
 		std::string _name;
-		float _cooldown_max;
+		AbilityStats _stats;
 		float _cooldown_timer;
-		float _cast_range;
 		AbilityTargetType _target_type;
 
-		void startCooldown() { _cooldown_timer = _cooldown_max; }
+		void startCooldown() { _cooldown_timer = _stats.cooldown; }
 	};
 
 } // namespace Nawia::Entity

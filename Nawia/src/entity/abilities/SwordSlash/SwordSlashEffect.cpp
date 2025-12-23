@@ -9,8 +9,8 @@
 
 namespace Nawia::Entity {
 
-	SwordSlashEffect::SwordSlashEffect(const float x, const float y, const float angle, const std::shared_ptr<Texture2D>& tex, const int damage)
-		: AbilityEffect(x, y, tex, 0.2f, damage), _angle(angle) {}
+	SwordSlashEffect::SwordSlashEffect(const float x, const float y, const float angle, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats)
+		: AbilityEffect(x, y, tex, stats), _angle(angle) {}
 
 	void SwordSlashEffect::update(const float dt)
 	{
@@ -50,7 +50,7 @@ namespace Nawia::Entity {
 		const float dy = enemy->getY() - getY();
 		const float distance_squared = dx * dx + dy * dy;
 
-		constexpr float range = 2.5f;
+		const float range = _stats.hitbox_radius;
 		if (distance_squared > range * range)
 			return false;
 
