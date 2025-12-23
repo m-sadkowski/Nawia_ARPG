@@ -28,6 +28,8 @@ namespace Nawia::Entity {
 **Example Implementation (.cpp):**
 ```cpp
 #include "MyEntity.h"
+#include "Constants.h" // For TILE_WIDTH, etc.
+#include <MathUtils.h> // For generic math
 
 namespace Nawia::Entity {
     MyEntity::MyEntity(float x, float y, const std::shared_ptr<Texture2D>& texture)
@@ -64,6 +66,38 @@ For enemies, inherit from `Nawia::Entity::EnemyInterface` (which inherits from `
 1.  **Inherit** from `EnemyInterface`.
 2.  **Constructor**: Pass `Core::Map*` to enable pathfinding/movement logic.
 3.  **Update**: Implement AI behavior in `update`.
+
+**Example Implementation:**
+```cpp
+#include "MyEnemy.h"
+#include "Constants.h"
+#include <cmath>
+
+namespace Nawia::Entity {
+
+    MyEnemy::MyEnemy(float x, float y, const std::shared_ptr<Texture2D>& tex, int max_hp, Core::Map* map)
+        : EnemyInterface(x, y, tex, max_hp, map)
+    {
+        loadModel("../assets/models/orc.glb");
+        addAnimation("run", "../assets/models/orc_run.glb");
+        playAnimation("default");
+    }
+
+    void MyEnemy::update(float dt) {
+        EnemyInterface::update(dt);
+        
+        // Example: Simple chase logic
+        // ... (calculate dist/angle) ...
+        
+        if (is_moving) {
+             playAnimation("run");
+             // Update position...
+        } else {
+             playAnimation("default");
+        }
+    }
+}
+```
 
 ---
 
@@ -126,11 +160,12 @@ MyEffect::MyEffect(..., const AbilityStats& stats)
 **Must Override:**
 -   `onCollision(std::shared_ptr<Entity>& target)`: What happens when it hits something?
 
-**Example:**
-```cpp
-void MyEffect::onCollision(const std::shared_ptr<Entity>& target) {
-    if (hasHit(target)) return; // prevent multi-hit
-    target->takeDamage(getDamage()); // Uses stats.damage
-    addHit(target);
-}
-```
+---
+
+## 4. Tips & Troubleshooting
+
+-   **New Files & CMake**: If you create a new `.cpp` file, you might need to "touch" (add a space/save) the `CMakeLists.txt` file or re-run CMake manually so it picks up the new source file.
+-   **Headers**: 
+    -   Include `"Constants.h"` if you need `Core::TILE_WIDTH` or `Core::pi`.
+    -   Include `<MathUtils.h>` for utility math functions.
+-   **Coordinates**: `Entity` positions are generally in World Coordinates.
