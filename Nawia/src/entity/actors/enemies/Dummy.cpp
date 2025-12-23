@@ -10,17 +10,15 @@ namespace Nawia::Entity {
 	Dummy::Dummy(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
 		: EnemyInterface(x, y, tex, max_hp, map), _stay_timer(0.0f)
 	{
-		_animation_component = std::make_unique<AnimationComponent>("../assets/models/dummy.glb");
-		// animation_component->addAnimation("../assets/models/dummy_walk.glb")
+		loadModel("../assets/models/dummy.glb");
+		addAnimation("walk", "../assets/models/dummy_walk.glb");
+		playAnimation("default");
 		pickNewTarget();
 	}
 
 	void Dummy::update(const float dt)
 	{
 		EnemyInterface::update(dt); // update animation internal timer
-
-		if (!_animation_component)
-			return;
 
 		if (_is_moving)
 		{
@@ -37,7 +35,7 @@ namespace Nawia::Entity {
 				_is_moving = false;
 				_stay_timer = (rand() % 300) / 100.0f + 1.0f; // 1-4s rest
 
-				_animation_component->playAnimation(0); // idle animation
+				playAnimation("default"); // idle animation
 			}
 			else
 			{
@@ -55,9 +53,6 @@ namespace Nawia::Entity {
 
 	void Dummy::pickNewTarget()
 	{
-		if (!_animation_component)
-			return;
-
 		// try 10 times to find valid spot
 		for (int i = 0; i < 10; ++i)
 		{
@@ -73,14 +68,14 @@ namespace Nawia::Entity {
 				_target_y = ty;
 				_is_moving = true;
 
-				_animation_component->playAnimation(1); // walk animation
+				playAnimation("walk"); // walk animation
 
 				const float dx = _target_x - getX();
 				const float dy = _target_y - getY();
 				const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
 				const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
 				const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / static_cast<float>(Core::pi);
-				_animation_component->setRotation(90.0f - screen_angle);
+				setRotation(90.0f - screen_angle);
 
 				return;
 			}
@@ -88,7 +83,7 @@ namespace Nawia::Entity {
 
 		// if fail, stay
 		_stay_timer = 1.0f;
-		_animation_component->playAnimation(0);
+		playAnimation("default");
 	}
 
 } // namespace Nawia::Entity

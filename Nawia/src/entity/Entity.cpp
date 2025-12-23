@@ -1,4 +1,5 @@
 #include "Entity.h"
+#include <raymath.h>
 
 #include <Logger.h>
 #include <Map.h>
@@ -6,32 +7,143 @@
 
 namespace Nawia::Entity {
 
-	Entity::Entity(float start_x, float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp) 
-		: _texture(texture), _max_hp(max_hp), _hp(max_hp) 
+	Entity::Entity(const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
+		: _texture(texture), _max_hp(max_hp), _hp(max_hp),
+		  _current_anim_index(0), _anim_frame_counter(0), _rotation(0.0f), _model_loaded(false), _use_3d_rendering(false)
 	{	
 		_pos = std::make_unique<Core::Point2D>(start_x, start_y);
 	}
 
-	void Entity::render(const float offset_x, const float offset_y) 
+	Entity::~Entity()
 	{
-		if (!_texture) 
+		if (_model_loaded)
 		{
-			Core::Logger::errorLog("Entity - could not load texture.");
+			for (const auto& anim : _animations)
+				UnloadModelAnimation(anim);
+
+			UnloadModel(_model);
+			UnloadRenderTexture(_target);
+		}
+	}
+
+	void Entity::loadModel(const std::string& path, const bool rotate_model)
+	{
+		_model = LoadModel(path.c_str());
+		if (_model.meshCount == 0)
+		{
+			Core::Logger::errorLog("Failed to load model: " + path);
 			return;
 		}
 
-		Core::Point2D screen_pos = getScreenPos(_pos->getX(), _pos->getY(), offset_x, offset_y);
+		// correction for Z-up models
+		if (rotate_model)
+			_model.transform = MatrixRotateX(-PI / 2.0f);
 
-		// Renders the entity to the screen relative to the camera offset, automatically scaling the sprite to the defined target dimensions.
-		const float source_texture_width = static_cast<float>(_texture->width);
-		const float source_texture_height = static_cast<float>(_texture->height);
-		constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
-		constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
+		_model_loaded = true;
+		_use_3d_rendering = true;
 
-		const Rectangle source = {0.0f, 0.0f, source_texture_width, source_texture_height };
-		const Rectangle dest = {screen_pos.getX(), screen_pos.getY(), dest_texture_width, dest_texture_height };
-		constexpr Vector2 origin = {0.0f, 0.0f};
-		DrawTexturePro(*_texture, source, dest, origin, 0.0f, WHITE);
+		// initialize 3D Rendering
+		_target = LoadRenderTexture(Core::MODEL_RENDER_SIZE, Core::MODEL_RENDER_SIZE);
+		_camera.position = Core::ISOMETRIC_CAMERA_POS;
+		_camera.target = Vector3{ 0.0f, 0.0f, 0.0f };
+		_camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
+		_camera.fovy = 45.0f;
+		_camera.projection = CAMERA_PERSPECTIVE;
+
+		// load animations from the initial file
+		addAnimation("default", path);
+	}
+
+	void Entity::addAnimation(const std::string& name, const std::string& path)
+	{
+		if (!_model_loaded)
+			return;
+
+		int count = 0;
+		ModelAnimation* anims = LoadModelAnimations(path.c_str(), &count);
+
+		if (count > 0)
+		{
+			int start_index = static_cast<int>(_animations.size());
+
+			for (int i = 0; i < count; i++)
+				_animations.push_back(anims[i]);
+
+			_animation_map[name] = start_index;
+
+			MemFree(anims);
+		}
+	}
+
+	void Entity::playAnimation(const std::string& name)
+	{
+		if (_animation_map.find(name) != _animation_map.end())
+		{
+			int index = _animation_map[name];
+			if (index != _current_anim_index)
+			{
+				_current_anim_index = index;
+				_anim_frame_counter = 0;
+			}
+		}
+	}
+
+	void Entity::update(const float delta_time)
+	{
+		updateAnimation(delta_time);
+	}
+
+	void Entity::updateAnimation(const float dt)
+	{
+		if (_model_loaded && !_animations.empty())
+		{
+			_anim_frame_counter++;
+			UpdateModelAnimation(_model, _animations[_current_anim_index], _anim_frame_counter);
+
+			if (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
+				_anim_frame_counter = 0;
+		}
+	}
+
+	void Entity::render(const float offset_x, const float offset_y) 
+	{
+		Core::Point2D pos = getScreenPos(getX(), getY(), offset_x, offset_y);
+
+		if (_use_3d_rendering && _model_loaded)
+		{
+			BeginTextureMode(_target);
+			ClearBackground(BLANK);
+			BeginMode3D(_camera);
+
+			constexpr float scale = 1.0f;
+			DrawModelEx(_model, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, _rotation, { scale, scale, scale }, WHITE);
+			
+			EndMode3D();
+			EndTextureMode();
+
+			const Vector2 position = { pos.getX(), pos.getY() };
+			
+			const float texture_width = static_cast<float>(_target.texture.width);
+			const float texture_height = static_cast<float>(_target.texture.height);
+
+			const Rectangle source = { 0.0f, 0.0f, texture_width, -texture_height };
+			const Rectangle dest = { position.x, position.y, texture_width, texture_height };
+			const Vector2 origin = { dest.width / 2.0f, dest.height / 2.0f };
+
+			DrawTexturePro(_target.texture, source, dest, origin, 0.0f, WHITE);
+		}
+		else if (_texture)
+		{
+			const float source_texture_width = static_cast<float>(_texture->width);
+			const float source_texture_height = static_cast<float>(_texture->height);
+			constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
+			constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
+
+			const Rectangle source = {0.0f, 0.0f, source_texture_width, source_texture_height };
+			const Rectangle dest = {pos.getX(), pos.getY(), dest_texture_width, dest_texture_height };
+			constexpr Vector2 origin = {0.0f, 0.0f};
+			DrawTexturePro(*_texture, source, dest, origin, 0.0f, WHITE);
+		}
 	}
 
 	void Entity::takeDamage(const int dmg) 
