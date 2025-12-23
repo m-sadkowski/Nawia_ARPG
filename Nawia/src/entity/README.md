@@ -38,25 +38,21 @@ namespace Nawia::Entity {
         
         // Add Animations (map name to file)
         addAnimation("walk", "../assets/models/my_model_walk.glb");
-        addAnimation("attack", "../assets/models/my_model_attack.glb");
         
         playAnimation("default"); // Plays the base model animation
+        
+        // Transform attributes
+        setVelocity(10.0f, 0.0f);
+        setScale(1.5f);
     }
 
     void MyEntity::update(float dt) {
-        Entity::update(dt); // Crucial for animation updates!
+        Entity::update(dt); // Crucial for animation updates and velocity integration!
         
         // Your logic here...
-        // playAnimation("walk");
     }
 }
 ```
-
-### Key Methods
--   `loadModel(path)`: Loads the GLB model.
--   `addAnimation(name, path)`: Maps an animation name to a GLB file.
--   `playAnimation(name)`: Switches the current animation.
--   `setRotation(angle)`: Rotates the model (in degrees).
 
 ---
 
@@ -69,54 +65,72 @@ For enemies, inherit from `Nawia::Entity::EnemyInterface` (which inherits from `
 2.  **Constructor**: Pass `Core::Map*` to enable pathfinding/movement logic.
 3.  **Update**: Implement AI behavior in `update`.
 
-**Example:**
-```cpp
-// In Constructor
-loadModel("../assets/models/orc.glb");
-addAnimation("run", "../assets/models/orc_run.glb");
-
-// In Update
-moveTowardsTarget(dt);
-if (isMoving) playAnimation("run");
-else playAnimation("default");
-```
-
 ---
 
 ## 3. Creating Abilities & Effects
 
-The ability system consists of `Ability` (logic) and `AbilityEffect` (visual representation/projectile).
+The ability system consists of `Ability` (logic), `AbilityEffect` (visual/projectile), and `AbilityStats` (data).
+
+### Ability Stats (JSON Configuration)
+Abilities should not hardcode their statistics (damage, range, etc.). Instead, define them in `assets/data/abilities.json`.
+
+**JSON Format:**
+```json
+{
+  "abilities": [
+    {
+      "name": "My Ability",
+      "stats": {
+        "damage": 50,
+        "cooldown": 2.5,
+        "cast_range": 15.0,
+        "projectile_speed": 12.0,
+        "duration": 5.0,
+        "hitbox_radius": 1.5
+      }
+    }
+  ]
+}
+```
+
+### Loading Stats
+Use the helper function `Entity::getAbilityStatsFromJson(name)` in your `Ability` constructor.
 
 ### Creating a New Ability
 Inherit from `Nawia::Entity::Ability`.
 
+**Constructor:**
+Pass the loaded stats to the base constructor.
+
+```cpp
+MyAbility::MyAbility(...) 
+    : Ability("My Ability", Entity::getAbilityStatsFromJson("My Ability"), AbilityTargetType::UNIT) 
+{ ... }
+```
+
 **Must Override:**
 -   `cast(Entity* caster, float x, float y)`: Returns a `unique_ptr` to the spawned `AbilityEffect`.
 
-**Example:**
-```cpp
-std::unique_ptr<Entity> MyAbility::cast(Entity* caster, float target_x, float target_y) {
-    // Calculate direction, spawn projectile
-    return std::make_unique<MyProjectile>(caster->getX(), caster->getY(), ...);
-}
-```
-
 ### Creating a New Ability Effect
 Inherit from `Nawia::Entity::AbilityEffect`. This represents the actual projectile or area of effect.
+
+**Constructor:**
+Pass the `AbilityStats` object to the base constructor.
+
+```cpp
+MyEffect::MyEffect(..., const AbilityStats& stats) 
+    : AbilityEffect(x, y, texture, stats) 
+{ ... }
+```
 
 **Must Override:**
 -   `onCollision(std::shared_ptr<Entity>& target)`: What happens when it hits something?
 
 **Example:**
 ```cpp
-void Fireball::onCollision(const std::shared_ptr<Entity>& target) {
-    target->takeDamage(getDamage());
-    // Spawn explosion particle?
+void MyEffect::onCollision(const std::shared_ptr<Entity>& target) {
+    if (hasHit(target)) return; // prevent multi-hit
+    target->takeDamage(getDamage()); // Uses stats.damage
+    addHit(target);
 }
-```
-
-**Constructor:**
-Pass duration and damage to the base `AbilityEffect` constructor.
-```cpp
-Fireball::Fireball(...) : AbilityEffect(x, y, texture, 2.0f /*duration*/, 50 /*damage*/) { ... }
 ```
