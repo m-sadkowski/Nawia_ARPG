@@ -12,6 +12,7 @@ namespace Nawia::Entity {
 	Dummy::Dummy(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
 		: EnemyInterface(x, y, tex, max_hp, map), _stay_timer(0.0f), _fireball_cooldown_timer(0.0f)
 	{
+		setFaction(Faction::Enemy);
 		loadModel("../assets/models/dummy.glb");
 		addAnimation("walk", "../assets/models/dummy_walk.glb");
 		playAnimation("default");

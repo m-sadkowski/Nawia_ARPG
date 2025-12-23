@@ -56,11 +56,24 @@ namespace Nawia::Entity {
 		[[nodiscard]] std::shared_ptr<Ability> getAbility(int index);
 		void updateAbilities(float dt) const;
 
+
 		// Spawning Support
 		// mechanisms for entities to spawn other entities (e.g. projectiles) safely during the update loop
 		void addPendingSpawn(std::shared_ptr<Entity> entity) { _pending_spawns.push_back(entity); }
 		[[nodiscard]] std::vector<std::shared_ptr<Entity>> getPendingSpawns() { return _pending_spawns; }
 		void clearPendingSpawns() { _pending_spawns.clear(); }
+
+		// Faction System
+		enum class Faction {
+			Player,
+			Enemy,
+			Neutral,
+			Ally,
+			None
+		};
+
+		[[nodiscard]] Faction getFaction() const { return _faction; }
+		void setFaction(Faction faction) { _faction = faction; }
 
 	protected:
 		std::unique_ptr<Core::Point2D> _pos;
@@ -82,6 +95,8 @@ namespace Nawia::Entity {
 		int _anim_frame_counter;
 		float _rotation;
 		bool _model_loaded;
+
+		Faction _faction;
 
 		// 3D Rendering Support
 		RenderTexture2D _target;

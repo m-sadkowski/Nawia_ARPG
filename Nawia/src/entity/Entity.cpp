@@ -13,7 +13,7 @@ namespace Nawia::Entity {
 	Entity::Entity(const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
 		: _texture(texture), _max_hp(max_hp), _hp(max_hp),
 		  _current_anim_index(0), _anim_frame_counter(0), _rotation(0.0f), _model_loaded(false), _use_3d_rendering(false),
-		  _velocity(0.0f, 0.0f), _scale(1.0f)
+		  _velocity(0.0f, 0.0f), _scale(1.0f), _faction(Faction::None)
 	{	
 		_pos = std::make_unique<Core::Point2D>(start_x, start_y);
 	}

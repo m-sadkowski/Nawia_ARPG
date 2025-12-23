@@ -30,6 +30,10 @@ namespace Nawia::Entity {
 	{
 		if (target.get() == _caster )
 			return false;
+
+		// check faction
+		if (_caster && _caster->getFaction() == target->getFaction())
+			return false;
 		
 		if (target->isDead())
 			return false;
