@@ -8,7 +8,7 @@
 namespace Nawia::Entity {
 
 	SwordSlashAbility::SwordSlashAbility(const std::shared_ptr<Texture2D>& slash_tex)
-	    : Ability("Sword Slash", {20, 1.0f, 0.0f, 2.0f, 2.5f, 0.2f}, AbilityTargetType::POINT), _slash_tex(slash_tex) {}
+	    : Ability("Sword Slash", Entity::getAbilityStatsFromJson("Sword Slash"), AbilityTargetType::POINT), _slash_tex(slash_tex) {}
 
 	std::unique_ptr<Entity> SwordSlashAbility::cast(Entity* caster, const float target_x, const float target_y) 
 	{

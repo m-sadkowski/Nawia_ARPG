@@ -1,4 +1,6 @@
 #pragma once
+#include "AbilityStats.h"
+
 #include <MathUtils.h>
 
 #include <raylib.h>
@@ -39,6 +41,8 @@ namespace Nawia::Entity {
 		[[nodiscard]] int getHP() const { return _hp; }
 		[[nodiscard]] int getMaxHP() const { return _max_hp; }
 		[[nodiscard]] std::string getName() { return ""; };
+		
+		static AbilityStats getAbilityStatsFromJson(const std::string& name);
 
 		// Animation & 3D Model Support
 		void loadModel(const std::string& path, bool rotate_model = false);

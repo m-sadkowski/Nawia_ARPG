@@ -1,4 +1,6 @@
 #include "Entity.h"
+#include <json.hpp>
+#include <fstream>
 #include <raymath.h>
 
 #include <Logger.h>
@@ -189,6 +191,55 @@ namespace Nawia::Entity {
 		screen_y += (Core::ENTITY_TEXTURE_HEIGHT / 2.0f - Core::TILE_HEIGHT * 1.5f);
 
 		return {screen_x, screen_y};
+	}
+
+	AbilityStats Entity::getAbilityStatsFromJson(const std::string& name)
+	{
+		std::string path = "../assets/data/abilities.json";
+		std::ifstream file(path);
+		
+		if (!file.is_open()) {
+			file.open(path);
+			if (!file.is_open()) {
+				Core::Logger::errorLog("Entity - Couldn't open file " + path);
+				return {};
+			}
+		}
+
+		nlohmann::json data;
+		try {
+			file >> data;
+		}
+		catch (const nlohmann::json::parse_error& e) {
+			(void)e;
+			Core::Logger::errorLog("Entity - Couldn't parse json file: " + path);
+			return {};
+		}
+
+		if (data.contains("abilities"))
+		{
+			for (const auto& ability : data["abilities"])
+			{
+				if (ability["name"] == name)
+				{
+					AbilityStats stats;
+					if (ability.contains("stats")) 
+					{
+						const auto& json_stats = ability["stats"];
+						if (json_stats.contains("damage")) stats.damage = json_stats["damage"].get<int>();
+						if (json_stats.contains("cooldown")) stats.cooldown = json_stats["cooldown"].get<float>();
+						if (json_stats.contains("cast_range")) stats.cast_range = json_stats["cast_range"].get<float>();
+						if (json_stats.contains("projectile_speed")) stats.projectile_speed = json_stats["projectile_speed"].get<float>();
+						if (json_stats.contains("duration")) stats.duration = json_stats["duration"].get<float>();
+						if (json_stats.contains("hitbox_radius")) stats.hitbox_radius = json_stats["hitbox_radius"].get<float>();
+					}
+					return stats;
+				}
+			}
+		}
+		
+		Core::Logger::errorLog("Entity - Ability not found: " + name);
+		return {};
 	}
 
 } // namespace Nawia::Entity
