@@ -15,7 +15,7 @@ namespace Nawia::Entity {
 
 	class Entity {
 	public:
-		Entity(float start_x, float start_y, const std::shared_ptr<Texture2D>& texture, int max_hp);
+		Entity(const std::string& name, float start_x, float start_y, const std::shared_ptr<Texture2D>& texture, int max_hp);
 		virtual ~Entity();
 
 		virtual void update(float delta_time);
@@ -41,7 +41,8 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool isDead() const { return _hp <= 0; }
 		[[nodiscard]] int getHP() const { return _hp; }
 		[[nodiscard]] int getMaxHP() const { return _max_hp; }
-		[[nodiscard]] std::string getName() { return ""; };
+		[[nodiscard]] std::string getName() const { return _name; }
+		void setName(const std::string& name) { _name = name; }
 
 		// Animation & 3D Model Support
 		void loadModel(const std::string& path, bool rotate_model = false);
@@ -97,6 +98,8 @@ namespace Nawia::Entity {
 		bool _model_loaded;
 
 		Faction _faction;
+
+		std::string _name;
 
 		// 3D Rendering Support
 		RenderTexture2D _target;

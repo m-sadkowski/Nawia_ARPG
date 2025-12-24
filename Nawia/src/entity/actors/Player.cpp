@@ -8,7 +8,7 @@
 namespace Nawia::Entity {
 
 	Player::Player(const float x, const float y, const std::shared_ptr<Texture2D>& texture)
-	    : Entity(x, y, texture, 100), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) 
+	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) 
 	{
 		setFaction(Faction::Player);
 		loadModel("../assets/models/player.glb");

@@ -7,9 +7,9 @@
 
 namespace Nawia::Entity {
 
-	Projectile::Projectile(const float x, const float y, const float target_x, const float target_y, 
+	Projectile::Projectile(const std::string& name, const float x, const float y, const float target_x, const float target_y, 
 	                       const std::shared_ptr<Texture2D> &tex, const AbilityStats& stats, Entity* caster)
-		: AbilityEffect(x, y, tex, stats), _speed(stats.projectile_speed), _caster(caster)
+		: AbilityEffect(name, x, y, tex, stats), _speed(stats.projectile_speed), _caster(caster)
 	{
 		const float dx = target_x - x;
 		const float dy = target_y - y;

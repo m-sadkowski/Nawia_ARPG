@@ -10,7 +10,7 @@
 namespace Nawia::Entity {
 
 	SwordSlashEffect::SwordSlashEffect(const float x, const float y, const float angle, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats)
-		: AbilityEffect(x, y, tex, stats), _angle(angle) {}
+		: AbilityEffect("Sword Slash", x, y, tex, stats), _angle(angle) {}
 
 	void SwordSlashEffect::update(const float dt)
 	{
@@ -66,7 +66,7 @@ namespace Nawia::Entity {
 		{
 			enemy->takeDamage(getDamage());
 			addHit(enemy);
-			Core::Logger::debugLog("Sword Slash Hit Enemy!");
+			Core::Logger::debugLog("Sword Slash Hit " + enemy->getName());
 		}
 	}
 

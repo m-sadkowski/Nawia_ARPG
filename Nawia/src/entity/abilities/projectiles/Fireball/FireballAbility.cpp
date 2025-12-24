@@ -13,7 +13,7 @@ namespace Nawia::Entity {
 
 		startCooldown();
 
-		return std::make_unique<Projectile>(_caster->getX(), _caster->getY(), target_x, target_y, _texture, _stats, _caster);
+		return std::make_unique<Projectile>("Fireball Projectile", _caster->getX(), _caster->getY(), target_x, target_y, _texture, _stats, _caster);
 	}
 
 } // namespace Nawia::Entity
