@@ -1,5 +1,6 @@
 #include "Projectile.h"
 #include "EnemyInterface.h"
+#include "Collider.h"
 
 #include <Logger.h>
 
@@ -16,6 +17,10 @@ namespace Nawia::Entity {
 		const float length = std::sqrt(dx * dx + dy * dy);
 		_vel_x = (dx / length) * _speed;
 		_vel_y = (dy / length) * _speed;
+
+		// add Collider
+		// hitbox_radius from stats
+		setCollider(std::make_unique<CircleCollider>(this, stats.hitbox_radius > 0 ? stats.hitbox_radius : 0.5f));
 	}
 
 	void Projectile::update(const float dt) 
@@ -42,15 +47,8 @@ namespace Nawia::Entity {
 		if (std::dynamic_pointer_cast<AbilityEffect>(target))
 			return false;
 
-		const float dx = getX() - target->getX();
-		const float dy = getY() - target->getY();
-		const float distSq = dx * dx + dy * dy;
-
-		bool hit = (distSq < 0.5f);
-		if (hit) {
-             Core::Logger::debugLog("Projectile collision check: HIT target " + target->getName());
-		}
-		return hit;
+		// Use Geometry check
+		return AbilityEffect::checkCollision(target);
 	}
 
 	void Projectile::onCollision(const std::shared_ptr<Entity>& target)

@@ -6,14 +6,18 @@
 
 #include <cmath>
 #include <cstdlib>
+#include "Collider.h"
 
 namespace Nawia::Entity {
 
-	Dummy::Dummy(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
+	Dummy::Dummy(float x, float y, const std::shared_ptr<Texture2D>& tex, int max_hp, Core::Map* map)
 		: EnemyInterface("Dummy", x, y, tex, max_hp, map), _stay_timer(0.0f), _fireball_cooldown_timer(0.0f)
 	{
 		setFaction(Faction::Enemy);
 		loadModel("../assets/models/dummy.glb");
+		
+		// add Collider
+		setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.5f));
 		addAnimation("walk", "../assets/models/dummy_walk.glb");
 		playAnimation("default");
 		

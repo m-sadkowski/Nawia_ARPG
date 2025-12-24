@@ -18,8 +18,11 @@ include_directories(
     src/core/system/time
     src/core/system/renderer
     src/entity
+    src/entity/collider
     src/entity/actors
     src/entity/actors/enemies
+    src/entity/actors/player
+    src/entity/actors/enemies/dummy
     src/entity/components
     src/entity/systems
     src/entity/effects

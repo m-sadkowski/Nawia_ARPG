@@ -1,4 +1,5 @@
 #include "AbilityEffect.h"
+#include "Collider.h"
 
 #include <algorithm>
 
@@ -24,6 +25,16 @@ namespace Nawia::Entity {
 
 	bool AbilityEffect::checkCollision(const std::shared_ptr<Entity>& target) const
 	{
+		if (!target) return false;
+		Collider* myCollider = getCollider();
+		Collider* targetCollider = target->getCollider();
+
+		if (myCollider && targetCollider)
+		{
+			return myCollider->checkCollision(targetCollider);
+		}
+		
+		// Fallback or just return false if no collider
 		return false;
 	}
 

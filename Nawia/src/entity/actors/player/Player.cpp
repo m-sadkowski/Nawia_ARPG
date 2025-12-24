@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "Collider.h"
 
 #include <Constants.h>
 #include <MathUtils.h>
@@ -14,6 +15,9 @@ namespace Nawia::Entity {
 		loadModel("../assets/models/player.glb");
 		addAnimation("walk", "../assets/models/player_walk.glb");
 		playAnimation("default"); // play idle
+
+		// add Collider
+		setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.5f));
 	}
 
 	void Player::moveTo(const float x, const float y)

@@ -40,6 +40,46 @@ public:
 };
 ```
 
+```
+
+---
+
+## 2. System Kolizji (Collider System)
+
+Każde Entity może posiadać przypisany `Collider`, który definiuje jego fizyczny kształt w świecie gry. System wspiera różne typy kształtów i zapewnia mechanizmy wykrywania kolizji oraz debugowania.
+
+### Dostępne Typy Colliderów:
+
+1.  **RectangleCollider**: Prostokąt, definiowany przez szerokość i wysokość. Idealny dla postaci i większości obiektów.
+2.  **CircleCollider**: Koło, definiowane przez promień. Używany np. dla pocisków.
+3.  **ConeCollider**: Stożek (wycinek koła), definiowany przez promień i kąt. Używany dla ataków obszarowych (jak Sword Slash).
+
+### Jak dodać Collider do Entity?
+
+W konstruktorze swojego Entity użyj metody `setCollider`:
+
+```cpp
+// Przykłady:
+
+// 1. RectangleCollider (np. dla Gracza/Przeciwnika)
+// Parametry: właściciel (this), szerokość, wysokość
+setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.5f));
+
+// 2. CircleCollider (np. dla Kuli Ognia)
+// Parametry: właściciel (this), promień
+setCollider(std::make_unique<CircleCollider>(this, 0.5f));
+
+// 3. ConeCollider (np. dla ataku mieczem)
+// Parametry: właściciel (this), promień, kąt (w stopniach)
+setCollider(std::make_unique<ConeCollider>(this, 1.5f, 90.0f));
+```
+
+### Debugowanie
+Aby zobaczyć hitboxy w grze, można ustawić flagę statyczną `Entity::DebugColliders` na `true`.
+- **Czerwony**: CircleCollider
+- **Niebieski**: RectangleCollider
+- **Zielony**: ConeCollider
+
 ---
 
 ## 2. Tworzenie nowego Przeciwnika (Enemy)

@@ -12,6 +12,7 @@
 
 namespace Nawia::Entity {
 	class Ability;
+	class Collider;
 
 	class Entity {
 	public:
@@ -50,6 +51,12 @@ namespace Nawia::Entity {
 		void playAnimation(const std::string& name);
 
 		void setRotation(float angle) { _rotation = angle; }
+		[[nodiscard]] float getRotation() const { return _rotation; }
+
+		// Collider System
+		void setCollider(std::unique_ptr<Collider> collider);
+		[[nodiscard]] Collider* getCollider() const { return _collider.get(); }
+		static bool DebugColliders; // Static flag for debug drawing
 
 		// Ability System
 		static AbilityStats getAbilityStatsFromJson(const std::string& name);
@@ -81,6 +88,8 @@ namespace Nawia::Entity {
 		Core::Point2D _velocity;
 		float _scale;
 		std::shared_ptr<Texture2D> _texture;
+		
+		std::unique_ptr<Collider> _collider;
 		
 		std::vector<std::shared_ptr<Entity>> _pending_spawns;
 
