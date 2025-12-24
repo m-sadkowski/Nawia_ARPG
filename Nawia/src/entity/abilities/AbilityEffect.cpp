@@ -4,8 +4,8 @@
 
 namespace Nawia::Entity {
 
-	AbilityEffect::AbilityEffect(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats) 
-		: Entity(x, y, tex, 1), _stats(stats), _timer(0.0f) {}
+	AbilityEffect::AbilityEffect(const std::string& name, const float x, const float y, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats) 
+		: Entity(name, x, y, tex, 1), _stats(stats), _timer(0.0f) {}
 
 	void AbilityEffect::update(const float dt)
 	{

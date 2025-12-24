@@ -24,8 +24,10 @@ include_directories(
     src/entity/systems
     src/entity/effects
     src/entity/abilities
-    src/entity/abilities/Fireball
-    src/entity/abilities/SwordSlash
+    src/entity/abilities/projectiles
+    src/entity/abilities/melee
+    src/entity/abilities/projectiles/Fireball
+    src/entity/abilities/melee/SwordSlash
     src/world
     src/world/map
     src/world/level

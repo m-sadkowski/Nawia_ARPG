@@ -1,171 +1,172 @@
-# Entity System Documentation
+# System Entity - Przewodnik Dewelopera
 
-This folder contains the core logic for game entities, including actors (Player, Enemies), abilities, and effects.
+Ten dokument opisuje jak tworzyć nowe obiekty w grze (Entities), Przeciwników (Enemies) oraz Umiejętności (Abilities) w projekcie Nawia.
 
-## 1. Creating a New Entity
+## 1. Tworzenie nowego Entity (Obiektu Gry)
 
-To create a new game object, inherit from the `Nawia::Entity::Entity` class.
+Wszystkie obiekty w grze dziedziczą po klasie `Nawia::Entity::Entity`.
 
-### Basic Setup
-1.  **Inherit**: Create a class that inherits from `Nawia::Entity::Entity`.
-2.  **Constructor**: Call the base `Entity` constructor.
-3.  **3D Model & Animation**: Use `loadModel` and `addAnimation` in your constructor to enable 3D rendering.
+### Krok po kroku:
+1.  Stwórz klasę dziedziczącą po `Nawia::Entity::Entity`.
+2.  Wywołaj konstruktor bazowy `Entity`.
+3.  W konstruktorze załaduj model 3D i animacje (opcjonalnie).
 
-**Example Header (.h):**
+### Konstruktor Entity
+Musisz przekazać następujące parametry do konstruktora bazowego:
 ```cpp
-#pragma once
-#include "Entity.h"
-
-namespace Nawia::Entity {
-    class MyEntity : public Entity {
-    public:
-        MyEntity(float x, float y, const std::shared_ptr<Texture2D>& texture);
-        void update(float dt) override;
-    };
-}
+Entity(
+    const std::string& name,                // Unikalna nazwa (np. "Chest")
+    float start_x, float start_y,           // Pozycja początkowa
+    const std::shared_ptr<Texture2D>& texture, // Tekstura 2D (ikona/sprite)
+    int max_hp                              // Życie
+);
 ```
 
-**Example Implementation (.cpp):**
+### Przykład:
 ```cpp
-#include "MyEntity.h"
-#include "Constants.h" // For TILE_WIDTH, etc.
-#include <MathUtils.h> // For generic math
-
-namespace Nawia::Entity {
-    MyEntity::MyEntity(float x, float y, const std::shared_ptr<Texture2D>& texture)
-        : Entity(x, y, texture, 100) // 100 is Max HP
+// MyEntity.h
+class MyEntity : public Nawia::Entity::Entity {
+public:
+    MyEntity(float x, float y, const std::shared_ptr<Texture2D>& tex)
+        : Entity("MyEntity", x, y, tex, 100) // 100 HP
     {
-        // Setup 3D Model
-        loadModel("../assets/models/my_model.glb");
+        // Ładowanie modelu 3D
+        loadModel("../assets/models/barrel.glb");
         
-        // Add Animations (map name to file)
-        addAnimation("walk", "../assets/models/my_model_walk.glb");
-        
-        playAnimation("default"); // Plays the base model animation
-        
-        // Transform attributes
-        setVelocity(10.0f, 0.0f);
-        setScale(1.5f);
+        // Dodawanie animacji (nazwa, ścieżka)
+        addAnimation("idle", "../assets/models/barrel_idle.glb");
+        playAnimation("idle");
     }
+};
+```
 
-    void MyEntity::update(float dt) {
-        Entity::update(dt); // Crucial for animation updates and velocity integration!
-        
-        // Your logic here...
-    }
+---
+
+## 2. Tworzenie nowego Przeciwnika (Enemy)
+
+Przeciwnicy dziedziczą po `Nawia::Entity::EnemyInterface`, który zapewnia im dostęp do mapy i podstawową logikę ruchu.
+
+### Krok po kroku:
+1.  Stwórz klasę dziedziczącą po `EnemyInterface`.
+2.  Zaimplementuj metodę `update`, aby dodać sztuczną inteligencję (AI).
+
+### Konstruktor EnemyInterface
+```cpp
+EnemyInterface(
+    const std::string& name, 
+    float x, float y, 
+    const std::shared_ptr<Texture2D>& texture, 
+    int max_hp, 
+    Core::Map* map // Wskaźnik na mapę dla pathfindingu
+);
+```
+
+### Przykład:
+```cpp
+// Orc.cpp
+Orc::Orc(float x, float y, std::shared_ptr<Texture2D> tex, Core::Map* map)
+    : EnemyInterface("Orc", x, y, tex, 200, map)
+{
+    loadModel("../assets/models/orc.glb");
+    addAnimation("run", "../assets/models/orc_run.glb");
+}
+
+void Orc::update(float dt) {
+    EnemyInterface::update(dt);
+    // Twoja logika AI tutaj (np. gonienie gracza)
 }
 ```
 
 ---
 
-## 2. Creating a New Enemy
+## 3. Tworzenie Umiejętności (Abilities)
 
-For enemies, inherit from `Nawia::Entity::EnemyInterface` (which inherits from `Entity`).
+System umiejętności składa się z dwóch części:
+1.  **Dane** (JSON): Statystyki umiejętności.
+2.  **Logika** (C++): Klasa dziedzicząca po `Ability`.
 
-### Steps
-1.  **Inherit** from `EnemyInterface`.
-2.  **Constructor**: Pass `Core::Map*` to enable pathfinding/movement logic.
-3.  **Update**: Implement AI behavior in `update`.
+### 3.1. Konfiguracja JSON (`assets/data/abilities.json`)
+Nie wpisuj statystyk na sztywno w kodzie. Dodaj je do pliku JSON.
 
-**Example Implementation:**
-```cpp
-#include "MyEnemy.h"
-#include "Constants.h"
-#include <cmath>
-
-namespace Nawia::Entity {
-
-    MyEnemy::MyEnemy(float x, float y, const std::shared_ptr<Texture2D>& tex, int max_hp, Core::Map* map)
-        : EnemyInterface(x, y, tex, max_hp, map)
-    {
-        loadModel("../assets/models/orc.glb");
-        addAnimation("run", "../assets/models/orc_run.glb");
-        playAnimation("default");
-    }
-
-    void MyEnemy::update(float dt) {
-        EnemyInterface::update(dt);
-        
-        // Example: Simple chase logic
-        // ... (calculate dist/angle) ...
-        
-        if (is_moving) {
-             playAnimation("run");
-             // Update position...
-        } else {
-             playAnimation("default");
-        }
-    }
-}
-```
-
----
-
-## 3. Creating Abilities & Effects
-
-The ability system consists of `Ability` (logic), `AbilityEffect` (visual/projectile), and `AbilityStats` (data).
-
-### Ability Stats (JSON Configuration)
-Abilities should not hardcode their statistics (damage, range, etc.). Instead, define them in `assets/data/abilities.json`.
-
-**JSON Format:**
 ```json
 {
   "abilities": [
     {
-      "name": "My Ability",
+      "name": "Fireball",
       "stats": {
         "damage": 50,
-        "cooldown": 2.5,
-        "cast_range": 15.0,
-        "projectile_speed": 12.0,
+        "cooldown": 2.0,
+        "cast_range": 10.0,
+        "projectile_speed": 15.0,
         "duration": 5.0,
-        "hitbox_radius": 1.5
+        "hitbox_radius": 1.0
       }
     }
   ]
 }
 ```
 
-### Loading Stats
-Use the helper function `Entity::getAbilityStatsFromJson(name)` in your `Ability` constructor.
+### 3.2. Klasa Ability
+Stwórz klasę dziedziczącą po `Nawia::Entity::Ability`.
 
-### Creating a New Ability
-Inherit from `Nawia::Entity::Ability`.
+W konstruktorze użyj `Entity::getAbilityStatsFromJson("NazwaZJsona")`, aby pobrać statystyki.
 
-**Constructor:**
-Pass the loaded stats to the base constructor.
+**Ważne:** Musisz nadpisać metodę `cast`.
 
 ```cpp
-MyAbility::MyAbility(...) 
-    : Ability("My Ability", Entity::getAbilityStatsFromJson("My Ability"), AbilityTargetType::UNIT) 
-{ ... }
+// FireballAbility.cpp
+FireballAbility::FireballAbility()
+    : Ability("Fireball", Entity::getAbilityStatsFromJson("Fireball"), AbilityTargetType::POINT)
+{
+}
+
+std::unique_ptr<Entity> FireballAbility::cast(float target_x, float target_y) {
+    // Zwróć nowy efekt/pocisk
+    // Użyj getCaster(), aby przekazać stwórcę (żeby nie trafił sam siebie)
+    return std::make_unique<FireballProjectile>(
+        getCaster()->getX(), getCaster()->getY(), 
+        target_x, target_y, 
+        _stats, // Statystyki załadowane z JSON
+        getCaster()
+    );
+}
 ```
-
-**Must Override:**
--   `cast(Entity* caster, float x, float y)`: Returns a `unique_ptr` to the spawned `AbilityEffect`.
-
-### Creating a New Ability Effect
-Inherit from `Nawia::Entity::AbilityEffect`. This represents the actual projectile or area of effect.
-
-**Constructor:**
-Pass the `AbilityStats` object to the base constructor.
-
-```cpp
-MyEffect::MyEffect(..., const AbilityStats& stats) 
-    : AbilityEffect(x, y, texture, stats) 
-{ ... }
-```
-
-**Must Override:**
--   `onCollision(std::shared_ptr<Entity>& target)`: What happens when it hits something?
 
 ---
 
-## 4. Tips & Troubleshooting
+## 4. Tworzenie Efektów / Pocisków (AbilityEffect)
 
--   **New Files & CMake**: If you create a new `.cpp` file, you might need to "touch" (add a space/save) the `CMakeLists.txt` file or re-run CMake manually so it picks up the new source file.
--   **Headers**: 
-    -   Include `"Constants.h"` if you need `Core::TILE_WIDTH` or `Core::pi`.
-    -   Include `<MathUtils.h>` for utility math functions.
--   **Coordinates**: `Entity` positions are generally in World Coordinates.
+Efekt umiejętności (np. kula ognia) to osobny obiekt dziedziczący po `AbilityEffect` (lub `Projectile`, jeśli to pocisk).
+
+### Konstruktor AbilityEffect
+```cpp
+AbilityEffect(
+    const std::string& name,
+    float x, float y,
+    const std::shared_ptr<Texture2D>& tex,
+    const AbilityStats& stats
+);
+```
+
+### Nadpisz te funkcje:
+*   `onCollision(std::shared_ptr<Entity>& target)`: Co się dzieje, gdy w coś trafi?
+*   `update(float dt)`: Logika lotu / trwania.
+
+### Przykład (Pocisk):
+```cpp
+// FireballProjectile.cpp
+void FireballProjectile::onCollision(std::shared_ptr<Entity>& target) {
+    if (target.get() == _caster) return; // Nie rań strzelającego
+    
+    target->takeDamage(_stats.damage);
+    _hp = 0; // Zniszcz pocisk po trafieniu
+}
+```
+
+---
+
+## 5. Wskazówki dla Deweloperów
+
+1.  **Rejestracja Entity**: Jeśli stworzysz nowy obiekt ręcznie (np. w `main.cpp`), MUSISZ go dodać do `EntityManager` używając `addEntity()`. Inaczej nie będzie on aktualizowany, renderowany ani brany pod uwagę w kolizjach.
+2.  **Konwersja Pozycji**: Pamiętaj, że logika gry używa współrzędnych świata (World Coordinates), a nie ekranu.
+3.  **CMake**: Pamiętaj, żeby odświeżyć CMake po dodaniu nowych plików `.cpp` / `.h`.

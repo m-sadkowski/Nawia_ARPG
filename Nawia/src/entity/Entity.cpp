@@ -2,6 +2,7 @@
 #include <json.hpp>
 #include <fstream>
 #include <raymath.h>
+#include "Ability.h"
 
 #include <Logger.h>
 #include <Map.h>
@@ -9,10 +10,10 @@
 
 namespace Nawia::Entity {
 
-	Entity::Entity(const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
-		: _texture(texture), _max_hp(max_hp), _hp(max_hp),
+	Entity::Entity(const std::string& name, const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
+		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
 		  _current_anim_index(0), _anim_frame_counter(0), _rotation(0.0f), _model_loaded(false), _use_3d_rendering(false),
-		  _velocity(0.0f, 0.0f), _scale(1.0f)
+		  _velocity(0.0f, 0.0f), _scale(1.0f), _faction(Faction::None)
 	{	
 		_pos = std::make_unique<Core::Point2D>(start_x, start_y);
 	}
@@ -153,6 +154,7 @@ namespace Nawia::Entity {
 
 	void Entity::takeDamage(const int dmg) 
 	{
+		Core::Logger::debugLog("Entity " + getName() + " taking damage: " + std::to_string(dmg) + ". Current HP: " + std::to_string(_hp));
 		_hp -= dmg;
 		if (_hp < 0) 
 		{
@@ -164,7 +166,7 @@ namespace Nawia::Entity {
 	void Entity::die()
 	{
 		_hp = 0;
-		Core::Logger::debugLog("Entity killed!");
+		Core::Logger::debugLog("Entity " + getName() + " killed!");
 	}
 
 	bool Entity::isMouseOver(const float mouse_x, const float mouse_y, const float cam_x, const float cam_y) const 
@@ -240,6 +242,26 @@ namespace Nawia::Entity {
 		
 		Core::Logger::errorLog("Entity - Ability not found: " + name);
 		return {};
+	}
+
+	void Entity::addAbility(const std::shared_ptr<Ability>& ability) 
+	{
+		ability->setCaster(this);
+		_abilities.push_back(ability);
+	}
+
+	std::shared_ptr<Ability> Entity::getAbility(const int index)
+	{
+		if (index >= 0 && index < _abilities.size())
+			return _abilities[index];
+
+		return nullptr;
+	}
+
+	void Entity::updateAbilities(const float dt) const 
+	{
+		for (auto &s : _abilities)
+			s->update(dt);
 	}
 
 } // namespace Nawia::Entity

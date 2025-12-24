@@ -11,15 +11,15 @@
 #include <memory>
 
 namespace Nawia::Entity {
+	class Ability;
 
 	class Entity {
 	public:
-		Entity(float start_x, float start_y, const std::shared_ptr<Texture2D>& texture, int max_hp);
+		Entity(const std::string& name, float start_x, float start_y, const std::shared_ptr<Texture2D>& texture, int max_hp);
 		virtual ~Entity();
 
 		virtual void update(float delta_time);
 		virtual void render(float offset_x, float offset_y);
-
 
 		[[nodiscard]] float getX() const { return _pos->getX(); }
 		[[nodiscard]] float getY() const { return _pos->getY(); }
@@ -35,26 +35,54 @@ namespace Nawia::Entity {
 		void setScale(float scale) { _scale = scale; }
 		[[nodiscard]] float getScale() const { return _scale; }
 
+		// Damage and HP
 		virtual void takeDamage(int dmg);
 		void die();
 		[[nodiscard]] bool isDead() const { return _hp <= 0; }
 		[[nodiscard]] int getHP() const { return _hp; }
 		[[nodiscard]] int getMaxHP() const { return _max_hp; }
-		[[nodiscard]] std::string getName() { return ""; };
-		
-		static AbilityStats getAbilityStatsFromJson(const std::string& name);
+		[[nodiscard]] std::string getName() const { return _name; }
+		void setName(const std::string& name) { _name = name; }
 
 		// Animation & 3D Model Support
 		void loadModel(const std::string& path, bool rotate_model = false);
 		void addAnimation(const std::string& name, const std::string& path);
 		void playAnimation(const std::string& name);
+
 		void setRotation(float angle) { _rotation = angle; }
+
+		// Ability System
+		static AbilityStats getAbilityStatsFromJson(const std::string& name);
+		void addAbility(const std::shared_ptr<Ability>& ability);
+		[[nodiscard]] std::shared_ptr<Ability> getAbility(int index);
+		void updateAbilities(float dt) const;
+
+
+		// Spawning Support
+		// mechanisms for entities to spawn other entities (e.g. projectiles) safely during the update loop
+		void addPendingSpawn(std::shared_ptr<Entity> entity) { _pending_spawns.push_back(entity); }
+		[[nodiscard]] std::vector<std::shared_ptr<Entity>> getPendingSpawns() { return _pending_spawns; }
+		void clearPendingSpawns() { _pending_spawns.clear(); }
+
+		// Faction System
+		enum class Faction {
+			Player,
+			Enemy,
+			Neutral,
+			Ally,
+			None
+		};
+
+		[[nodiscard]] Faction getFaction() const { return _faction; }
+		void setFaction(Faction faction) { _faction = faction; }
 
 	protected:
 		std::unique_ptr<Core::Point2D> _pos;
 		Core::Point2D _velocity;
 		float _scale;
 		std::shared_ptr<Texture2D> _texture;
+		
+		std::vector<std::shared_ptr<Entity>> _pending_spawns;
 
 		int _hp;
 		int _max_hp;
@@ -69,12 +97,18 @@ namespace Nawia::Entity {
 		float _rotation;
 		bool _model_loaded;
 
+		Faction _faction;
+
+		std::string _name;
+
 		// 3D Rendering Support
 		RenderTexture2D _target;
 		Camera3D _camera;
 		bool _use_3d_rendering;
 
 		void updateAnimation(float dt);
+		
+		std::vector<std::shared_ptr<Ability>> _abilities;
 	};
 
 } // namespace Nawia::Entity

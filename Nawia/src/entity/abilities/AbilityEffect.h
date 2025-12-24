@@ -8,7 +8,7 @@ namespace Nawia::Entity {
 
 	class AbilityEffect : public Entity {
 	public:
-		AbilityEffect(float x, float y, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats);
+		AbilityEffect(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats);
 
 		void update(float dt) override;
 		[[nodiscard]] bool isExpired() const;

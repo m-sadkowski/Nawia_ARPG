@@ -8,8 +8,9 @@
 namespace Nawia::Entity {
 
 	Player::Player(const float x, const float y, const std::shared_ptr<Texture2D>& texture)
-	    : Entity(x, y, texture, 100), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) 
+	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) 
 	{
+		setFaction(Faction::Player);
 		loadModel("../assets/models/player.glb");
 		addAnimation("walk", "../assets/models/player_walk.glb");
 		playAnimation("default"); // play idle
@@ -39,6 +40,7 @@ namespace Nawia::Entity {
 	void Player::update(const float delta_time)
 	{
 		Entity::update(delta_time);
+		updateAbilities(delta_time);
 
 		if (!_is_moving)
 			return;
@@ -62,23 +64,7 @@ namespace Nawia::Entity {
 		}
 	}
 
-	void Player::addAbility(const std::shared_ptr<Ability>& ability) 
-	{
-		_abilities.push_back(ability);
-	}
+	
 
-	std::shared_ptr<Ability> Player::getAbility(const int index)
-	{
-		if (index >= 0 && index < _abilities.size())
-			return _abilities[index];
-
-		return nullptr;
-	}
-
-	void Player::updateAbilities(const float dt) const 
-	{
-		for (auto &s : _abilities)
-			s->update(dt);
-	}
 
 } // namespace Nawia::Entity

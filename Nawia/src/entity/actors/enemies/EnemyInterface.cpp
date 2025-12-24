@@ -5,8 +5,8 @@
 
 namespace Nawia::Entity {
 
-	EnemyInterface::EnemyInterface(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
-		: Entity(x, y, tex, max_hp), _is_moving(false), _map(map) {}
+	EnemyInterface::EnemyInterface(const std::string& name, const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
+		: Entity(name, x, y, tex, max_hp), _is_moving(false), _map(map) {}
 
 	bool EnemyInterface::isMouseOver(const float mouse_x, const float mouse_y, const float cam_x, const float cam_y) const
 	{

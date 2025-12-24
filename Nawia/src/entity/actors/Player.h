@@ -15,16 +15,10 @@ namespace Nawia::Entity {
 
 		void moveTo(float x, float y);
 
-		// ability system
-		void addAbility(const std::shared_ptr<Ability>& ability);
-		std::shared_ptr<Ability> getAbility(int index);
-		void updateAbilities(float dt) const;
-
 	private:
 		float _target_x, _target_y;
 		float _speed;
 		bool _is_moving;
-		std::vector<std::shared_ptr<Ability>> _abilities;
 	};
 
 } // namespace Nawia::Entity

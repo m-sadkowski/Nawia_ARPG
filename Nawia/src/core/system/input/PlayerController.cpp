@@ -73,7 +73,8 @@ namespace Nawia::Core {
 
 		constexpr int auto_attack_index = 0;
 		const float attack_cast_range =  _player->getAbility(auto_attack_index)->getCastRange();
-
+        
+		// defines a small buffer zone to prevent the character from jittering at the edge of attack range
 		constexpr float hysteresis = 0.5f;
 
 		if (dist_sq > (attack_cast_range + hysteresis) * (attack_cast_range + hysteresis)) 
@@ -108,7 +109,7 @@ namespace Nawia::Core {
 		if (!spell || !spell->isReady())
 			return;
 
-		if (auto effect = spell->cast(_player.get(), target_x, target_y)) 
+		if (auto effect = spell->cast(target_x, target_y)) 
 		{
 			Logger::debugLog("Ability " + std::to_string(index) + " used, target location: (" + std::to_string(target_x) + ", " + std::to_string(target_y) + ")");
 			_engine->spawnEntity(std::move(effect));
