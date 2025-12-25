@@ -27,8 +27,8 @@ namespace Nawia::Entity {
 	{
 		AbilityEffect::update(dt);
 
-		_pos->setX(_pos->getX() + _vel_x * dt);
-		_pos->setY(_pos->getY() + _vel_y * dt);
+		_pos.x += _vel_x * dt;
+		_pos.y += _vel_y * dt;
 	}
 
 	bool Projectile::checkCollision(const std::shared_ptr<Entity>& target) const

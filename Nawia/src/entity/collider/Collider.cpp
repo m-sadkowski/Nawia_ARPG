@@ -84,8 +84,8 @@ namespace Nawia::Entity {
     }
 
     void CircleCollider::render(const float offset_x, const float offset_y) const {
-    	Core::Point2D screen_pt = _owner->getScreenPos(_owner->getX() + _offset.x, _owner->getY() + _offset.y, offset_x, offset_y);
-        const auto screen_pos = Vector2{ screen_pt.getX(), screen_pt.getY() };
+    	Vector2 screen_pt = _owner->getScreenPos(_owner->getX() + _offset.x, _owner->getY() + _offset.y, offset_x, offset_y);
+        const auto screen_pos = screen_pt;
 
         DrawCircleLines(static_cast<int>(screen_pos.x), static_cast<int>(screen_pos.y), _radius * 32.0f, RED);
         DrawCircleLines(static_cast<int>(screen_pos.x), static_cast<int>(screen_pos.y), _radius * Core::TILE_WIDTH / 2.0f, RED);
@@ -121,8 +121,8 @@ namespace Nawia::Entity {
     }
 
     void RectangleCollider::render(const float offset_x, const float offset_y) const {
-        Core::Point2D center_pt = _owner->getScreenPos(getPosition().x, getPosition().y, offset_x, offset_y);
-        const auto center = Vector2{ center_pt.getX(), center_pt.getY()};
+        Vector2 center_pt = _owner->getScreenPos(getPosition().x, getPosition().y, offset_x, offset_y);
+        const auto center = center_pt;
         
         DrawCircle(static_cast<int>(center.x), static_cast<int>(center.y), 2, BLUE);
         
@@ -137,8 +137,8 @@ namespace Nawia::Entity {
         // project and draw the rectangle corners
         Vector2 screen_corners[4];
         for(int i = 0; i < 4; ++i) {
-        	Core::Point2D p = _owner->getScreenPos(corners[i].x, corners[i].y, offset_x, offset_y);
-             screen_corners[i] = Vector2{ p.getX(), p.getY() };
+        	Vector2 p = _owner->getScreenPos(corners[i].x, corners[i].y, offset_x, offset_y);
+             screen_corners[i] = p;
         }
         for(int i = 0; i < 4; ++i) {
             DrawLineV(screen_corners[i], screen_corners[(i + 1) % 4], BLUE);
@@ -188,13 +188,13 @@ namespace Nawia::Entity {
         };
         
         // project to screen space
-    	Core::Point2D tip_screen_pt = _owner->getScreenPos(tip_world.x, tip_world.y, offset_x, offset_y);
-    	Core::Point2D left_screen_pt = _owner->getScreenPos(end_left_world.x, end_left_world.y, offset_x, offset_y);
-    	Core::Point2D right_screen_pt = _owner->getScreenPos(end_right_world.x, end_right_world.y, offset_x, offset_y);
+    	Vector2 tip_screen_pt = _owner->getScreenPos(tip_world.x, tip_world.y, offset_x, offset_y);
+    	Vector2 left_screen_pt = _owner->getScreenPos(end_left_world.x, end_left_world.y, offset_x, offset_y);
+    	Vector2 right_screen_pt = _owner->getScreenPos(end_right_world.x, end_right_world.y, offset_x, offset_y);
 
-    	const Vector2 tip_screen = { tip_screen_pt.getX(), tip_screen_pt.getY() };
-        const Vector2 left_screen = { left_screen_pt.getX(), left_screen_pt.getY() };
-        const Vector2 right_screen = { right_screen_pt.getX(), right_screen_pt.getY() };
+    	const Vector2 tip_screen = tip_screen_pt;
+        const Vector2 left_screen = left_screen_pt;
+        const Vector2 right_screen = right_screen_pt;
         
         // draw lines
         DrawLineV(tip_screen, left_screen, GREEN);

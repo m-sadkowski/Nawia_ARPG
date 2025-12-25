@@ -13,19 +13,95 @@ namespace Nawia::Entity {
 	Dummy::Dummy(float x, float y, const std::shared_ptr<Texture2D>& tex, int max_hp, Core::Map* map)
 		: EnemyInterface("Dummy", x, y, tex, max_hp, map), _stay_timer(0.0f), _fireball_cooldown_timer(0.0f)
 	{
+		this->setScale(0.03f);
 		setFaction(Faction::Enemy);
-		loadModel("../assets/models/dummy.glb");
+		loadModel("../assets/models/dummy_idle.glb");
 		
 		// add Collider
 		setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.5f));
 		addAnimation("walk", "../assets/models/dummy_walk.glb");
+		addAnimation("cast_fireball", "../assets/models/dummy_cast_fireball.glb");
+		addAnimation("death", "../assets/models/dummy_death.glb");
 		playAnimation("default");
 		
 		pickNewTarget();
 	}
 
+	void Dummy::takeDamage(const int dmg)
+	{
+		if (_is_dying) return;
+
+		if (_hp - dmg <= 0)
+		{
+			_hp = 1; // keep alive for animation
+			_is_dying = true;
+			playAnimation("death", false, true); // true = lock movement
+			setFaction(Faction::None); // prevent further targeting
+		}
+		else
+		{
+			Entity::takeDamage(dmg);
+		}
+	}
+
 	void Dummy::update(const float dt)
 	{
+		// 1. Handle Dying State
+		if (_is_dying)
+		{
+			Entity::update(dt); // update animation
+			if (!isAnimationLocked()) // animation finished (reverted to default/idle)
+			{
+				_hp = 0; // now truly die
+			}
+			return; // skip all other logic
+		}
+
+		// 2. Handle Casting State
+		if (_is_casting)
+		{
+			Entity::update(dt);
+			updateAbilities(dt);
+
+			if (_target)
+			{
+				_target_x = _target->getX();
+				_target_y = _target->getY();
+
+				// Face the target continuously
+				const float dx = _target_x - getX();
+				const float dy = _target_y - getY();
+				const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
+				const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
+				const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
+				setRotation(90.0f - screen_angle);
+			}
+			
+			if (!isAnimationLocked())
+			{
+				// cast animation finished
+				if (auto fireball = getAbility(0))
+				{
+					// use saved target or current position if lost
+					float tx = _target_x;
+					float ty = _target_y;
+					
+					if (_target) {
+						tx = _target->getX();
+						ty = _target->getY();
+					}
+
+					if (auto effect = fireball->cast(tx, ty))
+					{
+						addPendingSpawn(std::move(effect));
+						_fireball_cooldown_timer = 5.0f;
+					}
+				}
+				_is_casting = false;
+			}
+			return; // skip movement while casting
+		}
+
 		// updates the base enemy logic including animations and state management
 		EnemyInterface::update(dt);
 		updateAbilities(dt);
@@ -40,11 +116,23 @@ namespace Nawia::Entity {
 			{
 				if (_fireball_cooldown_timer <= 0.0f && fireball->isReady())
 				{
-					if (auto effect = fireball->cast(_target->getX(), _target->getY()))
-					{
-						addPendingSpawn(std::move(effect));
-						_fireball_cooldown_timer = 5.0f; // 5 seconds cooldown
-					}
+					// Start Casting Sequence
+					_is_casting = true;
+					playAnimation("cast_fireball", false, true);
+					
+					// Update target position for the cast
+					_target_x = _target->getX();
+					_target_y = _target->getY();
+
+					// Face the target
+					const float dx = _target_x - getX();
+					const float dy = _target_y - getY();
+					const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
+					const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
+					const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
+					setRotation(90.0f - screen_angle);
+
+					// We do not spawn yet; waiting for animation to finish
 				}
 			}
 		}
@@ -59,8 +147,8 @@ namespace Nawia::Entity {
 
 			if (dist < 0.1f)
 			{
-				_pos->setX(_target_x);
-				_pos->setY(_target_y);
+				_pos.x = _target_x;
+				_pos.y = _target_y;
 				_is_moving = false;
 				_stay_timer = (rand() % 300) / 100.0f + 1.0f; // 1-4s rest
 
@@ -68,8 +156,8 @@ namespace Nawia::Entity {
 			}
 			else
 			{
-				_pos->setX(getX() + (dx / dist) * speed * dt);
-				_pos->setY(getY() + (dy / dist) * speed * dt);
+				_pos.x += (dx / dist) * speed * dt;
+				_pos.y += (dy / dist) * speed * dt;
 			}
 		}
 		else
@@ -85,7 +173,7 @@ namespace Nawia::Entity {
 		// try 10 times to find valid spot
 		for (int i = 0; i < 10; ++i)
 		{
-			const float angle = static_cast<float>((rand() % 360) / 180.0f * Core::pi);
+			const float angle = static_cast<float>((rand() % 360) / 180.0f * PI);
 			const float dist = static_cast<float>(rand() % 5) + 1.0f;
 
 			const float tx = getX() + cos(angle) * dist;
@@ -103,7 +191,7 @@ namespace Nawia::Entity {
 				const float dy = _target_y - getY();
 				const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
 				const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
-				const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / static_cast<float>(Core::pi);
+				const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
 				setRotation(90.0f - screen_angle);
 
 				return;

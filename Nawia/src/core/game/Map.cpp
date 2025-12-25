@@ -189,8 +189,8 @@ namespace Nawia::Core {
 								grid_x -= min_x;
 								grid_y -= min_y;
 
-								_player_spawn_pos.setX(grid_x);
-								_player_spawn_pos.setY(grid_y);
+								_player_spawn_pos.x = grid_x;
+								_player_spawn_pos.y = grid_y;
 								Logger::debugLog("Map - Loaded player spawn point");
 							}
 						}

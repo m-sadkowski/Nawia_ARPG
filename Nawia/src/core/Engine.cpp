@@ -26,8 +26,8 @@ namespace Nawia::Core {
 
 		// initialize player
 		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
-		Point2D player_spawn_pos = _map->getPlayerSpawnPos();
-		_player = std::make_shared<Entity::Player>(player_spawn_pos.getX(), player_spawn_pos.getY(), player_texture);
+		Vector2 player_spawn_pos = _map->getPlayerSpawnPos();
+		_player = std::make_shared<Entity::Player>(player_spawn_pos.x, player_spawn_pos.y, player_texture);
 
 		// initialize spells
 		auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");
@@ -90,12 +90,12 @@ namespace Nawia::Core {
 	{
 		// transform mouse location to position in world
 		Vector2 mouse_pos = GetMousePosition();
-		Point2D mouse_world_pos =  Point2D::screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
+		Vector2 mouse_world_pos =  screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
 
 		if (!_controller)
 			return;
 
-		_controller->handleInput(mouse_world_pos.getX(), mouse_world_pos.getY(), mouse_pos.x, mouse_pos.y);
+		_controller->handleInput(mouse_world_pos.x, mouse_world_pos.y, mouse_pos.x, mouse_pos.y);
 	}
 
 	void Engine::update(const float delta_time) 

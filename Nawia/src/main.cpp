@@ -11,8 +11,8 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-
-/*#include "raylib.h"
+/*
+#include "raylib.h"
 #include "raymath.h"
 #include "rlgl.h"
 
@@ -22,18 +22,18 @@ int main(void)
     const int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "TPS Player Controller");
 
-    Model model = LoadModel("../assets/models/player.glb");
+    Model model = LoadModel("../assets/models/player_walk.glb");
     int animsCount = 0;
     unsigned int animFrameCounter = 0;
-    ModelAnimation* anims = LoadModelAnimations("../assets/models/player.glb", &animsCount);
+    ModelAnimation* anims = LoadModelAnimations("../assets/models/player_walk.glb", &animsCount);
 
     Vector3 playerPosition = { 0.0f, 0.0f, 0.0f };
     float playerRotation = 0.0f;
     float moveSpeed = 0.1f;
     float rotationSpeed = 2.0f;
 
-    float visualRotationOffset = -90.0f;
-    float modelScale = 1.0f;
+    float visualRotationOffset = 0.0f;
+    float modelScale = 0.01f;
 
     Camera camera = { 0 };
     camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
@@ -79,8 +79,6 @@ int main(void)
 
         if (animsCount > 0 && playAnim)
         {
-            // Jeśli gracz się rusza, animacja może iść szybciej, jeśli stoi - wolniej lub inna animacja
-            // Tutaj prosta implementacja odtwarzania ciągłego
             animFrameCounter++;
             UpdateModelAnimation(model, anims[0], animFrameCounter);
             if (animFrameCounter >= anims[0].frameCount) animFrameCounter = 0;
@@ -115,4 +113,5 @@ int main(void)
     CloseWindow();
 
     return 0;
-}*/
+}
+*/

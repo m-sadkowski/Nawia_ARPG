@@ -16,10 +16,8 @@ namespace Nawia::Entity {
 	Entity::Entity(const std::string& name, const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
 		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
 		  _current_anim_index(0), _anim_frame_counter(0), _rotation(0.0f), _model_loaded(false), _use_3d_rendering(false),
-		  _velocity(0.0f, 0.0f), _scale(1.0f), _faction(Faction::None)
-	{	
-		_pos = std::make_unique<Core::Point2D>(start_x, start_y);
-	}
+		  _velocity{0.0f, 0.0f}, _scale(1.0f), _faction(Faction::None), _pos{start_x, start_y},
+		  _anim_looping(true), _anim_locked(false) {}
 
 	Entity::~Entity()
 	{
@@ -82,7 +80,7 @@ namespace Nawia::Entity {
 		}
 	}
 
-	void Entity::playAnimation(const std::string& name)
+	void Entity::playAnimation(const std::string& name, const bool loop, const bool lock_movement)
 	{
 		if (_animation_map.find(name) != _animation_map.end())
 		{
@@ -91,14 +89,27 @@ namespace Nawia::Entity {
 			{
 				_current_anim_index = index;
 				_anim_frame_counter = 0;
+				_anim_looping = loop;
+				_anim_locked = lock_movement;
 			}
 		}
 	}
 
+	int Entity::getAnimationFrameCount(const std::string& name) const
+	{
+		if (_animation_map.find(name) != _animation_map.end()) {
+			int index = _animation_map.at(name);
+			if (index >= 0 && index < _animations.size()) {
+				return _animations[index].frameCount;
+			}
+		}
+		return 0;
+	}
+
 	void Entity::update(const float delta_time)
 	{
-		_pos->setX(_pos->getX() + _velocity.getX() * delta_time);
-		_pos->setY(_pos->getY() + _velocity.getY() * delta_time);
+		_pos.x += _velocity.x * delta_time;
+		_pos.y += _velocity.y * delta_time;
 		
 		updateAnimation(delta_time);
 	}
@@ -111,13 +122,18 @@ namespace Nawia::Entity {
 			UpdateModelAnimation(_model, _animations[_current_anim_index], _anim_frame_counter);
 
 			if (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
+			{
 				_anim_frame_counter = 0;
+				if (!_anim_looping) {
+					playAnimation("default", true, false);
+				}
+			}
 		}
 	}
 
 	void Entity::render(const float offset_x, const float offset_y) 
 	{
-		Core::Point2D pos = getScreenPos(getX(), getY(), offset_x, offset_y);
+		Vector2 pos = getScreenPos(getX(), getY(), offset_x, offset_y);
 
 		if (_use_3d_rendering && _model_loaded)
 		{
@@ -129,14 +145,12 @@ namespace Nawia::Entity {
 			
 			EndMode3D();
 			EndTextureMode();
-
-			const Vector2 position = { pos.getX(), pos.getY() };
 			
 			const float texture_width = static_cast<float>(_target.texture.width);
 			const float texture_height = static_cast<float>(_target.texture.height);
 
 			const Rectangle source = { 0.0f, 0.0f, texture_width, -texture_height };
-			const Rectangle dest = { position.x, position.y, texture_width, texture_height };
+			const Rectangle dest = { pos.x, pos.y, texture_width, texture_height };
 			const Vector2 origin = { dest.width / 2.0f, dest.height / 2.0f };
 
 			DrawTexturePro(_target.texture, source, dest, origin, 0.0f, WHITE);
@@ -149,7 +163,7 @@ namespace Nawia::Entity {
 			constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
 
 			const Rectangle source = {0.0f, 0.0f, source_texture_width, source_texture_height };
-			const Rectangle dest = {pos.getX(), pos.getY(), dest_texture_width, dest_texture_height };
+			const Rectangle dest = {pos.x, pos.y, dest_texture_width, dest_texture_height };
 			constexpr Vector2 origin = {0.0f, 0.0f};
 			DrawTexturePro(*_texture, source, dest, origin, 0.0f, WHITE);
 		}
@@ -178,17 +192,17 @@ namespace Nawia::Entity {
 
 	bool Entity::isMouseOver(const float mouse_x, const float mouse_y, const float cam_x, const float cam_y) const 
 	{
-		Core::Point2D screen_pos = getScreenPos(getX(), getY(), cam_x, cam_y);
+		Vector2 screen_pos = getScreenPos(getX(), getY(), cam_x, cam_y);
 
 		// Core::Logger::debugLog("MouseOver click raw: " + std::to_string(mouse_x) + ", " + std::to_string(mouse_y));
 		// Core::Logger::debugLog("MouseOver click screen: " + std::to_string(screen_x) + ", " + std::to_string(screen_y));
-		// Core::Logger::debugLog("MouseOver Entity: " + std::to_string(_pos->getX()) + ", " + std::to_string(_pos->getY()));
+		// Core::Logger::debugLog("MouseOver Entity: " + std::to_string(_pos.x) + ", " + std::to_string(_pos.y));
 
-		return (mouse_x >= screen_pos.getX() &&  mouse_x <= screen_pos.getX() + Core::ENTITY_TEXTURE_WIDTH &&
-		      mouse_y >= screen_pos.getY() && mouse_y <= screen_pos.getY() + Core::ENTITY_TEXTURE_HEIGHT);
+		return (mouse_x >= screen_pos.x &&  mouse_x <= screen_pos.x + Core::ENTITY_TEXTURE_WIDTH &&
+		      mouse_y >= screen_pos.y && mouse_y <= screen_pos.y + Core::ENTITY_TEXTURE_HEIGHT);
 	}
 
-	Core::Point2D Entity::getScreenPos(const float world_x, const float world_y, const float cam_x, const float cam_y) const 
+	Vector2 Entity::getScreenPos(const float world_x, const float world_y, const float cam_x, const float cam_y) const  
 	{
 		float screen_x = (world_x - world_y) * (Core::TILE_WIDTH / 2.0f) + cam_x;
 		float screen_y = (world_x + world_y) * (Core::TILE_HEIGHT / 2.0f) + cam_y;

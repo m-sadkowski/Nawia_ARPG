@@ -10,9 +10,9 @@ namespace Nawia::Entity {
 
 	bool EnemyInterface::isMouseOver(const float mouse_x, const float mouse_y, const float cam_x, const float cam_y) const
 	{
-		Core::Point2D pos = getScreenPos(getX(), getY(), cam_x, cam_y);
-		const float screen_x = pos.getX();
-		const float screen_y = pos.getY();
+		Vector2 pos = getScreenPos(getX(), getY(), cam_x, cam_y);
+		const float screen_x = pos.x;
+		const float screen_y = pos.y;
 
 		constexpr float width = Core::ENTITY_TEXTURE_WIDTH * 1.0f;
 		constexpr float height = Core::ENTITY_TEXTURE_HEIGHT * 2.0f;

@@ -11,9 +11,11 @@ namespace Nawia::Entity {
 	Player::Player(const float x, const float y, const std::shared_ptr<Texture2D>& texture)
 	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) 
 	{
+		this->setScale(0.03f);
 		setFaction(Faction::Player);
-		loadModel("../assets/models/player.glb");
+		loadModel("../assets/models/player_idle.glb");
 		addAnimation("walk", "../assets/models/player_walk.glb");
+		addAnimation("attack", "../assets/models/player_attack.glb");
 		playAnimation("default"); // play idle
 
 		// add Collider
@@ -22,6 +24,9 @@ namespace Nawia::Entity {
 
 	void Player::moveTo(const float x, const float y)
 	{
+		if (isAnimationLocked())
+			return;
+
 		_target_x = x;
 		_target_y = y;
 		_is_moving = true;
@@ -36,7 +41,7 @@ namespace Nawia::Entity {
 		{
 			const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
 			const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
-			const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / static_cast<float>(Core::pi);
+			const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
 			setRotation(90.0f - screen_angle);
 		}
 	}
@@ -46,25 +51,27 @@ namespace Nawia::Entity {
 		Entity::update(delta_time);
 		updateAbilities(delta_time);
 
-		if (!_is_moving)
+		if (!_is_moving || isAnimationLocked())
 			return;
 
-		const float dx = _target_x - _pos->getX();
-		const float dy = _target_y - _pos->getY();
+		const float dx = _target_x - _pos.x;
+		const float dy = _target_y - _pos.y;
 		const float distance = std::sqrt(dx * dx + dy * dy);
+
+		playAnimation("walk");
 
 		if (distance < 0.1f)
 		{
-			_pos->setX(_target_x);
-			_pos->setY(_target_y);
+			_pos.x = _target_x;
+			_pos.y = _target_y;
 			_is_moving = false;
 
 			playAnimation("default");
 		}
 		else
 		{
-			_pos->setX(_pos->getX() + (dx / distance) * _speed * delta_time);
-			_pos->setY(_pos->getY() + (dy / distance) * _speed * delta_time);
+			_pos.x += (dx / distance) * _speed * delta_time;
+			_pos.y += (dy / distance) * _speed * delta_time;
 		}
 	}
 

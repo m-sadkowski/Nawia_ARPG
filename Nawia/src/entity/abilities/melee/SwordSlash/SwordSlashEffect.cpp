@@ -30,7 +30,7 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		Core::Point2D screen_pos = getScreenPos(_pos->getX(), _pos->getY(), camera_x, camera_y);
+		Vector2 screen_pos = getScreenPos(_pos.x, _pos.y, camera_x, camera_y);
 
 		const float source_texture_width = static_cast<float>(_texture->width);
 		const float source_texture_height = static_cast<float>(_texture->height);
@@ -38,7 +38,7 @@ namespace Nawia::Entity {
 		constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
 
 		const Rectangle source = { 0.0f, 0.0f, source_texture_width, source_texture_height };
-		const Rectangle dest = { screen_pos.getX(), screen_pos.getY(), dest_texture_width, dest_texture_height };
+		const Rectangle dest = { screen_pos.x, screen_pos.y, dest_texture_width, dest_texture_height };
 		constexpr Vector2 origin = { dest_texture_width, dest_texture_height};
 
 		DrawTexturePro(*_texture, source, dest, origin, _angle, WHITE);
