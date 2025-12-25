@@ -98,6 +98,7 @@ namespace Nawia::Entity {
 					}
 				}
 				_is_casting = false;
+				playAnimation("walk");
 			}
 			return; // skip movement while casting
 		}
