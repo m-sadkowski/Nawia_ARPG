@@ -69,7 +69,7 @@ namespace Nawia::Entity {
 
 		if (count > 0)
 		{
-			int start_index = static_cast<int>(_animations.size());
+			const int start_index = static_cast<int>(_animations.size());
 
 			for (int i = 0; i < count; i++)
 				_animations.push_back(anims[i]);
@@ -84,7 +84,7 @@ namespace Nawia::Entity {
 	{
 		if (_animation_map.find(name) != _animation_map.end())
 		{
-			int index = _animation_map[name];
+			const int index = _animation_map[name];
 			if (index != _current_anim_index)
 			{
 				_current_anim_index = index;
@@ -98,7 +98,7 @@ namespace Nawia::Entity {
 	int Entity::getAnimationFrameCount(const std::string& name) const
 	{
 		if (_animation_map.find(name) != _animation_map.end()) {
-			int index = _animation_map.at(name);
+			const int index = _animation_map.at(name);
 			if (index >= 0 && index < _animations.size()) {
 				return _animations[index].frameCount;
 			}

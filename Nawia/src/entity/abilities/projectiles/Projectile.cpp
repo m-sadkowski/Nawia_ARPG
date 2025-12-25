@@ -2,6 +2,7 @@
 #include "EnemyInterface.h"
 #include "Collider.h"
 
+#include "ProjectileHitEffect.h"
 #include <Logger.h>
 #include <Constants.h>
 #include <MathUtils.h>
@@ -11,13 +12,13 @@
 namespace Nawia::Entity {
 
 	Projectile::Projectile(const std::string& name, const float x, const float y, const float target_x, const float target_y, 
-	                       const std::shared_ptr<Texture2D> &tex, const AbilityStats& stats, Entity* caster)
-		: AbilityEffect(name, x, y, tex, stats), _speed(stats.projectile_speed), _caster(caster)
+	                       const std::shared_ptr<Texture2D> &tex, const std::shared_ptr<Texture2D> &hit_tex, 
+	                       const AbilityStats& stats, Entity* caster)
+		: AbilityEffect(name, x, y, tex, stats), _speed(stats.projectile_speed), _hit_texture(hit_tex), _caster(caster)
 	{
 		const float dx = target_x - x;
 		const float dy = target_y - y;
 		const float length = std::sqrt(dx * dx + dy * dy);
-		_vel_x = (dx / length) * _speed;
 		_vel_x = (dx / length) * _speed;
 		_vel_y = (dy / length) * _speed;
 
@@ -64,6 +65,12 @@ namespace Nawia::Entity {
 	{
 		Core::Logger::debugLog("Projectile::onCollision with " + target->getName());
 		target->takeDamage(getDamage());
+
+		// Spawn explosion effect
+		if (_caster && _hit_texture) {
+			_caster->addPendingSpawn(std::make_unique<ProjectileHitEffect>(_pos.x, _pos.y, _hit_texture));
+		}
+
 		die();
 		Core::Logger::debugLog("Projectile Hit " + target->getName());
 	}

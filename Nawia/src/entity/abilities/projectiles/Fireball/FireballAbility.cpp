@@ -3,8 +3,8 @@
 
 namespace Nawia::Entity {
 
-	FireballAbility::FireballAbility(const std::shared_ptr<Texture2D>& projectile_tex)
-		: Ability("Fireball", Entity::getAbilityStatsFromJson("Fireball"), AbilityTargetType::UNIT), _texture(projectile_tex) {}
+	FireballAbility::FireballAbility(const std::shared_ptr<Texture2D>& projectile_tex, const std::shared_ptr<Texture2D>& hit_tex)
+		: Ability("Fireball", Entity::getAbilityStatsFromJson("Fireball"), AbilityTargetType::UNIT), _texture(projectile_tex), _hit_texture(hit_tex) {}
 
 	std::unique_ptr<Entity> FireballAbility::cast(const float target_x, const float target_y) 
 	{
@@ -13,7 +13,7 @@ namespace Nawia::Entity {
 
 		startCooldown();
 
-		return std::make_unique<Projectile>("Fireball Projectile", _caster->getX(), _caster->getY(), target_x, target_y, _texture, _stats, _caster);
+		return std::make_unique<Projectile>("Fireball Projectile", _caster->getX(), _caster->getY(), target_x, target_y, _texture, _hit_texture, _stats, _caster);
 	}
 
 } // namespace Nawia::Entity

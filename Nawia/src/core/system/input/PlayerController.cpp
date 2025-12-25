@@ -85,7 +85,7 @@ namespace Nawia::Core {
 						case Entity::AbilityTargetType::UNIT:
 							if (const auto target = _engine->getEntityAt(screen_x, screen_y))
 								if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
-									useAbility(ability_index, enemy->getX(), enemy->getY());
+									useAbility(ability_index, enemy->getCenter().x, enemy->getCenter().y);
 						break;
 
 						case Entity::AbilityTargetType::POINT:
@@ -134,7 +134,7 @@ namespace Nawia::Core {
 						if (auto target = _pending_action.target.lock())
 						{
 							if (auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
-								useAbility(_pending_action.ability_index, enemy->getX(), enemy->getY());
+								useAbility(_pending_action.ability_index, enemy->getCenter().x, enemy->getCenter().y);
 						}
 					}
 					else
@@ -170,7 +170,7 @@ namespace Nawia::Core {
 		else if (dist_sq <= attack_cast_range * attack_cast_range) 
 		{
 			_player->moveTo(_player->getX(), _player->getY());
-			useAbility(auto_attack_index, _target_enemy->getX(), _target_enemy->getY());
+			useAbility(auto_attack_index, _target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		}
 
 		if (dist_sq > attack_cast_range * attack_cast_range) 
@@ -184,7 +184,7 @@ namespace Nawia::Core {
 		else 
 		{
 			_player->moveTo(_player->getX(), _player->getY());
-			useAbility(auto_attack_index, _target_enemy->getX(), _target_enemy->getY());
+			useAbility(auto_attack_index, _target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		}
 	}
 
