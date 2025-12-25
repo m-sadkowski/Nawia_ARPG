@@ -24,6 +24,10 @@ namespace Nawia::Entity {
 
 	void SwordSlashEffect::render(const float camera_x, const float camera_y)
 	{
+		// only render if we hit something
+		if (_hit_entities.empty())
+			return;
+
 		// render base (texture)
 		if (!_texture) {
 			Core::Logger::errorLog("SwordSlashEffect - Could not load texture.");

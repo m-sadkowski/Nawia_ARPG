@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 #include "AbilityEffect.h"
 #include "AbilityStats.h"
 

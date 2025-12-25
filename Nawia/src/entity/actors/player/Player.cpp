@@ -24,14 +24,12 @@ namespace Nawia::Entity {
 
 	void Player::moveTo(const float x, const float y)
 	{
-		if (isAnimationLocked())
-			return;
-
 		_target_x = x;
 		_target_y = y;
 		_is_moving = true;
 
-		playAnimation("walk");
+		if (!isAnimationLocked())
+			playAnimation("walk");
 
 		const float dx = _target_x - getX();
 		const float dy = _target_y - getY();
@@ -51,14 +49,15 @@ namespace Nawia::Entity {
 		Entity::update(delta_time);
 		updateAbilities(delta_time);
 
-		if (!_is_moving || isAnimationLocked())
+		if (!_is_moving)
 			return;
 
 		const float dx = _target_x - _pos.x;
 		const float dy = _target_y - _pos.y;
 		const float distance = std::sqrt(dx * dx + dy * dy);
 
-		playAnimation("walk");
+		if (!isAnimationLocked())
+			playAnimation("walk");
 
 		if (distance < 0.1f)
 		{
@@ -66,7 +65,8 @@ namespace Nawia::Entity {
 			_pos.y = _target_y;
 			_is_moving = false;
 
-			playAnimation("default");
+			if (!isAnimationLocked())
+				playAnimation("default");
 		}
 		else
 		{

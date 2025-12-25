@@ -11,7 +11,7 @@
 
 namespace Nawia::Entity {
 
-	bool Entity::DebugColliders = true; // enable debug hitbox drawing
+	bool Entity::DebugColliders = false; // enable debug hitbox drawing
 
 	Entity::Entity(const std::string& name, const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
 		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
