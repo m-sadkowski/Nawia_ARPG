@@ -18,7 +18,7 @@ namespace Nawia::Entity {
 		loadModel("../assets/models/dummy_idle.glb");
 		
 		// add Collider
-		setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.5f));
+		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
 		addAnimation("walk", "../assets/models/dummy_walk.glb");
 		addAnimation("cast_fireball", "../assets/models/dummy_cast_fireball.glb");
 		addAnimation("death", "../assets/models/dummy_death.glb");
@@ -87,8 +87,8 @@ namespace Nawia::Entity {
 					float ty = _target_y;
 					
 					if (_target) {
-						tx = _target->getX();
-						ty = _target->getY();
+						tx = _target->getCenter().x;
+						ty = _target->getCenter().y;
 					}
 
 					if (auto effect = fireball->cast(tx, ty))
@@ -122,8 +122,8 @@ namespace Nawia::Entity {
 					playAnimation("cast_fireball", false, true);
 					
 					// Update target position for the cast
-					_target_x = _target->getX();
-					_target_y = _target->getY();
+					_target_x = _target->getCenter().x;
+					_target_y = _target->getCenter().y;
 
 					// Face the target
 					const float dx = _target_x - getX();

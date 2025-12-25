@@ -19,7 +19,7 @@ namespace Nawia::Entity {
 		playAnimation("default"); // play idle
 
 		// add Collider
-		setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.5f));
+		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
 	}
 
 	void Player::moveTo(const float x, const float y)

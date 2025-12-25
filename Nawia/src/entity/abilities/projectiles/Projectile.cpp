@@ -3,6 +3,8 @@
 #include "Collider.h"
 
 #include <Logger.h>
+#include <Constants.h>
+#include <MathUtils.h>
 
 #include <cmath>
 
@@ -16,7 +18,14 @@ namespace Nawia::Entity {
 		const float dy = target_y - y;
 		const float length = std::sqrt(dx * dx + dy * dy);
 		_vel_x = (dx / length) * _speed;
+		_vel_x = (dx / length) * _speed;
 		_vel_y = (dy / length) * _speed;
+
+		// Calculate visual rotation for isometric view
+		const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
+		const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
+		const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
+		setRotation(90.0f - screen_angle);
 
 		// add Collider
 		// hitbox_radius from stats

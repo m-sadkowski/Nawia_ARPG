@@ -27,8 +27,10 @@ namespace Nawia::Entity {
 		[[nodiscard]] float getY() const { return _pos.y; }
 		void setX(float x) { _pos.x = x; }
 		void setY(float y) { _pos.y = y; }
+		[[nodiscard]] Vector2 getCenter() const;
 
 		[[nodiscard]] Vector2 getScreenPos(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
+		[[nodiscard]] Vector2 getIsoPos(float world_x, float world_y, float cam_x, float cam_y) const;
 		[[nodiscard]] virtual bool isMouseOver(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
 
 		// Transform & Physics

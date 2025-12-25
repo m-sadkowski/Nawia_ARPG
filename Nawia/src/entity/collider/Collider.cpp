@@ -84,7 +84,7 @@ namespace Nawia::Entity {
     }
 
     void CircleCollider::render(const float offset_x, const float offset_y) const {
-    	Vector2 screen_pt = _owner->getScreenPos(_owner->getX() + _offset.x, _owner->getY() + _offset.y, offset_x, offset_y);
+    	Vector2 screen_pt = _owner->getIsoPos(_owner->getX() + _offset.x, _owner->getY() + _offset.y, offset_x, offset_y);
         const auto screen_pos = screen_pt;
 
         DrawCircleLines(static_cast<int>(screen_pos.x), static_cast<int>(screen_pos.y), _radius * 32.0f, RED);
@@ -121,28 +121,22 @@ namespace Nawia::Entity {
     }
 
     void RectangleCollider::render(const float offset_x, const float offset_y) const {
-        Vector2 center_pt = _owner->getScreenPos(getPosition().x, getPosition().y, offset_x, offset_y);
-        const auto center = center_pt;
+        Vector2 center_pt = _owner->getIsoPos(getPosition().x, getPosition().y, offset_x, offset_y);
         
-        DrawCircle(static_cast<int>(center.x), static_cast<int>(center.y), 2, BLUE);
-        
-        const Vector2 pos = getPosition();
-        const Vector2 corners[4] = {
-            { pos.x - _width / 2, pos.y - _height / 2 },
-            { pos.x + _width / 2, pos.y - _height / 2 },
-            { pos.x + _width / 2, pos.y + _height / 2 },
-            { pos.x - _width / 2, pos.y + _height / 2 }
-        };
+        // Convert world size to screen size (assuming 1 unit = 1 tile width for billboard visualization)
+        // using TILE_WIDTH for both to maintain squareness if world size is square
+        float screen_w = _width * Core::TILE_WIDTH;
+        float screen_h = _height * Core::TILE_WIDTH; 
 
-        // project and draw the rectangle corners
-        Vector2 screen_corners[4];
-        for(int i = 0; i < 4; ++i) {
-        	Vector2 p = _owner->getScreenPos(corners[i].x, corners[i].y, offset_x, offset_y);
-             screen_corners[i] = p;
-        }
-        for(int i = 0; i < 4; ++i) {
-            DrawLineV(screen_corners[i], screen_corners[(i + 1) % 4], BLUE);
-        }
+        Rectangle rect = {
+            center_pt.x - screen_w / 2.0f,
+            center_pt.y - screen_h / 2.0f, // Center strictly at the iso position
+            screen_w,
+            screen_h
+        };
+        
+        DrawRectangleLinesEx(rect, 2.0f, BLUE);
+        DrawCircle(static_cast<int>(center_pt.x), static_cast<int>(center_pt.y), 2, RED); // Center mark
     }
 
     bool ConeCollider::checkCollision(const Collider* other) const {
@@ -188,9 +182,9 @@ namespace Nawia::Entity {
         };
         
         // project to screen space
-    	Vector2 tip_screen_pt = _owner->getScreenPos(tip_world.x, tip_world.y, offset_x, offset_y);
-    	Vector2 left_screen_pt = _owner->getScreenPos(end_left_world.x, end_left_world.y, offset_x, offset_y);
-    	Vector2 right_screen_pt = _owner->getScreenPos(end_right_world.x, end_right_world.y, offset_x, offset_y);
+    	Vector2 tip_screen_pt = _owner->getIsoPos(tip_world.x, tip_world.y, offset_x, offset_y);
+    	Vector2 left_screen_pt = _owner->getIsoPos(end_left_world.x, end_left_world.y, offset_x, offset_y);
+    	Vector2 right_screen_pt = _owner->getIsoPos(end_right_world.x, end_right_world.y, offset_x, offset_y);
 
     	const Vector2 tip_screen = tip_screen_pt;
         const Vector2 left_screen = left_screen_pt;

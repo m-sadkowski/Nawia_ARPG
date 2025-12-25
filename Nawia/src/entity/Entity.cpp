@@ -11,7 +11,7 @@
 
 namespace Nawia::Entity {
 
-	bool Entity::DebugColliders = false; // enable debug hitbox drawing
+	bool Entity::DebugColliders = true; // enable debug hitbox drawing
 
 	Entity::Entity(const std::string& name, const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
 		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
@@ -202,14 +202,27 @@ namespace Nawia::Entity {
 		      mouse_y >= screen_pos.y && mouse_y <= screen_pos.y + Core::ENTITY_TEXTURE_HEIGHT);
 	}
 
-	Vector2 Entity::getScreenPos(const float world_x, const float world_y, const float cam_x, const float cam_y) const  
+	Vector2 Entity::getScreenPos(const float world_x, const float world_y, const float cam_x, const float cam_y) const
+	{
+		Vector2 screen_pos = getIsoPos(world_x, world_y, cam_x, cam_y);
+		screen_pos.x -= Core::ENTITY_TEXTURE_WIDTH / 2.0f;
+		screen_pos.y -= Core::ENTITY_TEXTURE_HEIGHT; // pivot at bottom (feet)
+
+		return screen_pos;
+	}
+
+	Vector2 Entity::getIsoPos(const float world_x, const float world_y, const float cam_x, const float cam_y) const
 	{
 		float screen_x = (world_x - world_y) * (Core::TILE_WIDTH / 2.0f) + cam_x;
 		float screen_y = (world_x + world_y) * (Core::TILE_HEIGHT / 2.0f) + cam_y;
-		screen_x += (Core::TILE_WIDTH / 2.0f) - (Core::ENTITY_TEXTURE_WIDTH / 2.0f);
-		screen_y += (Core::ENTITY_TEXTURE_HEIGHT / 2.0f - Core::TILE_HEIGHT * 1.5f);
+		return { screen_x, screen_y };
+	}
 
-		return {screen_x, screen_y};
+	Vector2 Entity::getCenter() const {
+		if (_collider) {
+			return _collider->getPosition();
+		}
+		return _pos;
 	}
 
 	AbilityStats Entity::getAbilityStatsFromJson(const std::string& name)
