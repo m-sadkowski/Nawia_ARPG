@@ -15,10 +15,10 @@ namespace Nawia::Entity {
 		setFaction(Faction::Player);
 		loadModel("../assets/models/player_idle.glb");
 		addAnimation("walk", "../assets/models/player_walk.glb");
-		addAnimation("attack", "../assets/models/player_attack.glb");
+		addAnimation("attack", "../assets/models/player_auto_attack.glb");
 		playAnimation("default"); // play idle
 
-		// add Collider
+		// add collider
 		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
 	}
 
@@ -37,10 +37,7 @@ namespace Nawia::Entity {
 
 		if (distance_sq > 0.001f)
 		{
-			const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
-			const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
-			const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
-			setRotation(90.0f - screen_angle);
+			rotateTowards(_target_x, _target_y);
 		}
 	}
 

@@ -216,7 +216,7 @@ namespace Nawia::Core {
 		}
 	}
 
-	void Map::render(const float offsetX, const float offset_y) 
+	void Map::render(const float offset_x, const float offset_y) 
 	{
 		/*
 		      Render map on OFFSET (x+400, y)
@@ -233,11 +233,11 @@ namespace Nawia::Core {
 				Tile& tile = _grid[y][x];
 				if (tile.texture) 
 				{
-					const float iso_x = (x - y) * (TILE_WIDTH / 2.0f) + offsetX;
+					const float iso_x = (x - y) * (TILE_WIDTH / 2.0f) + offset_x;
 					const float iso_y = (x + y) * (TILE_HEIGHT / 2.0f) + offset_y;
 					const Texture2D* tex = tile.texture.get();
-					const Rectangle source = {0.0f, 0.0f, (float)tex->width, (float)tex->height};
-					const Rectangle dest = {iso_x, iso_y, (float)TILE_WIDTH, (float)TILE_HEIGHT};
+					const Rectangle source = {0.0f, 0.0f, static_cast<float>(tex->width), static_cast<float>(tex->height)};
+					const Rectangle dest = {iso_x, iso_y, static_cast<float>(TILE_WIDTH), static_cast<float>(TILE_HEIGHT)};
 					constexpr Vector2 origin = {0.0f, 0.0f};
 					DrawTexturePro(*tex, source, dest, origin, 0.0f, WHITE);
 				}

@@ -1,6 +1,6 @@
 #pragma once
-
 #include "AbilityEffect.h"
+
 #include <memory>
 #include <raylib.h>
 

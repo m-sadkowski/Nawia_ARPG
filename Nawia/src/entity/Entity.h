@@ -34,9 +34,9 @@ namespace Nawia::Entity {
 		[[nodiscard]] virtual bool isMouseOver(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
 
 		// Transform & Physics
-		void setVelocity(float x, float y) { _velocity.x = x; _velocity.y = y; }
+		void setVelocity(const float x, const float y) { _velocity.x = x; _velocity.y = y; }
 		[[nodiscard]] Vector2 getVelocity() const { return _velocity; }
-		void setScale(float scale) { _scale = scale; }
+		void setScale(const float scale) { _scale = scale; }
 		[[nodiscard]] float getScale() const { return _scale; }
 
 		// Damage and HP
@@ -55,8 +55,9 @@ namespace Nawia::Entity {
 		[[nodiscard]] int getAnimationFrameCount(const std::string& name) const;
 		[[nodiscard]] bool isAnimationLocked() const { return _anim_locked; }
 
-		void setRotation(float angle) { _rotation = angle; }
+		void setRotation(const float angle) { _rotation = angle; }
 		[[nodiscard]] float getRotation() const { return _rotation; }
+		void rotateTowards(float world_x, float world_y);
 
 		// Collider System
 		void setCollider(std::unique_ptr<Collider> collider);
@@ -72,7 +73,7 @@ namespace Nawia::Entity {
 
 		// Spawning Support
 		// mechanisms for entities to spawn other entities (e.g. projectiles) safely during the update loop
-		void addPendingSpawn(std::shared_ptr<Entity> entity) { _pending_spawns.push_back(entity); }
+		void addPendingSpawn(const std::shared_ptr<Entity>& entity) { _pending_spawns.push_back(entity); }
 		[[nodiscard]] std::vector<std::shared_ptr<Entity>> getPendingSpawns() { return _pending_spawns; }
 		void clearPendingSpawns() { _pending_spawns.clear(); }
 

@@ -10,14 +10,14 @@
 
 namespace Nawia::Entity {
 
-	Dummy::Dummy(float x, float y, const std::shared_ptr<Texture2D>& tex, int max_hp, Core::Map* map)
+	Dummy::Dummy(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
 		: EnemyInterface("Dummy", x, y, tex, max_hp, map), _stay_timer(0.0f), _fireball_cooldown_timer(0.0f)
 	{
 		this->setScale(0.03f);
 		setFaction(Faction::Enemy);
 		loadModel("../assets/models/dummy_idle.glb");
 		
-		// add Collider
+		// add collider
 		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
 		addAnimation("walk", "../assets/models/dummy_walk.glb");
 		addAnimation("cast_fireball", "../assets/models/dummy_cast_fireball.glb");
@@ -46,7 +46,7 @@ namespace Nawia::Entity {
 
 	void Dummy::update(const float dt)
 	{
-		// 1. Handle Dying State
+		// handle dying state
 		if (_is_dying)
 		{
 			Entity::update(dt); // update animation
@@ -57,7 +57,7 @@ namespace Nawia::Entity {
 			return; // skip all other logic
 		}
 
-		// 2. Handle Casting State
+		// handle casting state
 		if (_is_casting)
 		{
 			Entity::update(dt);
@@ -68,7 +68,7 @@ namespace Nawia::Entity {
 				_target_x = _target->getX();
 				_target_y = _target->getY();
 
-				// Face the target continuously
+				// face the target continuously
 				const float dx = _target_x - getX();
 				const float dy = _target_y - getY();
 				const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
@@ -80,7 +80,7 @@ namespace Nawia::Entity {
 			if (!isAnimationLocked())
 			{
 				// cast animation finished
-				if (auto fireball = getAbility(0))
+				if (const auto fireball = getAbility(0))
 				{
 					// use saved target or current position if lost
 					float tx = _target_x;
@@ -113,19 +113,19 @@ namespace Nawia::Entity {
 		if (_target && !_target->isDead())
 		{
 			// attempts to cast the first available ability if conditions are met
-			if (auto fireball = getAbility(0))
+			if (const auto fireball = getAbility(0))
 			{
 				if (_fireball_cooldown_timer <= 0.0f && fireball->isReady())
 				{
-					// Start Casting Sequence
+					// start Casting Sequence
 					_is_casting = true;
 					playAnimation("cast_fireball", false, true);
 					
-					// Update target position for the cast
+					// update target position for the cast
 					_target_x = _target->getCenter().x;
 					_target_y = _target->getCenter().y;
 
-					// Face the target
+					// face the target
 					const float dx = _target_x - getX();
 					const float dy = _target_y - getY();
 					const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
@@ -133,7 +133,7 @@ namespace Nawia::Entity {
 					const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
 					setRotation(90.0f - screen_angle);
 
-					// We do not spawn yet; waiting for animation to finish
+					// we do not spawn yet; waiting for animation to finish
 				}
 			}
 		}

@@ -22,7 +22,7 @@ namespace Nawia::Entity {
 		_vel_x = (dx / length) * _speed;
 		_vel_y = (dy / length) * _speed;
 
-		// Calculate visual rotation for isometric view
+		// calculate visual rotation for isometric view
 		const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
 		const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
 		const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
@@ -57,7 +57,7 @@ namespace Nawia::Entity {
 		if (std::dynamic_pointer_cast<AbilityEffect>(target))
 			return false;
 
-		// Use Geometry check
+		// use geometry check
 		return AbilityEffect::checkCollision(target);
 	}
 
@@ -66,7 +66,7 @@ namespace Nawia::Entity {
 		Core::Logger::debugLog("Projectile::onCollision with " + target->getName());
 		target->takeDamage(getDamage());
 
-		// Spawn explosion effect
+		// spawn explosion effect
 		if (_caster && _hit_texture) {
 			_caster->addPendingSpawn(std::make_unique<ProjectileHitEffect>(_pos.x, _pos.y, _hit_texture));
 		}

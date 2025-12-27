@@ -3,6 +3,7 @@
 
 namespace Nawia::Core
 {
+
 	constexpr int WINDOW_WIDTH = 1280;
 	constexpr int WINDOW_HEIGHT = 720;
 
@@ -14,4 +15,5 @@ namespace Nawia::Core
 
 	constexpr int MODEL_RENDER_SIZE = 256;
 	constexpr Vector3 ISOMETRIC_CAMERA_POS = Vector3{ -10.0f, 10.0f, 10.0f };
+
 }

@@ -7,6 +7,7 @@
 
 #include <Logger.h>
 #include <Map.h>
+#include <Constants.h>
 
 
 namespace Nawia::Entity {
@@ -297,6 +298,20 @@ namespace Nawia::Entity {
 	void Entity::setCollider(std::unique_ptr<Collider> collider)
 	{
 		_collider = std::move(collider);
+	}
+
+	void Entity::rotateTowards(const float world_x, const float world_y)
+	{
+		const float dx = world_x - getX();
+		const float dy = world_y - getY();
+
+		if (dx * dx + dy * dy > 0.001f)
+		{
+			const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
+			const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
+			const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
+			setRotation(90.0f - screen_angle);
+		}
 	}
 
 } // namespace Nawia::Entity

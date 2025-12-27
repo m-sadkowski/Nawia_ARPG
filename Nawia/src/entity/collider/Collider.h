@@ -17,7 +17,7 @@ namespace Nawia::Entity {
 
     class Collider {
     public:
-        Collider(Entity* owner, float offset_x = 0.0f, float offset_y = 0.0f) : _owner(owner), _offset(Vector2{offset_x, offset_y}) {}
+        Collider(Entity* owner, const float offset_x = 0.0f, const float offset_y = 0.0f) : _owner(owner), _offset(Vector2{offset_x, offset_y}) {}
         virtual ~Collider() = default;
 
         [[nodiscard]] virtual ColliderType getType() const = 0;
@@ -34,7 +34,7 @@ namespace Nawia::Entity {
 
     class CircleCollider : public Collider {
     public:
-        CircleCollider(Entity* owner, const float radius, float offset_x = 0.0f, float offset_y = 0.0f) 
+        CircleCollider(Entity* owner, const float radius, const float offset_x = 0.0f, const float offset_y = 0.0f)
             : Collider(owner, offset_x, offset_y), _radius(radius) {}
 
         [[nodiscard]] ColliderType getType() const override { return ColliderType::CIRCLE; }
@@ -49,7 +49,7 @@ namespace Nawia::Entity {
 
     class RectangleCollider : public Collider {
     public:
-        RectangleCollider(Entity* owner, const float width, const float height, float offset_x = 0.0f, float offset_y = 0.0f) 
+        RectangleCollider(Entity* owner, const float width, const float height, const float offset_x = 0.0f, const float offset_y = 0.0f)
             : Collider(owner, offset_x, offset_y), _width(width), _height(height) {}
 
         [[nodiscard]] ColliderType getType() const override { return ColliderType::RECTANGLE; }
@@ -67,7 +67,7 @@ namespace Nawia::Entity {
 
     class ConeCollider : public Collider {
     public:
-        ConeCollider(Entity* owner, const float radius, const float angle, float offset_x = 0.0f, float offset_y = 0.0f) 
+        ConeCollider(Entity* owner, const float radius, const float angle, const float offset_x = 0.0f, const float offset_y = 0.0f)
             : Collider(owner, offset_x, offset_y), _radius(radius), _angle(angle) {}
 
         [[nodiscard]] ColliderType getType() const override { return ColliderType::CONE; }
