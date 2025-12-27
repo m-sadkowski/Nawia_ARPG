@@ -11,13 +11,15 @@ namespace Nawia::Entity {
 	Player::Player(const float x, const float y, const std::shared_ptr<Texture2D>& texture)
 	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) 
 	{
+		this->setScale(0.03f);
 		setFaction(Faction::Player);
-		loadModel("../assets/models/player.glb");
+		loadModel("../assets/models/player_idle.glb");
 		addAnimation("walk", "../assets/models/player_walk.glb");
+		addAnimation("attack", "../assets/models/player_auto_attack.glb");
 		playAnimation("default"); // play idle
 
-		// add Collider
-		setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.5f));
+		// add collider
+		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
 	}
 
 	void Player::moveTo(const float x, const float y)
@@ -26,7 +28,8 @@ namespace Nawia::Entity {
 		_target_y = y;
 		_is_moving = true;
 
-		playAnimation("walk");
+		if (!isAnimationLocked())
+			playAnimation("walk");
 
 		const float dx = _target_x - getX();
 		const float dy = _target_y - getY();
@@ -34,10 +37,7 @@ namespace Nawia::Entity {
 
 		if (distance_sq > 0.001f)
 		{
-			const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
-			const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
-			const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / static_cast<float>(Core::pi);
-			setRotation(90.0f - screen_angle);
+			rotateTowards(_target_x, _target_y);
 		}
 	}
 
@@ -49,22 +49,26 @@ namespace Nawia::Entity {
 		if (!_is_moving)
 			return;
 
-		const float dx = _target_x - _pos->getX();
-		const float dy = _target_y - _pos->getY();
+		const float dx = _target_x - _pos.x;
+		const float dy = _target_y - _pos.y;
 		const float distance = std::sqrt(dx * dx + dy * dy);
+
+		if (!isAnimationLocked())
+			playAnimation("walk");
 
 		if (distance < 0.1f)
 		{
-			_pos->setX(_target_x);
-			_pos->setY(_target_y);
+			_pos.x = _target_x;
+			_pos.y = _target_y;
 			_is_moving = false;
 
-			playAnimation("default");
+			if (!isAnimationLocked())
+				playAnimation("default");
 		}
 		else
 		{
-			_pos->setX(_pos->getX() + (dx / distance) * _speed * delta_time);
-			_pos->setY(_pos->getY() + (dy / distance) * _speed * delta_time);
+			_pos.x += (dx / distance) * _speed * delta_time;
+			_pos.y += (dy / distance) * _speed * delta_time;
 		}
 	}
 

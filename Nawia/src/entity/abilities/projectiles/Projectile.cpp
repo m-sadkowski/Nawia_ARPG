@@ -2,21 +2,31 @@
 #include "EnemyInterface.h"
 #include "Collider.h"
 
+#include "ProjectileHitEffect.h"
 #include <Logger.h>
+#include <Constants.h>
+#include <MathUtils.h>
 
 #include <cmath>
 
 namespace Nawia::Entity {
 
 	Projectile::Projectile(const std::string& name, const float x, const float y, const float target_x, const float target_y, 
-	                       const std::shared_ptr<Texture2D> &tex, const AbilityStats& stats, Entity* caster)
-		: AbilityEffect(name, x, y, tex, stats), _speed(stats.projectile_speed), _caster(caster)
+	                       const std::shared_ptr<Texture2D> &tex, const std::shared_ptr<Texture2D> &hit_tex, 
+	                       const AbilityStats& stats, Entity* caster)
+		: AbilityEffect(name, x, y, tex, stats), _speed(stats.projectile_speed), _hit_texture(hit_tex), _caster(caster)
 	{
 		const float dx = target_x - x;
 		const float dy = target_y - y;
 		const float length = std::sqrt(dx * dx + dy * dy);
 		_vel_x = (dx / length) * _speed;
 		_vel_y = (dy / length) * _speed;
+
+		// calculate visual rotation for isometric view
+		const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
+		const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
+		const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
+		setRotation(90.0f - screen_angle);
 
 		// add Collider
 		// hitbox_radius from stats
@@ -27,8 +37,8 @@ namespace Nawia::Entity {
 	{
 		AbilityEffect::update(dt);
 
-		_pos->setX(_pos->getX() + _vel_x * dt);
-		_pos->setY(_pos->getY() + _vel_y * dt);
+		_pos.x += _vel_x * dt;
+		_pos.y += _vel_y * dt;
 	}
 
 	bool Projectile::checkCollision(const std::shared_ptr<Entity>& target) const
@@ -47,7 +57,7 @@ namespace Nawia::Entity {
 		if (std::dynamic_pointer_cast<AbilityEffect>(target))
 			return false;
 
-		// Use Geometry check
+		// use geometry check
 		return AbilityEffect::checkCollision(target);
 	}
 
@@ -55,6 +65,12 @@ namespace Nawia::Entity {
 	{
 		Core::Logger::debugLog("Projectile::onCollision with " + target->getName());
 		target->takeDamage(getDamage());
+
+		// spawn explosion effect
+		if (_caster && _hit_texture) {
+			_caster->addPendingSpawn(std::make_unique<ProjectileHitEffect>(_pos.x, _pos.y, _hit_texture));
+		}
+
 		die();
 		Core::Logger::debugLog("Projectile Hit " + target->getName());
 	}

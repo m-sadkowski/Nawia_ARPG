@@ -22,18 +22,21 @@ namespace Nawia::Entity {
 		virtual void update(float delta_time);
 		virtual void render(float offset_x, float offset_y);
 
-		[[nodiscard]] float getX() const { return _pos->getX(); }
-		[[nodiscard]] float getY() const { return _pos->getY(); }
-		void setX(float x) { _pos->setX(x); }
-		void setY(float y) { _pos->setY(y); }
 
-		[[nodiscard]] Core::Point2D getScreenPos(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
+		[[nodiscard]] float getX() const { return _pos.x; }
+		[[nodiscard]] float getY() const { return _pos.y; }
+		void setX(float x) { _pos.x = x; }
+		void setY(float y) { _pos.y = y; }
+		[[nodiscard]] Vector2 getCenter() const;
+
+		[[nodiscard]] Vector2 getScreenPos(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
+		[[nodiscard]] Vector2 getIsoPos(float world_x, float world_y, float cam_x, float cam_y) const;
 		[[nodiscard]] virtual bool isMouseOver(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
 
 		// Transform & Physics
-		void setVelocity(float x, float y) { _velocity.setX(x); _velocity.setY(y); }
-		[[nodiscard]] Core::Point2D getVelocity() const { return _velocity; }
-		void setScale(float scale) { _scale = scale; }
+		void setVelocity(const float x, const float y) { _velocity.x = x; _velocity.y = y; }
+		[[nodiscard]] Vector2 getVelocity() const { return _velocity; }
+		void setScale(const float scale) { _scale = scale; }
 		[[nodiscard]] float getScale() const { return _scale; }
 
 		// Damage and HP
@@ -48,10 +51,13 @@ namespace Nawia::Entity {
 		// Animation & 3D Model Support
 		void loadModel(const std::string& path, bool rotate_model = false);
 		void addAnimation(const std::string& name, const std::string& path);
-		void playAnimation(const std::string& name);
+		void playAnimation(const std::string& name, bool loop = true, bool lock_movement = false);
+		[[nodiscard]] int getAnimationFrameCount(const std::string& name) const;
+		[[nodiscard]] bool isAnimationLocked() const { return _anim_locked; }
 
-		void setRotation(float angle) { _rotation = angle; }
+		void setRotation(const float angle) { _rotation = angle; }
 		[[nodiscard]] float getRotation() const { return _rotation; }
+		void rotateTowards(float world_x, float world_y);
 
 		// Collider System
 		void setCollider(std::unique_ptr<Collider> collider);
@@ -67,7 +73,7 @@ namespace Nawia::Entity {
 
 		// Spawning Support
 		// mechanisms for entities to spawn other entities (e.g. projectiles) safely during the update loop
-		void addPendingSpawn(std::shared_ptr<Entity> entity) { _pending_spawns.push_back(entity); }
+		void addPendingSpawn(const std::shared_ptr<Entity>& entity) { _pending_spawns.push_back(entity); }
 		[[nodiscard]] std::vector<std::shared_ptr<Entity>> getPendingSpawns() { return _pending_spawns; }
 		void clearPendingSpawns() { _pending_spawns.clear(); }
 
@@ -84,8 +90,8 @@ namespace Nawia::Entity {
 		void setFaction(Faction faction) { _faction = faction; }
 
 	protected:
-		std::unique_ptr<Core::Point2D> _pos;
-		Core::Point2D _velocity;
+		Vector2 _pos;
+		Vector2 _velocity;
 		float _scale;
 		std::shared_ptr<Texture2D> _texture;
 		
@@ -105,6 +111,8 @@ namespace Nawia::Entity {
 		int _anim_frame_counter;
 		float _rotation;
 		bool _model_loaded;
+		bool _anim_looping;
+		bool _anim_locked;
 
 		Faction _faction;
 

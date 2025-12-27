@@ -5,23 +5,25 @@
 
 namespace Nawia::Core
 {
+
 	struct Camera
 	{
 		float x = 0.0f;
 		float y = 0.0f;
 
-		void follow(Entity::Entity* target)
+		void follow(const Entity::Entity* target)
 		{
 			if (!target) return;
 
-			float _world_x = target->getX();
-			float _world_y = target->getY();
+			const float world_x = target->getX();
+			const float world_y = target->getY();
 
-			float _player_iso_x = (_world_x - _world_y) * (TILE_WIDTH / 2.0f);
-			float _player_iso_y = (_world_x + _world_y) * (TILE_HEIGHT / 2.0f);
+			const float player_iso_x = (world_x - world_y) * (TILE_WIDTH / 2.0f);
+			const float player_iso_y = (world_x + world_y) * (TILE_HEIGHT / 2.0f);
 
-			x = (WINDOW_WIDTH / 2.0f) - _player_iso_x;
-			y = (WINDOW_HEIGHT / 2.0f) - _player_iso_y;
+			x = (WINDOW_WIDTH / 2.0f) - player_iso_x;
+			y = (WINDOW_HEIGHT / 2.0f) - player_iso_y;
 		}
 	};
+
 } // namespace Nawia::Core

@@ -23,7 +23,7 @@ namespace Nawia::Entity
 
 		virtual ~Ability() = default;
 
-		void update(float dt);
+		virtual void update(float dt);
 
 		[[nodiscard]] bool isReady() const;
 		virtual std::unique_ptr<Entity> cast(float target_x, float target_y) = 0;

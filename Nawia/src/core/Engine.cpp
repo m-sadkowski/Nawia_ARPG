@@ -26,14 +26,15 @@ namespace Nawia::Core {
 
 		// initialize player
 		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
-		Point2D player_spawn_pos = _map->getPlayerSpawnPos();
-		_player = std::make_shared<Entity::Player>(player_spawn_pos.getX(), player_spawn_pos.getY(), player_texture);
+		Vector2 player_spawn_pos = _map->getPlayerSpawnPos();
+		_player = std::make_shared<Entity::Player>(player_spawn_pos.x, player_spawn_pos.y, player_texture);
 
 		// initialize spells
-		auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");
+		const auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");
 		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_tex));
-		auto fireball_tex = _resource_manager.getTexture("../assets/textures/fireball.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex));
+		const auto fireball_tex = _resource_manager.getTexture("../assets/textures/fireball.png");
+		const auto fireball_hit_tex = _resource_manager.getTexture("../assets/textures/fireball_hit.png");
+		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex));
 
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
@@ -43,9 +44,9 @@ namespace Nawia::Core {
 
 		// spawn test enemy
 		// manual setup of a test enemy with specific abilities
-		auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
-		auto dummy = std::make_shared<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get());
-		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex));
+		const auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
+		const auto dummy = std::make_shared<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get());
+		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex));
 		dummy->setTarget(_player);
 		_entity_manager->addEntity(dummy);
 
@@ -90,12 +91,12 @@ namespace Nawia::Core {
 	{
 		// transform mouse location to position in world
 		Vector2 mouse_pos = GetMousePosition();
-		Point2D mouse_world_pos =  Point2D::screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
+		Vector2 mouse_world_pos =  screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
 
 		if (!_controller)
 			return;
 
-		_controller->handleInput(mouse_world_pos.getX(), mouse_world_pos.getY(), mouse_pos.x, mouse_pos.y);
+		_controller->handleInput(mouse_world_pos.x, mouse_world_pos.y, mouse_pos.x, mouse_pos.y);
 	}
 
 	void Engine::update(const float delta_time) 
@@ -114,7 +115,7 @@ namespace Nawia::Core {
 		const auto& entities = _entity_manager->getEntities(); 
 		for (const auto& entity : entities)
 		{
-			auto spawns = entity->getPendingSpawns();
+			const auto spawns = entity->getPendingSpawns();
 			if (!spawns.empty())
 			{
 				new_spawns.insert(new_spawns.end(), spawns.begin(), spawns.end());

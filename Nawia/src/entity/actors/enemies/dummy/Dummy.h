@@ -11,12 +11,15 @@ namespace Nawia::Entity {
 
 		void update(float dt) override;
 		void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
+		void takeDamage(int dmg) override;
 
 	private:
 		float _target_x, _target_y;
 		float _stay_timer;
 		std::shared_ptr<Entity> _target;
 		float _fireball_cooldown_timer;
+		bool _is_dying = false;
+		bool _is_casting = false;
 
 		void pickNewTarget();
 	};
