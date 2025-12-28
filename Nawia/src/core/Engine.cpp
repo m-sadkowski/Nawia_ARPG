@@ -107,8 +107,8 @@ namespace Nawia::Core {
 		_camera.follow(_player.get());
 		_controller->update(delta_time);
 
-		_entity_manager->handleEntitiesCollisions();
 		_entity_manager->updateEntities(delta_time);
+		_entity_manager->handleEntitiesCollisions();
 
 		// collects new entities spawned by existing ones (like projectiles) and adds them to the game world
 		std::vector<std::shared_ptr<Entity::Entity>> new_spawns;

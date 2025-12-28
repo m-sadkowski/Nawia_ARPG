@@ -22,6 +22,20 @@ namespace Nawia::Core {
 
 		void useAbility(int index, float target_x, float target_y) const;
 
+
+		void handleMouseInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
+		void handleKeyboardInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
+		void processPendingAction();
+		void processAutoAttack();
+
+		bool trySelectEnemy(float screen_x, float screen_y);
+		void handleGroundClick(float x, float y);
+		void queueAbility(int index, float x, float y, float screen_x, float screen_y);
+		void castAbility(int index, float x, float y, float screen_x, float screen_y);
+		void processPendingMove();
+		void processPendingAbility();
+		void updateCombatMovement(float dist_sq, float attack_range);
+
 		struct PendingAction {
 			enum class Type { None, Move, Ability } type = Type::None;
 			float x = 0.0f;
