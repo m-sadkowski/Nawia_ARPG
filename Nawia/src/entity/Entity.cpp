@@ -193,11 +193,11 @@ namespace Nawia::Entity {
 
 	bool Entity::isMouseOver(const float mouse_x, const float mouse_y, const float cam_x, const float cam_y) const 
 	{
-		Vector2 screen_pos = getScreenPos(getX(), getY(), cam_x, cam_y);
+		if (_collider) {
+			return _collider->checkPoint(mouse_x, mouse_y, cam_x, cam_y);
+		}
 
-		// Core::Logger::debugLog("MouseOver click raw: " + std::to_string(mouse_x) + ", " + std::to_string(mouse_y));
-		// Core::Logger::debugLog("MouseOver click screen: " + std::to_string(screen_x) + ", " + std::to_string(screen_y));
-		// Core::Logger::debugLog("MouseOver Entity: " + std::to_string(_pos.x) + ", " + std::to_string(_pos.y));
+		Vector2 screen_pos = getScreenPos(getX(), getY(), cam_x, cam_y);
 
 		return (mouse_x >= screen_pos.x &&  mouse_x <= screen_pos.x + Core::ENTITY_TEXTURE_WIDTH &&
 		      mouse_y >= screen_pos.y && mouse_y <= screen_pos.y + Core::ENTITY_TEXTURE_HEIGHT);
@@ -302,15 +302,28 @@ namespace Nawia::Entity {
 
 	void Entity::rotateTowards(const float world_x, const float world_y)
 	{
+		// Standard Rotation (Feet Pivot) - Best for Movement
 		const float dx = world_x - getX();
 		const float dy = world_y - getY();
 
 		if (dx * dx + dy * dy > 0.001f)
 		{
-			const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
-			const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
-			const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
-			setRotation(90.0f - screen_angle);
+			const float angle = std::atan2(dy, dx) * 180.0f / PI;
+			setRotation(-angle);
+		}
+	}
+
+	void Entity::rotateTowardsCenter(const float world_x, const float world_y)
+	{
+		// Combat Rotation (Center Pivot) - Best for Aiming/Interaction
+		Vector2 center = getCenter();
+		const float dx = world_x - center.x;
+		const float dy = world_y - center.y;
+
+		if (dx * dx + dy * dy > 0.001f)
+		{
+			const float angle = std::atan2(dy, dx) * 180.0f / PI;
+			setRotation(-angle);
 		}
 	}
 

@@ -12,14 +12,36 @@ namespace Nawia::Core {
 
 	void PlayerController::handleInput(const float mouse_world_x, const float mouse_world_y, const float screen_x, const float screen_y) 
 	{
+		if (!_player) return;
+
+		_last_mouse_x = mouse_world_x;
+		_last_mouse_y = mouse_world_y;
+
 		handleMouseInput(mouse_world_x, mouse_world_y, screen_x, screen_y);
 		handleKeyboardInput(mouse_world_x, mouse_world_y, screen_x, screen_y);
 	}
 
-	void PlayerController::update(float dt) 
+	void PlayerController::update(const float dt) 
 	{
 		processPendingAction();
 		processAutoAttack();
+
+		if (_target_enemy && _target_enemy->isDead()) 
+		{
+			_target_enemy = nullptr;
+		}
+
+		// Rotation Logic
+		if (_target_enemy)
+		{
+			// Combat: Face the enemy (Center-to-Center for alignment)
+			_player->rotateTowardsCenter(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
+		}
+		else if (!_player->isMoving() && !_player->isAnimationLocked())
+		{
+			// Idle: Face the cursor (Feet-to-Ground for consistent movement transition)
+			_player->rotateTowards(_last_mouse_x, _last_mouse_y);
+		}
 	}
 
 	void PlayerController::useAbility(const int index, const float target_x, const float target_y) const 
@@ -97,8 +119,11 @@ namespace Nawia::Core {
 			return;
 		}
 
-		const float dx = _target_enemy->getX() - _player->getX();
-		const float dy = _target_enemy->getY() - _player->getY();
+		const Vector2 player_center = _player->getCenter();
+		const Vector2 enemy_center = _target_enemy->getCenter();
+
+		const float dx = enemy_center.x - player_center.x;
+		const float dy = enemy_center.y - player_center.y;
 		const float dist_sq = dx * dx + dy * dy;
 
 		constexpr int auto_attack_index = 0;
@@ -222,7 +247,6 @@ namespace Nawia::Core {
 
 	void PlayerController::processPendingAbility()
 	{
-		// simplify ability execution
 		if (const auto ability = _player->getAbility(_pending_action.ability_index))
 		{
 			if (ability->getTargetType() == Entity::AbilityTargetType::UNIT)
@@ -250,13 +274,15 @@ namespace Nawia::Core {
 
 		if (dist_sq > hit_range * hit_range) 
 		{
-			_player->moveTo(_target_enemy->getX(), _target_enemy->getY());
+			// moveTo already corrects for offset, so we pass the exact target point we want to reach (or get close to)
+			// passing center ensures we move towards the center of the enemy
+			_player->moveTo(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		} 
 		else 
 		{
 			// In range (or within hysteresis buffer)
 			_player->rotateTowards(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
-			_player->moveTo(_player->getX(), _player->getY()); // Stop moving
+			_player->stop(); // Stop moving cleanly
 			useAbility(auto_attack_index, _target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		}
 	}

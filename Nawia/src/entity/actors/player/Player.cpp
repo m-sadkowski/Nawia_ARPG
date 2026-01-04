@@ -24,8 +24,13 @@ namespace Nawia::Entity {
 
 	void Player::moveTo(const float x, const float y)
 	{
-		_target_x = x;
-		_target_y = y;
+		// Adjusted target so that the CENTER of the collider lands on the click point, not the feet.
+		const Vector2 center = getCenter();
+		const float offset_x = center.x - getX();
+		const float offset_y = center.y - getY();
+
+		_target_x = x - offset_x;
+		_target_y = y - offset_y;
 		_is_moving = true;
 
 		if (!isAnimationLocked())
@@ -41,11 +46,24 @@ namespace Nawia::Entity {
 		}
 	}
 
+	void Player::stop()
+	{
+		_is_moving = false;
+		if (!isAnimationLocked())
+		{
+			playAnimation("default");
+		}
+	}
+
 	void Player::update(const float delta_time)
 	{
 		Entity::update(delta_time);
 		updateAbilities(delta_time);
+		updateMovement(delta_time);
+	}
 
+	void Player::updateMovement(const float delta_time)
+	{
 		if (!_is_moving)
 			return;
 

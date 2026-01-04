@@ -12,8 +12,11 @@ namespace Nawia::Entity {
 		Player(float x, float y, const std::shared_ptr<Texture2D>& texture);
 
 		void update(float delta_time) override;
+		[[nodiscard]] bool isMoving() const { return _is_moving; }
 
 		void moveTo(float x, float y);
+		void stop();
+		void updateMovement(float delta_time);
 
 	private:
 		float _target_x, _target_y;

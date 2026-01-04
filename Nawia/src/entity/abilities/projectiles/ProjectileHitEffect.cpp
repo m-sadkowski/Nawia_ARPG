@@ -8,7 +8,7 @@ namespace Nawia::Entity {
 
     ProjectileHitEffect::ProjectileHitEffect(const float x, const float y, const std::shared_ptr<Texture2D>& tex)
         : AbilityEffect("ProjectileHit", x, y, tex, AbilityStats()), 
-          _current_frame(0), _frame_timer(0.0f), _total_frames(5), _frame_duration(0.15f)
+          _current_frame(0), _frame_timer(0.0f), _total_frames(1), _frame_duration(0.5f)
     {
         // lifetime determined by animation duration
         _stats.duration = _total_frames * _frame_duration;
@@ -39,7 +39,7 @@ namespace Nawia::Entity {
     void ProjectileHitEffect::render(const float offset_x, const float offset_y) {
         if (!_texture) return;
 
-        Vector2 screen_pos = getScreenPos(_pos.x, _pos.y, offset_x, offset_y);
+        const Vector2 screen_pos = getScreenPos(_pos.x, _pos.y, offset_x, offset_y);
 
         // define source rectangle for sprite sheet
         const Rectangle source = {

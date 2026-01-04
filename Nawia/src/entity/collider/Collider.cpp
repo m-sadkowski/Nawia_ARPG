@@ -21,11 +21,14 @@ namespace Nawia::Entity {
     }
 
     // check collision between two rectangles
+    // Standard AABB collision check
     bool checkRectRect(const Rectangle rect_1, const Rectangle rect_2) {
         return CheckCollisionRecs(rect_1, rect_2);
     }
 
     // check collision between cone and circle
+    // 1. Distance Check: Is circle within max range of cone?
+    // 2. Angle Check: Is the circle center within the angular field of view of the cone?
     bool checkConeCircle(const Vector2 cone_pos, const float cone_radius, const float cone_angle, const float cone_rotation, const Vector2 circle_pos, const float circle_radius) {
         const float dist_sq = Vector2DistanceSqr(cone_pos, circle_pos);
         const float max_dist = cone_radius + circle_radius;
@@ -87,8 +90,13 @@ namespace Nawia::Entity {
     	Vector2 screen_pt = _owner->getIsoPos(_owner->getX() + _offset.x, _owner->getY() + _offset.y, offset_x, offset_y);
         const auto screen_pos = screen_pt;
 
-        DrawCircleLines(static_cast<int>(screen_pos.x), static_cast<int>(screen_pos.y), _radius * 32.0f, RED);
         DrawCircleLines(static_cast<int>(screen_pos.x), static_cast<int>(screen_pos.y), _radius * Core::TILE_WIDTH / 2.0f, RED);
+    }
+
+    bool CircleCollider::checkPoint(float screen_x, float screen_y, float cam_x, float cam_y) const {
+        Vector2 center_screen = _owner->getIsoPos(_owner->getX() + _offset.x, _owner->getY() + _offset.y, cam_x, cam_y);
+        float screen_radius = _radius * Core::TILE_WIDTH / 2.0f; // Matching render logic
+        return CheckCollisionPointCircle({ screen_x, screen_y }, center_screen, screen_radius);
     }
 
     Rectangle RectangleCollider::getRect() const {
@@ -137,6 +145,22 @@ namespace Nawia::Entity {
         
         DrawRectangleLinesEx(rect, 2.0f, BLUE);
         DrawCircle(static_cast<int>(center_pt.x), static_cast<int>(center_pt.y), 2, RED); // Center mark
+    }
+
+    bool RectangleCollider::checkPoint(float screen_x, float screen_y, float cam_x, float cam_y) const {
+        Vector2 center_pt = _owner->getIsoPos(getPosition().x, getPosition().y, cam_x, cam_y);
+
+        float screen_w = _width * Core::TILE_WIDTH;
+        float screen_h = _height * Core::TILE_WIDTH;
+
+        Rectangle rect = {
+            center_pt.x - screen_w / 2.0f,
+            center_pt.y - screen_h / 2.0f,
+            screen_w,
+            screen_h
+        };
+
+        return CheckCollisionPointRec({ screen_x, screen_y }, rect);
     }
 
     bool ConeCollider::checkCollision(const Collider* other) const {
@@ -194,6 +218,41 @@ namespace Nawia::Entity {
         DrawLineV(tip_screen, left_screen, GREEN);
         DrawLineV(tip_screen, right_screen, GREEN);
         DrawLineV(left_screen, right_screen, GREEN); // arc approximation
+
+        // debug center line
+        const float rad_center = rot_deg * DEG2RAD;
+        const Vector2 end_center_world = {
+             tip_world.x + cos(rad_center) * _radius,
+             tip_world.y + sin(rad_center) * _radius
+        };
+        Vector2 center_screen_pt = _owner->getIsoPos(end_center_world.x, end_center_world.y, offset_x, offset_y);
+        DrawLineV(tip_screen, center_screen_pt, YELLOW);
+    }
+
+    bool ConeCollider::checkPoint(float screen_x, float screen_y, float cam_x, float cam_y) const {
+        const Vector2 tip_world = getPosition();
+
+        const float rot_deg = _owner->getRotation();
+        const float angle_half = _angle / 2.0f;
+
+        const float rad_left = (rot_deg - angle_half) * DEG2RAD;
+        const float rad_right = (rot_deg + angle_half) * DEG2RAD;
+
+        const Vector2 end_left_world = {
+             tip_world.x + cos(rad_left) * _radius,
+             tip_world.y + sin(rad_left) * _radius
+        };
+
+        const Vector2 end_right_world = {
+             tip_world.x + cos(rad_right) * _radius,
+             tip_world.y + sin(rad_right) * _radius
+        };
+
+        Vector2 tip_screen = _owner->getIsoPos(tip_world.x, tip_world.y, cam_x, cam_y);
+        Vector2 left_screen = _owner->getIsoPos(end_left_world.x, end_left_world.y, cam_x, cam_y);
+        Vector2 right_screen = _owner->getIsoPos(end_right_world.x, end_right_world.y, cam_x, cam_y);
+
+        return CheckCollisionPointTriangle({ screen_x, screen_y }, tip_screen, left_screen, right_screen);
     }
 
 

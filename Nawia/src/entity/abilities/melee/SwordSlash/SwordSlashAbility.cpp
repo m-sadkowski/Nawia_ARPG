@@ -13,6 +13,9 @@ namespace Nawia::Entity {
 
 	std::unique_ptr<Entity> SwordSlashAbility::cast(const float target_x, const float target_y) 
 	{
+		// Force rotation to target immediately
+		_caster->rotateTowardsCenter(target_x, target_y);
+
 		startCooldown();
 		_caster->playAnimation("attack", false, true);
 
@@ -36,20 +39,16 @@ namespace Nawia::Entity {
 			{
 				_is_active = false;
 
-				// START: spawning Logic from previous cast()
-				const float dx = _target_x - _caster->getX();
-				const float dy = _target_y - _caster->getY();
-				const float angle = static_cast<float>(std::atan2(dy, dx) * 180.0f / PI);
+				const Vector2 caster_center = _caster->getCenter();
 
-				float length = std::sqrt(dx * dx + dy * dy);
-				if (length == 0.0f) length = 1.0f; // prevent div by zero
+				// This ensures that if the player rotated during the cast time (via PlayerController aiming), 
+				// the slash goes where the player is looking, not where the mouse WAS.
+				const float angle = _caster->getRotation();
+				const float spawn_x = caster_center.x;
+				const float spawn_y = caster_center.y;
 
-				const float spawn_x = _caster->getX() + (dx / length);
-				const float spawn_y = _caster->getY() + (dy / length); // spawn offset by 1 unit
-
-				auto slash = std::make_shared<SwordSlashEffect>(spawn_x, spawn_y, angle, _slash_tex, _stats);
+				const auto slash = std::make_shared<SwordSlashEffect>(spawn_x, spawn_y, -angle, _slash_tex, _stats);
 				_caster->addPendingSpawn(slash);
-				// END: spawning Logic
 			}
 		}
 	}

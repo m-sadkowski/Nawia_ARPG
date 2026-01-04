@@ -45,6 +45,8 @@ namespace Nawia::Core {
 		};
 
 		PendingAction _pending_action;
+		float _last_mouse_x = 0.0f;
+		float _last_mouse_y = 0.0f;
 	};
 
 } // namespace Nawia::Core

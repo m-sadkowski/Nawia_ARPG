@@ -46,63 +46,70 @@ namespace Nawia::Entity {
 
 	void Dummy::update(const float dt)
 	{
-		// handle dying state
 		if (_is_dying)
 		{
-			Entity::update(dt); // update animation
-			if (!isAnimationLocked()) // animation finished (reverted to default/idle)
-			{
-				_hp = 0; // now truly die
-			}
-			return; // skip all other logic
+			handleDyingState(dt);
+			return;
 		}
 
-		// handle casting state
 		if (_is_casting)
 		{
-			Entity::update(dt);
-			updateAbilities(dt);
-
-			if (_target)
-			{
-				_target_x = _target->getX();
-				_target_y = _target->getY();
-
-				// face the target continuously
-				const float dx = _target_x - getX();
-				const float dy = _target_y - getY();
-				const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
-				const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
-				const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
-				setRotation(90.0f - screen_angle);
-			}
-			
-			if (!isAnimationLocked())
-			{
-				// cast animation finished
-				if (const auto fireball = getAbility(0))
-				{
-					// use saved target or current position if lost
-					float tx = _target_x;
-					float ty = _target_y;
-					
-					if (_target) {
-						tx = _target->getCenter().x;
-						ty = _target->getCenter().y;
-					}
-
-					if (auto effect = fireball->cast(tx, ty))
-					{
-						addPendingSpawn(std::move(effect));
-						_fireball_cooldown_timer = 5.0f;
-					}
-				}
-				_is_casting = false;
-				playAnimation("walk");
-			}
-			return; // skip movement while casting
+			handleCastingState(dt);
+			return;
 		}
 
+		handleActiveState(dt);
+	}
+
+	void Dummy::handleDyingState(const float dt)
+	{
+		Entity::update(dt); // update animation
+		if (!isAnimationLocked()) // animation finished (reverted to default/idle)
+		{
+			_hp = 0; // now truly die
+		}
+	}
+
+	void Dummy::handleCastingState(const float dt)
+	{
+		Entity::update(dt);
+		updateAbilities(dt);
+
+		if (_target)
+		{
+			_target_x = _target->getX();
+			_target_y = _target->getY();
+
+			rotateTowards(_target_x, _target_y);
+		}
+		
+		if (!isAnimationLocked())
+		{
+			// cast animation finished
+			if (const auto fireball = getAbility(0))
+			{
+				// use saved target or current position if lost
+				float tx = _target_x;
+				float ty = _target_y;
+				
+				if (_target) {
+					tx = _target->getCenter().x;
+					ty = _target->getCenter().y;
+				}
+
+				if (auto effect = fireball->cast(tx, ty))
+				{
+					addPendingSpawn(std::move(effect));
+					_fireball_cooldown_timer = 5.0f;
+				}
+			}
+			_is_casting = false;
+			playAnimation("walk");
+		}
+	}
+
+	void Dummy::handleActiveState(const float dt)
+	{
 		// updates the base enemy logic including animations and state management
 		EnemyInterface::update(dt);
 		updateAbilities(dt);
@@ -125,15 +132,10 @@ namespace Nawia::Entity {
 					_target_x = _target->getCenter().x;
 					_target_y = _target->getCenter().y;
 
-					// face the target
-					const float dx = _target_x - getX();
-					const float dy = _target_y - getY();
-					const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
-					const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
-					const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
-					setRotation(90.0f - screen_angle);
+					rotateTowards(_target_x, _target_y);
 
 					// we do not spawn yet; waiting for animation to finish
+					return; // Stop moving immediately
 				}
 			}
 		}
@@ -188,12 +190,7 @@ namespace Nawia::Entity {
 
 				playAnimation("walk"); // walk animation
 
-				const float dx = _target_x - getX();
-				const float dy = _target_y - getY();
-				const float iso_dx = (dx - dy) * (Core::TILE_WIDTH / 2.0f);
-				const float iso_dy = (dx + dy) * (Core::TILE_HEIGHT / 2.0f);
-				const float screen_angle = std::atan2(iso_dy, iso_dx) * 180.0f / PI;
-				setRotation(90.0f - screen_angle);
+				rotateTowards(_target_x, _target_y);
 
 				return;
 			}
