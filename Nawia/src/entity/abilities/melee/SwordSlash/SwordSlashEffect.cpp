@@ -24,28 +24,27 @@ namespace Nawia::Entity {
 
 	void SwordSlashEffect::render(const float camera_x, const float camera_y)
 	{
-		// only render if we hit something
-		if (_hit_entities.empty())
-			return;
+		// render base (texture) only if we hit something
+		if (!_hit_entities.empty())
+		{
+			if (!_texture) {
+				Core::Logger::errorLog("SwordSlashEffect - Could not load texture.");
+			}
+			else {
+				Vector2 screen_pos = getScreenPos(_pos.x, _pos.y, camera_x, camera_y);
 
-		// render base (texture)
-		if (!_texture) {
-			Core::Logger::errorLog("SwordSlashEffect - Could not load texture.");
-			return;
+				const float source_texture_width = static_cast<float>(_texture->width);
+				const float source_texture_height = static_cast<float>(_texture->height);
+				constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
+				constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
+
+				const Rectangle source = { 0.0f, 0.0f, source_texture_width, source_texture_height };
+				const Rectangle dest = { screen_pos.x, screen_pos.y, dest_texture_width, dest_texture_height };
+				constexpr Vector2 origin = { dest_texture_width, dest_texture_height };
+
+				DrawTexturePro(*_texture, source, dest, origin, _angle, WHITE);
+			}
 		}
-
-		Vector2 screen_pos = getScreenPos(_pos.x, _pos.y, camera_x, camera_y);
-
-		const float source_texture_width = static_cast<float>(_texture->width);
-		const float source_texture_height = static_cast<float>(_texture->height);
-		constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
-		constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
-
-		const Rectangle source = { 0.0f, 0.0f, source_texture_width, source_texture_height };
-		const Rectangle dest = { screen_pos.x, screen_pos.y, dest_texture_width, dest_texture_height };
-		constexpr Vector2 origin = { dest_texture_width, dest_texture_height};
-
-		DrawTexturePro(*_texture, source, dest, origin, _angle, WHITE);
 
 		if (DebugColliders && _collider) {
 			_collider->render(camera_x, camera_y);

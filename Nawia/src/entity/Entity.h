@@ -29,7 +29,11 @@ namespace Nawia::Entity {
 		void setY(float y) { _pos.y = y; }
 		[[nodiscard]] Vector2 getCenter() const;
 
+		// Screen & Isometric Coordinate Helpers
+		// Converts world coordinates (Isometric Grid) to Screen Pixel Coordinates
 		[[nodiscard]] Vector2 getScreenPos(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
+		
+		// Converts world coordinates to raw Isometric screen coordinates (before centering/offsetting)
 		[[nodiscard]] Vector2 getIsoPos(float world_x, float world_y, float cam_x, float cam_y) const;
 		[[nodiscard]] virtual bool isMouseOver(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
 
@@ -61,6 +65,7 @@ namespace Nawia::Entity {
 
 		// Collider System
 		void setCollider(std::unique_ptr<Collider> collider);
+		void rotateTowardsCenter(float world_x, float world_y);
 		[[nodiscard]] Collider* getCollider() const { return _collider.get(); }
 		static bool DebugColliders; // Static flag for debug drawing
 

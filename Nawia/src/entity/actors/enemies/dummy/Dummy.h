@@ -22,6 +22,10 @@ namespace Nawia::Entity {
 		bool _is_casting = false;
 
 		void pickNewTarget();
+		
+		void handleDyingState(float dt);
+		void handleCastingState(float dt);
+		void handleActiveState(float dt);
 	};
 
 } // namespace Nawia::Entity

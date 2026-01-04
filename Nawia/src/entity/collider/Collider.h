@@ -22,6 +22,7 @@ namespace Nawia::Entity {
 
         [[nodiscard]] virtual ColliderType getType() const = 0;
         [[nodiscard]] virtual bool checkCollision(const Collider* other) const = 0;
+        [[nodiscard]] virtual bool checkPoint(float screen_x, float screen_y, float cam_x, float cam_y) const = 0;
         virtual void render(const float offset_x, const float offset_y) const = 0;
 
         void setOffset(const float x, const float y) { _offset = Vector2{ x, y }; }
@@ -39,6 +40,7 @@ namespace Nawia::Entity {
 
         [[nodiscard]] ColliderType getType() const override { return ColliderType::CIRCLE; }
         [[nodiscard]] bool checkCollision(const Collider* other) const override;
+        [[nodiscard]] bool checkPoint(float screen_x, float screen_y, float cam_x, float cam_y) const override;
         void render(float offset_x, float offset_y) const override;
 
         [[nodiscard]] float getRadius() const { return _radius; }
@@ -54,6 +56,7 @@ namespace Nawia::Entity {
 
         [[nodiscard]] ColliderType getType() const override { return ColliderType::RECTANGLE; }
         [[nodiscard]] bool checkCollision(const Collider* other) const override;
+        [[nodiscard]] bool checkPoint(float screen_x, float screen_y, float cam_x, float cam_y) const override;
         void render(float offset_x, float offset_y) const override;
 
         [[nodiscard]] float getWidth() const { return _width; }
@@ -72,7 +75,9 @@ namespace Nawia::Entity {
 
         [[nodiscard]] ColliderType getType() const override { return ColliderType::CONE; }
         [[nodiscard]] bool checkCollision(const Collider* other) const override;
+        [[nodiscard]] bool checkPoint(float screen_x, float screen_y, float cam_x, float cam_y) const override;
         void render(float offset_x, float offset_y) const override;
+
 
         [[nodiscard]] float getRadius() const { return _radius; }
         [[nodiscard]] float getAngle() const { return _angle; } 

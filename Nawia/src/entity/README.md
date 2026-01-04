@@ -1,212 +1,221 @@
 # System Entity - Przewodnik Dewelopera
 
-Ten dokument opisuje jak tworzyć nowe obiekty w grze (Entities), Przeciwników (Enemies) oraz Umiejętności (Abilities) w projekcie Nawia.
+Ten dokument stanowi kompletny przewodnik po systemie Entity w projekcie Nawia. Opisuje hierarchię klas, system kolizji, tworzenie nowych przeciwników (Enemies) oraz umiejętności (Abilities) i ich efektów.
 
-## 1. Tworzenie nowego Entity (Obiektu Gry)
+## Spis Treści
+1.  [Hierarchia Klas](#1-hierarchia-klas)
+2.  [Tworzenie Nowego Entity](#2-tworzenie-nowego-entity)
+    *   [Konstrukcja i Modele](#konstrukcja-i-modele-3d)
+    *   [Pozycjonowanie i Rotacja](#pozycjonowanie-i-rotacja)
+3.  [System Kolizji (Collider)](#3-system-kolizji-collider)
+4.  [Tworzenie Przeciwników (Enemies)](#4-tworzenie-przeciwników-enemies)
+5.  [System Umiejętności (AbILITIES)](#5-system-umiejętności-abilities)
+    *   [Konfiguracja JSON](#51-konfiguracja-json)
+    *   [Klasa Ability](#52-klasa-ability)
+    *   [AbilityEffect (Pociski/Efekty)](#53-abilityeffect-pociskiefekty)
 
-Wszystkie obiekty w grze dziedziczą po klasie `Nawia::Entity::Entity`.
+---
 
-### Krok po kroku:
-1.  Stwórz klasę dziedziczącą po `Nawia::Entity::Entity`.
-2.  Wywołaj konstruktor bazowy `Entity`.
-3.  W konstruktorze załaduj model 3D i animacje (opcjonalnie).
+## 1. Hierarchia Klas
 
-### Konstruktor Entity
-Musisz przekazać następujące parametry do konstruktora bazowego:
+Podstawowym budulcem jest klasa `Nawia::Entity::Entity`.
+
+*   **Entity**: Klasa bazowa. Posiada pozycję, teksturę/model, życie (HP), system animacji i kolizji.
+*   **EnemyInterface**: Dziedziczy po `Entity`. Rozszerza bazę o wskaźnik na `Map` (dla pathfindingu) i logikę specyficzną dla wrogów.
+*   **Ability**: Klasa logiczna umiejętności (nie jest Entity, ale jest trzymana przez Entity). Odpowiada za "rzucenie" czaru (funkcja `cast`).
+*   **AbilityEffect**: Dziedziczy po `Entity`. Reprezentuje wizualny i fizyczny efekt umiejętności (np. kula ognia, cięcie mieczem).
+
+---
+
+## 2. Tworzenie Nowego Entity
+
+Aby stworzyć nowy obiekt w grze, stwórz klasę dziedziczącą po `Entity`.
+
+### Konstruktor
+
+Konstruktor bazowy wymaga podstawowych danych:
 ```cpp
 Entity(
-    const std::string& name,                // Unikalna nazwa (np. "Chest")
-    float start_x, float start_y,           // Pozycja początkowa
+    const std::string& name,                // Debugowa nazwa
+    float start_x, float start_y,           // Pozycja w świecie (siatka izometryczna)
     const std::shared_ptr<Texture2D>& texture, // Tekstura 2D (ikona/sprite)
-    int max_hp                              // Życie
+    int max_hp                              // Maksymalne życie
 );
 ```
 
-### Przykład:
+### Konstrukcja i Modele 3D
+W ciele konstruktora swojej klasy powinieneś załadować model 3D oraz animacje.
+
 ```cpp
-// MyEntity.h
-class MyEntity : public Nawia::Entity::Entity {
+// MyEntity.cpp
+MyEntity::MyEntity(float x, float y, const std::shared_ptr<Texture2D>& tex)
+    : Entity("MyEntity", x, y, tex, 100)
+{
+    // Ładowanie modelu 3D
+    // Drugi parametr 'true' obraca model o -90 stopni na osi X (częste dla modeli z Blendera/Z-up)
+    loadModel("../assets/models/barrel.glb", true);
+    
+    // Rejestracja animacji
+    addAnimation("idle", "../assets/models/barrel_idle.glb");
+    
+    // Uruchomienie domyślnej animacji
+    playAnimation("idle");
+}
+```
+
+### Pozycjonowanie i Rotacja
+
+W grze izometrycznej rozróżniamy pozycję "stóp" (gdzie postać stoi na ziemi) od "środka" (gdzie postać powinna oberwać pociskiem).
+
+*   `getX()`, `getY()`: Zwraca pozycję 2D na mapie (podstawa modelu).
+*   `getCenter()`: Zwraca `Vector2`, który jest środkiem geometrycznym (często środkiem Collidera). **Używaj tego do celowania w tę postać.**
+
+#### Rotacja Postaci
+Entity posiada dwie metody do obracania się, w zależności od kontekstu:
+
+1.  **`rotateTowards(x, y)`** - Rotacja względem stóp (bazy).
+    *   Używane przy **chodzeniu** (postać idzie tam, gdzie wskazują stopy).
+2.  **`rotateTowardsCenter(x, y)`** - Rotacja względem środka (`getCenter()`).
+    *   Używane przy **walce i celowaniu** (postać obraca korpus i twarz w stronę celu/kursora).
+
+> **Ważne:** Jeśli tworzysz umiejętność, która wymaga precyzyjnego celowania, użyj `rotateTowardsCenter` w momencie rzucania (cast), aby upewnić się, że pocisk poleci dokładnie z "klatki piersiowej" w stronę kursora.
+
+---
+
+## 3. System Kolizji (Collider)
+
+Collider definiuje fizyczny kształt obiektu. Jest kluczowy dla wykrywania trafień i interakcji myszką. Kolizje są dodawane w konstruktorze za pomocą `setCollider`.
+
+### Typy Colliderów:
+
+1.  **`RectangleCollider`**: Prostokąt. Standard dla postaci.
+    ```cpp
+    // (właściciel, szerokość, wysokość)
+    setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.8f));
+    ```
+
+2.  **`CircleCollider`**: Koło. Standard dla pocisków typu Fireball.
+    ```cpp
+    // (właściciel, promień)
+    setCollider(std::make_unique<CircleCollider>(this, 0.5f));
+    ```
+
+3.  **`ConeCollider`**: Stożek/Wycinek koła. Dla ataków obszarowych (Cleave/Slash).
+    ```cpp
+    // (właściciel, zasięg/promień, kąt widzenia w stopniach)
+    setCollider(std::make_unique<ConeCollider>(this, 1.5f, 90.0f));
+    ```
+
+> Aby widzieć hitboxy w grze, ustaw `Entity::DebugColliders = true;` w kodzie.
+
+---
+
+## 4. Tworzenie Przeciwników (Enemies)
+
+Przeciwnicy powinni dziedziczyć po `Nawia::Entity::EnemyInterface`, nie po pustym `Entity`. Klasa ta zapewnia integrację z systemem mapy.
+
+### Przykład: Orc
+```cpp
+// Orc.h
+class Orc : public Nawia::Entity::EnemyInterface {
 public:
-    MyEntity(float x, float y, const std::shared_ptr<Texture2D>& tex)
-        : Entity("MyEntity", x, y, tex, 100) // 100 HP
-    {
-        // Ładowanie modelu 3D
-        loadModel("../assets/models/barrel.glb");
-        
-        // Dodawanie animacji (nazwa, ścieżka)
-        addAnimation("idle", "../assets/models/barrel_idle.glb");
-        playAnimation("idle");
-    }
+    Orc(float x, float y, std::shared_ptr<Texture2D> tex, Nawia::Core::Map* map);
+    void update(float dt) override;
 };
 ```
 
-```
-
----
-
-## 2. System Kolizji (Collider System)
-
-Każde Entity może posiadać przypisany `Collider`, który definiuje jego fizyczny kształt w świecie gry. System wspiera różne typy kształtów i zapewnia mechanizmy wykrywania kolizji oraz debugowania.
-
-### Dostępne Typy Colliderów:
-
-1.  **RectangleCollider**: Prostokąt, definiowany przez szerokość i wysokość. Idealny dla postaci i większości obiektów.
-2.  **CircleCollider**: Koło, definiowane przez promień. Używany np. dla pocisków.
-3.  **ConeCollider**: Stożek (wycinek koła), definiowany przez promień i kąt. Używany dla ataków obszarowych (jak Sword Slash).
-
-### Jak dodać Collider do Entity?
-
-W konstruktorze swojego Entity użyj metody `setCollider`:
-
-```cpp
-// Przykłady:
-
-// 1. RectangleCollider (np. dla Gracza/Przeciwnika)
-// Parametry: właściciel (this), szerokość, wysokość
-setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.5f));
-
-// 2. CircleCollider (np. dla Kuli Ognia)
-// Parametry: właściciel (this), promień
-setCollider(std::make_unique<CircleCollider>(this, 0.5f));
-
-// 3. ConeCollider (np. dla ataku mieczem)
-// Parametry: właściciel (this), promień, kąt (w stopniach)
-setCollider(std::make_unique<ConeCollider>(this, 1.5f, 90.0f));
-```
-
-### Debugowanie
-Aby zobaczyć hitboxy w grze, można ustawić flagę statyczną `Entity::DebugColliders` na `true`.
-- **Czerwony**: CircleCollider
-- **Niebieski**: RectangleCollider
-- **Zielony**: ConeCollider
-
----
-
-## 2. Tworzenie nowego Przeciwnika (Enemy)
-
-Przeciwnicy dziedziczą po `Nawia::Entity::EnemyInterface`, który zapewnia im dostęp do mapy i podstawową logikę ruchu.
-
-### Krok po kroku:
-1.  Stwórz klasę dziedziczącą po `EnemyInterface`.
-2.  Zaimplementuj metodę `update`, aby dodać sztuczną inteligencję (AI).
-
-### Konstruktor EnemyInterface
-```cpp
-EnemyInterface(
-    const std::string& name, 
-    float x, float y, 
-    const std::shared_ptr<Texture2D>& texture, 
-    int max_hp, 
-    Core::Map* map // Wskaźnik na mapę dla pathfindingu
-);
-```
-
-### Przykład:
 ```cpp
 // Orc.cpp
-Orc::Orc(float x, float y, std::shared_ptr<Texture2D> tex, Core::Map* map)
-    : EnemyInterface("Orc", x, y, tex, 200, map)
+Orc::Orc(float x, float y, std::shared_ptr<Texture2D> tex, Nawia::Core::Map* map)
+    : EnemyInterface("Orc", x, y, tex, 200, map) // 200 HP
 {
-    loadModel("../assets/models/orc.glb");
+    loadModel("../assets/models/orc.glb", true);
     addAnimation("run", "../assets/models/orc_run.glb");
+    addAnimation("attack", "../assets/models/orc_attack.glb");
+    
+    // Ważne: Collider ustawiamy tak, żeby pasował do modelu
+    setCollider(std::make_unique<RectangleCollider>(this, 0.6f, 0.8f));
 }
 
 void Orc::update(float dt) {
-    EnemyInterface::update(dt);
-    // Twoja logika AI tutaj (np. gonienie gracza)
+    EnemyInterface::update(dt); // Obsługa fizyki i animacji bazowej
+    
+    // Prosta logika AI
+    // if (player_is_close) { ... }
 }
 ```
 
 ---
 
-## 3. Tworzenie Umiejętności (Abilities)
+## 5. System Umiejętności (Abilities)
 
-System umiejętności składa się z dwóch części:
-1.  **Dane** (JSON): Statystyki umiejętności.
-2.  **Logika** (C++): Klasa dziedzicząca po `Ability`.
+System ten pozwala oddzielić dane (JSON) od logiki (C++).
 
-### 3.1. Konfiguracja JSON (`assets/data/abilities.json`)
-Nie wpisuj statystyk na sztywno w kodzie. Dodaj je do pliku JSON.
+### 5.1. Konfiguracja JSON
+Dodaj wpis do `assets/data/abilities.json`. To tutaj definiujesz zasięg, obrażenia i cooldowny.
 
 ```json
 {
-  "abilities": [
-    {
-      "name": "Fireball",
-      "stats": {
-        "damage": 50,
-        "cooldown": 2.0,
-        "cast_range": 10.0,
-        "projectile_speed": 15.0,
-        "duration": 5.0,
-        "hitbox_radius": 1.0
-      }
-    }
-  ]
+  "name": "SuperSlash",
+  "stats": {
+    "damage": 50,
+    "cooldown": 1.5,
+    "cast_range": 2.0,
+    "hitbox_radius": 2.5,
+    "duration": 0.2
+  }
 }
 ```
 
-### 3.2. Klasa Ability
-Stwórz klasę dziedziczącą po `Nawia::Entity::Ability`.
+### 5.2. Klasa Ability
+Odpowiada za logikę "użycia". Musisz stworzyć klasę dziedziczącą po `Ability`.
 
-W konstruktorze użyj `Entity::getAbilityStatsFromJson("NazwaZJsona")`, aby pobrać statystyki.
-
-**Ważne:** Musisz nadpisać metodę `cast`.
+**Kluczowa metoda: `cast()`**
+To tutaj decydujesz co się dzieje. Czy spawnuje się pocisk? Czy postać musi się obrócić?
 
 ```cpp
-// FireballAbility.cpp
-FireballAbility::FireballAbility()
-    : Ability("Fireball", Entity::getAbilityStatsFromJson("Fireball"), AbilityTargetType::POINT)
+std::unique_ptr<Entity> SuperSlashAbility::cast(float target_x, float target_y) 
 {
-}
+    // 1. Wymuś rotację w stronę celu (szczególnie ważne przy sterowaniu klawiaturą Q/W/E/R)
+    getCaster()->rotateTowardsCenter(target_x, target_y);
 
-std::unique_ptr<Entity> FireballAbility::cast(float target_x, float target_y) {
-    // Zwróć nowy efekt/pocisk
-    // Użyj getCaster(), aby przekazać stwórcę (żeby nie trafił sam siebie)
-    return std::make_unique<FireballProjectile>(
-        getCaster()->getX(), getCaster()->getY(), 
-        target_x, target_y, 
-        _stats, // Statystyki załadowane z JSON
-        getCaster()
+    // 2. Uruchom cooldown i animację postaci
+    startCooldown();
+    getCaster()->playAnimation("attack", false, true); // true = blokuje ruch na czas ataku
+
+    // 3. Stwórz efekt (hitbox zadający obrażenia)
+    // Pobierz statystyki z _stats (załadowane z JSON)
+    // Kąt w tym przypadku to -getCaster()->getRotation()
+    auto slash = std::make_unique<SwordSlashEffect>(
+        getCaster()->getCenter().x, 
+        getCaster()->getCenter().y, 
+        -getCaster()->getRotation(), 
+        _texture, 
+        _stats
     );
-}
-```
-
----
-
-## 4. Tworzenie Efektów / Pocisków (AbilityEffect)
-
-Efekt umiejętności (np. kula ognia) to osobny obiekt dziedziczący po `AbilityEffect` (lub `Projectile`, jeśli to pocisk).
-
-### Konstruktor AbilityEffect
-```cpp
-AbilityEffect(
-    const std::string& name,
-    float x, float y,
-    const std::shared_ptr<Texture2D>& tex,
-    const AbilityStats& stats
-);
-```
-
-### Nadpisz te funkcje:
-*   `onCollision(std::shared_ptr<Entity>& target)`: Co się dzieje, gdy w coś trafi?
-*   `update(float dt)`: Logika lotu / trwania.
-
-### Przykład (Pocisk):
-```cpp
-// FireballProjectile.cpp
-void FireballProjectile::onCollision(std::shared_ptr<Entity>& target) {
-    if (target.get() == _caster) return; // Nie rań strzelającego
     
-    target->takeDamage(_stats.damage);
-    _hp = 0; // Zniszcz pocisk po trafieniu
+    return slash;
 }
 ```
 
----
+### 5.3. AbilityEffect (Pociski/Efekty)
+To jest fizyczna reprezentacja ataku w świecie gry. Dziedziczy po `AbilityEffect` (który dziedziczy po `Entity`).
 
-## 5. Wskazówki dla Deweloperów
+Musi implementować:
+*   `onCollision`: Zadawanie obrażeń.
+*   `render`: Rysowanie (tekstura lub collider).
 
-1.  **Rejestracja Entity**: Jeśli stworzysz nowy obiekt ręcznie (np. w `main.cpp`), MUSISZ go dodać do `EntityManager` używając `addEntity()`. Inaczej nie będzie on aktualizowany, renderowany ani brany pod uwagę w kolizjach.
-2.  **Konwersja Pozycji**: Pamiętaj, że logika gry używa współrzędnych świata (World Coordinates), a nie ekranu.
-3.  **CMake**: Pamiętaj, żeby odświeżyć CMake po dodaniu nowych plików `.cpp` / `.h`.
+```cpp
+void SwordSlashEffect::onCollision(const std::shared_ptr<Entity>& target)
+{
+    // Rzutowanie na EnemyInterface (żeby nie bić skrzynek czy sojuszników, chyba że chcemy)
+    if (auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target))
+    {
+        // Sprawdź czy już go nie trafiliśmy w tym samym ataku (żeby nie zadać obrażeń co klatkę)
+        if (!hasHit(enemy)) {
+            enemy->takeDamage(getDamage());
+            addHit(enemy); // Dodaj do listy trafionych
+        }
+    }
+}
+```
