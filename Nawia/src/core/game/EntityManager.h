@@ -15,7 +15,7 @@ namespace Nawia::Core {
 
 	private:
 		void addEntity(std::shared_ptr<Entity::Entity> new_entity);
-		
+		void setPlayer(std::shared_ptr<Entity::Entity> player) { _player = std::move(player); }
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, Camera camera) const;
 		
 		void renderEntities(const Camera& camera) const;
@@ -25,7 +25,10 @@ namespace Nawia::Core {
 		[[nodiscard]] const std::vector<std::shared_ptr<Entity::Entity>>& getEntities() const { return _active_entities; }
 
 		std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
+		
 
+		
+		std::shared_ptr<Entity::Entity> _player;
 		friend class Engine;
 	};
 

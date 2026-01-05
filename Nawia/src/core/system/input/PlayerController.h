@@ -4,6 +4,9 @@
 #include <raylib.h>
 #include <memory>
 
+#include "Interactable.h"
+
+
 namespace Nawia::Core {
 
 	class Engine;
@@ -19,7 +22,7 @@ namespace Nawia::Core {
 		Engine* _engine;
 		std::shared_ptr<Entity::Player> _player;
 		std::shared_ptr<Entity::Entity> _target_enemy;
-
+		std::shared_ptr<Entity::Interactable> _target_interactable;
 		void useAbility(int index, float target_x, float target_y) const;
 
 
@@ -37,7 +40,7 @@ namespace Nawia::Core {
 		void updateCombatMovement(float dist_sq, float attack_range);
 
 		struct PendingAction {
-			enum class Type { None, Move, Ability } type = Type::None;
+			enum class Type { None, Move, Ability, Interact } type = Type::None;
 			float x = 0.0f;
 			float y = 0.0f;
 			int ability_index = -1;
