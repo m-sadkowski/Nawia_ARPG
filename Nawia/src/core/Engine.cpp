@@ -11,6 +11,9 @@
 #include <algorithm>
 #include <iostream>
 
+#include "Checkpoint.h"
+#include "Chest.h"
+
 namespace Nawia::Core {
 
 	Engine::Engine() : _is_running(false), _controller(nullptr) 
@@ -54,6 +57,16 @@ namespace Nawia::Core {
 		_entity_manager->addEntity(_player);
 
 		_is_running = true;
+
+		const auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png");
+		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", 12.0f, 12.0f, chest_tex);
+		_entity_manager->addEntity(test_chest);
+
+		// 2. Checkpoint (InteractiveTrigger)
+		const auto cp_tex = _resource_manager.getTexture("../assets/textures/checkpoint.png");
+		auto test_checkpoint = std::make_shared<Entity::Checkpoint>("Punkt Kontrolny", 20.0f, 20.0f, cp_tex);
+		_entity_manager->addEntity(test_checkpoint);
+		_entity_manager->setPlayer(_player);
 	}
 
 	Engine::~Engine()

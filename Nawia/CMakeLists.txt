@@ -32,6 +32,10 @@ include_directories(
     src/entity/abilities/melee
     src/entity/abilities/projectiles/Fireball
     src/entity/abilities/melee/SwordSlash
+    src/entity/interactive
+    src/entity/interactive/onTrigger
+    src/entity/interactive/clickable
+    src/entity/interactive/clickable/chest
     src/world
     src/world/map
     src/world/level

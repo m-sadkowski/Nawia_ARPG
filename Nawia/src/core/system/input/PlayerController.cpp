@@ -2,9 +2,11 @@
 #include "PlayerController.h"
 #include "Engine.h"
 #include "Logger.h"
-
+#
 #include <EnemyInterface.h>
 #include <string>
+
+
 
 namespace Nawia::Core {
 
@@ -24,6 +26,25 @@ namespace Nawia::Core {
 	void PlayerController::update(const float dt) 
 	{
 		processPendingAction();
+		if (_target_interactable) {
+			auto target_ent = std::dynamic_pointer_cast<Entity::Entity>(_target_interactable);
+			if (target_ent) {
+				const float dx = target_ent->getX() - _player->getX();
+				const float dy = target_ent->getY() - _player->getY();
+				const float dist_sq = dx * dx + dy * dy;
+				constexpr float interact_range_sq = 2.5f * 2.5f;
+
+				if (dist_sq > interact_range_sq) {
+					_player->moveTo(target_ent->getX(), target_ent->getY());
+				}
+				else {
+					_player->stop();
+					_target_interactable->onInteract(*_player);
+					_target_interactable = nullptr;
+				}
+				return; 
+			}
+		}
 		processAutoAttack();
 
 		if (_target_enemy && _target_enemy->isDead()) 
@@ -31,27 +52,27 @@ namespace Nawia::Core {
 			_target_enemy = nullptr;
 		}
 
-		// Rotation Logic
+		
 		if (_target_enemy)
 		{
-			// Combat: Face the enemy (Center-to-Center for alignment)
+			
 			_player->rotateTowardsCenter(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		}
 		else if (!_player->isMoving() && !_player->isAnimationLocked())
 		{
-			// Idle: Face the cursor (Feet-to-Ground for consistent movement transition)
+			)
 			_player->rotateTowards(_last_mouse_x, _last_mouse_y);
 		}
 	}
 
-	void PlayerController::useAbility(const int index, const float target_x, const float target_y) const 
+	void PlayerController::useAbility(const int index, const float target_x, const float target_y) const
 	{
 		const auto spell = _player->getAbility(index);
 
 		if (!spell || !spell->isReady())
 			return;
 
-		if (auto effect = spell->cast(target_x, target_y)) 
+		if (auto effect = spell->cast(target_x, target_y))
 		{
 			Logger::debugLog("Ability " + std::to_string(index) + " used, target location: (" + std::to_string(target_x) + ", " + std::to_string(target_y) + ")");
 			_engine->spawnEntity(std::move(effect));
@@ -62,11 +83,51 @@ namespace Nawia::Core {
 	{
 		if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) return;
 
-		// check for entity clicks first
-		if (trySelectEnemy(screen_x, screen_y))
-			return;
+		const auto entity = _engine->getEntityAt(screen_x, screen_y);
 
-		// ground click
+		if (entity)
+		{
+			
+
+			
+			auto interactable = std::dynamic_pointer_cast<Entity::Interactable>(entity);
+
+			if (interactable)
+			{
+				
+
+				if (interactable->canInteract())
+				{
+					if (_player->isAnimationLocked())
+					{
+						
+						_pending_action = { PendingAction::Type::Interact, 0.0f, 0.0f, -1, entity };
+					}
+					else
+					{
+						
+						_target_interactable = interactable;
+						_target_enemy = nullptr;
+						_pending_action = {};
+					}
+					return;
+				}
+				
+			}
+			
+
+			// 2. Jeœli nie interakcja, sprawdzamy walkê
+			if (trySelectEnemy(screen_x, screen_y)) {
+				
+				return;
+			}
+		}
+		else
+		{
+			
+		}
+
+		_target_interactable = nullptr;
 		handleGroundClick(mouse_world_x, mouse_world_y);
 	}
 
@@ -110,7 +171,7 @@ namespace Nawia::Core {
 
 		_pending_action = {}; // reset
 	}
-
+	
 	void PlayerController::processAutoAttack()
 	{
 		if (!_target_enemy || _target_enemy->isDead() || _target_enemy->getFaction() == Entity::Entity::Faction::None)

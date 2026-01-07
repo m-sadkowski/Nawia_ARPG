@@ -8,6 +8,8 @@
 
 #include <cmath>
 
+#include "InteractiveTrigger.h"
+
 namespace Nawia::Core {
 
 	void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity) 
@@ -49,6 +51,15 @@ namespace Nawia::Core {
 					ability->onCollision(entity2);
 			}
 		}
+		for (auto& entity : _active_entities) {
+			if (entity == _player) continue;
+
+			if (auto trigger = dynamic_cast<Entity::InteractiveTrigger*>(entity.get())) {
+				if (trigger->getCollider()->checkCollision(_player->getCollider())) {
+					trigger->onTriggerEnter(*_player);
+				}
+			}
+		}
 
 		// 2. Physical Collisions (Entity vs Entity)
 		for (size_t i = 0; i < _active_entities.size(); ++i)
@@ -56,14 +67,14 @@ namespace Nawia::Core {
 			auto& e1 = _active_entities[i];
 
 			// Skip abilities, dead entities, or those without colliders
-			if (dynamic_cast<Entity::AbilityEffect*>(e1.get()) || e1->isDead() || !e1->getCollider())
+			if (dynamic_cast<Entity::AbilityEffect*>(e1.get()) || e1->isDead() || !e1->getCollider() || dynamic_cast<Entity::Interactable*>(e1.get()))
 				continue;
-
+			
 			for (size_t j = i + 1; j < _active_entities.size(); ++j)
 			{
 				auto& e2 = _active_entities[j];
 
-				if (dynamic_cast<Entity::AbilityEffect*>(e2.get()) || e2->isDead() || !e2->getCollider())
+				if (dynamic_cast<Entity::AbilityEffect*>(e2.get()) || e2->isDead() || !e2->getCollider() ||  dynamic_cast<Entity::Interactable*>(e2.get()))
 					continue;
 
 				// Check basic collision
