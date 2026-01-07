@@ -27,7 +27,7 @@ namespace Nawia::Core {
 	{
 		processPendingAction();
 		if (_target_interactable) {
-			auto target_ent = std::dynamic_pointer_cast<Entity::Entity>(_target_interactable);
+			const auto target_ent = std::dynamic_pointer_cast<Entity::Entity>(_target_interactable);
 			if (target_ent) {
 				const float dx = target_ent->getX() - _player->getX();
 				const float dy = target_ent->getY() - _player->getY();
@@ -52,15 +52,12 @@ namespace Nawia::Core {
 			_target_enemy = nullptr;
 		}
 
-		
 		if (_target_enemy)
 		{
-			
 			_player->rotateTowardsCenter(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		}
 		else if (!_player->isMoving() && !_player->isAnimationLocked())
 		{
-			)
 			_player->rotateTowards(_last_mouse_x, _last_mouse_y);
 		}
 	}
@@ -83,48 +80,27 @@ namespace Nawia::Core {
 	{
 		if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) return;
 
-		const auto entity = _engine->getEntityAt(screen_x, screen_y);
-
-		if (entity)
+		if (const auto entity = _engine->getEntityAt(screen_x, screen_y))
 		{
-			
+			const auto interactable = std::dynamic_pointer_cast<Entity::Interactable>(entity);
 
-			
-			auto interactable = std::dynamic_pointer_cast<Entity::Interactable>(entity);
-
-			if (interactable)
+			if (interactable && interactable->canInteract())
 			{
-				
-
-				if (interactable->canInteract())
+				if (_player->isAnimationLocked())
 				{
-					if (_player->isAnimationLocked())
-					{
-						
-						_pending_action = { PendingAction::Type::Interact, 0.0f, 0.0f, -1, entity };
-					}
-					else
-					{
-						
-						_target_interactable = interactable;
-						_target_enemy = nullptr;
-						_pending_action = {};
-					}
-					return;
+					_pending_action = { PendingAction::Type::Interact, 0.0f, 0.0f, -1, entity };
 				}
-				
-			}
-			
-
-			// 2. Jeœli nie interakcja, sprawdzamy walkê
-			if (trySelectEnemy(screen_x, screen_y)) {
-				
+				else
+				{
+					_target_interactable = interactable;
+					_target_enemy = nullptr;
+					_pending_action = {};
+				}
 				return;
 			}
-		}
-		else
-		{
-			
+
+			if (trySelectEnemy(screen_x, screen_y))
+				return;
 		}
 
 		_target_interactable = nullptr;

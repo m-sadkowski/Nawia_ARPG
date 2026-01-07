@@ -47,6 +47,10 @@ namespace Nawia::Core {
 				if (entity1 == entity2)
 					continue;
 
+				// Projectiles do not hit interactive objects
+				if (const auto interactive_object = dynamic_cast<Entity::Interactable*>(entity2.get()))
+					continue;
+
 				if (ability->checkCollision(entity2))
 					ability->onCollision(entity2);
 			}
