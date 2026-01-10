@@ -6,6 +6,7 @@
 #include "ResourceManager.h"
 
 #include <Player.h>
+#include <UIHandler.h>
 
 #include <raylib.h>
 
@@ -15,6 +16,11 @@ namespace Nawia::Core {
 
 	class Engine {
 	public:
+		enum class GameState {
+			Menu,
+			Playing
+		};
+
 		Engine();
 		~Engine();
 
@@ -30,6 +36,7 @@ namespace Nawia::Core {
 		void handleInput();
 
 		bool _is_running;
+		GameState _game_state;
 
 		ResourceManager _resource_manager;
 		Camera _camera;
@@ -37,6 +44,7 @@ namespace Nawia::Core {
 		std::unique_ptr<EntityManager> _entity_manager;
 		std::shared_ptr<Entity::Player> _player;
 		std::unique_ptr<PlayerController> _controller;
+		std::unique_ptr<Nawia::UI::UIHandler> _ui_handler;
 	};
 
 } // namespace Nawia::Core
