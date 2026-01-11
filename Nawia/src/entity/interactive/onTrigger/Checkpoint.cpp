@@ -15,6 +15,8 @@ namespace Nawia::Entity {
     
     }
 
+   
+
     void Checkpoint::onTriggerEnter(Entity& other) {
         
         if (!_activated && other.getFaction() == Faction::Player) {
@@ -41,6 +43,10 @@ namespace Nawia::Entity {
         else {
             Entity::render(offset_x, offset_y);
         }
+    }
+    float Checkpoint::getInteractionRange()
+    {
+        return 0;
     }
     
 } // namespace Nawia::Entity

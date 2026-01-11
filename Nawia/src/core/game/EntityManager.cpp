@@ -61,6 +61,7 @@ namespace Nawia::Core {
 			if (auto trigger = dynamic_cast<Entity::InteractiveTrigger*>(entity.get())) {
 				if (trigger->getCollider()->checkCollision(_player->getCollider())) {
 					trigger->onTriggerEnter(*_player);
+					trigger->die();
 				}
 			}
 		}

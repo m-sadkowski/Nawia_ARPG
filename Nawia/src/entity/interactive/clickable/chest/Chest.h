@@ -13,7 +13,7 @@ namespace Nawia::Entity {
 
         void update(float delta_time) override;
         void render(float offset_x, float offset_y) override;
-
+        float getInteractionRange() override;
     private:
         bool _isOpen = false;
         // Mo¿esz tu dodaæ listê itemów: std::vector<Item> _loot;

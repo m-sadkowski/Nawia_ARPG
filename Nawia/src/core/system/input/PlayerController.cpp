@@ -32,7 +32,7 @@ namespace Nawia::Core {
 				const float dx = target_ent->getX() - _player->getX();
 				const float dy = target_ent->getY() - _player->getY();
 				const float dist_sq = dx * dx + dy * dy;
-				constexpr float interact_range_sq = 2.5f * 2.5f;
+				float interact_range_sq = _target_interactable->getInteractionRange();
 
 				if (dist_sq > interact_range_sq) {
 					_player->moveTo(target_ent->getX(), target_ent->getY());
