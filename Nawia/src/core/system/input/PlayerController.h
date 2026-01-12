@@ -17,19 +17,23 @@ namespace Nawia::Core {
 
 		void handleInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
 		void update(float dt);
-
+		
 	private:
 		Engine* _engine;
 		std::shared_ptr<Entity::Player> _player;
 		std::shared_ptr<Entity::Entity> _target_enemy;
 		std::shared_ptr<Entity::Interactable> _target_interactable;
 		void useAbility(int index, float target_x, float target_y) const;
-
+		
 
 		void handleMouseInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
 		void handleKeyboardInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
 		void processPendingAction();
 		void processAutoAttack();
+		bool processInteraction();
+		void updateRotation();
+
+
 
 		bool trySelectEnemy(float screen_x, float screen_y);
 		void handleGroundClick(float x, float y);
@@ -38,6 +42,9 @@ namespace Nawia::Core {
 		void processPendingMove();
 		void processPendingAbility();
 		void updateCombatMovement(float dist_sq, float attack_range);
+
+
+
 
 		struct PendingAction {
 			enum class Type { None, Move, Ability, Interact } type = Type::None;
