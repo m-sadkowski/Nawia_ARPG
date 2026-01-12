@@ -6,6 +6,7 @@
 #include <EnemyInterface.h>
 #include <string>
 
+#include "InteractiveTrigger.h"
 
 
 namespace Nawia::Core {
@@ -23,43 +24,59 @@ namespace Nawia::Core {
 		handleKeyboardInput(mouse_world_x, mouse_world_y, screen_x, screen_y);
 	}
 
-	void PlayerController::update(const float dt) 
+	
+	void PlayerController::update(const float dt)
 	{
-		processPendingAction();
-		if (_target_interactable) {
-			const auto target_ent = std::dynamic_pointer_cast<Entity::Entity>(_target_interactable);
-			if (target_ent) {
-				const float dx = target_ent->getX() - _player->getX();
-				const float dy = target_ent->getY() - _player->getY();
-				const float dist_sq = dx * dx + dy * dy;
-				constexpr float interact_range_sq = 2.5f * 2.5f;
+		processPendingAction();  
 
-				if (dist_sq > interact_range_sq) {
-					_player->moveTo(target_ent->getX(), target_ent->getY());
-				}
-				else {
-					_player->stop();
-					_target_interactable->onInteract(*_player);
-					_target_interactable = nullptr;
-				}
-				return; 
-			}
-		}
-		processAutoAttack();
+		
+		if (processInteraction())
+			return;
 
-		if (_target_enemy && _target_enemy->isDead()) 
+		if (_target_enemy && _target_enemy->isDead())
 		{
 			_target_enemy = nullptr;
 		}
 
-		if (_target_enemy)
+		processAutoAttack();
+
+		updateRotation();
+	}
+
+	bool PlayerController::processInteraction()
+	{
+		if (!_target_interactable)
+			return false;
+
+		
+		const auto target_ent = std::dynamic_pointer_cast<Entity::Entity>(_target_interactable);
+
+
+		if (!target_ent)
 		{
-			_player->rotateTowardsCenter(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
+			_target_interactable = nullptr;
+			return false;
 		}
-		else if (!_player->isMoving() && !_player->isAnimationLocked())
+
+		const float dx = target_ent->getX() - _player->getX();
+		const float dy = target_ent->getY() - _player->getY();
+		const float dist_sq = dx * dx + dy * dy;
+
+		
+		float interact_range_sq = _target_interactable->getInteractionRange();
+
+		if (dist_sq > interact_range_sq)
 		{
-			_player->rotateTowards(_last_mouse_x, _last_mouse_y);
+			_player->moveTo(target_ent->getX(), target_ent->getY());
 		}
+		else
+		{
+			_player->stop();
+			_target_interactable->onInteract(*_player);
+			_target_interactable = nullptr; 
+		}
+
+		return true; 
 	}
 
 	void PlayerController::useAbility(const int index, const float target_x, const float target_y) const
@@ -76,15 +93,19 @@ namespace Nawia::Core {
 		}
 	}
 
+	
 	void PlayerController::handleMouseInput(const float mouse_world_x, const float mouse_world_y, const float screen_x, const float screen_y)
 	{
 		if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) return;
 
 		if (const auto entity = _engine->getEntityAt(screen_x, screen_y))
 		{
+			bool is_trigger = std::dynamic_pointer_cast<Entity::InteractiveTrigger>(entity) != nullptr;
+
 			const auto interactable = std::dynamic_pointer_cast<Entity::Interactable>(entity);
 
-			if (interactable && interactable->canInteract())
+			
+			if (interactable && interactable->canInteract() && !is_trigger)
 			{
 				if (_player->isAnimationLocked())
 				{
@@ -103,10 +124,10 @@ namespace Nawia::Core {
 				return;
 		}
 
+		
 		_target_interactable = nullptr;
 		handleGroundClick(mouse_world_x, mouse_world_y);
 	}
-
 	void PlayerController::handleKeyboardInput(const float mouse_world_x, const float mouse_world_y, const float screen_x, const float screen_y)
 	{
 		int ability_index = -1;
@@ -132,7 +153,7 @@ namespace Nawia::Core {
 
 	void PlayerController::processPendingAction()
 	{
-		// execute pending actions if unlocked
+		
 		if (_player->isAnimationLocked() || _pending_action.type == PendingAction::Type::None)
 			return;
 
@@ -145,7 +166,7 @@ namespace Nawia::Core {
 			processPendingAbility();
 		}
 
-		_pending_action = {}; // reset
+		_pending_action = {}; 
 	}
 	
 	void PlayerController::processAutoAttack()
@@ -269,7 +290,7 @@ namespace Nawia::Core {
 	{
 		_target_enemy = nullptr; // default clear
 		
-		if (const auto target = _pending_action.target.lock())
+		if (const auto target = _pending_action.target.lock() )
 		{
 			// if we queued a move on an enemy, set as target
 			if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
@@ -324,6 +345,16 @@ namespace Nawia::Core {
 			_player->stop(); // Stop moving cleanly
 			useAbility(auto_attack_index, _target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		}
+	}
+
+	
+
+	void PlayerController::updateRotation()
+	{
+		if (_target_enemy) 
+			_player->rotateTowardsCenter(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
+		else if (!_player->isMoving() && !_player->isAnimationLocked())
+			_player->rotateTowards(_last_mouse_x, _last_mouse_y);
 	}
 
 } // namespace Nawia::Core

@@ -13,7 +13,7 @@ namespace Nawia::Entity {
         _use_3d_rendering = false;
         setCollider(std::make_unique<RectangleCollider>(this, 0.8f, 0.3f, -.0f, -.0f));
     }
-
+    
     void Chest::onInteract(Entity& instigator) {
         if (_isOpen) {
             std::cout << "Skrzynia jest juz otwarta." << std::endl;
@@ -44,6 +44,11 @@ namespace Nawia::Entity {
         if (!_isOpen) {
             // Mo¿na dodaæ ikonkê wykrzyknika nad skrzyni¹
         }
+    }
+
+    float Chest::getInteractionRange()
+    {
+        return 2.5f * 2.5f;
     }
 
 } // namespace Nawia::Entity

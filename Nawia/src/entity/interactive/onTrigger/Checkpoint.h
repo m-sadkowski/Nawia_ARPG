@@ -16,7 +16,7 @@ namespace Nawia::Entity {
         void render(float offset_x, float offset_y) override;
 
         [[nodiscard]] bool isActivated() const { return _activated; }
-
+        float getInteractionRange() override;
     private:
         bool _activated = false;
     };

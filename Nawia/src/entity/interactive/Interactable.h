@@ -2,6 +2,7 @@
 #include "Entity.h"
 namespace Nawia::Entity {
     class Interactable {
+    
     public:
         virtual ~Interactable() = default;
 
@@ -13,5 +14,7 @@ namespace Nawia::Entity {
 
         
         virtual bool canInteract() const { return true; }
+
+        virtual float getInteractionRange() = 0;
     };
 }

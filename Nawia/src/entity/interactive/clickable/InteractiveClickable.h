@@ -4,6 +4,8 @@
 
 namespace Nawia::Entity{
     class InteractiveClickable : public Entity, public Interactable {
+        
+        
     public:
         using Entity::Entity;
 

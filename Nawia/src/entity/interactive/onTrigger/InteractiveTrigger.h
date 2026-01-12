@@ -5,6 +5,7 @@
 
 namespace Nawia::Entity {
     class InteractiveTrigger : public Entity, public Interactable {
+   
     public:
         using Entity::Entity;
 
