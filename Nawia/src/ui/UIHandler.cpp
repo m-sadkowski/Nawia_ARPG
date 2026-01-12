@@ -231,8 +231,9 @@ namespace Nawia::UI {
 
 		const float start_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
 		const float start_y = static_cast<float>(GetScreenHeight()) - bottom_margin - icon_size;
+        constexpr int slots = 4;
 
-		for (int i = 0; i < 4; ++i)
+		for (int i = 0; i < slots; ++i)
 		{
 			const float x = start_x + (icon_size + spacing) * i;
 			const Rectangle rect = { x, start_y, icon_size, icon_size };
