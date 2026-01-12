@@ -2,6 +2,7 @@
 #include "AbilityEffect.h"
 #include "AbilityStats.h"
 
+#include <raylib.h>
 #include <functional>
 #include <vector>
 #include <string>
@@ -19,7 +20,7 @@ namespace Nawia::Entity
 
 	class Ability {
 	public:
-		Ability(std::string name, const AbilityStats& stats, AbilityTargetType target_type);
+		Ability(std::string name, const AbilityStats& stats, AbilityTargetType target_type, const std::shared_ptr<Texture2D>& icon_texture);
 
 		virtual ~Ability() = default;
 
@@ -29,14 +30,19 @@ namespace Nawia::Entity
 		virtual std::unique_ptr<Entity> cast(float target_x, float target_y) = 0;
 		[[nodiscard]] std::string getName() const;
 		[[nodiscard]] float getCastRange() const;
+		[[nodiscard]] float getCooldownTimer() const { return _cooldown_timer; }
 		[[nodiscard]] AbilityTargetType getTargetType() const;
 		[[nodiscard]] const AbilityStats& getStats() const { return _stats; }
+		
+
+		[[nodiscard]] std::shared_ptr<Texture2D> getIcon() const { return _icon_texture; }
 		
 		void setCaster(Entity* caster) { _caster = caster; }
 		[[nodiscard]] Entity* getCaster() const { return _caster; }
 
 	protected:
 		std::string _name;
+		std::shared_ptr<Texture2D> _icon_texture;
 		AbilityStats _stats;
 		float _cooldown_timer;
 		AbilityTargetType _target_type;

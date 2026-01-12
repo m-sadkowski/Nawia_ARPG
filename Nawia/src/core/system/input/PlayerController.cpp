@@ -171,6 +171,8 @@ namespace Nawia::Core {
 	
 	void PlayerController::processAutoAttack()
 	{
+		if (_player->isAnimationLocked()) return;
+
 		if (!_target_enemy || _target_enemy->isDead() || _target_enemy->getFaction() == Entity::Entity::Faction::None)
 		{
 			_target_enemy = nullptr;
@@ -349,16 +351,10 @@ namespace Nawia::Core {
 
 	void PlayerController::updateRotation()
 	{
-		if (_target_enemy)
-		{
-			// Tryb walki: zawsze twarz¹ do wroga
+		if (_target_enemy) 
 			_player->rotateTowardsCenter(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
-		}
 		else if (!_player->isMoving() && !_player->isAnimationLocked())
-		{
-			// Tryb swobodny: patrz za myszk¹ (tylko gdy stoisz)
 			_player->rotateTowards(_last_mouse_x, _last_mouse_y);
-		}
 	}
 
 } // namespace Nawia::Core

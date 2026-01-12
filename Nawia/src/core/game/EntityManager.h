@@ -39,6 +39,8 @@ namespace Nawia::Core {
 		void resolveOverlap(std::shared_ptr<Entity::Entity>& e1, std::shared_ptr<Entity::Entity>& e2) const;
 		
 
+	private:
+
 		std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
 		std::shared_ptr<Entity::Entity> _player;
 
