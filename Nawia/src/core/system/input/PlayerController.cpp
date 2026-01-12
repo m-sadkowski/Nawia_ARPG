@@ -150,6 +150,8 @@ namespace Nawia::Core {
 	
 	void PlayerController::processAutoAttack()
 	{
+		if (_player->isAnimationLocked()) return;
+
 		if (!_target_enemy || _target_enemy->isDead() || _target_enemy->getFaction() == Entity::Entity::Faction::None)
 		{
 			_target_enemy = nullptr;

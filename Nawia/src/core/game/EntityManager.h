@@ -13,7 +13,6 @@ namespace Nawia::Core {
 		EntityManager() = default;
 		~EntityManager() = default;
 
-	private:
 		void addEntity(std::shared_ptr<Entity::Entity> new_entity);
 		void setPlayer(std::shared_ptr<Entity::Entity> player) { _player = std::move(player); }
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, Camera camera) const;
@@ -23,6 +22,8 @@ namespace Nawia::Core {
 		void updateEntities(float delta_time);
 
 		[[nodiscard]] const std::vector<std::shared_ptr<Entity::Entity>>& getEntities() const { return _active_entities; }
+
+	private:
 
 		std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
 		

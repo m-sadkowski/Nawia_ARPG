@@ -16,7 +16,7 @@
 
 namespace Nawia::Core {
 
-	Engine::Engine() : _is_running(false), _controller(nullptr) 
+	Engine::Engine() : _is_running(false), _controller(nullptr), _game_state(GameState::Menu) 
 	{
 		SetTraceLogLevel(LOG_ERROR);
 		InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Nawia");
@@ -34,10 +34,13 @@ namespace Nawia::Core {
 
 		// initialize spells
 		const auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");
-		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_tex));
+		const auto sword_slash_icon = _resource_manager.getTexture("../assets/textures/icons/sword_slash_icon.png");
+		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_tex, sword_slash_icon));
+		
 		const auto fireball_tex = _resource_manager.getTexture("../assets/textures/fireball.png");
 		const auto fireball_hit_tex = _resource_manager.getTexture("../assets/textures/fireball_hit.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex));
+		const auto fireball_icon = _resource_manager.getTexture("../assets/textures/icons/fireball_icon.png");
+		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
@@ -49,7 +52,7 @@ namespace Nawia::Core {
 		// manual setup of a test enemy with specific abilities
 		const auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
 		const auto dummy = std::make_shared<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get());
-		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex));
+		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 		dummy->setTarget(_player);
 		_entity_manager->addEntity(dummy);
 
@@ -67,6 +70,10 @@ namespace Nawia::Core {
 		auto test_checkpoint = std::make_shared<Entity::Checkpoint>("Punkt Kontrolny", 20.0f, 20.0f, cp_tex);
 		_entity_manager->addEntity(test_checkpoint);
 		_entity_manager->setPlayer(_player);
+
+        // initialize UI
+        _ui_handler = std::make_unique<Nawia::UI::UIHandler>();
+        _ui_handler->initialize(_player, _entity_manager.get());
 	}
 
 	Engine::~Engine()
@@ -102,6 +109,21 @@ namespace Nawia::Core {
 
 	void Engine::handleInput() 
 	{
+		if (_game_state == GameState::Menu)
+		{
+            if (!_ui_handler) return;
+			const Nawia::UI::MenuAction action = _ui_handler->handleMenuInput();
+            if (action == Nawia::UI::MenuAction::Play)
+            {
+                _game_state = GameState::Playing;
+            }
+            else if (action == Nawia::UI::MenuAction::Exit)
+            {
+                _is_running = false;
+            }
+			return;
+		}
+
 		// transform mouse location to position in world
 		Vector2 mouse_pos = GetMousePosition();
 		Vector2 mouse_world_pos =  screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
@@ -114,6 +136,12 @@ namespace Nawia::Core {
 
 	void Engine::update(const float delta_time) 
 	{
+		if (_game_state == GameState::Menu)
+        {
+            if (_ui_handler) _ui_handler->update(delta_time);
+            return;
+        }
+
 		if (!_player || !_entity_manager)
 			return;
 
@@ -147,20 +175,29 @@ namespace Nawia::Core {
 		BeginDrawing();
 		ClearBackground(BLACK);
 
-		if (!_map || !_player || !_entity_manager) 
-		{
-			EndDrawing();
-			return;
-		}
+        if (_game_state == GameState::Menu)
+        {
+            if (_ui_handler) _ui_handler->renderMainMenu();
+        }
+        else
+        {
+		    if (!_map || !_player || !_entity_manager) 
+		    {
+			    EndDrawing();
+			    return;
+		    }
 
-		/* RENDER START */
+		    /* RENDER START */
 
-		// BeginMode2D(_camera); // If we use Raylib Camera2D, otherwise manual offset
+		    // BeginMode2D(_camera); // If we use Raylib Camera2D, otherwise manual offset
 
-		_map->render(_camera.x, _camera.y);
-		_entity_manager->renderEntities(_camera);
+		    _map->render(_camera.x, _camera.y);
+		    _entity_manager->renderEntities(_camera);
+            
+            if (_ui_handler) _ui_handler->render(_camera);
 
-		/* RENDER END */
+		    /* RENDER END */
+        }
 
 		EndDrawing();
 	}
