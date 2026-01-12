@@ -10,6 +10,58 @@
 
 namespace Nawia::UI {
 
+    namespace {
+        struct MenuLayout 
+    	{
+            Rectangle play_btn;
+            Rectangle exit_btn;
+        };
+
+        MenuLayout getMenuLayout(const float screen_width, const float screen_height) 
+    	{
+            constexpr float btn_width = 200.0f;
+            constexpr float btn_height = 50.0f;
+            constexpr float spacing = 20.0f;
+            
+            const float start_y = screen_height / 2.0f;
+            const float center_x = (screen_width - btn_width) / 2.0f;
+
+            return {
+                { center_x, start_y, btn_width, btn_height },
+                { center_x, start_y + btn_height + spacing, btn_width, btn_height }
+            };
+        }
+
+        float getHealthBarYOffset(const Entity::Entity& entity) 
+    	{
+            float y_offset = 60.0f; // Default fallback for no collider
+
+            if (const auto collider = entity.getCollider()) 
+            {
+                // Convert world units to approximate screen pixels where 1 unit ~ TILE_HEIGHT pixels roughly in verticality
+                constexpr float world_to_screen_factor = static_cast<float>(Core::TILE_HEIGHT);
+                switch (collider->getType()) 
+            	{
+                    case Entity::ColliderType::CIRCLE:
+                        if (const auto circle = dynamic_cast<const Entity::CircleCollider*>(collider)) 
+                            y_offset = (circle->getRadius() * world_to_screen_factor) + Core::TILE_HEIGHT;
+                        break;
+                    case Entity::ColliderType::RECTANGLE:
+                        if (const auto rect = dynamic_cast<const Entity::RectangleCollider*>(collider)) 
+                            y_offset = (rect->getHeight() / 2.0f * world_to_screen_factor) + Core::TILE_HEIGHT;
+                        break;
+                    case Entity::ColliderType::CONE:
+                        if (const auto cone = dynamic_cast<const Entity::ConeCollider*>(collider))
+                            y_offset = (cone->getRadius() * world_to_screen_factor) + Core::TILE_HEIGHT;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return y_offset;
+        }
+    }
+
     UIHandler::UIHandler() : _player(nullptr), _entity_manager(nullptr) {}
 
     UIHandler::~UIHandler() 
@@ -23,7 +75,7 @@ namespace Nawia::UI {
         _entity_manager = entity_manager;
         _font = LoadFontEx("../assets/fonts/slavic_font.ttf", 300, nullptr, 0);
         GenTextureMipmaps(&_font.texture);
-        SetTextureFilter(_font.texture, TEXTURE_FILTER_BILINEAR);
+        SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
     }
 
     void UIHandler::update(float dt) 
@@ -38,26 +90,16 @@ namespace Nawia::UI {
 
     MenuAction UIHandler::handleMenuInput() 
 	{
-        Vector2 mouse_pos = GetMousePosition();
-        
         const float screen_width = static_cast<float>(GetScreenWidth());
         const float screen_height = static_cast<float>(GetScreenHeight());
-
-        // Button Config - Keep consistent with renderMainMenu
-        constexpr float btn_width = 200.0f;
-        constexpr float btn_height = 50.0f;
-        constexpr float spacing = 20.0f;
-        const float start_y = screen_height / 2.0f;
-        const float center_x = (screen_width - btn_width) / 2.0f;
-
-        const Rectangle play_btn_rect = { center_x, start_y, btn_width, btn_height };
-        const Rectangle exit_btn_rect = { center_x, start_y + btn_height + spacing, btn_width, btn_height };
+        const auto layout = getMenuLayout(screen_width, screen_height);
+        const Vector2 mouse_pos = GetMousePosition();
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) 
         {
-            if (CheckCollisionPointRec(mouse_pos, play_btn_rect))
+            if (CheckCollisionPointRec(mouse_pos, layout.play_btn))
                 return MenuAction::Play;
-            if (CheckCollisionPointRec(mouse_pos, exit_btn_rect))
+            if (CheckCollisionPointRec(mouse_pos, layout.exit_btn))
                 return MenuAction::Exit;
         }
 
@@ -77,7 +119,7 @@ namespace Nawia::UI {
         const float screen_width = static_cast<float>(GetScreenWidth());
         const float screen_height = static_cast<float>(GetScreenHeight());
 
-        // Draw Background (Semi-transparent overlay if game is running behind, or solid color)
+        // Draw Background
         DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.8f));
 
         // Draw Title
@@ -87,33 +129,29 @@ namespace Nawia::UI {
         Vector2 title_size = MeasureTextEx(_font, title_text, title_font_size, spacing);
         DrawTextEx(_font, title_text, { (screen_width - title_size.x) / 2.0f, screen_height / 4.0f }, title_font_size, spacing, DARKGREEN);
 
-        // Button Config
-        constexpr float btn_width = 200.0f;
-        constexpr float btn_height = 50.0f;
-        constexpr float btn_spacing = 20.0f;
-        const float start_y = screen_height / 2.0f;
-        const float center_x = (screen_width - btn_width) / 2.0f;
-
-        const Rectangle play_btn_rect = { center_x, start_y, btn_width, btn_height };
-        const Rectangle exit_btn_rect = { center_x, start_y + btn_height + btn_spacing, btn_width, btn_height };
-
+        // Draw Buttons
+        const auto layout = getMenuLayout(screen_width, screen_height);
         const Vector2 mouse_pos = GetMousePosition();
-        const bool mouse_on_play = CheckCollisionPointRec(mouse_pos, play_btn_rect);
-        const bool mouse_on_exit = CheckCollisionPointRec(mouse_pos, exit_btn_rect);
 
-        // Draw Play Button
-        DrawRectangleRec(play_btn_rect, mouse_on_play ? LIGHTGRAY : RAYWHITE);
-        DrawRectangleLinesEx(play_btn_rect, 2, BLACK);
-        const auto* play_text = "PLAY";
-        Vector2 play_text_size = MeasureTextEx(_font, play_text, 20.0f, 1.0f);
-        DrawTextEx(_font, play_text, { center_x + (btn_width - play_text_size.x) / 2.0f, start_y + (btn_height - play_text_size.y) / 2.0f }, 20.0f, 1.0f, BLACK);
+        drawMenuButton(layout.play_btn, "PLAY", CheckCollisionPointRec(mouse_pos, layout.play_btn));
+        drawMenuButton(layout.exit_btn, "EXIT", CheckCollisionPointRec(mouse_pos, layout.exit_btn));
+    }
 
-        // Draw Exit Button
-        DrawRectangleRec(exit_btn_rect, mouse_on_exit ? LIGHTGRAY : RAYWHITE);
-        DrawRectangleLinesEx(exit_btn_rect, 2, BLACK);
-        const auto* exit_text = "EXIT";
-        Vector2 exit_text_size = MeasureTextEx(_font, exit_text, 20.0f, 1.0f);
-        DrawTextEx(_font, exit_text, { center_x + (btn_width - exit_text_size.x) / 2.0f, start_y + btn_height + btn_spacing + (btn_height - exit_text_size.y) / 2.0f }, 20.0f, 1.0f, BLACK);
+    void UIHandler::drawMenuButton(const Rectangle& rect, const char* text, const bool is_hovered) const
+    {
+        DrawRectangleRec(rect, is_hovered ? LIGHTGRAY : RAYWHITE);
+        DrawRectangleLinesEx(rect, 2, BLACK);
+        
+        const float font_size = 20.0f;
+        const float spacing = 1.0f;
+        Vector2 text_size = MeasureTextEx(_font, text, font_size, spacing);
+        
+        Vector2 text_pos = { 
+            rect.x + (rect.width - text_size.x) / 2.0f, 
+            rect.y + (rect.height - text_size.y) / 2.0f 
+        };
+        
+        DrawTextEx(_font, text, text_pos, font_size, spacing, BLACK);
     }
 
     void UIHandler::renderPlayerHealthBar() const 
@@ -141,42 +179,27 @@ namespace Nawia::UI {
         DrawTextEx(_font, text, { screen_x + (bar_width - text_size.x) / 2.0f, screen_y + (bar_height - text_size.y) / 2.0f }, 20.0f, 1.0f, WHITE);
     }
 
-    void UIHandler::renderEnemyHealthBars(const Core::Camera& camera) const {
+    void UIHandler::renderEnemyHealthBars(const Core::Camera& camera) const 
+	{
         if (!_entity_manager) return;
 
         for (const auto& entity : _entity_manager->getEntities())
         {
-            if (entity->getFaction() == Entity::Entity::Faction::Enemy && entity->getHP() < entity->getMaxHP() && entity->getHP() > 0) 
+            if (entity->getFaction() == Entity::Entity::Faction::Enemy && 
+                entity->getHP() < entity->getMaxHP() && 
+                entity->getHP() > 0) 
             {
-                const Vector2 screen_pos = entity->getScreenPos(entity->getX(), entity->getY(), camera.x, camera.y);
+                // Use collider center (or entity pos) projected to screen space, then offset upwards
+                const Vector2 world_center = entity->getCenter();
+                const Vector2 screen_center = entity->getIsoPos(world_center.x, world_center.y, camera.x, camera.y);
                 
                 // Bar Config
                 constexpr float bar_width = 40.0f;
                 constexpr float bar_height = 6.0f;
                 
-                // Calculate dynamic offset based on collider height
-                float y_offset = 40.0f; // Default fallback
-                if (const auto collider = entity->getCollider()) 
-                {
-                    if (collider->getType() == Entity::ColliderType::CIRCLE) 
-                    {
-                        const auto circle = dynamic_cast<Entity::CircleCollider*>(collider);
-                        y_offset = circle->getRadius() + 10.0f;
-                    } 
-                	else if (collider->getType() == Entity::ColliderType::RECTANGLE) 
-                    {
-                         const auto rect = dynamic_cast<Entity::RectangleCollider*>(collider);
-                         y_offset = (rect->getHeight() / 2.0f) + 10.0f;
-                    }  
-                	else if (collider->getType() == Entity::ColliderType::CONE) 
-                    {
-                        const auto cone = dynamic_cast<Entity::ConeCollider*>(collider);
-                        y_offset = cone->getRadius() + 10.0f;
-                    }
-                } 
-                
-                const float bar_x = screen_pos.x - bar_width / 2.0f;
-                const float bar_y = screen_pos.y - y_offset;
+                const float y_offset = getHealthBarYOffset(*entity);
+                const float bar_x = screen_center.x - bar_width / 2.0f;
+                const float bar_y = screen_center.y - y_offset;
                 
                 const float hp_pct = std::clamp(static_cast<float>(entity->getHP()) / static_cast<float>(entity->getMaxHP()), 0.0f, 1.0f);
                 
@@ -186,7 +209,8 @@ namespace Nawia::UI {
         }
     }
 
-    void UIHandler::drawBar(const float x, const float y, const float width, const float height, const float percentage, const Color fg_color, const Color bg_color) const {
+    void UIHandler::drawBar(const float x, const float y, const float width, const float height, const float percentage, const Color fg_color, const Color bg_color) const 
+	{
         // Background
         DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(width), static_cast<int>(height), bg_color);
         

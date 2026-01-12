@@ -41,6 +41,7 @@ namespace Nawia::UI {
         void renderEnemyHealthBars(const Core::Camera& camera) const;
         
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;
+        void drawMenuButton(const Rectangle& rect, const char* text, bool is_hovered) const;
 
         std::shared_ptr<Entity::Player> _player;
         Core::EntityManager* _entity_manager;
