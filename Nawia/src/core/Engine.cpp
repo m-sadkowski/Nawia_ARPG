@@ -34,10 +34,13 @@ namespace Nawia::Core {
 
 		// initialize spells
 		const auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");
-		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_tex));
+		const auto sword_slash_icon = _resource_manager.getTexture("../assets/textures/icons/sword_slash_icon.png");
+		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_tex, sword_slash_icon));
+		
 		const auto fireball_tex = _resource_manager.getTexture("../assets/textures/fireball.png");
 		const auto fireball_hit_tex = _resource_manager.getTexture("../assets/textures/fireball_hit.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex));
+		const auto fireball_icon = _resource_manager.getTexture("../assets/textures/icons/fireball_icon.png");
+		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
@@ -49,7 +52,7 @@ namespace Nawia::Core {
 		// manual setup of a test enemy with specific abilities
 		const auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
 		const auto dummy = std::make_shared<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get());
-		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex));
+		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 		dummy->setTarget(_player);
 		_entity_manager->addEntity(dummy);
 

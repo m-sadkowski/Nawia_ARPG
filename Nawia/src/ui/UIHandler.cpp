@@ -34,7 +34,7 @@ namespace Nawia::UI {
 
         float getHealthBarYOffset(const Entity::Entity& entity) 
     	{
-            float y_offset = 60.0f; // Default fallback for no collider
+            float y_offset = Core::TILE_HEIGHT; // Default fallback for no collider
 
             if (const auto collider = entity.getCollider()) 
             {
@@ -44,21 +44,21 @@ namespace Nawia::UI {
             	{
                     case Entity::ColliderType::CIRCLE:
                         if (const auto circle = dynamic_cast<const Entity::CircleCollider*>(collider)) 
-                            y_offset = (circle->getRadius() * world_to_screen_factor) + Core::TILE_HEIGHT;
+                            y_offset = (circle->getRadius() * world_to_screen_factor);
                         break;
                     case Entity::ColliderType::RECTANGLE:
                         if (const auto rect = dynamic_cast<const Entity::RectangleCollider*>(collider)) 
-                            y_offset = (rect->getHeight() / 2.0f * world_to_screen_factor) + Core::TILE_HEIGHT;
+                            y_offset = (rect->getHeight() / 2.0f * world_to_screen_factor);
                         break;
                     case Entity::ColliderType::CONE:
                         if (const auto cone = dynamic_cast<const Entity::ConeCollider*>(collider))
-                            y_offset = (cone->getRadius() * world_to_screen_factor) + Core::TILE_HEIGHT;
+                            y_offset = (cone->getRadius() * world_to_screen_factor);
                         break;
                     default:
                         break;
                 }
             }
-            return y_offset;
+            return y_offset + Core::TILE_HEIGHT;
         }
     }
 
@@ -111,6 +111,7 @@ namespace Nawia::UI {
         if (!_player || !_entity_manager) return;
 
         renderPlayerHealthBar();
+        renderPlayerAbilityBar();
         renderEnemyHealthBars(camera);
     }
 
@@ -217,5 +218,52 @@ namespace Nawia::UI {
         // Foreground
         DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(width * percentage), static_cast<int>(height), fg_color);
     }
+
+	void UIHandler::renderPlayerAbilityBar() const
+	{
+		if (!_player) return;
+
+		const auto& abilities = _player->getAbilities();
+		constexpr float icon_size = 50.0f;
+		constexpr float spacing = 10.0f;
+		constexpr float bar_width = (icon_size * 4) + (spacing * 3);
+		constexpr float bottom_margin = 90.0f; // Positioned above the health bar (which is at 50 margin + 25 height)
+
+		const float start_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
+		const float start_y = static_cast<float>(GetScreenHeight()) - bottom_margin - icon_size;
+
+		for (int i = 0; i < 4; ++i)
+		{
+			const float x = start_x + (icon_size + spacing) * i;
+			const Rectangle rect = { x, start_y, icon_size, icon_size };
+
+			// Draw Background/Empty Slot
+			DrawRectangleRec(rect, Fade(BLACK, 0.5f));
+			DrawRectangleLinesEx(rect, 2, DARKGRAY);
+
+            if (i >= abilities.size())
+                return;
+			
+			const auto& ability = abilities[i];
+			if (const auto icon = ability->getIcon())
+				DrawTexturePro(*icon, { 0, 0, static_cast<float>(icon->width), static_cast<float>(icon->height) }, rect, { 0, 0 }, 0.0f, WHITE);
+
+			// Draw Cooldown Overlay
+			if (!ability->isReady())
+			{
+				const float cooldown_ratio = ability->getCooldownTimer() / ability->getStats().cooldown;
+				const float overlay_height = icon_size * cooldown_ratio;
+
+				DrawRectangle(static_cast<int>(x), static_cast<int>(start_y), static_cast<int>(icon_size), static_cast<int>(overlay_height), Fade(GRAY, 0.8f));
+					
+				// Draw Cooldown Text
+				const auto* text = TextFormat("%.1f", ability->getCooldownTimer());
+				constexpr float font_size = 20.0f;
+				const Vector2 text_size = MeasureTextEx(_font, text, font_size, 1.0f);
+				const Vector2 text_pos = { x + (icon_size - text_size.x) / 2.0f, start_y + (icon_size - text_size.y) / 2.0f };
+				DrawTextEx(_font, text, text_pos, font_size, 1.0f, WHITE);
+			}
+		}
+	}
 
 } // namespace Nawia::UI

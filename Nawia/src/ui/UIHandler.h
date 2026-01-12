@@ -38,6 +38,7 @@ namespace Nawia::UI {
 
     private:
         void renderPlayerHealthBar() const;
+        void renderPlayerAbilityBar() const;
         void renderEnemyHealthBars(const Core::Camera& camera) const;
         
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;

@@ -8,7 +8,7 @@ namespace Nawia::Entity {
 
 	class FireballAbility : public Ability {
 	public:
-		FireballAbility(const std::shared_ptr<Texture2D>& projectile_tex, const std::shared_ptr<Texture2D>& hit_tex);
+		FireballAbility(const std::shared_ptr<Texture2D>& projectile_tex, const std::shared_ptr<Texture2D>& hit_tex, const std::shared_ptr<Texture2D>& icon_tex);
 
 		std::unique_ptr<Entity> cast(float target_x, float target_y) override;
 

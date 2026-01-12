@@ -73,6 +73,7 @@ namespace Nawia::Entity {
 		static AbilityStats getAbilityStatsFromJson(const std::string& name);
 		void addAbility(const std::shared_ptr<Ability>& ability);
 		[[nodiscard]] std::shared_ptr<Ability> getAbility(int index);
+		[[nodiscard]] const std::vector<std::shared_ptr<Ability>>& getAbilities() const { return _abilities; }
 		void updateAbilities(float dt) const;
 
 
