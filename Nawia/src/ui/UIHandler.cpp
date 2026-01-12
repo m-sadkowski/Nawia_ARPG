@@ -242,7 +242,7 @@ namespace Nawia::UI {
 			DrawRectangleLinesEx(rect, 2, DARKGRAY);
 
             if (i >= abilities.size())
-                return;
+                continue;
 			
 			const auto& ability = abilities[i];
 			if (const auto icon = ability->getIcon())
