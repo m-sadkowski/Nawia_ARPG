@@ -18,7 +18,7 @@ namespace Nawia::Entity {
 		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
 		  _current_anim_index(0), _anim_frame_counter(0), _rotation(0.0f), _model_loaded(false), _use_3d_rendering(false),
 		  _velocity{0.0f, 0.0f}, _scale(1.0f), _faction(Faction::None), _pos{start_x, start_y},
-		  _anim_looping(true), _anim_locked(false) {}
+		  _anim_looping(true), _anim_locked(false), _hovered(false) {}
 
 	Entity::~Entity()
 	{
@@ -167,6 +167,32 @@ namespace Nawia::Entity {
 			const Rectangle dest = {pos.x, pos.y, dest_texture_width, dest_texture_height };
 			constexpr Vector2 origin = {0.0f, 0.0f};
 			DrawTexturePro(*_texture, source, dest, origin, 0.0f, WHITE);
+		}
+
+		if (_hovered)
+		{
+			if (_use_3d_rendering && _model_loaded)
+			{
+			    const float texture_width = static_cast<float>(_target.texture.width);
+			    const float texture_height = static_cast<float>(_target.texture.height);
+			    const Rectangle source = { 0.0f, 0.0f, texture_width, -texture_height };
+			    const Rectangle dest = { pos.x, pos.y, texture_width, texture_height };
+			    const Vector2 origin = { dest.width / 2.0f, dest.height / 2.0f };
+			    
+			    DrawTexturePro(_target.texture, source, dest, origin, 0.0f, Fade(BLACK, 0.2f));
+			}
+			else if (_texture)
+			{
+			    const float source_texture_width = static_cast<float>(_texture->width);
+			    const float source_texture_height = static_cast<float>(_texture->height);
+			    constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
+			    constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
+
+			    const Rectangle source = {0.0f, 0.0f, source_texture_width, source_texture_height };
+			    const Rectangle dest = {pos.x, pos.y, dest_texture_width, dest_texture_height };
+			    constexpr Vector2 origin = {0.0f, 0.0f};
+				DrawTexturePro(*_texture, source, dest, origin, 0.0f, Fade(BLACK, 0.2f));
+			}
 		}
 
 		if (DebugColliders && _collider) {

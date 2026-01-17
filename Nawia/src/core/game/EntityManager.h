@@ -28,6 +28,7 @@ namespace Nawia::Core {
 
 		// Input 
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, Camera camera) const;
+		void updateHoverState(float screen_x, float screen_y, const Camera& camera);
 
 		// For collisions
 		void processAbilityCollisions();

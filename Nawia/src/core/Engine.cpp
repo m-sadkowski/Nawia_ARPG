@@ -210,6 +210,8 @@ namespace Nawia::Core {
 		Vector2 mouse_pos = GetMousePosition();
 		Vector2 mouse_world_pos =  screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
 
+		_entity_manager->updateHoverState(mouse_pos.x, mouse_pos.y, _camera);
+
 		if (!_controller)
 			return;
 

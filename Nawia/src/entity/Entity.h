@@ -118,7 +118,7 @@ namespace Nawia::Entity {
 		[[nodiscard]] Vector2 getVelocity() const { return _velocity; }
 		void setScale(const float scale) { _scale = scale; }
 		[[nodiscard]] float getScale() const { return _scale; }
-
+		void setHovered(const bool hovered) { _hovered = hovered; }
 
 		// ═══════════════════════════════════════════════════════════════════════
 		// HEALTH & DAMAGE
@@ -263,6 +263,7 @@ namespace Nawia::Entity {
 		bool _model_loaded;
 		bool _anim_looping;
 		bool _anim_locked;
+		bool _hovered;
 
 		Faction _faction;
 
