@@ -11,7 +11,7 @@ namespace Nawia::Entity {
     {
         setFaction(Faction::None);
         _use_3d_rendering = false;
-        setCollider(std::make_unique<RectangleCollider>(this, 0.8f, 0.3f, -.0f, -.0f));
+        setCollider(std::make_unique<RectangleCollider>(this, 0.9f, 0.4f, -0.5f, -0.5f));
     }
     
     void Chest::onInteract(Entity& instigator) {

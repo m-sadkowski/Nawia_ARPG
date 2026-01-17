@@ -1,4 +1,4 @@
-#include "Engine.h"
+﻿#include "Engine.h"
 #include "GlobalScaling.h"
 #include "Logger.h"
 #include "MathUtils.h"
@@ -77,8 +77,7 @@ namespace Nawia::Core {
 		_entity_manager->addEntity(test_chest);
 
 		// 2. Checkpoint (InteractiveTrigger)
-		const auto cp_tex = _resource_manager.getTexture("../assets/textures/checkpoint.png");
-		auto test_checkpoint = std::make_shared<Entity::Checkpoint>("Punkt Kontrolny", 20.0f, 20.0f, cp_tex);
+		auto test_checkpoint = std::make_shared<Entity::Checkpoint>("Punkt Kontrolny", 20.0f, 20.0f);
 		_entity_manager->addEntity(test_checkpoint);
 		_entity_manager->setPlayer(_player);
 
