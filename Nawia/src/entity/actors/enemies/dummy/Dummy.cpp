@@ -75,10 +75,10 @@ namespace Nawia::Entity {
 		Entity::update(dt);
 		updateAbilities(dt);
 
-		if (_target)
+		if (auto target = _target.lock())
 		{
-			_target_x = _target->getX();
-			_target_y = _target->getY();
+			_target_x = target->getX();
+			_target_y = target->getY();
 
 			rotateTowards(_target_x, _target_y);
 		}
@@ -92,9 +92,9 @@ namespace Nawia::Entity {
 				float tx = _target_x;
 				float ty = _target_y;
 				
-				if (_target) {
-					tx = _target->getCenter().x;
-					ty = _target->getCenter().y;
+				if (auto target = _target.lock()) {
+					tx = target->getCenter().x;
+					ty = target->getCenter().y;
 				}
 
 				if (auto effect = fireball->cast(tx, ty))
@@ -117,7 +117,7 @@ namespace Nawia::Entity {
 		if (_fireball_cooldown_timer > 0.0f)
 			_fireball_cooldown_timer -= dt;
 
-		if (_target && !_target->isDead())
+		if (auto target = _target.lock(); target && !target->isDead())
 		{
 			// attempts to cast the first available ability if conditions are met
 			if (const auto fireball = getAbility(0))
@@ -129,8 +129,8 @@ namespace Nawia::Entity {
 					playAnimation("cast_fireball", false, true);
 					
 					// update target position for the cast
-					_target_x = _target->getCenter().x;
-					_target_y = _target->getCenter().y;
+					_target_x = target->getCenter().x;
+					_target_y = target->getCenter().y;
 
 					rotateTowards(_target_x, _target_y);
 

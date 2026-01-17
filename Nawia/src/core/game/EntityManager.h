@@ -13,6 +13,9 @@ namespace Nawia::Core {
 		EntityManager() = default;
 		~EntityManager() = default;
 
+		/// Get all active entities (for rendering health bars, etc.)
+		[[nodiscard]] const std::vector<std::shared_ptr<Entity::Entity>>& getEntities() const { return _active_entities; }
+
 	private:
 		// Core management
 		void addEntity(std::shared_ptr<Entity::Entity> new_entity);
@@ -25,9 +28,6 @@ namespace Nawia::Core {
 
 		// Input 
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, Camera camera) const;
-
-		// Getters
-		[[nodiscard]] const std::vector<std::shared_ptr<Entity::Entity>>& getEntities() const { return _active_entities; }
 
 		// For collisions
 		void processAbilityCollisions();

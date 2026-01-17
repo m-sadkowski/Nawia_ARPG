@@ -12,16 +12,28 @@ namespace Nawia::Entity {
 namespace Nawia::Core {
     class EntityManager;
     struct Camera;
+    class Settings;
 }
 
 namespace Nawia::UI {
 
+    class SettingsMenu;
+
+    /**
+     * @enum MenuAction
+     * @brief Actions that can result from menu input handling.
+     */
     enum class MenuAction {
-        None,
-        Play,
-        Exit
+        None,       ///< No action taken
+        Play,       ///< Start/resume game
+        Settings,   ///< Open settings menu
+        Exit        ///< Exit game
     };
 
+    /**
+     * @class UIHandler
+     * @brief Manages all UI rendering: HUD, main menu, and settings menu.
+     */
     class UIHandler {
     public:
         UIHandler();
@@ -32,9 +44,27 @@ namespace Nawia::UI {
         void update(float dt);
         void render(const Core::Camera& camera) const;
         void renderMainMenu() const;
+        void renderSettingsMenu() const;
         
         MenuAction handleMenuInput();
+        MenuAction handleSettingsInput();
+        MenuAction handlePauseMenuInput();  ///< Handle input for ESC pause menu overlay
         void handleInput();
+        
+        /// Render pause menu overlay (semi-transparent)
+        void renderPauseMenu() const;
+        
+        /// Open settings menu with current settings
+        void openSettings(const Core::Settings& settings);
+        
+        /// Check if settings were applied (get new settings via getAppliedSettings)
+        [[nodiscard]] bool wereSettingsApplied() const;
+        
+        /// Get the settings that were applied (valid after wereSettingsApplied returns true)
+        [[nodiscard]] const Core::Settings& getAppliedSettings() const;
+        
+        /// Close the settings menu (call after settings are applied)
+        void closeSettingsMenu();
 
     private:
         void renderPlayerHealthBar() const;
@@ -47,6 +77,9 @@ namespace Nawia::UI {
         std::shared_ptr<Entity::Player> _player;
         Core::EntityManager* _entity_manager;
         Font _font;
+        
+        std::unique_ptr<SettingsMenu> _settings_menu;
     };
 
 } // namespace Nawia::UI
+

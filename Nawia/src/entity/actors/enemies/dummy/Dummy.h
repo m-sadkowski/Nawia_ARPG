@@ -16,7 +16,7 @@ namespace Nawia::Entity {
 	private:
 		float _target_x, _target_y;
 		float _stay_timer;
-		std::shared_ptr<Entity> _target;
+		std::weak_ptr<Entity> _target;  ///< weak_ptr avoids circular references
 		float _fireball_cooldown_timer;
 		bool _is_dying = false;
 		bool _is_casting = false;

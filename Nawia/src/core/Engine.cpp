@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "GlobalScaling.h"
 #include "Logger.h"
 #include "MathUtils.h"
 #include "PlayerController.h"
@@ -20,7 +21,17 @@ namespace Nawia::Core {
 	{
 		SetTraceLogLevel(LOG_ERROR);
 		InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Nawia");
+		SetExitKey(0);  // Disable ESC = close window (we handle ESC manually)
 		SetTargetFPS(60);
+		
+		// Load settings from file (if exists)
+		if (_settings.load()) {
+		    // Apply saved resolution
+		    SetWindowSize(_settings.resolution.width, _settings.resolution.height);
+		}
+		
+		// Initialize UI scaling system with saved manual scale
+		GlobalScaling::setManualScale(_settings.uiScale);
 
 		// TEMPORARY SOLUTION
 		// initialize map object
@@ -117,11 +128,83 @@ namespace Nawia::Core {
             {
                 _game_state = GameState::Playing;
             }
+            else if (action == Nawia::UI::MenuAction::Settings)
+            {
+                _previous_state = GameState::Menu;  // Remember where we came from
+                _ui_handler->openSettings(_settings);
+                _game_state = GameState::SettingsMenu;
+            }
             else if (action == Nawia::UI::MenuAction::Exit)
             {
                 _is_running = false;
             }
 			return;
+		}
+		
+	if (_game_state == GameState::SettingsMenu)
+	{
+	    if (!_ui_handler) return;
+	    
+	    // ESC in Settings = go back (same as Back button)
+	    if (IsKeyPressed(KEY_ESCAPE)) {
+	        _ui_handler->closeSettingsMenu();
+	        _game_state = _previous_state;
+	        if (_previous_state == GameState::Playing) {
+	            _show_pause_menu = true;
+	        }
+	        return;
+	    }
+	    
+	    const Nawia::UI::MenuAction action = _ui_handler->handleSettingsInput();
+	    
+	    // Check if Back was clicked
+	    if (action == Nawia::UI::MenuAction::Play) {
+	        // Return to previous state
+	        _game_state = _previous_state;
+	        if (_previous_state == GameState::Playing) {
+	            _show_pause_menu = true;  // Re-show pause menu when returning from settings
+	        }
+	        return;
+	    }
+	    
+	    // Check if settings were applied
+	    if (_ui_handler->wereSettingsApplied()) {
+	        applySettings(_ui_handler->getAppliedSettings());
+	        _ui_handler->closeSettingsMenu();  // Reset menu to clear stale state
+	        // Return to previous state (not always Menu)
+	        _game_state = _previous_state;
+	        if (_previous_state == GameState::Playing) {
+	            _show_pause_menu = true;
+	        }
+	    }
+	    return;
+	}
+
+		// Playing state - handle ESC for pause menu toggle
+		if (IsKeyPressed(KEY_ESCAPE)) {
+		    _show_pause_menu = !_show_pause_menu;
+		    return;
+		}
+		
+		// Handle pause menu input when visible
+		if (_show_pause_menu) {
+		    if (!_ui_handler) return;
+		    const Nawia::UI::MenuAction action = _ui_handler->handlePauseMenuInput();
+		    
+		    if (action == Nawia::UI::MenuAction::Play) {
+		        _show_pause_menu = false;  // Resume game
+		    }
+		    else if (action == Nawia::UI::MenuAction::Settings) {
+		        _previous_state = GameState::Playing;  // Remember where we came from
+		        _ui_handler->openSettings(_settings);
+		        _game_state = GameState::SettingsMenu;
+		        _show_pause_menu = false;
+		    }
+		    else if (action == Nawia::UI::MenuAction::Exit) {
+		        _game_state = GameState::Menu;  // Quit to main menu
+		        _show_pause_menu = false;
+		    }
+		    return;  // Don't process gameplay input while pause menu is open
 		}
 
 		// transform mouse location to position in world
@@ -136,7 +219,7 @@ namespace Nawia::Core {
 
 	void Engine::update(const float delta_time) 
 	{
-		if (_game_state == GameState::Menu)
+		if (_game_state == GameState::Menu || _game_state == GameState::SettingsMenu)
         {
             if (_ui_handler) _ui_handler->update(delta_time);
             return;
@@ -179,6 +262,14 @@ namespace Nawia::Core {
         {
             if (_ui_handler) _ui_handler->renderMainMenu();
         }
+        else if (_game_state == GameState::SettingsMenu)
+        {
+            // Render main menu as background, then settings overlay
+            if (_ui_handler) {
+                _ui_handler->renderMainMenu();
+                _ui_handler->renderSettingsMenu();
+            }
+        }
         else
         {
 		    if (!_map || !_player || !_entity_manager) 
@@ -195,11 +286,32 @@ namespace Nawia::Core {
 		    _entity_manager->renderEntities(_camera);
             
             if (_ui_handler) _ui_handler->render(_camera);
+            
+            // Render pause menu overlay if visible
+            if (_show_pause_menu && _ui_handler) {
+                _ui_handler->renderPauseMenu();
+            }
 
 		    /* RENDER END */
         }
 
 		EndDrawing();
+	}
+
+	void Engine::applySettings(const Settings& new_settings)
+	{
+	    _settings = new_settings;
+	    
+	    // Apply resolution change
+	    SetWindowSize(_settings.resolution.width, _settings.resolution.height);
+	    
+	    // Apply UI scale and update global scaling
+	    GlobalScaling::setManualScale(_settings.uiScale);
+	    
+	    // Save settings to file
+	    _settings.save();
+	    
+	    // Note: caller is responsible for setting _game_state to _previous_state
 	}
 
 } // namespace Nawia::Core
