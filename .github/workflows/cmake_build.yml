@@ -11,6 +11,10 @@ jobs:
     name: Build on Windows (Visual Studio)
     runs-on: windows-latest
     
+    defaults:
+      run:
+        working-directory: ./Nawia
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
