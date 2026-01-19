@@ -135,4 +135,45 @@ namespace Nawia::UI {
         return -1;
     }
 
+    Item::EquipmentSlot InventoryUI::getClickedEquipmentSlot() const {
+        if (!IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+            return Item::EquipmentSlot::None;
+        }
+
+        Vector2 mousePos = GetMousePosition();
+
+        float startX = 100.0f;
+        float startY = 100.0f;
+        float cx = startX + 110;
+        float cy = startY + 50;
+        float size = SLOT_SIZE;
+
+        struct SlotHitbox {
+            Item::EquipmentSlot slot;
+            float x;
+            float y;
+        };
+
+        SlotHitbox hitboxes[] = {
+            { Item::EquipmentSlot::Head,    cx - 25, cy },
+            { Item::EquipmentSlot::Neck,    cx + 40, cy },
+            { Item::EquipmentSlot::Chest,   cx - 25, cy + 60 },
+            { Item::EquipmentSlot::Legs,    cx - 25, cy + 120 },
+            { Item::EquipmentSlot::Feet,    cx - 25, cy + 180 },
+            { Item::EquipmentSlot::Weapon,  cx - 90, cy + 60 },
+            { Item::EquipmentSlot::OffHand, cx + 40, cy + 60 },
+            { Item::EquipmentSlot::Ring,    cx - 90, cy + 120 }
+        };
+
+        for (const auto& hb : hitboxes) {
+            Rectangle rect = { hb.x, hb.y, size, size };
+
+            if (CheckCollisionPointRec(mousePos, rect)) {
+                return hb.slot;
+            }
+        }
+
+        return Item::EquipmentSlot::None;
+    }
+
 }

@@ -27,4 +27,14 @@ namespace Nawia::Item {
         }
         return nullptr;
     }
+
+    int Backpack::getRemainingCapacity() const {
+        int freeSlots = 0;
+        for (const auto& item : _items) {
+            if (item == nullptr) {
+                freeSlots++;
+            }
+        }
+        return freeSlots;
+    }
 }

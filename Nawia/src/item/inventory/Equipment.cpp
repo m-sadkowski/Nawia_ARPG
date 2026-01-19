@@ -31,4 +31,13 @@ namespace Nawia::Item {
         if (_slots.count(slot)) return _slots.at(slot);
         return nullptr;
     }
+
+    std::shared_ptr<Item> Equipment::unequip(EquipmentSlot slot) {
+        if (_slots.find(slot) != _slots.end()) {
+            auto item = _slots[slot];
+            _slots[slot] = nullptr;
+            return item;
+        }
+        return nullptr;
+    }
 }

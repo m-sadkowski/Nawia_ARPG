@@ -100,10 +100,15 @@ namespace Nawia::UI {
         }
 
         if (_is_inventory_open) {
-            int _clicked_slot = _inventory_ui->handleInput();
+            int _backpack_slot = _inventory_ui->handleInput();
+            if (_backpack_slot != -1) {
+                _player->equipItemFromBackpack(_backpack_slot);
+                return;
+            }
 
-            if (_clicked_slot != -1) {
-                _player->equipItemFromBackpack(_clicked_slot);
+            auto _eq_slot = _inventory_ui->getClickedEquipmentSlot();
+            if (_eq_slot != Item::EquipmentSlot::None) {
+                _player->unequipItem(_eq_slot);
             }
         }
     }

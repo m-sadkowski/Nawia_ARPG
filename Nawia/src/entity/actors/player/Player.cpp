@@ -110,6 +110,16 @@ namespace Nawia::Entity {
 		}
 	}
 
+	void Player::unequipItem(Item::EquipmentSlot slot) {
+		auto item = _equipment->getItemAt(slot);
+		if (!item) return;
+
+		if (_backpack->getRemainingCapacity() > 0) {
+			_backpack->addItem(item);
+			_equipment->unequip(slot);
+		}
+	}
+
 	
 
 

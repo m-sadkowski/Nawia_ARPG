@@ -21,6 +21,7 @@ namespace Nawia::Entity {
 		void updateMovement(float delta_time);
 		
 		void equipItemFromBackpack(int backpackIndex);
+		void unequipItem(Item::EquipmentSlot slot);
 
 		const Item::Backpack& getBackpack() const { return *_backpack; }
 		Item::Backpack& getBackpack() { return *_backpack; }

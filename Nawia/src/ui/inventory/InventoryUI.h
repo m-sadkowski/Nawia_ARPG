@@ -15,6 +15,8 @@ namespace Nawia::UI {
         // handle click on slot, -1 if none
         int handleInput() const;
 
+        Item::EquipmentSlot getClickedEquipmentSlot() const;
+
     private:
         static constexpr float SLOT_SIZE = 50.0f;
         static constexpr float PADDING = 10.0f;

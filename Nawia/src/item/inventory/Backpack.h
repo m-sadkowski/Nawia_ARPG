@@ -20,6 +20,7 @@ namespace Nawia::Item {
         const std::vector<std::shared_ptr<Item>>& getItems() const { return _items; }
 
         int getCapacity() const { return _capacity; }
+        int getRemainingCapacity() const;
 
     private:
         int _capacity;
