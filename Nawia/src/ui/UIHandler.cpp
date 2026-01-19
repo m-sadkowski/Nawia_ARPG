@@ -83,6 +83,8 @@ namespace Nawia::UI {
         _font = LoadFontEx("../assets/fonts/slavic_font.ttf", font_size, nullptr, 0);
         GenTextureMipmaps(&_font.texture);
         SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
+
+        _inventory_ui = std::make_unique<InventoryUI>();
     }
 
     void UIHandler::update(float dt) 
@@ -93,6 +95,13 @@ namespace Nawia::UI {
     void UIHandler::handleInput() 
 	{
         // Future UI input logic (handled by handleMenuInput for menu state)
+        if (IsKeyPressed(KEY_I)) {
+            toggleInventory();
+        }
+
+        if (_is_inventory_open) {
+            _inventory_ui->handleInput();
+        }
     }
 
     MenuAction UIHandler::handleMenuInput() 
@@ -122,6 +131,10 @@ namespace Nawia::UI {
         renderPlayerHealthBar();
         renderPlayerAbilityBar();
         renderEnemyHealthBars(camera);
+
+        if (_is_inventory_open) {
+            _inventory_ui->render(*_player);
+        }
     }
 
     void UIHandler::renderMainMenu() const 

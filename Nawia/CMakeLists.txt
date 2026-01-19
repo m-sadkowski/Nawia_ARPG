@@ -53,7 +53,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(raylib)
 
-add_executable(Nawia ${SOURCES})
+add_executable(Nawia ${SOURCES} "src/ui/inventory/InventoryUI.h" "src/ui/inventory/InventoryUI.cpp")
 
 # Link libraries
 target_link_libraries(Nawia PRIVATE raylib)

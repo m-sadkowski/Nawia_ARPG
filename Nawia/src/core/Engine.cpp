@@ -119,9 +119,10 @@ namespace Nawia::Core {
 
 	void Engine::handleInput() 
 	{
+		if (!_ui_handler) return;
+
 		if (_game_state == GameState::Menu)
 		{
-            if (!_ui_handler) return;
 			const Nawia::UI::MenuAction action = _ui_handler->handleMenuInput();
             if (action == Nawia::UI::MenuAction::Play)
             {
@@ -140,44 +141,42 @@ namespace Nawia::Core {
 			return;
 		}
 		
-	if (_game_state == GameState::SettingsMenu)
-	{
-	    if (!_ui_handler) return;
+		if (_game_state == GameState::SettingsMenu)
+		{
+			// ESC in Settings = go back (same as Back button)
+			if (IsKeyPressed(KEY_ESCAPE)) {
+				_ui_handler->closeSettingsMenu();
+				_game_state = _previous_state;
+				if (_previous_state == GameState::Playing) {
+					_show_pause_menu = true;
+				}
+				return;
+			}
 	    
-	    // ESC in Settings = go back (same as Back button)
-	    if (IsKeyPressed(KEY_ESCAPE)) {
-	        _ui_handler->closeSettingsMenu();
-	        _game_state = _previous_state;
-	        if (_previous_state == GameState::Playing) {
-	            _show_pause_menu = true;
-	        }
-	        return;
-	    }
+			const Nawia::UI::MenuAction action = _ui_handler->handleSettingsInput();
 	    
-	    const Nawia::UI::MenuAction action = _ui_handler->handleSettingsInput();
+			// Check if Back was clicked
+			if (action == Nawia::UI::MenuAction::Play) {
+				// Return to previous state
+				_game_state = _previous_state;
+				if (_previous_state == GameState::Playing) {
+					_show_pause_menu = true;  // Re-show pause menu when returning from settings
+				}
+				return;
+			}
 	    
-	    // Check if Back was clicked
-	    if (action == Nawia::UI::MenuAction::Play) {
-	        // Return to previous state
-	        _game_state = _previous_state;
-	        if (_previous_state == GameState::Playing) {
-	            _show_pause_menu = true;  // Re-show pause menu when returning from settings
-	        }
-	        return;
-	    }
-	    
-	    // Check if settings were applied
-	    if (_ui_handler->wereSettingsApplied()) {
-	        applySettings(_ui_handler->getAppliedSettings());
-	        _ui_handler->closeSettingsMenu();  // Reset menu to clear stale state
-	        // Return to previous state (not always Menu)
-	        _game_state = _previous_state;
-	        if (_previous_state == GameState::Playing) {
-	            _show_pause_menu = true;
-	        }
-	    }
-	    return;
-	}
+			// Check if settings were applied
+			if (_ui_handler->wereSettingsApplied()) {
+				applySettings(_ui_handler->getAppliedSettings());
+				_ui_handler->closeSettingsMenu();  // Reset menu to clear stale state
+				// Return to previous state (not always Menu)
+				_game_state = _previous_state;
+				if (_previous_state == GameState::Playing) {
+					_show_pause_menu = true;
+				}
+			}
+			return;
+		}
 
 		// Playing state - handle ESC for pause menu toggle
 		if (IsKeyPressed(KEY_ESCAPE)) {
@@ -187,7 +186,6 @@ namespace Nawia::Core {
 		
 		// Handle pause menu input when visible
 		if (_show_pause_menu) {
-		    if (!_ui_handler) return;
 		    const Nawia::UI::MenuAction action = _ui_handler->handlePauseMenuInput();
 		    
 		    if (action == Nawia::UI::MenuAction::Play) {
@@ -205,6 +203,9 @@ namespace Nawia::Core {
 		    }
 		    return;  // Don't process gameplay input while pause menu is open
 		}
+
+		// handle ui in-game input
+		_ui_handler->handleInput();
 
 		// transform mouse location to position in world
 		Vector2 mouse_pos = GetMousePosition();

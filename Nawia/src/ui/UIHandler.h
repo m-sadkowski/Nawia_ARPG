@@ -4,6 +4,8 @@
 #include <vector>
 #include <raylib.h>
 
+#include "inventory/InventoryUI.h"
+
 namespace Nawia::Entity {
     class Player;
     class Entity;
@@ -49,6 +51,8 @@ namespace Nawia::UI {
         MenuAction handleMenuInput();
         MenuAction handleSettingsInput();
         MenuAction handlePauseMenuInput();  ///< Handle input for ESC pause menu overlay
+
+        // handle general input, ex open EQ on key
         void handleInput();
         
         /// Render pause menu overlay (semi-transparent)
@@ -66,6 +70,10 @@ namespace Nawia::UI {
         /// Close the settings menu (call after settings are applied)
         void closeSettingsMenu();
 
+        // inventory
+        bool isInventoryOpen() const { return _is_inventory_open; }
+        void toggleInventory() { _is_inventory_open = !_is_inventory_open; }
+
     private:
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
@@ -79,6 +87,9 @@ namespace Nawia::UI {
         Font _font;
         
         std::unique_ptr<SettingsMenu> _settings_menu;
+
+        std::unique_ptr<InventoryUI> _inventory_ui;
+        bool _is_inventory_open = false;
     };
 
 } // namespace Nawia::UI
