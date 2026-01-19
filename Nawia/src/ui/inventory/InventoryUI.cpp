@@ -17,6 +17,8 @@ namespace Nawia::UI {
 
         DrawText("INVENTORY", _position.x + PADDING, _position.y + 5, 20, WHITE);
 
+        const auto& backpackItems = player.getBackpack().getItems();
+
         Vector2 mousePos = GetMousePosition();
 
         for (int i = 0; i < COLS * ROWS; ++i) {
@@ -30,20 +32,48 @@ namespace Nawia::UI {
             Rectangle slotRect = { slotX, slotY, SLOT_SIZE, SLOT_SIZE };
             bool isHovered = CheckCollisionPointRec(mousePos, slotRect);
 
-            drawSlot(i, slotX, slotY, isHovered);
+            std::shared_ptr<Item::Item> itemToDraw = nullptr;
+            if (i < backpackItems.size()) {
+                itemToDraw = backpackItems[i];
+            }
+
+            drawSlot(i, slotX, slotY, isHovered, itemToDraw);
         }
     }
 
-    void InventoryUI::drawSlot(int index, float x, float y, bool isHovered) const {
+    void InventoryUI::drawSlot(int index, float x, float y, bool isHovered, const std::shared_ptr<Item::Item>& item) const {
         // slot background
         Color slotColor = isHovered ? LIGHTGRAY : DARKGRAY;
         DrawRectangle(x, y, SLOT_SIZE, SLOT_SIZE, slotColor);
         DrawRectangleLines(x, y, SLOT_SIZE, SLOT_SIZE, WHITE);
 
         // TODO: draw item
+        if (item != nullptr) {
+            Texture2D icon = item->getIcon();
 
-        // DEBUG slot number
-        DrawText(std::to_string(index).c_str(), x + 2, y + 2, 10, WHITE);
+            // check if texture is loaded
+            if (icon.id > 0) {
+                float padding = 4.0f;
+                Rectangle source = { 0.0f, 0.0f, (float)icon.width, (float)icon.height };
+
+                Rectangle dest = {
+                    x + padding,
+                    y + padding,
+                    SLOT_SIZE - (padding * 2),
+                    SLOT_SIZE - (padding * 2)
+                };
+
+                DrawTexturePro(icon, source, dest, { 0, 0 }, 0.0f, WHITE);
+            }
+
+            if (isHovered) {
+                const char* text = item->getName().c_str();
+                int textWidth = MeasureText(text, 10);
+
+                DrawRectangle(x, y - 15, textWidth + 4, 12, BLACK);
+                DrawText(text, x + 2, y - 14, 10, YELLOW);
+            }
+        }
     }
 
     int InventoryUI::handleInput() const {

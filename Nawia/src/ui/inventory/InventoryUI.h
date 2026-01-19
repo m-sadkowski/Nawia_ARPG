@@ -1,7 +1,7 @@
 #pragma once
 #include <raylib.h>
 #include <memory>
-#include "../../entity/actors/player/Player.h"
+#include <Player.h>
 
 namespace Nawia::UI {
 
@@ -23,7 +23,7 @@ namespace Nawia::UI {
 
         Vector2 _position = { 100.0f, 100.0f };
 
-        void drawSlot(int index, float x, float y, bool isHovered) const;
+        void drawSlot(int index, float x, float y, bool isHovered, const std::shared_ptr<Item::Item>& item) const;
     };
 
 }

@@ -8,6 +8,7 @@
 
 #include <Player.h>
 #include <UIHandler.h>
+#include <ItemDatabase.h>
 
 #include <raylib.h>
 
@@ -58,6 +59,7 @@ namespace Nawia::Core {
 		std::shared_ptr<Entity::Player> _player;
 		std::unique_ptr<PlayerController> _controller;
 		std::unique_ptr<Nawia::UI::UIHandler> _ui_handler;
+		Item::ItemDatabase _item_database;
 	};
 
 } // namespace Nawia::Core

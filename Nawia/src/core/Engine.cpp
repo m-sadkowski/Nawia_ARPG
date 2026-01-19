@@ -53,6 +53,10 @@ namespace Nawia::Core {
 		const auto fireball_icon = _resource_manager.getTexture("../assets/textures/icons/fireball_icon.png");
 		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 
+		// init item database
+		_item_database.loadDatabase("../assets/data/items.json", _resource_manager);
+		Logger::debugLog("Zaladowano baze danych przedmiotow WÆ");
+
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
 
@@ -84,6 +88,15 @@ namespace Nawia::Core {
         // initialize UI
         _ui_handler = std::make_unique<Nawia::UI::UIHandler>();
         _ui_handler->initialize(_player, _entity_manager.get());
+
+		// TEST remove later
+		if (_player) {
+			auto sword = _item_database.createItem(1);
+			auto chest = _item_database.createItem(2);
+
+			if (sword) _player->getBackpack().addItem(sword);
+			if (chest) _player->getBackpack().addItem(chest);
+		}
 	}
 
 	Engine::~Engine()
