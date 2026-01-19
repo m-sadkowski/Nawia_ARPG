@@ -25,6 +25,16 @@ namespace Nawia::Entity {
 		const Item::Backpack& getBackpack() const { return *_backpack; }
 		Item::Backpack& getBackpack() { return *_backpack; }
 		const Item::Equipment& getEquipment() const { return *_equipment; }
+
+		int getGold() const { return _gold; }
+		void addGold(int amount) { _gold += amount; }
+		bool spendGold(int amount) {
+			if (_gold >= amount) {
+				_gold -= amount;
+				return true;
+			}
+			return false;
+		}
 	private:
 		static constexpr int INIT_BACKPACK_SIZE = 20;
 
@@ -34,6 +44,8 @@ namespace Nawia::Entity {
 
 		std::unique_ptr<Item::Backpack> _backpack;
 		std::unique_ptr<Item::Equipment> _equipment;
+
+		int _gold = 0;
 	};
 
 } // namespace Nawia::Entity

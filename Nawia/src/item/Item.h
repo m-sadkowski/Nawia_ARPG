@@ -9,10 +9,13 @@ namespace Nawia::Item {
     enum class EquipmentSlot {
         None,
         Head,
+        Neck,
         Chest,
+        Legs,
+        Feet,
         Weapon,
         OffHand,
-        Feet 
+        Ring
     };
 
     class Item {

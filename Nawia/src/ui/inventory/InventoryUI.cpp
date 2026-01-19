@@ -8,36 +8,66 @@ namespace Nawia::UI {
     }
 
     void InventoryUI::render(const Entity::Player& player) const {
+        float startX = 100.0f;
+        float startY = 100.0f;
+        float width = 500.0f;
+        float height = 400.0f;
+
         // background
-        float bgWidth = (SLOT_SIZE + PADDING) * COLS + PADDING;
-        float bgHeight = (SLOT_SIZE + PADDING) * ROWS + PADDING + 30;
+        DrawRectangle(startX, startY, width, height, Fade(BLACK, 0.9f));
+        DrawRectangleLines(startX, startY, width, height, WHITE);
 
-        DrawRectangle(_position.x, _position.y, bgWidth, bgHeight, Fade(BLACK, 0.8f));
-        DrawRectangleLines(_position.x, _position.y, bgWidth, bgHeight, WHITE);
+        DrawLine(startX + 220, startY, startX + 220, startY + height, WHITE);
 
-        DrawText("INVENTORY", _position.x + PADDING, _position.y + 5, 20, WHITE);
-
-        const auto& backpackItems = player.getBackpack().getItems();
+        DrawText("EQUIPMENT", startX + 60, startY + 10, 20, WHITE);
+        DrawText("BACKPACK", startX + 240, startY + 10, 20, WHITE);
 
         Vector2 mousePos = GetMousePosition();
 
-        for (int i = 0; i < COLS * ROWS; ++i) {
-            int col = i % COLS;
-            int row = i / COLS;
+        float eqCenterX = startX + 110;
+        float eqTopY = startY + 50;
 
-            float slotX = _position.x + PADDING + (col * (SLOT_SIZE + PADDING));
-            float slotY = _position.y + 35 + (row * (SLOT_SIZE + PADDING));
+        drawSpecificSlot(Item::EquipmentSlot::Head, eqCenterX - 25, eqTopY, player, mousePos);
+        drawSpecificSlot(Item::EquipmentSlot::Neck, eqCenterX + 40, eqTopY, player, mousePos);
+        drawSpecificSlot(Item::EquipmentSlot::Chest, eqCenterX - 25, eqTopY + 60, player, mousePos);
+        drawSpecificSlot(Item::EquipmentSlot::Legs, eqCenterX - 25, eqTopY + 120, player, mousePos);
+        drawSpecificSlot(Item::EquipmentSlot::Feet, eqCenterX - 25, eqTopY + 180, player, mousePos);
+        drawSpecificSlot(Item::EquipmentSlot::Weapon, eqCenterX - 90, eqTopY + 60, player, mousePos);
+        drawSpecificSlot(Item::EquipmentSlot::OffHand, eqCenterX + 40, eqTopY + 60, player, mousePos);
+        drawSpecificSlot(Item::EquipmentSlot::Ring, eqCenterX - 90, eqTopY + 120, player, mousePos);
 
-            // check for mouse
-            Rectangle slotRect = { slotX, slotY, SLOT_SIZE, SLOT_SIZE };
-            bool isHovered = CheckCollisionPointRec(mousePos, slotRect);
 
-            std::shared_ptr<Item::Item> itemToDraw = nullptr;
-            if (i < backpackItems.size()) {
-                itemToDraw = backpackItems[i];
-            }
+        const auto& backpackItems = player.getBackpack().getItems();
+        float backpackX = startX + 240;
+        float backpackY = startY + 50;
 
-            drawSlot(i, slotX, slotY, isHovered, itemToDraw);
+        for (int i = 0; i < 20; ++i) { // 20 slotów
+            int col = i % 4; // 4 kolumny
+            int row = i / 4; // 5 rzędów
+
+            float slotX = backpackX + (col * (SLOT_SIZE + 10));
+            float slotY = backpackY + (row * (SLOT_SIZE + 10));
+
+            bool isHovered = CheckCollisionPointRec(mousePos, { slotX, slotY, SLOT_SIZE, SLOT_SIZE });
+
+            std::shared_ptr<Item::Item> item = (i < backpackItems.size()) ? backpackItems[i] : nullptr;
+
+            drawSlot(i, slotX, slotY, isHovered, item);
+        }
+
+        std::string goldText = "Gold: " + std::to_string(player.getGold());
+        DrawText(goldText.c_str(), startX + 240, startY + height - 30, 20, GOLD);
+    }
+
+    void InventoryUI::drawSpecificSlot(Item::EquipmentSlot slotType, float x, float y, const Entity::Player& player, Vector2 mousePos) const {
+        auto item = player.getEquipment().getItemAt(slotType);
+
+        bool isHovered = CheckCollisionPointRec(mousePos, { x, y, SLOT_SIZE, SLOT_SIZE });
+
+        drawSlot(-1, x, y, isHovered, item);
+
+        if (item == nullptr) {
+            DrawText("?", x + 15, y + 15, 20, Fade(WHITE, 0.2f));
         }
     }
 

@@ -24,6 +24,7 @@ namespace Nawia::UI {
         Vector2 _position = { 100.0f, 100.0f };
 
         void drawSlot(int index, float x, float y, bool isHovered, const std::shared_ptr<Item::Item>& item) const;
+        void drawSpecificSlot(Item::EquipmentSlot slotType, float x, float y, const Entity::Player& player, Vector2 mousePos) const;
     };
 
 }
