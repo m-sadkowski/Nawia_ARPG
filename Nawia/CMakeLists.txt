@@ -41,6 +41,7 @@ include_directories(
     src/world/level
     src/ui
     src/ui/hud
+    src/ui/inventory
     src/ui/menu
     external/json
 )
@@ -53,7 +54,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(raylib)
 
-add_executable(Nawia ${SOURCES} "src/ui/inventory/InventoryUI.h" "src/ui/inventory/InventoryUI.cpp")
+add_executable(Nawia ${SOURCES})
 
 # Link libraries
 target_link_libraries(Nawia PRIVATE raylib)
