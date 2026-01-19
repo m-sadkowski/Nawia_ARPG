@@ -107,7 +107,31 @@ namespace Nawia::UI {
     }
 
     int InventoryUI::handleInput() const {
-        // TODO handle input logic
+        if (!IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+            return -1;
+        }
+
+        Vector2 mousePos = GetMousePosition();
+
+        // Obliczamy pozycję plecaka (taka sama matematyka jak w render)
+        float startX = 100.0f;
+        float startY = 100.0f;
+        float backpackX = startX + 240;
+        float backpackY = startY + 50;
+
+        for (int i = 0; i < 20; ++i) {
+            int col = i % 4;
+            int row = i / 4;
+            float slotX = backpackX + (col * (SLOT_SIZE + 10));
+            float slotY = backpackY + (row * (SLOT_SIZE + 10));
+
+            Rectangle slotRect = { slotX, slotY, SLOT_SIZE, SLOT_SIZE };
+
+            if (CheckCollisionPointRec(mousePos, slotRect)) {
+                return i;
+            }
+        }
+
         return -1;
     }
 

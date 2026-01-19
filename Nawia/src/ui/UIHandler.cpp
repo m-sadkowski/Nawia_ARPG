@@ -100,7 +100,11 @@ namespace Nawia::UI {
         }
 
         if (_is_inventory_open) {
-            _inventory_ui->handleInput();
+            int _clicked_slot = _inventory_ui->handleInput();
+
+            if (_clicked_slot != -1) {
+                _player->equipItemFromBackpack(_clicked_slot);
+            }
         }
     }
 
