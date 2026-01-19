@@ -142,7 +142,7 @@ namespace Nawia::UI {
         renderEnemyHealthBars(camera);
 
         if (_is_inventory_open) {
-            _inventory_ui->render(*_player);
+            _inventory_ui->render(_font, *_player);
         }
     }
 

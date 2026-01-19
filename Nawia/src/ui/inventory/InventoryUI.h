@@ -10,7 +10,7 @@ namespace Nawia::UI {
         InventoryUI();
         ~InventoryUI() = default;
 
-        void render(const Entity::Player& player) const;
+        void render(const Font& font, const Entity::Player& player) const;
 
         // handle click on slot, -1 if none
         int handleInput() const;
@@ -22,6 +22,11 @@ namespace Nawia::UI {
         static constexpr float PADDING = 10.0f;
         static constexpr int COLS = 5;
         static constexpr int ROWS = 4;
+
+        static constexpr float INV_START_X = 100.0f;
+        static constexpr float INV_START_Y = 100.0f;
+        static constexpr float INV_WIDTH = 500.0f;
+        static constexpr float INV_HEIGHT = 400.0f;
 
         Vector2 _position = { 100.0f, 100.0f };
 

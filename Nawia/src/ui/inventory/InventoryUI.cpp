@@ -7,25 +7,20 @@ namespace Nawia::UI {
         _position = { 200, 200 };
     }
 
-    void InventoryUI::render(const Entity::Player& player) const {
-        float startX = 100.0f;
-        float startY = 100.0f;
-        float width = 500.0f;
-        float height = 400.0f;
-
+    void InventoryUI::render(const Font& font, const Entity::Player& player) const {
         // background
-        DrawRectangle(startX, startY, width, height, Fade(BLACK, 0.9f));
-        DrawRectangleLines(startX, startY, width, height, WHITE);
+        DrawRectangle(INV_START_X, INV_START_Y, INV_WIDTH, INV_HEIGHT, Fade(BLACK, 0.9f));
+        DrawRectangleLines(INV_START_X, INV_START_Y, INV_WIDTH, INV_HEIGHT, WHITE);
 
-        DrawLine(startX + 220, startY, startX + 220, startY + height, WHITE);
+        DrawLine(INV_START_X + 220, INV_START_Y, INV_START_X + 220, INV_START_Y + INV_HEIGHT, WHITE);
 
-        DrawText("EQUIPMENT", startX + 60, startY + 10, 20, WHITE);
-        DrawText("BACKPACK", startX + 240, startY + 10, 20, WHITE);
+        DrawTextEx(font, "EQUIPMENT", { INV_START_X + 60, INV_START_Y + 10 }, 20, 1.0f, WHITE);
+        DrawTextEx(font, "BACKPACK", { INV_START_X + 240, INV_START_Y + 10 }, 20, 1.0f, WHITE);
 
         Vector2 mousePos = GetMousePosition();
 
-        float eqCenterX = startX + 110;
-        float eqTopY = startY + 50;
+        float eqCenterX = INV_START_X + 110;
+        float eqTopY = INV_START_Y + 50;
 
         drawSpecificSlot(Item::EquipmentSlot::Head, eqCenterX - 25, eqTopY, player, mousePos);
         drawSpecificSlot(Item::EquipmentSlot::Neck, eqCenterX + 40, eqTopY, player, mousePos);
@@ -38,12 +33,12 @@ namespace Nawia::UI {
 
 
         const auto& backpackItems = player.getBackpack().getItems();
-        float backpackX = startX + 240;
-        float backpackY = startY + 50;
+        float backpackX = INV_START_X + 240;
+        float backpackY = INV_START_Y + 50;
 
-        for (int i = 0; i < 20; ++i) { // 20 slotów
-            int col = i % 4; // 4 kolumny
-            int row = i / 4; // 5 rzędów
+        for (int i = 0; i < 20; ++i) {
+            int col = i % 4;
+            int row = i / 4;
 
             float slotX = backpackX + (col * (SLOT_SIZE + 10));
             float slotY = backpackY + (row * (SLOT_SIZE + 10));
@@ -56,7 +51,7 @@ namespace Nawia::UI {
         }
 
         std::string goldText = "Gold: " + std::to_string(player.getGold());
-        DrawText(goldText.c_str(), startX + 240, startY + height - 30, 20, GOLD);
+        DrawTextEx(font, goldText.c_str(), { INV_START_X + 240, INV_START_Y + INV_HEIGHT - 30 }, 20, 1.0f, GOLD);
     }
 
     void InventoryUI::drawSpecificSlot(Item::EquipmentSlot slotType, float x, float y, const Entity::Player& player, Vector2 mousePos) const {
@@ -113,11 +108,8 @@ namespace Nawia::UI {
 
         Vector2 mousePos = GetMousePosition();
 
-        // Obliczamy pozycję plecaka (taka sama matematyka jak w render)
-        float startX = 100.0f;
-        float startY = 100.0f;
-        float backpackX = startX + 240;
-        float backpackY = startY + 50;
+        float backpackX = INV_START_X + 240;
+        float backpackY = INV_START_Y + 50;
 
         for (int i = 0; i < 20; ++i) {
             int col = i % 4;
@@ -142,10 +134,8 @@ namespace Nawia::UI {
 
         Vector2 mousePos = GetMousePosition();
 
-        float startX = 100.0f;
-        float startY = 100.0f;
-        float cx = startX + 110;
-        float cy = startY + 50;
+        float cx = INV_START_X + 110;
+        float cy = INV_START_Y + 50;
         float size = SLOT_SIZE;
 
         struct SlotHitbox {
