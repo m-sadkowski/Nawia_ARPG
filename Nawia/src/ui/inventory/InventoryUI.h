@@ -27,6 +27,12 @@ namespace Nawia::UI {
         static constexpr float INV_START_Y = 100.0f;
         static constexpr float INV_WIDTH = 500.0f;
         static constexpr float INV_HEIGHT = 400.0f;
+        static constexpr float TEXT_PADDING_LEFT = 20.0f;
+        static constexpr float TEXT_PADDING_TOP = 10.0f;
+        static constexpr float EQ_WIDTH = 220.0f;
+        static constexpr float EQ_START_TOP = 50.0f;
+        static constexpr float BP_START_TOP = 50.0f;
+        static constexpr float GOLD_PADDING_BOTTOM = 30.0f;
 
         Vector2 _position = { 100.0f, 100.0f };
 

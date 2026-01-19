@@ -1,6 +1,16 @@
 [
     {
         "id": 1,
+        "name": "Hełm",
+        "description": "",
+        "slot": "Head",
+        "texture": "assets/textures/items/placeholder_helmet.png",
+        "stats": {
+            "armor": 5
+        }
+    },
+    {
+        "id": 2,
         "name": "Drewniany miecz",
         "description": "Stary, drewniany miecz.",
         "slot": "Weapon",
@@ -10,7 +20,7 @@
         }
     },
     {
-        "id": 2,
+        "id": 3,
         "name": "Skórzana tunika",
         "description": "Jakaś kurtka ze skóry.",
         "slot": "Chest",

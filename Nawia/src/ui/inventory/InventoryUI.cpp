@@ -12,15 +12,15 @@ namespace Nawia::UI {
         DrawRectangle(INV_START_X, INV_START_Y, INV_WIDTH, INV_HEIGHT, Fade(BLACK, 0.9f));
         DrawRectangleLines(INV_START_X, INV_START_Y, INV_WIDTH, INV_HEIGHT, WHITE);
 
-        DrawLine(INV_START_X + 220, INV_START_Y, INV_START_X + 220, INV_START_Y + INV_HEIGHT, WHITE);
+        DrawLine(INV_START_X + EQ_WIDTH, INV_START_Y, INV_START_X + EQ_WIDTH, INV_START_Y + INV_HEIGHT, WHITE);
 
-        DrawTextEx(font, "EQUIPMENT", { INV_START_X + 60, INV_START_Y + 10 }, 20, 1.0f, WHITE);
-        DrawTextEx(font, "BACKPACK", { INV_START_X + 240, INV_START_Y + 10 }, 20, 1.0f, WHITE);
+        DrawTextEx(font, "EQUIPMENT", { INV_START_X + TEXT_PADDING_LEFT, INV_START_Y + TEXT_PADDING_TOP }, 20, 1.0f, WHITE);
+        DrawTextEx(font, "BACKPACK", { INV_START_X + EQ_WIDTH + TEXT_PADDING_LEFT, INV_START_Y + TEXT_PADDING_TOP }, 20, 1.0f, WHITE);
 
         Vector2 mousePos = GetMousePosition();
 
-        float eqCenterX = INV_START_X + 110;
-        float eqTopY = INV_START_Y + 50;
+        float eqCenterX = INV_START_X + EQ_WIDTH/2;
+        float eqTopY = INV_START_Y + EQ_START_TOP;
 
         drawSpecificSlot(Item::EquipmentSlot::Head, eqCenterX - 25, eqTopY, player, mousePos);
         drawSpecificSlot(Item::EquipmentSlot::Neck, eqCenterX + 40, eqTopY, player, mousePos);
@@ -33,8 +33,8 @@ namespace Nawia::UI {
 
 
         const auto& backpackItems = player.getBackpack().getItems();
-        float backpackX = INV_START_X + 240;
-        float backpackY = INV_START_Y + 50;
+        float backpackX = INV_START_X + EQ_WIDTH + TEXT_PADDING_LEFT;
+        float backpackY = INV_START_Y + BP_START_TOP;
 
         for (int i = 0; i < 20; ++i) {
             int col = i % 4;
@@ -50,8 +50,8 @@ namespace Nawia::UI {
             drawSlot(i, slotX, slotY, isHovered, item);
         }
 
-        std::string goldText = "Gold: " + std::to_string(player.getGold());
-        DrawTextEx(font, goldText.c_str(), { INV_START_X + 240, INV_START_Y + INV_HEIGHT - 30 }, 20, 1.0f, GOLD);
+        std::string goldText = "GOLD: " + std::to_string(player.getGold());
+        DrawTextEx(font, goldText.c_str(), { INV_START_X + EQ_WIDTH + TEXT_PADDING_LEFT, INV_START_Y + INV_HEIGHT - GOLD_PADDING_BOTTOM }, 20, 1.0f, GOLD);
     }
 
     void InventoryUI::drawSpecificSlot(Item::EquipmentSlot slotType, float x, float y, const Entity::Player& player, Vector2 mousePos) const {

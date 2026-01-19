@@ -1,5 +1,6 @@
 #include "ItemDatabase.h"
 #include "Weapon.h"
+#include "Head.h"
 #include "Chestplate.h"
 #include <iostream>
 #include "Logger.h"
@@ -35,6 +36,10 @@ namespace Nawia::Item {
             if (slot == EquipmentSlot::Weapon) {
                 int dmg = entry["stats"]["damage"];
                 newItem = std::make_shared<Weapon>(id, name, desc, slot, icon, dmg);
+            }
+            else if (slot == EquipmentSlot::Head) {
+                int armor = entry["stats"]["armor"];
+                newItem = std::make_shared<Head>(id, name, desc, slot, icon, armor);
             }
             else if (slot == EquipmentSlot::Chest) {
                 int armor = entry["stats"]["armor"];
