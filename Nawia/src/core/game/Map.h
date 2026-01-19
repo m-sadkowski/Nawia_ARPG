@@ -21,7 +21,7 @@ namespace Nawia::Core {
 		void render(float offset_x, float offset_y);
 
 
-		[[nodiscard]] Vector2 getPlayerSpawnPos() { return _player_spawn_pos; }
+		[[nodiscard]] Vector2 getPlayerSpawnPos() const { return _player_spawn_pos; }
 
 		[[nodiscard]] bool isWalkable(int world_x, int world_y) const;
 

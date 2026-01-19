@@ -25,6 +25,24 @@ namespace Nawia::Core {
         return nullptr;
     }
 
+    void EntityManager::updateHoverState(const float screen_x, const float screen_y, const Camera& camera)
+    {
+        // 1. Reset hover state for all active entities
+        for (auto& entity : _active_entities) {
+            entity->setHovered(false);
+        }
+
+        // 2. Find the top-most entity under the cursor
+        // Iterate backwards to prioritize entities drawn on top
+        for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) {
+            if ((*it)->isMouseOver(screen_x, screen_y, camera.x, camera.y)) {
+                // Core::Logger::debugLog("Hovered Entity: " + (*it)->getName());
+                (*it)->setHovered(true);
+                return; // Found the top-most entity, stop searching
+            }
+        }
+    }
+
     void EntityManager::renderEntities(const Camera& camera) const
     {
         for (const auto& entity : _active_entities)

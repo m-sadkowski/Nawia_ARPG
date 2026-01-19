@@ -4,6 +4,7 @@
 #include "EntityManager.h"
 #include "Map.h"
 #include "ResourceManager.h"
+#include "Settings.h"
 
 #include <Player.h>
 #include <UIHandler.h>
@@ -14,11 +15,17 @@ namespace Nawia::Core {
 
 	class PlayerController;
 
+	/**
+	 * @class Engine
+	 * @brief Main game engine managing game loop, state, and subsystems.
+	 */
 	class Engine {
 	public:
+		/// Game states
 		enum class GameState {
-			Menu,
-			Playing
+			Menu,           ///< Main menu
+			SettingsMenu,   ///< Settings menu overlay
+			Playing         ///< Gameplay
 		};
 
 		Engine();
@@ -34,9 +41,15 @@ namespace Nawia::Core {
 		void update(float delta_time);
 		void render() const;
 		void handleInput();
+		
+		/// Apply new settings (resolution change, etc.)
+		void applySettings(const Settings& new_settings);
 
 		bool _is_running;
 		GameState _game_state;
+		bool _show_pause_menu = false;  ///< ESC menu overlay during gameplay
+		GameState _previous_state = GameState::Menu;  ///< State before opening settings
+		Settings _settings;
 
 		ResourceManager _resource_manager;
 		Camera _camera;
