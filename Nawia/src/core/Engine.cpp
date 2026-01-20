@@ -91,8 +91,8 @@ namespace Nawia::Core {
 
 		// TEST remove later
 		if (_player) {
-			auto sword = _item_database.createItem(2);
-			auto chest = _item_database.createItem(3);
+			auto sword = _item_database.createItem(1);
+			auto chest = _item_database.createItem(2);
 
 			if (sword) _player->getBackpack().addItem(sword);
 			if (chest) _player->getBackpack().addItem(chest);

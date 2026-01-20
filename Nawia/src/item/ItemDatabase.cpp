@@ -1,7 +1,12 @@
 #include "ItemDatabase.h"
 #include "Weapon.h"
+#include "Offhand.h"
 #include "Head.h"
+#include "Necklace.h"
 #include "Chestplate.h"
+#include "Legs.h"
+#include "Boots.h"
+#include "Ring.h"
 #include <iostream>
 #include "Logger.h"
 
@@ -37,16 +42,35 @@ namespace Nawia::Item {
                 int dmg = entry["stats"]["damage"];
                 newItem = std::make_shared<Weapon>(id, name, desc, slot, icon, dmg);
             }
+            else if (slot == EquipmentSlot::OffHand) {
+                int dmg = entry["stats"]["damage"];
+                int def = entry["stats"]["defense"];
+                newItem = std::make_shared<Offhand>(id, name, desc, slot, icon, dmg, def);
+            }
             else if (slot == EquipmentSlot::Head) {
-                int armor = entry["stats"]["armor"];
+                int armor = entry["stats"]["defense"];
                 newItem = std::make_shared<Head>(id, name, desc, slot, icon, armor);
             }
+            else if (slot == EquipmentSlot::Neck) {
+                int intelligence = entry["stats"]["intelligence"];
+                newItem = std::make_shared<Necklace>(id, name, desc, slot, icon, intelligence);
+            }
             else if (slot == EquipmentSlot::Chest) {
-                int armor = entry["stats"]["armor"];
+                int armor = entry["stats"]["defense"];
                 newItem = std::make_shared<Chestplate>(id, name, desc, slot, icon, armor);
             }
-            // todo add other types
-
+            else if (slot == EquipmentSlot::Legs) {
+                int armor = entry["stats"]["defense"];
+                newItem = std::make_shared<Legs>(id, name, desc, slot, icon, armor);
+            }
+            else if (slot == EquipmentSlot::Feet) {
+                int armor = entry["stats"]["defense"];
+                newItem = std::make_shared<Boots>(id, name, desc, slot, icon, armor);
+            }
+            else if (slot == EquipmentSlot::Ring) {
+                int intelligence = entry["stats"]["intelligence"];
+                newItem = std::make_shared<Ring>(id, name, desc, slot, icon, intelligence);
+            }
             else {
                 newItem = std::make_shared<Item>(id, name, desc, slot, icon);
             }
