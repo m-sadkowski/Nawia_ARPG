@@ -74,7 +74,7 @@ namespace Nawia::UI {
         UnloadFont(_font);
     }
 
-    void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager) 
+    void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager)
 	{
         _player = player;
         _entity_manager = entity_manager;
@@ -85,6 +85,7 @@ namespace Nawia::UI {
         SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
 
         _inventory_ui = std::make_unique<InventoryUI>();
+        _inventory_ui->loadResources(resource_manager);
     }
 
     void UIHandler::update(float dt) 

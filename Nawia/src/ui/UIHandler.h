@@ -15,6 +15,7 @@ namespace Nawia::Core {
     class EntityManager;
     struct Camera;
     class Settings;
+    class ResourceManager;
 }
 
 namespace Nawia::UI {
@@ -41,7 +42,7 @@ namespace Nawia::UI {
         UIHandler();
         ~UIHandler();
 
-        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager);
+        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager);
         
         void update(float dt);
         void render(const Core::Camera& camera) const;

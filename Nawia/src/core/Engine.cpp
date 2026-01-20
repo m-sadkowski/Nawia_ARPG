@@ -87,7 +87,7 @@ namespace Nawia::Core {
 
         // initialize UI
         _ui_handler = std::make_unique<Nawia::UI::UIHandler>();
-        _ui_handler->initialize(_player, _entity_manager.get());
+        _ui_handler->initialize(_player, _entity_manager.get(), _resource_manager);
 
 		// TEST remove later
 		if (_player) {

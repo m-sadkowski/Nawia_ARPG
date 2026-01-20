@@ -1,10 +1,15 @@
 #include "InventoryUI.h"
+#include "ResourceManager.h"
 #include <string>
 
 namespace Nawia::UI {
 
     InventoryUI::InventoryUI() {
         _position = { 200, 200 };
+    }
+
+    void InventoryUI::loadResources(Core::ResourceManager& resourceManager) {
+        _placeholders[Item::EquipmentSlot::Head] = resourceManager.getTexture("../assets/textures/ui/slot_head.png");
     }
 
     void InventoryUI::render(const Font& font, const Entity::Player& player) const {
@@ -62,7 +67,26 @@ namespace Nawia::UI {
         drawSlot(-1, x, y, isHovered, item);
 
         if (item == nullptr) {
-            DrawText("?", x + 15, y + 15, 20, Fade(WHITE, 0.2f));
+            if (_placeholders.count(slotType)) {
+                auto texPtr = _placeholders.at(slotType);
+
+                if (texPtr && texPtr->id > 0) {
+                    Texture2D tex = *texPtr;
+
+                    Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
+                    Rectangle dest = {
+                        x + SLOT_PLACEHOLDER_PADDING,
+                        y + SLOT_PLACEHOLDER_PADDING,
+                        SLOT_SIZE - (SLOT_PLACEHOLDER_PADDING * 2),
+                        SLOT_SIZE - (SLOT_PLACEHOLDER_PADDING * 2)
+                    };
+
+                    DrawTexturePro(tex, source, dest, { 0,0 }, 0.0f, Fade(WHITE, 0.3f));
+                }
+            }
+            else {
+                DrawText("?", x + 15, y + 15, 20, Fade(WHITE, 0.2f));
+            }
         }
     }
 
@@ -78,14 +102,13 @@ namespace Nawia::UI {
 
             // check if texture is loaded
             if (icon.id > 0) {
-                float padding = 4.0f;
                 Rectangle source = { 0.0f, 0.0f, (float)icon.width, (float)icon.height };
 
                 Rectangle dest = {
-                    x + padding,
-                    y + padding,
-                    SLOT_SIZE - (padding * 2),
-                    SLOT_SIZE - (padding * 2)
+                    x + SLOT_PADDING,
+                    y + SLOT_PADDING,
+                    SLOT_SIZE - (SLOT_PADDING * 2),
+                    SLOT_SIZE - (SLOT_PADDING * 2)
                 };
 
                 DrawTexturePro(icon, source, dest, { 0, 0 }, 0.0f, WHITE);
