@@ -3,6 +3,7 @@
 #include <memory>
 #include <map>
 #include <Player.h>
+#include <GlobalScaling.h>
 
 namespace Nawia::Core {
     class ResourceManager;
@@ -25,6 +26,7 @@ namespace Nawia::UI {
         Item::EquipmentSlot getClickedEquipmentSlot() const;
 
     private:
+        static constexpr float FONT_SIZE = 20.0f;
         static constexpr float SLOT_SIZE = 50.0f;
         static constexpr float PADDING = 10.0f;
         static constexpr float SLOT_PADDING = 4.0f;
@@ -32,8 +34,8 @@ namespace Nawia::UI {
         static constexpr int COLS = 5;
         static constexpr int ROWS = 4;
 
-        static constexpr float INV_START_X = 100.0f;
-        static constexpr float INV_START_Y = 100.0f;
+        static constexpr float INV_START_X = 20.0f;
+        static constexpr float INV_START_Y = 20.0f;
         static constexpr float INV_WIDTH = 500.0f;
         static constexpr float INV_HEIGHT = 400.0f;
         static constexpr float TEXT_PADDING_LEFT = 20.0f;
@@ -42,8 +44,6 @@ namespace Nawia::UI {
         static constexpr float EQ_START_TOP = 50.0f;
         static constexpr float BP_START_TOP = 50.0f;
         static constexpr float GOLD_PADDING_BOTTOM = 30.0f;
-
-        Vector2 _position = { 100.0f, 100.0f };
 
         std::map<Item::EquipmentSlot, std::shared_ptr<Texture2D>> _placeholders;
 
