@@ -60,6 +60,17 @@ MyEntity::MyEntity(float x, float y, const std::shared_ptr<Texture2D>& tex)
     
     // Uruchomienie domyślnej animacji
     playAnimation("idle");
+    
+    // playAnimation - pełna sygnatura:
+    // playAnimation(name, loop, lock_movement, startFrame, force)
+    // - name: nazwa animacji
+    // - loop: czy zapętlać (default: true)
+    // - lock_movement: czy blokować ruch (default: false)
+    // - startFrame: od której klatki zacząć (default: 0)
+    // - force: wymusić restart nawet tej samej animacji (default: false)
+    
+    // Przykład: animacja od klatki 10, wymuszona
+    playAnimation("get_hit", false, true, 10, true);
 }
 ```
 

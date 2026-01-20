@@ -81,15 +81,15 @@ namespace Nawia::Entity {
 		}
 	}
 
-	void Entity::playAnimation(const std::string& name, const bool loop, const bool lock_movement)
+	void Entity::playAnimation(const std::string& name, const bool loop, const bool lock_movement, const int startFrame, const bool force)
 	{
 		if (_animation_map.find(name) != _animation_map.end())
 		{
 			const int index = _animation_map[name];
-			if (index != _current_anim_index)
+			if (force || index != _current_anim_index)
 			{
 				_current_anim_index = index;
-				_anim_frame_counter = 0;
+				_anim_frame_counter = startFrame;
 				_anim_looping = loop;
 				_anim_locked = lock_movement;
 			}

@@ -156,7 +156,7 @@ namespace Nawia::Entity {
 		 * @param loop Whether to loop the animation
 		 * @param lock_movement If true, prevents movement during animation
 		 */
-		void playAnimation(const std::string& name, bool loop = true, bool lock_movement = false);
+		void playAnimation(const std::string& name, bool loop = true, bool lock_movement = false, int startFrame = 0, bool force = false);
 		
 		[[nodiscard]] int getAnimationFrameCount(const std::string& name) const;
 		[[nodiscard]] bool isAnimationLocked() const { return _anim_locked; }
