@@ -2,7 +2,8 @@
 #include "PlayerController.h"
 #include "Engine.h"
 #include "Logger.h"
-#
+#include "Chest.h"
+#include "UIHandler.h"
 #include <EnemyInterface.h>
 #include <string>
 
@@ -73,6 +74,12 @@ namespace Nawia::Core {
 		{
 			_player->stop();
 			_target_interactable->onInteract(*_player);
+
+			// chest handler
+			if (auto chest = std::dynamic_pointer_cast<Entity::Chest>(_target_interactable)) {
+				_engine->getUIHandler().openChest(chest);
+			}
+
 			_target_interactable = nullptr; 
 		}
 

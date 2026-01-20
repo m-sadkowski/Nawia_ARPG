@@ -38,6 +38,7 @@ namespace Nawia::Core {
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y) const;
 		void spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const;
 
+		UI::UIHandler& getUIHandler() const { return *_ui_handler; }
 	private:
 		void update(float delta_time);
 		void render() const;
@@ -58,7 +59,7 @@ namespace Nawia::Core {
 		std::unique_ptr<EntityManager> _entity_manager;
 		std::shared_ptr<Entity::Player> _player;
 		std::unique_ptr<PlayerController> _controller;
-		std::unique_ptr<Nawia::UI::UIHandler> _ui_handler;
+		std::unique_ptr<UI::UIHandler> _ui_handler;
 		Item::ItemDatabase _item_database;
 	};
 

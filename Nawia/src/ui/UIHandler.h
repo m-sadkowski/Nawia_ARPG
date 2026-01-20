@@ -4,11 +4,13 @@
 #include <vector>
 #include <raylib.h>
 
-#include "inventory/InventoryUI.h"
+#include "InventoryUI.h"
+#include "ChestUI.h"
 
 namespace Nawia::Entity {
     class Player;
     class Entity;
+    class Chest;
 }
 
 namespace Nawia::Core {
@@ -75,6 +77,10 @@ namespace Nawia::UI {
         bool isInventoryOpen() const { return _is_inventory_open; }
         void toggleInventory() { _is_inventory_open = !_is_inventory_open; }
 
+        // chest
+        void openChest(std::shared_ptr<Entity::Chest> chest);
+        void closeChest();
+
     private:
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
@@ -91,6 +97,9 @@ namespace Nawia::UI {
 
         std::unique_ptr<InventoryUI> _inventory_ui;
         bool _is_inventory_open = false;
+
+        std::unique_ptr<ChestUI> _chest_ui;
+        std::shared_ptr<Entity::Chest> _current_chest;
     };
 
 } // namespace Nawia::UI

@@ -78,6 +78,8 @@ namespace Nawia::Core {
 
 		const auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png");
 		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", 12.0f, 12.0f, chest_tex);
+		auto chestplate_chest = _item_database.createItem(2);
+		test_chest->addItem(chestplate_chest);
 		_entity_manager->addEntity(test_chest);
 
 		// 2. Checkpoint (InteractiveTrigger)
