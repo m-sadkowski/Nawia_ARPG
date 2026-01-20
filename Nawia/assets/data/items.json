@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "name": "Drewniany miecz",
+        "description": "Stary, drewniany miecz.",
+        "slot": "Weapon",
+        "texture": "assets/textures/items/sword_wooden.png",
+        "stats": {
+            "damage": 5
+        }
+    },
+    {
+        "id": 2,
+        "name": "Skórzana tunika",
+        "description": "Jakaś kurtka ze skóry.",
+        "slot": "Chest",
+        "texture": "assets/textures/items/chest_leather.png",
+        "stats": {
+            "defense": 3
+        }
+    }
+]

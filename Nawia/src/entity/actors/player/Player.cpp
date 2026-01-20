@@ -20,6 +20,10 @@ namespace Nawia::Entity {
 
 		// add collider
 		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
+
+		// init backpack and eq
+		_backpack = std::make_unique<Item::Backpack>(INIT_BACKPACK_SIZE);
+		_equipment = std::make_unique<Item::Equipment>();
 	}
 
 	void Player::moveTo(const float x, const float y)
@@ -87,6 +91,32 @@ namespace Nawia::Entity {
 		{
 			_pos.x += (dx / distance) * _speed * delta_time;
 			_pos.y += (dy / distance) * _speed * delta_time;
+		}
+	}
+
+	void Player::equipItemFromBackpack(int backpackIndex) const {
+		auto item = _backpack->getItem(backpackIndex);
+		if (!item) return;
+
+		_backpack->removeItem(backpackIndex);
+
+		// equip item
+		auto old_item = _equipment->equip(item);
+
+		// if cannot equip go back to backpack
+		if (old_item) {
+			_backpack->addItem(old_item);
+			// todo what if backpack full (player somehow picked up item while equip)
+		}
+	}
+
+	void Player::unequipItem(Item::EquipmentSlot slot) const {
+		auto item = _equipment->getItemAt(slot);
+		if (!item) return;
+
+		if (_backpack->getRemainingCapacity() > 0) {
+			_backpack->addItem(item);
+			_equipment->unequip(slot);
 		}
 	}
 

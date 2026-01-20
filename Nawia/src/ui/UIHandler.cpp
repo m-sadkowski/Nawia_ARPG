@@ -3,6 +3,7 @@
 #include <Player.h>
 #include <EntityManager.h>
 #include <Entity.h>
+#include <Chest.h>
 #include <Constants.h>
 #include <GlobalScaling.h>
 #include <Settings.h>
@@ -74,7 +75,7 @@ namespace Nawia::UI {
         UnloadFont(_font);
     }
 
-    void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager) 
+    void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager)
 	{
         _player = player;
         _entity_manager = entity_manager;
@@ -83,6 +84,13 @@ namespace Nawia::UI {
         _font = LoadFontEx("../assets/fonts/slavic_font.ttf", font_size, nullptr, 0);
         GenTextureMipmaps(&_font.texture);
         SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
+
+        _inventory_ui = std::make_unique<InventoryUI>();
+        _inventory_ui->loadResources(resource_manager);
+
+        // chest
+        _chest_ui = std::make_unique<ChestUI>();
+        _current_chest = nullptr;
     }
 
     void UIHandler::update(float dt) 
@@ -93,6 +101,39 @@ namespace Nawia::UI {
     void UIHandler::handleInput() 
 	{
         // Future UI input logic (handled by handleMenuInput for menu state)
+        if (IsKeyPressed(KEY_I)) {
+            if (_current_chest) closeChest();
+            else toggleInventory();
+        }
+
+        if (_is_inventory_open) {
+            int _backpack_slot = _inventory_ui->handleInput();
+            if (_backpack_slot != -1) {
+                _player->equipItemFromBackpack(_backpack_slot);
+                return;
+            }
+
+            auto _eq_slot = _inventory_ui->getClickedEquipmentSlot();
+            if (_eq_slot != Item::EquipmentSlot::None) {
+                _player->unequipItem(_eq_slot);
+            }
+
+            // chest handler
+            if (_current_chest) {
+                int chestSlot = _chest_ui->handleInput();
+
+                if (chestSlot != -1) {
+                    auto& chestInv = _current_chest->getInventory();
+                    auto item = chestInv.getItem(chestSlot);
+
+                    if (item) {
+                        if (_player->getBackpack().addItem(item)) {
+                            chestInv.removeItem(chestSlot);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     MenuAction UIHandler::handleMenuInput() 
@@ -122,6 +163,14 @@ namespace Nawia::UI {
         renderPlayerHealthBar();
         renderPlayerAbilityBar();
         renderEnemyHealthBars(camera);
+
+        if (_is_inventory_open) {
+            _inventory_ui->render(_font, *_player);
+
+            if (_current_chest) {
+                _chest_ui->render(_current_chest->getInventory(), _font);
+            }
+        }
     }
 
     void UIHandler::renderMainMenu() const 
@@ -362,6 +411,15 @@ namespace Nawia::UI {
         }
 
         return MenuAction::None;
+    }
+
+    void UIHandler::openChest(std::shared_ptr<Entity::Chest> chest) {
+        _current_chest = chest;
+        _is_inventory_open = true;
+    }
+
+    void UIHandler::closeChest() {
+        _current_chest = nullptr;
     }
 
 } // namespace Nawia::UI

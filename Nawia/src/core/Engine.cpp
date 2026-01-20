@@ -53,6 +53,10 @@ namespace Nawia::Core {
 		const auto fireball_icon = _resource_manager.getTexture("../assets/textures/icons/fireball_icon.png");
 		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 
+		// init item database
+		_item_database.loadDatabase("../assets/data/items.json", _resource_manager);
+		Logger::debugLog("Zaladowano baze danych przedmiotow WÆ");
+
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
 
@@ -65,7 +69,7 @@ namespace Nawia::Core {
 		const auto dummy = std::make_shared<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get());
 		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 		dummy->setTarget(_player);
-		_entity_manager->addEntity(dummy);
+		//_entity_manager->addEntity(dummy);
 
 		// add player to entity manager so it can be hit by enemies
 		_entity_manager->addEntity(_player);
@@ -74,6 +78,8 @@ namespace Nawia::Core {
 
 		const auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png");
 		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", 12.0f, 12.0f, chest_tex);
+		auto chestplate_chest = _item_database.createItem(2);
+		test_chest->addItem(chestplate_chest);
 		_entity_manager->addEntity(test_chest);
 
 		// 2. Checkpoint (InteractiveTrigger)
@@ -83,7 +89,16 @@ namespace Nawia::Core {
 
         // initialize UI
         _ui_handler = std::make_unique<Nawia::UI::UIHandler>();
-        _ui_handler->initialize(_player, _entity_manager.get());
+        _ui_handler->initialize(_player, _entity_manager.get(), _resource_manager);
+
+		// TEST remove later
+		if (_player) {
+			auto sword = _item_database.createItem(1);
+			auto chest = _item_database.createItem(2);
+
+			if (sword) _player->getBackpack().addItem(sword);
+			if (chest) _player->getBackpack().addItem(chest);
+		}
 	}
 
 	Engine::~Engine()
@@ -119,9 +134,10 @@ namespace Nawia::Core {
 
 	void Engine::handleInput() 
 	{
+		if (!_ui_handler) return;
+
 		if (_game_state == GameState::Menu)
 		{
-            if (!_ui_handler) return;
 			const Nawia::UI::MenuAction action = _ui_handler->handleMenuInput();
             if (action == Nawia::UI::MenuAction::Play)
             {
@@ -140,44 +156,42 @@ namespace Nawia::Core {
 			return;
 		}
 		
-	if (_game_state == GameState::SettingsMenu)
-	{
-	    if (!_ui_handler) return;
+		if (_game_state == GameState::SettingsMenu)
+		{
+			// ESC in Settings = go back (same as Back button)
+			if (IsKeyPressed(KEY_ESCAPE)) {
+				_ui_handler->closeSettingsMenu();
+				_game_state = _previous_state;
+				if (_previous_state == GameState::Playing) {
+					_show_pause_menu = true;
+				}
+				return;
+			}
 	    
-	    // ESC in Settings = go back (same as Back button)
-	    if (IsKeyPressed(KEY_ESCAPE)) {
-	        _ui_handler->closeSettingsMenu();
-	        _game_state = _previous_state;
-	        if (_previous_state == GameState::Playing) {
-	            _show_pause_menu = true;
-	        }
-	        return;
-	    }
+			const Nawia::UI::MenuAction action = _ui_handler->handleSettingsInput();
 	    
-	    const Nawia::UI::MenuAction action = _ui_handler->handleSettingsInput();
+			// Check if Back was clicked
+			if (action == Nawia::UI::MenuAction::Play) {
+				// Return to previous state
+				_game_state = _previous_state;
+				if (_previous_state == GameState::Playing) {
+					_show_pause_menu = true;  // Re-show pause menu when returning from settings
+				}
+				return;
+			}
 	    
-	    // Check if Back was clicked
-	    if (action == Nawia::UI::MenuAction::Play) {
-	        // Return to previous state
-	        _game_state = _previous_state;
-	        if (_previous_state == GameState::Playing) {
-	            _show_pause_menu = true;  // Re-show pause menu when returning from settings
-	        }
-	        return;
-	    }
-	    
-	    // Check if settings were applied
-	    if (_ui_handler->wereSettingsApplied()) {
-	        applySettings(_ui_handler->getAppliedSettings());
-	        _ui_handler->closeSettingsMenu();  // Reset menu to clear stale state
-	        // Return to previous state (not always Menu)
-	        _game_state = _previous_state;
-	        if (_previous_state == GameState::Playing) {
-	            _show_pause_menu = true;
-	        }
-	    }
-	    return;
-	}
+			// Check if settings were applied
+			if (_ui_handler->wereSettingsApplied()) {
+				applySettings(_ui_handler->getAppliedSettings());
+				_ui_handler->closeSettingsMenu();  // Reset menu to clear stale state
+				// Return to previous state (not always Menu)
+				_game_state = _previous_state;
+				if (_previous_state == GameState::Playing) {
+					_show_pause_menu = true;
+				}
+			}
+			return;
+		}
 
 		// Playing state - handle ESC for pause menu toggle
 		if (IsKeyPressed(KEY_ESCAPE)) {
@@ -187,7 +201,6 @@ namespace Nawia::Core {
 		
 		// Handle pause menu input when visible
 		if (_show_pause_menu) {
-		    if (!_ui_handler) return;
 		    const Nawia::UI::MenuAction action = _ui_handler->handlePauseMenuInput();
 		    
 		    if (action == Nawia::UI::MenuAction::Play) {
@@ -205,6 +218,9 @@ namespace Nawia::Core {
 		    }
 		    return;  // Don't process gameplay input while pause menu is open
 		}
+
+		// handle ui in-game input
+		_ui_handler->handleInput();
 
 		// transform mouse location to position in world
 		Vector2 mouse_pos = GetMousePosition();

@@ -1,6 +1,7 @@
 #pragma once
 #include "InteractiveClickable.h"
 #include "Entity.h"
+#include "Backpack.h"
 
 namespace Nawia::Entity {
 
@@ -14,9 +15,15 @@ namespace Nawia::Entity {
         void update(float delta_time) override;
         void render(float offset_x, float offset_y) override;
         float getInteractionRange() override;
+
+        Item::Backpack& getInventory() { return *_inventory; }
+        void addItem(std::shared_ptr<Item::Item> item) {
+            _inventory->addItem(item);
+        }
     private:
         bool _isOpen = false;
-        // Mo¿esz tu dodaæ listê itemów: std::vector<Item> _loot;
+        std::unique_ptr<Item::Backpack> _inventory;
+        static constexpr int CHEST_INV_SIZE = 12;
     };
 
 }
