@@ -4,15 +4,20 @@
 #include <vector>
 #include <raylib.h>
 
+#include "InventoryUI.h"
+#include "ChestUI.h"
+
 namespace Nawia::Entity {
     class Player;
     class Entity;
+    class Chest;
 }
 
 namespace Nawia::Core {
     class EntityManager;
     struct Camera;
     class Settings;
+    class ResourceManager;
 }
 
 namespace Nawia::UI {
@@ -39,7 +44,7 @@ namespace Nawia::UI {
         UIHandler();
         ~UIHandler();
 
-        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager);
+        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager);
         
         void update(float dt);
         void render(const Core::Camera& camera) const;
@@ -49,6 +54,8 @@ namespace Nawia::UI {
         MenuAction handleMenuInput();
         MenuAction handleSettingsInput();
         MenuAction handlePauseMenuInput();  ///< Handle input for ESC pause menu overlay
+
+        // handle general input, ex open EQ on key
         void handleInput();
         
         /// Render pause menu overlay (semi-transparent)
@@ -66,6 +73,14 @@ namespace Nawia::UI {
         /// Close the settings menu (call after settings are applied)
         void closeSettingsMenu();
 
+        // inventory
+        bool isInventoryOpen() const { return _is_inventory_open; }
+        void toggleInventory() { _is_inventory_open = !_is_inventory_open; }
+
+        // chest
+        void openChest(std::shared_ptr<Entity::Chest> chest);
+        void closeChest();
+
     private:
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
@@ -79,6 +94,12 @@ namespace Nawia::UI {
         Font _font;
         
         std::unique_ptr<SettingsMenu> _settings_menu;
+
+        std::unique_ptr<InventoryUI> _inventory_ui;
+        bool _is_inventory_open = false;
+
+        std::unique_ptr<ChestUI> _chest_ui;
+        std::shared_ptr<Entity::Chest> _current_chest;
     };
 
 } // namespace Nawia::UI

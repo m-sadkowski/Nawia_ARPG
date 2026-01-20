@@ -42,7 +42,11 @@ include_directories(
     src/world/level
     src/ui
     src/ui/hud
+    src/ui/inventory
     src/ui/menu
+    src/item
+    src/item/inventory
+    src/item/types
     external/json
 )
 
