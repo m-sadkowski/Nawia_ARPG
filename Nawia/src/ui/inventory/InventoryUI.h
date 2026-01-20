@@ -49,6 +49,7 @@ namespace Nawia::UI {
 
         void drawSlot(int index, float x, float y, bool isHovered, const std::shared_ptr<Item::Item>& item) const;
         void drawSpecificSlot(Item::EquipmentSlot slotType, float x, float y, const Entity::Player& player, Vector2 mousePos) const;
+        void drawTooltip(const Font& font, const std::shared_ptr<Item::Item>& item, float x, float y) const;
     };
 
 }

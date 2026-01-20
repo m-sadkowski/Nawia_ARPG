@@ -57,6 +57,9 @@ namespace Nawia::UI {
         float backpackX = _inv_start_x + _eq_width + _text_padding_left;
         float backpackY = _inv_start_y + _bp_start_top;
 
+        std::shared_ptr<Item::Item> itemTooltip = nullptr;
+        Vector2 tooltipPos = { 0, 0 };
+
         for (int i = 0; i < 20; ++i) {
             int col = i % 4;
             int row = i / 4;
@@ -69,10 +72,20 @@ namespace Nawia::UI {
             std::shared_ptr<Item::Item> item = (i < backpackItems.size()) ? backpackItems[i] : nullptr;
 
             drawSlot(i, slotX, slotY, isHovered, item);
+
+            if (isHovered && item != nullptr) {
+                itemTooltip = item;
+                tooltipPos = { mousePos.x + 15, mousePos.y + 15 };
+            }
         }
 
         std::string goldText = "GOLD: " + std::to_string(player.getGold());
         DrawTextEx(font, goldText.c_str(), { _inv_start_x + _eq_width + _text_padding_left, _inv_start_y + _inv_height - _gold_padding_bottom }, _font_size, 1.0f, GOLD);
+    
+        // drawing tooltip
+        if (itemTooltip != nullptr) {
+            drawTooltip(font, itemTooltip, tooltipPos.x, tooltipPos.y);
+        }
     }
 
     void InventoryUI::drawSpecificSlot(Item::EquipmentSlot slotType, float x, float y, const Entity::Player& player, Vector2 mousePos) const {
@@ -113,6 +126,9 @@ namespace Nawia::UI {
     void InventoryUI::drawSlot(int index, float x, float y, bool isHovered, const std::shared_ptr<Item::Item>& item) const {
         const float _slot_padding = Core::GlobalScaling::scaled(SLOT_PADDING);
         const float _slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
+        const float _font_size = Core::GlobalScaling::scaled(FONT_SIZE);
+        const float _padding = Core::GlobalScaling::scaled(PADDING);
+
         // slot background
         Color slotColor = isHovered ? LIGHTGRAY : DARKGRAY;
         DrawRectangle(x, y, _slot_size, _slot_size, slotColor);
@@ -134,15 +150,21 @@ namespace Nawia::UI {
 
                 DrawTexturePro(icon, source, dest, { 0, 0 }, 0.0f, WHITE);
             }
-
-            if (isHovered) {
-                const char* text = item->getName().c_str();
-                int textWidth = MeasureText(text, 10);
-
-                DrawRectangle(x, y - 15, textWidth + 4, 12, BLACK);
-                DrawText(text, x + 2, y - 14, 10, YELLOW);
-            }
         }
+    }
+
+    void InventoryUI::drawTooltip(const Font& font, const std::shared_ptr<Item::Item>& item, float x, float y) const {
+        const float _font_size = Core::GlobalScaling::scaled(FONT_SIZE);
+
+        const char* _item_name = item->getName().c_str();
+
+        Vector2 textSize = MeasureTextEx(font, _item_name, _font_size, 1.0f);
+        float padding = 8.0f;
+
+        DrawRectangle(x, y, textSize.x + (padding * 2), textSize.y + (padding * 2), Fade(BLACK, 0.9f));
+        DrawRectangleLines(x, y, textSize.x + (padding * 2), textSize.y + (padding * 2), WHITE);
+
+        DrawTextEx(font, _item_name, { x + padding, y + padding }, _font_size, 1.0f, YELLOW);
     }
 
     int InventoryUI::handleInput() const {
