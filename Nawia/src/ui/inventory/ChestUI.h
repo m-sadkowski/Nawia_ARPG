@@ -2,7 +2,7 @@
 #include <raylib.h>
 #include <memory>
 #include "Backpack.h"
-#include "GlobalScaling.h"
+#include <GlobalScaling.h>
 
 namespace Nawia::UI {
 
@@ -15,6 +15,7 @@ namespace Nawia::UI {
         int handleInput() const;
 
     private:
+        static constexpr int SLOT_AMOUNT = 12;
         static constexpr int COLS = 3;
         static constexpr int ROWS = 4;
         static constexpr float SLOT_SIZE = 50.0f;

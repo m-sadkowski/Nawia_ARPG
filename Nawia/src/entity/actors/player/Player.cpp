@@ -94,23 +94,23 @@ namespace Nawia::Entity {
 		}
 	}
 
-	void Player::equipItemFromBackpack(int backpackIndex) {
+	void Player::equipItemFromBackpack(int backpackIndex) const {
 		auto item = _backpack->getItem(backpackIndex);
 		if (!item) return;
 
 		_backpack->removeItem(backpackIndex);
 
 		// equip item
-		auto oldItem = _equipment->equip(item);
+		auto old_item = _equipment->equip(item);
 
 		// if cannot equip go back to backpack
-		if (oldItem) {
-			_backpack->addItem(oldItem);
+		if (old_item) {
+			_backpack->addItem(old_item);
 			// todo what if backpack full (player somehow picked up item while equip)
 		}
 	}
 
-	void Player::unequipItem(Item::EquipmentSlot slot) {
+	void Player::unequipItem(Item::EquipmentSlot slot) const {
 		auto item = _equipment->getItemAt(slot);
 		if (!item) return;
 

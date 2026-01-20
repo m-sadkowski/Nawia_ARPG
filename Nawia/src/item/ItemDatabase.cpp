@@ -7,7 +7,6 @@
 #include "Legs.h"
 #include "Boots.h"
 #include "Ring.h"
-#include <iostream>
 #include "Logger.h"
 
 namespace Nawia::Item {
@@ -15,7 +14,7 @@ namespace Nawia::Item {
     void ItemDatabase::loadDatabase(const std::string& filepath, Core::ResourceManager& resMgr) {
         std::ifstream file(filepath);
         if (!file.is_open()) {
-            std::cerr << "Nie mozna otworzyc bazy przedmiotow: " << filepath << std::endl;
+            Core::Logger::errorLog("Nie mozna otworzyc bazy przedmiotow: " + filepath);
             return;
         }
 
@@ -28,9 +27,8 @@ namespace Nawia::Item {
             std::string slotStr = entry["slot"];
             std::string texPath = entry["texture"];
 
-            auto icon = resMgr.getTexture("../" + texPath);
+            const auto icon = resMgr.getTexture("../" + texPath);
             if (!icon) {
-                std::cerr << "error" << std::endl;
                 continue;
             }
 
@@ -78,12 +76,12 @@ namespace Nawia::Item {
             // save template
             if (newItem) {
                 _templates[id] = newItem;
-                std::cout << "Zaladowano przedmiot ID " << id << ": " << name << std::endl;
+                Core::Logger::debugLog("Zaladowano przedmiot ID " + std::to_string(id) + ": " + name);
             }
         }
     }
 
-    std::shared_ptr<Item> ItemDatabase::createItem(int id) {
+    std::shared_ptr<Item> ItemDatabase::createItem(const int id) {
         if (_templates.find(id) != _templates.end()) {
             return _templates[id]->clone();
         }

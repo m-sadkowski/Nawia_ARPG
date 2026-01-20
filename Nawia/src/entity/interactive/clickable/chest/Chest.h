@@ -23,6 +23,7 @@ namespace Nawia::Entity {
     private:
         bool _isOpen = false;
         std::unique_ptr<Item::Backpack> _inventory;
+        static constexpr int CHEST_INV_SIZE = 12;
     };
 
 }

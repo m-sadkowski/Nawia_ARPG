@@ -5,7 +5,7 @@
 #include <vector>
 #include <fstream>
 #include "json.hpp"
-#include "ResourceManager.h"
+#include <ResourceManager.h>
 #include "Item.h"
 
 using json = nlohmann::json;
@@ -16,7 +16,7 @@ namespace Nawia::Item {
     public:
         void loadDatabase(const std::string& filepath, Core::ResourceManager& resMgr);
 
-        std::shared_ptr<Item> createItem(int id);
+        std::shared_ptr<Item> createItem(const int id);
 
     private:
         // id -> item object

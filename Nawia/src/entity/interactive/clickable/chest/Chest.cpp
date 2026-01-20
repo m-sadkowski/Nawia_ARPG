@@ -13,7 +13,7 @@ namespace Nawia::Entity {
         _use_3d_rendering = false;
         setCollider(std::make_unique<RectangleCollider>(this, 0.9f, 0.4f, -0.5f, -0.5f));
 
-        _inventory = std::make_unique<Item::Backpack>(12);
+        _inventory = std::make_unique<Item::Backpack>(CHEST_INV_SIZE);
     }
     
     void Chest::onInteract(Entity& instigator) {

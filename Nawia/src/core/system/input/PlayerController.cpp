@@ -2,10 +2,10 @@
 #include "PlayerController.h"
 #include "Engine.h"
 #include "Logger.h"
-#include "Chest.h"
 #include "UIHandler.h"
 #include <EnemyInterface.h>
 #include <string>
+#include <Chest.h>
 
 #include "InteractiveTrigger.h"
 

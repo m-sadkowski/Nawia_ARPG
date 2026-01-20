@@ -19,35 +19,35 @@ namespace Nawia::UI {
 
 		DrawTextEx(font, "CHEST", { _inv_start_x + _text_padding_left, _inv_start_y + _text_padding_top }, _font_size, 1.0f, WHITE);
 
-        Vector2 mousePos = GetMousePosition();
+        const Vector2 mouse_pos = GetMousePosition();
 
-        float backpackX = _inv_start_x + _text_padding_left;
-        float backpackY = _inv_start_y + _text_padding_top + 50;
+        const float backpack_x = _inv_start_x + _text_padding_left;
+        const float backpack_y = _inv_start_y + _text_padding_top + 50;
 
-        std::shared_ptr<Item::Item> itemTooltip = nullptr;
-        Vector2 tooltipPos = { 0, 0 };
+        std::shared_ptr<Item::Item> item_tooltip = nullptr;
+        Vector2 tooltip_pos = { 0, 0 };
 
-        for (int i = 0; i < 12; ++i) {
-            int col = i % COLS;
-            int row = i / COLS;
+        for (int i = 0; i < SLOT_AMOUNT; ++i) {
+            const int col = i % COLS;
+            const int row = i / COLS;
 
-            float slotX = backpackX + (col * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
-            float slotY = backpackY + (row * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
+            const float slot_x = backpack_x + (col * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
+            const float slot_y = backpack_y + (row * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
 
-            bool isHovered = CheckCollisionPointRec(mousePos, { slotX, slotY, _slot_size, _slot_size });
+            const bool is_hovered = CheckCollisionPointRec(mouse_pos, { slot_x, slot_y, _slot_size, _slot_size });
 
             std::shared_ptr<Item::Item> item = (i < chestBackpack.getItems().size()) ? chestBackpack.getItems()[i] : nullptr;
 
-            drawSlot(slotX, slotY, isHovered, item);
+            drawSlot(slot_x, slot_y, is_hovered, item);
 
-            if (isHovered && item != nullptr) {
-                itemTooltip = item;
-                tooltipPos = { mousePos.x + 15, mousePos.y + 15 };
+            if (is_hovered && item != nullptr) {
+                item_tooltip = item;
+                tooltip_pos = { mouse_pos.x + 15, mouse_pos.y + 15 };
             }
         }
 
-        if (itemTooltip != nullptr) {
-            drawTooltip(font, itemTooltip, tooltipPos.x, tooltipPos.y);
+        if (item_tooltip != nullptr) {
+            drawTooltip(font, item_tooltip, tooltip_pos.x, tooltip_pos.y);
         }
 	}
 
@@ -56,11 +56,11 @@ namespace Nawia::UI {
 
         const char* _item_name = item->getName().c_str();
 
-        Vector2 textSize = MeasureTextEx(font, _item_name, _font_size, 1.0f);
-        float padding = 8.0f;
+        const Vector2 text_size = MeasureTextEx(font, _item_name, _font_size, 1.0f);
+        const float padding = 8.0f;
 
-        DrawRectangle(x, y, textSize.x + (padding * 2), textSize.y + (padding * 2), Fade(BLACK, 0.9f));
-        DrawRectangleLines(x, y, textSize.x + (padding * 2), textSize.y + (padding * 2), WHITE);
+        DrawRectangle(x, y, text_size.x + (padding * 2), text_size.y + (padding * 2), Fade(BLACK, 0.9f));
+        DrawRectangleLines(x, y, text_size.x + (padding * 2), text_size.y + (padding * 2), WHITE);
 
         DrawTextEx(font, _item_name, { x + padding, y + padding }, _font_size, 1.0f, YELLOW);
     }
@@ -72,18 +72,18 @@ namespace Nawia::UI {
         const float _padding = Core::GlobalScaling::scaled(PADDING);
 
         // slot background
-        Color slotColor = isHovered ? LIGHTGRAY : DARKGRAY;
-        DrawRectangle(x, y, _slot_size, _slot_size, slotColor);
+        const Color slot_color = isHovered ? LIGHTGRAY : DARKGRAY;
+        DrawRectangle(x, y, _slot_size, _slot_size, slot_color);
         DrawRectangleLines(x, y, _slot_size, _slot_size, WHITE);
 
         if (item != nullptr) {
-            Texture2D icon = item->getIcon();
+            const Texture2D icon = item->getIcon();
 
             // check if texture is loaded
             if (icon.id > 0) {
-                Rectangle source = { 0.0f, 0.0f, (float)icon.width, (float)icon.height };
+                const Rectangle source = { 0.0f, 0.0f, (float)icon.width, (float)icon.height };
 
-                Rectangle dest = {
+                const Rectangle dest = {
                     x + _slot_padding,
                     y + _slot_padding,
                     _slot_size - (_slot_padding * 2),
@@ -106,20 +106,20 @@ namespace Nawia::UI {
             return -1;
         }
 
-        Vector2 mousePos = GetMousePosition();
+        const Vector2 mouse_pos = GetMousePosition();
 
-        float backpackX = _inv_start_x + _text_padding_left;
-        float backpackY = _inv_start_y + _text_padding_top + 50;
+        const float backpack_x = _inv_start_x + _text_padding_left;
+        const float backpack_y = _inv_start_y + _text_padding_top + 50;
 
-        for (int i = 0; i < 20; ++i) {
-            int col = i % COLS;
-            int row = i / COLS;
-            float slotX = backpackX + (col * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
-            float slotY = backpackY + (row * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
+        for (int i = 0; i < SLOT_AMOUNT; ++i) {
+            const int col = i % COLS;
+            const int row = i / COLS;
+            const float slotX = backpack_x + (col * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
+            const float slotY = backpack_y + (row * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
 
-            Rectangle slotRect = { slotX, slotY, _slot_size, _slot_size };
+            const Rectangle slot_rect = { slotX, slotY, _slot_size, _slot_size };
 
-            if (CheckCollisionPointRec(mousePos, slotRect)) {
+            if (CheckCollisionPointRec(mouse_pos, slot_rect)) {
                 return i;
             }
         }

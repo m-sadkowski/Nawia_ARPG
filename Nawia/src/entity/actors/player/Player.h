@@ -1,8 +1,8 @@
 #pragma once
 #include "Entity.h"
 #include "Ability.h"
-#include "Backpack.h"
-#include "Equipment.h"
+#include <Backpack.h>
+#include <Equipment.h>
 
 #include <memory>
 #include <vector>
@@ -20,8 +20,8 @@ namespace Nawia::Entity {
 		void stop();
 		void updateMovement(float delta_time);
 		
-		void equipItemFromBackpack(int backpackIndex);
-		void unequipItem(Item::EquipmentSlot slot);
+		void equipItemFromBackpack(int backpackIndex) const;
+		void unequipItem(Item::EquipmentSlot slot) const;
 
 		const Item::Backpack& getBackpack() const { return *_backpack; }
 		Item::Backpack& getBackpack() { return *_backpack; }
