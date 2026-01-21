@@ -8,7 +8,7 @@ namespace Nawia::Entity {
 
 	class SwordSlashEffect : public AbilityEffect {
 	public:
-		SwordSlashEffect(float x, float y, float angle, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats);
+		SwordSlashEffect(float x, float y, float angle, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats, Entity* caster);
 
 		void update(float dt) override;
 		void render(float camera_x, float camera_y) override;
@@ -19,6 +19,7 @@ namespace Nawia::Entity {
 
 	private:
 		float _angle;
+		Entity* _caster;
 	};
 
 } // namespace Nawia::Entity

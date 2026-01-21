@@ -69,7 +69,7 @@ namespace Nawia::Core {
 		const auto dummy = std::make_shared<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get());
 		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 		dummy->setTarget(_player);
-		//_entity_manager->addEntity(dummy);
+		_entity_manager->addEntity(dummy);
 
 		// add player to entity manager so it can be hit by enemies
 		_entity_manager->addEntity(_player);

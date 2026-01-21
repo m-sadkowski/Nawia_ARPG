@@ -1,6 +1,7 @@
 #pragma once
 #include "Entity.h"
 #include "Ability.h"
+#include "Stats.h"
 #include <Backpack.h>
 #include <Equipment.h>
 
@@ -20,8 +21,9 @@ namespace Nawia::Entity {
 		void stop();
 		void updateMovement(float delta_time);
 		
-		void equipItemFromBackpack(int backpackIndex) const;
-		void unequipItem(Item::EquipmentSlot slot) const;
+
+		void equipItemFromBackpack(int backpackIndex);
+		void unequipItem(Item::EquipmentSlot slot);
 
 		const Item::Backpack& getBackpack() const { return *_backpack; }
 		Item::Backpack& getBackpack() { return *_backpack; }
@@ -36,6 +38,10 @@ namespace Nawia::Entity {
 			}
 			return false;
 		}
+
+		void recalculateStats();
+		const Stats& getStats() const { return _current_stats; }
+
 	private:
 		static constexpr int INIT_BACKPACK_SIZE = 20;
 
@@ -45,6 +51,9 @@ namespace Nawia::Entity {
 
 		std::unique_ptr<Item::Backpack> _backpack;
 		std::unique_ptr<Item::Equipment> _equipment;
+
+		Stats _base_stats;
+		Stats _current_stats;
 
 		int _gold = 0;
 	};

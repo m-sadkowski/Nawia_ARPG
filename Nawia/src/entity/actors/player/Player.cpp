@@ -24,6 +24,13 @@ namespace Nawia::Entity {
 		// init backpack and eq
 		_backpack = std::make_unique<Item::Backpack>(INIT_BACKPACK_SIZE);
 		_equipment = std::make_unique<Item::Equipment>();
+
+		_base_stats.max_hp = 100;
+		_base_stats.damage = 10;
+		_base_stats.attack_speed = 1.0f;
+		_base_stats.tenacity = 0;
+
+		recalculateStats();
 	}
 
 	void Player::moveTo(const float x, const float y)
@@ -94,7 +101,7 @@ namespace Nawia::Entity {
 		}
 	}
 
-	void Player::equipItemFromBackpack(int backpackIndex) const {
+	void Player::equipItemFromBackpack(int backpackIndex) {
 		auto item = _backpack->getItem(backpackIndex);
 		if (!item) return;
 
@@ -108,19 +115,33 @@ namespace Nawia::Entity {
 			_backpack->addItem(old_item);
 			// todo what if backpack full (player somehow picked up item while equip)
 		}
+		recalculateStats();
 	}
 
-	void Player::unequipItem(Item::EquipmentSlot slot) const {
+	void Player::unequipItem(Item::EquipmentSlot slot) {
 		auto item = _equipment->getItemAt(slot);
 		if (!item) return;
 
 		if (_backpack->getRemainingCapacity() > 0) {
 			_backpack->addItem(item);
 			_equipment->unequip(slot);
+			recalculateStats();
 		}
 	}
 
-	
+	void Player::recalculateStats() {
+		_current_stats = _base_stats;
+		
+		// Check all slots
+		for (int i = 1; i <= 8; ++i) {
+			auto item = _equipment->getItemAt(static_cast<Item::EquipmentSlot>(i));
+			if (item) {
+				_current_stats += item->getStats();
+			}
+		}
 
+		_max_hp = _current_stats.max_hp;
+		if (_hp > _max_hp) _hp = _max_hp;
+	}
 
 } // namespace Nawia::Entity

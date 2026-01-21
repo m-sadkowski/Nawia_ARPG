@@ -2,7 +2,7 @@
 #include <string>
 #include <raylib.h>
 #include <memory>
-
+#include <Stats.h>
 namespace Nawia::Item {
 
     // item type
@@ -32,6 +32,8 @@ namespace Nawia::Item {
             return Texture2D{ 0 };
         }
 
+        const Entity::Stats& getStats() const { return _stats; }
+
         virtual bool use() { return false; }
 
         virtual std::shared_ptr<Item> clone() const {
@@ -44,6 +46,8 @@ namespace Nawia::Item {
         std::string _description;
         EquipmentSlot _slot;
         std::shared_ptr<Texture2D> _icon;
+        
+        Entity::Stats _stats;
     };
 
 }

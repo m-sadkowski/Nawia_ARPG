@@ -63,7 +63,7 @@ namespace Nawia::Entity {
 				const float spawn_x = caster_center.x;
 				const float spawn_y = caster_center.y;
 
-				const auto slash = std::make_shared<SwordSlashEffect>(spawn_x, spawn_y, -angle, _slash_tex, _stats);
+				const auto slash = std::make_shared<SwordSlashEffect>(spawn_x, spawn_y, -angle, _slash_tex, _stats, _caster);
 				_caster->addPendingSpawn(slash);
 			}
 
