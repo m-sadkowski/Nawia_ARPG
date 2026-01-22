@@ -125,6 +125,12 @@ namespace Nawia::Core {
 
 		int total_width = max_x - min_x;
 		int total_height = max_y - min_y;
+		
+		// save map offset
+		_offset_x = min_x;
+		_offset_y = min_y;
+
+		Logger::debugLog("Map offsets: x=" + std::to_string(_offset_x) + " y=" + std::to_string(_offset_y));
 
 		// resize grid
 		_grid.clear();
@@ -186,12 +192,9 @@ namespace Nawia::Core {
 								float grid_x = (raw_x / th);
 								float grid_y = (raw_y / th);
 
-								grid_x -= min_x;
-								grid_y -= min_y;
-
 								_player_spawn_pos.x = grid_x;
 								_player_spawn_pos.y = grid_y;
-								Logger::debugLog("Map - Loaded player spawn point");
+								Logger::debugLog("Map - Loaded player spawn point (" + std::to_string(grid_x) + ";" + std::to_string(grid_y));
 							}
 						}
 					}
@@ -233,29 +236,36 @@ namespace Nawia::Core {
 				Tile& tile = _grid[y][x];
 				if (tile.texture) 
 				{
-					const float iso_x = (x - y) * (TILE_WIDTH / 2.0f) + offset_x;
-					const float iso_y = (x + y) * (TILE_HEIGHT / 2.0f) + offset_y;
+					int world_x = x + _offset_x;
+					int world_y = y + _offset_y;
+					const float iso_x = (world_x - world_y) * (TILE_WIDTH / 2.0f) + offset_x;
+					const float iso_y = (world_x + world_y) * (TILE_HEIGHT / 2.0f) + offset_y;
 					const Texture2D* tex = tile.texture.get();
 					const Rectangle source = {0.0f, 0.0f, static_cast<float>(tex->width), static_cast<float>(tex->height)};
 					const Rectangle dest = {iso_x, iso_y, static_cast<float>(TILE_WIDTH), static_cast<float>(TILE_HEIGHT)};
-					constexpr Vector2 origin = {0.0f, 0.0f};
+					constexpr Vector2 origin = {TILE_WIDTH/2.0f, 0.0f };
 					DrawTexturePro(*tex, source, dest, origin, 0.0f, WHITE);
 				}
 			}
 		}
 	}
 
-	bool Map::isWalkable(const int world_x, const int world_y) const 
+	bool Map::isWalkable(const float world_x, const float world_y) const 
 	{
-		if (world_y < 0 || world_y >= _grid.size())
+		int grid_x = static_cast<int>(std::floor(world_x)) - _offset_x;
+		int grid_y = static_cast<int>(std::floor(world_y)) - _offset_y;
+
+		//Logger::debugLog("isWalkable Check: World(" + std::to_string(world_x) + ", " + std::to_string(world_y) +
+		//	") -> GridIndex(" + std::to_string(grid_x) + ", " + std::to_string(grid_y) + ")");
+
+		if (grid_y < 0 || grid_y >= _grid.size())
 			return false;
-		if (world_x < 0 || world_x >= _grid[world_y].size())
+		if (grid_x < 0 || grid_x >= _grid[grid_y].size())
 			return false;
 
-		// Logger::debugLog("Grid int: " + std::to_string(world_x) + ", " + std::to_string(world_y));
-		// Logger::debugLog("isWalkable: " + std::to_string(_grid[world_y][world_x].is_walkable));
+		//Logger::debugLog("isWalkable: " + std::to_string(_grid[grid_y][grid_x].is_walkable));
 
-		return _grid[world_y][world_x].is_walkable;
+		return _grid[grid_y][grid_x].is_walkable;
 	}
 
 } // namespace Nawia::Core

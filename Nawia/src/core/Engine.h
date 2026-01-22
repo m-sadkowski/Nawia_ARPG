@@ -39,6 +39,7 @@ namespace Nawia::Core {
 		void spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const;
 
 		UI::UIHandler& getUIHandler() const { return *_ui_handler; }
+		Map* getCurrentMap() const { return _map.get(); }
 	private:
 		void update(float delta_time);
 		void render() const;

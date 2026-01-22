@@ -41,7 +41,7 @@ namespace Nawia::Core {
 		// initialize player
 		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
 		Vector2 player_spawn_pos = _map->getPlayerSpawnPos();
-		_player = std::make_shared<Entity::Player>(player_spawn_pos.x, player_spawn_pos.y, player_texture);
+		_player = std::make_shared<Entity::Player>(this, player_spawn_pos.x, player_spawn_pos.y, player_texture);
 
 		// initialize spells
 		const auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");
@@ -77,7 +77,7 @@ namespace Nawia::Core {
 		_is_running = true;
 
 		const auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png");
-		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", 12.0f, 12.0f, chest_tex);
+		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", -3.6f, -4.3f, chest_tex);
 		auto chestplate_chest = _item_database.createItem(2);
 		test_chest->addItem(chestplate_chest);
 		_entity_manager->addEntity(test_chest);
