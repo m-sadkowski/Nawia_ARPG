@@ -23,12 +23,12 @@ namespace Nawia::Core {
 
 		[[nodiscard]] Vector2 getPlayerSpawnPos() const { return _player_spawn_pos; }
 
-		[[nodiscard]] bool isWalkable(int world_x, int world_y) const;
+		[[nodiscard]] bool isWalkable(float world_x, float world_y) const;
 
 	private:
 		ResourceManager& _resource_manager;
 
-		int _offset_x, _offset_y;
+		int _offset_x = 0, _offset_y = 0;
 
 		std::vector<Tile> _tiles;
 		std::vector<std::vector<Tile>> _grid;

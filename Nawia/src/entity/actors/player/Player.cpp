@@ -3,14 +3,17 @@
 
 #include <Constants.h>
 #include <MathUtils.h>
+#include <Engine.h>
+#include <Logger.h>
 
 #include <cmath>
 
 namespace Nawia::Entity {
 
-	Player::Player(const float x, const float y, const std::shared_ptr<Texture2D>& texture)
+	Player::Player(Core::Engine* engine, const float x, const float y, const std::shared_ptr<Texture2D>& texture)
 	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) 
 	{
+		_engine = engine;
 		this->setScale(0.03f);
 		setFaction(Faction::Player);
 		loadModel("../assets/models/player_idle.glb");
@@ -33,8 +36,17 @@ namespace Nawia::Entity {
 		const float offset_x = center.x - getX();
 		const float offset_y = center.y - getY();
 
+		Core::Map* map = _engine->getCurrentMap();
+
 		_target_x = x - offset_x;
 		_target_y = y - offset_y;
+
+		//Core::Logger::debugLog("Player::moveTo(org) -> x=" + std::to_string(x) + " y=" + std::to_string(y));
+
+		if (!map->isWalkable(x, y)) {
+			return;
+		}
+
 		_is_moving = true;
 
 		if (!isAnimationLocked())
