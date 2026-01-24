@@ -9,6 +9,8 @@
 
 #include <cmath>
 
+#include "Player.h"
+
 namespace Nawia::Entity {
 
 	Projectile::Projectile(const std::string& name, const float x, const float y, const float target_x, const float target_y, 
@@ -64,7 +66,22 @@ namespace Nawia::Entity {
 	void Projectile::onCollision(const std::shared_ptr<Entity>& target)
 	{
 		Core::Logger::debugLog("Projectile::onCollision with " + target->getName());
-		target->takeDamage(getDamage());
+
+		int final_damage = getDamage();
+
+		if (_caster) {
+			if (const auto player = dynamic_cast<Player*>(_caster)) {
+				final_damage += player->getStats().power;
+			}
+		}
+		if (_caster)
+		{
+			if (auto playerTarget = std::dynamic_pointer_cast<Player>(target)) {
+				final_damage -= playerTarget->getStats().tenacity;
+			}
+		}
+		
+		target->takeDamage(final_damage );
 
 		// spawn explosion effect
 		if (_caster && _hit_texture) {

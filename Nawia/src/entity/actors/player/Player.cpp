@@ -9,7 +9,7 @@
 namespace Nawia::Entity {
 
 	Player::Player(const float x, const float y, const std::shared_ptr<Texture2D>& texture)
-	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y), _speed(4.0f), _is_moving(false) 
+	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y), _is_moving(false) 
 	{
 		this->setScale(0.03f);
 		setFaction(Faction::Player);
@@ -28,6 +28,7 @@ namespace Nawia::Entity {
 		_base_stats.max_hp = 100;
 		_base_stats.damage = 10;
 		_base_stats.attack_speed = 1.0f;
+		_base_stats.movement_speed = 4.0f;  // Base movement speed
 		_base_stats.tenacity = 0;
 
 		recalculateStats();
@@ -96,8 +97,8 @@ namespace Nawia::Entity {
 		}
 		else
 		{
-			_pos.x += (dx / distance) * _speed * delta_time;
-			_pos.y += (dy / distance) * _speed * delta_time;
+			_pos.x += (dx / distance) * _current_stats.movement_speed * delta_time;
+			_pos.y += (dy / distance) * _current_stats.movement_speed * delta_time;
 		}
 	}
 

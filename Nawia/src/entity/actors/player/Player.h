@@ -46,7 +46,6 @@ namespace Nawia::Entity {
 		static constexpr int INIT_BACKPACK_SIZE = 20;
 
 		float _target_x, _target_y;
-		float _speed;
 		bool _is_moving;
 
 		std::unique_ptr<Item::Backpack> _backpack;
