@@ -10,8 +10,8 @@
 
 namespace Nawia::Entity {
 
-	Player::Player(const float x, const float y, const std::shared_ptr<Texture2D>& texture)
-	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y), _is_moving(false) 
+	Player::Player(Core::Engine* engine, const float x, const float y, const std::shared_ptr<Texture2D>& texture)
+	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y),  _is_moving(false) 
 	{
 		_engine = engine;
 		this->setScale(0.03f);

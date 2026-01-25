@@ -66,7 +66,7 @@ namespace Nawia::Core {
 		// spawn test enemy
 		// manual setup of a test enemy with specific abilities
 		const auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
-		const auto dummy = std::make_shared<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get());
+		const auto dummy = std::make_shared<Entity::Dummy>(5.0f, 15.0f, enemy_tex, 100, _map.get());
 		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 		dummy->setTarget(_player);
 		_entity_manager->addEntity(dummy);

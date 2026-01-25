@@ -24,7 +24,7 @@ namespace Nawia::Entity {
 		void moveTo(float x, float y);
 		void stop();
 		void updateMovement(float delta_time);
-		
+
 
 		void equipItemFromBackpack(int backpackIndex);
 		void unequipItem(Item::EquipmentSlot slot);
@@ -62,4 +62,4 @@ namespace Nawia::Entity {
 		int _gold = 0;
 	};
 
-} // namespace Nawia::Entity
+}
