@@ -24,6 +24,7 @@ include_directories(
     src/entity/actors/enemies
     src/entity/actors/player
     src/entity/actors/enemies/dummy
+    src/entity/actors/enemies/walking_dead
     src/entity/components
     src/entity/systems
     src/entity/effects

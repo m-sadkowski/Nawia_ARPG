@@ -5,6 +5,7 @@
 #include "PlayerController.h"
 
 #include <Dummy.h>
+#include <WalkingDead.h>
 #include <FireballAbility.h>
 #include <Projectile.h>
 #include <SwordSlashAbility.h>
@@ -55,7 +56,7 @@ namespace Nawia::Core {
 
 		// init item database
 		_item_database.loadDatabase("../assets/data/items.json", _resource_manager);
-		Logger::debugLog("Zaladowano baze danych przedmiotow WÆ");
+		Logger::debugLog("Zaladowano baze danych przedmiotow");
 
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
@@ -70,6 +71,11 @@ namespace Nawia::Core {
 		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 		dummy->setTarget(_player);
 		//_entity_manager->addEntity(dummy);
+
+		// spawn Walking Dead for testing
+		const auto walking_dead = std::make_shared<Entity::WalkingDead>(18.0f, 15.0f, _map.get());
+		walking_dead->setTarget(_player);
+		_entity_manager->addEntity(walking_dead);
 
 		// add player to entity manager so it can be hit by enemies
 		_entity_manager->addEntity(_player);
