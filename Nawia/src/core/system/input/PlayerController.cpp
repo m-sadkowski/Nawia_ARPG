@@ -231,6 +231,7 @@ namespace Nawia::Core {
 		}
 		else
 		{
+			Logger::debugLog("PlayerController::handleGroundClick -> x=" + std::to_string(x) + " y=" + std::to_string(y));
 			_target_enemy = nullptr;
 			_player->moveTo(x, y);
 			_pending_action = {}; // clear pending on new valid action

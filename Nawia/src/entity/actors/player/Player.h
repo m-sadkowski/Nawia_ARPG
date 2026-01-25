@@ -8,11 +8,15 @@
 #include <memory>
 #include <vector>
 
+namespace Nawia::Core {
+	class Engine;
+}
+
 namespace Nawia::Entity {
 
 	class Player : public Entity {
 	public:
-		Player(float x, float y, const std::shared_ptr<Texture2D>& texture);
+		Player(Core::Engine* engine, float x, float y, const std::shared_ptr<Texture2D>& texture);
 
 		void update(float delta_time) override;
 		[[nodiscard]] bool isMoving() const { return _is_moving; }
@@ -43,6 +47,7 @@ namespace Nawia::Entity {
 		const Stats& getStats() const { return _current_stats; }
 
 	private:
+		Core::Engine* _engine;
 		static constexpr int INIT_BACKPACK_SIZE = 20;
 
 		float _target_x, _target_y;
