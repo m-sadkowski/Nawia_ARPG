@@ -18,5 +18,16 @@
         "stats": {
             "defense": 3
         }
+    },
+    {
+        "id": 3,
+        "name": "Diamentowe buty",
+        "description": "Lekkie buty z diamentów. Pozwalają szybciej się poruszać.",
+        "slot": "Feet",
+        "texture": "assets/textures/items/boots_diamond.png",
+        "stats": {
+            "defense": 2,
+            "movement_speed": 1.0
+        }
     }
 ]

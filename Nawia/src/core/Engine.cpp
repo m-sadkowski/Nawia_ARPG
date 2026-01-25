@@ -67,10 +67,10 @@ namespace Nawia::Core {
 		// spawn test enemy
 		// manual setup of a test enemy with specific abilities
 		const auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
-		const auto dummy = std::make_shared<Entity::Dummy>(15.0f, 15.0f, enemy_tex, 100, _map.get());
+		const auto dummy = std::make_shared<Entity::Dummy>(-5.0f, -3.0f, enemy_tex, 100, _map.get());
 		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 		dummy->setTarget(_player);
-		//_entity_manager->addEntity(dummy);
+		_entity_manager->addEntity(dummy);
 
 		// spawn Walking Dead for testing
 		const auto walking_dead = std::make_shared<Entity::WalkingDead>(18.0f, 15.0f, _map.get());
@@ -101,9 +101,11 @@ namespace Nawia::Core {
 		if (_player) {
 			auto sword = _item_database.createItem(1);
 			auto chest = _item_database.createItem(2);
+			auto boots = _item_database.createItem(3);
 
 			if (sword) _player->getBackpack().addItem(sword);
 			if (chest) _player->getBackpack().addItem(chest);
+			if (boots) _player->getBackpack().addItem(boots);
 		}
 	}
 

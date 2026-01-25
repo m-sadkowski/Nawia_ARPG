@@ -22,6 +22,7 @@ namespace Nawia::Core {
 
 namespace Nawia::UI {
 
+    class StatsUI;
     class SettingsMenu;
 
     /**
@@ -100,6 +101,8 @@ namespace Nawia::UI {
 
         std::unique_ptr<ChestUI> _chest_ui;
         std::shared_ptr<Entity::Chest> _current_chest;
+
+        std::unique_ptr<StatsUI> _stats_ui;
     };
 
 } // namespace Nawia::UI

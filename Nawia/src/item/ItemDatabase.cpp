@@ -62,8 +62,9 @@ namespace Nawia::Item {
                 newItem = std::make_shared<Legs>(id, name, desc, slot, icon, armor);
             }
             else if (slot == EquipmentSlot::Feet) {
-                int armor = entry["stats"]["defense"];
-                newItem = std::make_shared<Boots>(id, name, desc, slot, icon, armor);
+                int armor = entry["stats"].value("defense", 0);
+                float move_speed = entry["stats"].value("movement_speed", 0.0f);
+                newItem = std::make_shared<Boots>(id, name, desc, slot, icon, armor, move_speed);
             }
             else if (slot == EquipmentSlot::Ring) {
                 int intelligence = entry["stats"]["intelligence"];
@@ -92,6 +93,7 @@ namespace Nawia::Item {
         if (str == "Head") return EquipmentSlot::Head;
         if (str == "Chest") return EquipmentSlot::Chest;
         if (str == "Weapon") return EquipmentSlot::Weapon;
+        if (str == "Feet") return EquipmentSlot::Feet;
         return EquipmentSlot::None;
     }
 }

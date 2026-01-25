@@ -6,6 +6,7 @@ namespace Nawia::Item {
     public:
         Weapon(int id, std::string name, std::string desc, EquipmentSlot slot, std::shared_ptr<Texture2D> icon, int damage)
             : Item(id, name, desc, slot, icon), _damage(damage) {
+            _stats.damage = damage;
         }
 
         int getDamage() const { return _damage; }

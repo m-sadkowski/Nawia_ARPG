@@ -1,5 +1,6 @@
 #include "UIHandler.h"
 #include "SettingsMenu.h"
+#include "StatsUI.h"
 #include <Player.h>
 #include <EntityManager.h>
 #include <Entity.h>
@@ -91,6 +92,8 @@ namespace Nawia::UI {
         // chest
         _chest_ui = std::make_unique<ChestUI>();
         _current_chest = nullptr;
+
+        _stats_ui = std::make_unique<StatsUI>(_player);
     }
 
     void UIHandler::update(float dt) 
@@ -164,8 +167,17 @@ namespace Nawia::UI {
         renderPlayerAbilityBar();
         renderEnemyHealthBars(camera);
 
+        if (_stats_ui) {
+                 
+                 const float stats_x = Core::GlobalScaling::scaled(220.0f);
+                 const float stats_y = Core::GlobalScaling::scaled(150.0f);
+                 _stats_ui->render(stats_x, stats_y);
+            }
+
         if (_is_inventory_open) {
             _inventory_ui->render(_font, *_player);
+
+            
 
             if (_current_chest) {
                 _chest_ui->render(_current_chest->getInventory(), _font);

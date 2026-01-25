@@ -1,6 +1,7 @@
 #include "SwordSlashEffect.h"
 #include "EnemyInterface.h"
 #include "Collider.h"
+#include "../../../actors/player/Player.h"
 
 #include <Constants.h>
 #include <Logger.h>
@@ -10,8 +11,8 @@
 
 namespace Nawia::Entity {
 
-	SwordSlashEffect::SwordSlashEffect(const float x, const float y, const float angle, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats)
-		: AbilityEffect("Sword Slash", x, y, tex, stats), _angle(angle) 
+	SwordSlashEffect::SwordSlashEffect(const float x, const float y, const float angle, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats, Entity* caster)
+		: AbilityEffect("Sword Slash", x, y, tex, stats), _angle(angle), _caster(caster)
 	{
 		setRotation(angle);
 		setCollider(std::make_unique<ConeCollider>(this, stats.hitbox_radius > 0 ? stats.hitbox_radius : 1.5f, 90.0f));
@@ -65,9 +66,17 @@ namespace Nawia::Entity {
 	{
 		if (const auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target))
 		{
-			enemy->takeDamage(getDamage());
+			int final_damage = getDamage();
+
+			if (_caster) {
+				if (const auto player = dynamic_cast<Player*>(_caster)) {
+					final_damage += player->getStats().damage;
+				}
+			}
+
+			enemy->takeDamage(final_damage);
 			addHit(enemy);
-			Core::Logger::debugLog("Sword Slash Hit " + enemy->getName());
+			Core::Logger::debugLog("Sword Slash Hit " + enemy->getName() + " for " + std::to_string(final_damage) + " damage.");
 		}
 	}
 
