@@ -145,7 +145,7 @@ namespace Nawia::Entity {
 	void Player::recalculateStats() {
 		_current_stats = _base_stats;
 		
-		// Check all slots
+		// Check all slots  
 		for (int i = 1; i <= 8; ++i) {
 			auto item = _equipment->getItemAt(static_cast<Item::EquipmentSlot>(i));
 			if (item) {

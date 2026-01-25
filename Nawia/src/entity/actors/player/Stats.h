@@ -1,16 +1,16 @@
 #pragma once
 
-namespace Nawia::Entity { // Or maybe keep it in a general namespace, but file is in entity/actors/player. Let's start with Entity namespace or Entity::Player if specific? The user put it in actors/player. Let's make it generic enough.
+namespace Nawia::Entity { 
 
     struct Stats {
         int max_hp = 0;
         int damage = 0;
-        int power = 10;
+        int power = 0;
         float attack_speed = 0.0f;
         float movement_speed = 0.0f;
-        int tenacity = 0;  // Defense/Resistance
+        int tenacity = 0;  
         int armor = 0;
-        // Operator to easily add stats from equipment
+        
         Stats operator+(const Stats& other) const {
             Stats result;
             result.max_hp = this->max_hp + other.max_hp;
@@ -33,4 +33,4 @@ namespace Nawia::Entity { // Or maybe keep it in a general namespace, but file i
         }
     };
 
-} // namespace Nawia::Entity
+} 
