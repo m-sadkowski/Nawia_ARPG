@@ -174,6 +174,9 @@ namespace Nawia::UI {
                  _stats_ui->render(stats_x, stats_y);
             }
 
+        // FPS Counter (top left corner)
+        DrawText(TextFormat("FPS: %d", GetFPS()), 10, 10, 20, LIME);
+
         if (_is_inventory_open) {
             _inventory_ui->render(_font, *_player);
 

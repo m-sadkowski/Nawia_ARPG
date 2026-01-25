@@ -15,11 +15,22 @@
       "name": "Sword Slash",
       "stats": {
         "damage": 20,
-        "cooldown": 1.0,
+        "cooldown": 0.5,
         "cast_range": 2.5,
         "projectile_speed": 0.0,
         "duration": 0.2,
         "hitbox_radius": 3.5
+      }
+    },
+    {
+      "name": "KnifeThrow",
+      "stats": {
+        "damage": 15,
+        "cooldown": 2.0,
+        "cast_range": 8.0,
+        "projectile_speed": 8.0,
+        "duration": 1.0,
+        "hitbox_radius": 0.5
       }
     }
   ]

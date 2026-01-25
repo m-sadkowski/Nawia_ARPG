@@ -25,6 +25,8 @@ include_directories(
     src/entity/actors/player
     src/entity/actors/enemies/dummy
     src/entity/actors/enemies/walking_dead
+     src/entity/actors/enemies/devil
+      src/entity/actors/enemies/bandit
     src/entity/components
     src/entity/systems
     src/entity/effects
@@ -32,6 +34,7 @@ include_directories(
     src/entity/abilities/projectiles
     src/entity/abilities/melee
     src/entity/abilities/projectiles/Fireball
+    src/entity/abilities/projectiles/KnifeThrow
     src/entity/abilities/melee/SwordSlash
     src/entity/interactive
     src/entity/interactive/onTrigger
