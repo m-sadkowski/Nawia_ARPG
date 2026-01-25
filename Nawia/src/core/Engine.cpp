@@ -56,7 +56,7 @@ namespace Nawia::Core {
 
 		// init item database
 		_item_database.loadDatabase("../assets/data/items.json", _resource_manager);
-		Logger::debugLog("Zaladowano baze danych przedmiotow WÆ");
+		Logger::debugLog("Zaladowano baze danych przedmiotow");
 
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
