@@ -121,6 +121,7 @@ namespace Nawia::Entity {
 			float next_center_x = next_x + center_offset_x;
 			float next_center_y = next_y + center_offset_y;
 
+			// Temporary: simple check, can be improved with pathfinding
 			if (map && !map->isWalkable(next_center_x, next_center_y)) {
 				// Stop movement if next tile is not walkable
 				_is_moving = false;
