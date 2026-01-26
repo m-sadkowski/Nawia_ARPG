@@ -58,10 +58,18 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(raylib)
 
+# TinyXML2 for parsing .tsx tileset files
+FetchContent_Declare(
+    tinyxml2
+    GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
+    GIT_TAG 10.0.0
+)
+FetchContent_MakeAvailable(tinyxml2)
+
 add_executable(Nawia ${SOURCES})
 
 # Link libraries
-target_link_libraries(Nawia PRIVATE raylib)
+target_link_libraries(Nawia PRIVATE raylib tinyxml2)
 
 # Copy assets to build directory
 add_custom_command(TARGET Nawia POST_BUILD

@@ -37,11 +37,11 @@ namespace Nawia::Core {
 		// TEMPORARY SOLUTION
 		// initialize map object
 		_map = std::make_unique<Map>(_resource_manager);
-		_map->loadMap("map1.json");
+		_map->loadMap("test_map/test_map.json");
 
 		// initialize player
 		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
-		Vector2 player_spawn_pos = _map->getPlayerSpawnPos();
+		Vector2 player_spawn_pos = {5.0f, 5.0f};//_map->getPlayerSpawnPos();
 		_player = std::make_shared<Entity::Player>(this, player_spawn_pos.x, player_spawn_pos.y, player_texture);
 
 		// initialize spells
@@ -83,7 +83,7 @@ namespace Nawia::Core {
 		_is_running = true;
 
 		const auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png");
-		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", -3.6f, -4.3f, chest_tex);
+		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", -12.0f, -7.7f, chest_tex);
 		auto chestplate_chest = _item_database.createItem(2);
 		test_chest->addItem(chestplate_chest);
 		_entity_manager->addEntity(test_chest);
