@@ -10,8 +10,7 @@ namespace Nawia::Core
 
 	void Logger::debugLog(const char* message)
 	{
-		// DISABLED for performance - uncomment for debugging:
-		// internalLog("[DEBUG]", message);
+		internalLog("[DEBUG]", message);
 	}
 
 	void Logger::errorLog(const char* message)

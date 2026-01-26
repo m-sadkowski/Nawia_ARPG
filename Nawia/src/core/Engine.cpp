@@ -23,7 +23,7 @@ namespace Nawia::Core {
 		SetTraceLogLevel(LOG_ERROR);
 		InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Nawia");
 		SetExitKey(0);  // Disable ESC = close window (we handle ESC manually)
-		SetTargetFPS(0);  // Unlimited FPS for best performance
+		SetTargetFPS(0);
 		
 		// Load settings from file (if exists)
 		if (_settings.load()) {
@@ -66,12 +66,47 @@ namespace Nawia::Core {
 
 		// spawn test enemy
 		// manual setup of a test enemy with specific abilities
-		const auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
+		/*const auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
 		const auto dummy = std::make_shared<Entity::Dummy>(-5.0f, -3.0f, enemy_tex, 100, _map.get());
 		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 		dummy->setTarget(_player);
-		//_entity_manager->addEntity(dummy);
+		_entity_manager->addEntity(dummy);
 
+
+		const auto dummy2 = std::make_shared<Entity::Dummy>(-5.0f, -2.0f, enemy_tex, 100, _map.get());
+		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
+		dummy->setTarget(_player);
+		_entity_manager->addEntity(dummy2);
+
+
+		const auto dummy3 = std::make_shared<Entity::Dummy>(-5.0f, -1.0f, enemy_tex, 100, _map.get());
+		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
+		dummy->setTarget(_player);
+		_entity_manager->addEntity(dummy3);
+
+		const auto dummy4 = std::make_shared<Entity::Dummy>(-5.0f, 1.0f, enemy_tex, 100, _map.get());
+		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
+		dummy->setTarget(_player);
+		_entity_manager->addEntity(dummy4);
+
+		const auto dummy5 = std::make_shared<Entity::Dummy>(-5.0f, 2.0f, enemy_tex, 100, _map.get());
+		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
+		dummy->setTarget(_player);
+		_entity_manager->addEntity(dummy5);
+
+
+		const auto dummy6 = std::make_shared<Entity::Dummy>(-5.0f, 3.0f, enemy_tex, 100, _map.get());
+		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
+		dummy->setTarget(_player);
+		_entity_manager->addEntity(dummy6);
+
+
+		const auto dummy7 = std::make_shared<Entity::Dummy>(-5.0f, 4.0f, enemy_tex, 100, _map.get());
+		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
+		dummy->setTarget(_player);
+		_entity_manager->addEntity(dummy7);
+
+		/*
 		//spawn Devil for testing
 		const auto devil = std::make_shared<Entity::Devil>(-2.0f, 3.0f, _map.get());
 		devil->setTarget(_player);
@@ -93,7 +128,7 @@ namespace Nawia::Core {
 		const auto walking_dead = std::make_shared<Entity::WalkingDead>(-5.0f, -5.0f, _map.get());
 		walking_dead->setTarget(_player);
 		_entity_manager->addEntity(walking_dead);
-
+		*/
 		// add player to entity manager so it can be hit by enemies
 		_entity_manager->addEntity(_player);
 
