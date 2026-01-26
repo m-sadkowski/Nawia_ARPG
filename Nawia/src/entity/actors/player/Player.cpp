@@ -109,8 +109,28 @@ namespace Nawia::Entity {
 		}
 		else
 		{
-			_pos.x += (dx / distance) * _current_stats.movement_speed * delta_time;
-			_pos.y += (dy / distance) * _current_stats.movement_speed * delta_time;
+			// Calculate next position
+			float next_x = _pos.x + (dx / distance) * _current_stats.movement_speed * delta_time;
+			float next_y = _pos.y + (dy / distance) * _current_stats.movement_speed * delta_time;
+
+			// Check if next position is walkable (check center position)
+			Core::Map* map = _engine->getCurrentMap();
+			const Vector2 center = getCenter();
+			float center_offset_x = center.x - getX();
+			float center_offset_y = center.y - getY();
+			float next_center_x = next_x + center_offset_x;
+			float next_center_y = next_y + center_offset_y;
+
+			if (map && !map->isWalkable(next_center_x, next_center_y)) {
+				// Stop movement if next tile is not walkable
+				_is_moving = false;
+				if (!isAnimationLocked())
+					playAnimation("default");
+				return;
+			}
+
+			_pos.x = next_x;
+			_pos.y = next_y;
 		}
 	}
 
