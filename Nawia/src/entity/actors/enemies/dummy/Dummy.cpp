@@ -13,15 +13,15 @@ namespace Nawia::Entity {
 	Dummy::Dummy(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
 		: EnemyInterface("Dummy", x, y, tex, max_hp, map), _stay_timer(0.0f), _fireball_cooldown_timer(0.0f)
 	{
-		this->setScale(0.01f);
+		this->setScale(0.03f);
 		setFaction(Faction::Enemy);
-		loadModel("../assets/models/test5.glb");
+		loadModel("../assets/models/dummy_idle.glb");
 		
 		// add collider
 		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
-		addAnimation("walk", "../assets/models/test5.glb");
-		addAnimation("cast_fireball", "../assets/models/test5.glb");
-		addAnimation("death", "../assets/models/test5.glb");
+		addAnimation("walk", "../assets/models/dummy_walk.glb");
+		addAnimation("cast_fireball", "../assets/models/dummy_cast_fireball.glb");
+		addAnimation("death", "../assets/models/dummy_death.glb");
 		playAnimation("default");
 		
 		pickNewTarget();
