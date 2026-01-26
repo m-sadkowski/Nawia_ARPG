@@ -73,7 +73,7 @@ namespace Nawia::Core {
 		_entity_manager->addEntity(dummy);
 
 		// spawn Walking Dead for testing
-		const auto walking_dead = std::make_shared<Entity::WalkingDead>(18.0f, 15.0f, _map.get());
+		const auto walking_dead = std::make_shared<Entity::WalkingDead>(-2.0f, -3.0f, _map.get());
 		walking_dead->setTarget(_player);
 		_entity_manager->addEntity(walking_dead);
 
@@ -319,6 +319,8 @@ namespace Nawia::Core {
 
 		    /* RENDER END */
         }
+
+		DrawFPS(10, 10);
 
 		EndDrawing();
 	}
