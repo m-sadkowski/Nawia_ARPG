@@ -113,11 +113,11 @@ namespace Nawia::Core {
 		_entity_manager->addEntity(devil);
 		
 		//spawn Bandit for testing
-		const auto knife_tex = _resource_manager.getTexture("../assets/textures/knife.png");
+		*/const auto knife_tex = _resource_manager.getTexture("../assets/textures/knife2.png");
 		const auto bandit = std::make_shared<Entity::Bandit>(0.0f, 0.0f, _map.get());
 		bandit->setTarget(_player);
 		bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex,nullptr,nullptr));
-		_entity_manager->addEntity(bandit);
+		_entity_manager->addEntity(bandit);/*
 		
 
 		

@@ -165,10 +165,10 @@ namespace Nawia::Entity {
 		{
 			rotateTowards(target->getX(), target->getY());
 		}
-		
-		if (!isAnimationLocked())
+
+		// Trigger the throw at exactly frame 60
+		if (_anim_frame_counter == 60)
 		{
-			// Cast animation finished - throw the knife
 			if (const auto knife = getAbility(0))
 			{
 				if (auto target = _target.lock())
@@ -176,6 +176,8 @@ namespace Nawia::Entity {
 					const float tx = target->getCenter().x;
 					const float ty = target->getCenter().y;
 
+					// Only cast if we haven't already just casted (though frame counter check handles this mostly)
+					// We rely on the frame counter being exactly 60 for one frame.
 					if (auto effect = knife->cast(tx, ty))
 					{
 						addPendingSpawn(std::move(effect));
@@ -183,6 +185,10 @@ namespace Nawia::Entity {
 					}
 				}
 			}
+		}
+		
+		if (!isAnimationLocked())
+		{
 			_state = State::Chasing;
 			playAnimation("walk");
 		}
@@ -203,9 +209,7 @@ namespace Nawia::Entity {
 				break;
 			case State::Chasing:
 			case State::Casting:
-				_state = State::Chasing;
-				playAnimation("walk");
-				break;
+				
 			default:
 				playAnimation("idle");
 				break;
