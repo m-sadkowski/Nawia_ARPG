@@ -48,9 +48,8 @@ void Map::loadMap(const std::string& filename)
 		return;
 	}
 
-	int min_x, min_y, max_x, max_y;
-	min_x = min_y = std::numeric_limits<int>::max();
-	max_x = max_y = std::numeric_limits<int>::lowest();
+	int min_x, min_y = std::numeric_limits<int>::max();
+	int max_x, max_y = std::numeric_limits<int>::lowest();
 
 	const auto& layers = map_data["layers"];
 	calculateMapBounds(layers, min_x, min_y, max_x, max_y);
@@ -145,8 +144,7 @@ bool Map::loadTilesetFile(const std::string& tsx_path, TilesetInfo& tileset)
 	// --- Load single-image tileset (spritesheet) ---
 	auto* image_elem = root->FirstChildElement("image");
 	if (image_elem && !root->FirstChildElement("tile")) {
-		const char* img_source = image_elem->Attribute("source");
-		if (img_source) {
+		if (const char* img_source = image_elem->Attribute("source")) {
 			const std::string full_path = tsx_dir + img_source;
 			auto texture = _resource_manager.getTexture(full_path);
 			
@@ -229,7 +227,7 @@ void Map::calculateMapBounds(const json& layers, int& min_x, int& min_y, int& ma
 	}
 }
 
-void Map::initializeGrids(int width, int height)
+void Map::initializeGrids(const int width, const int height)
 {
 	_layer_ground.assign(height, std::vector<int>(width, 0));
 	_layer_on_ground.assign(height, std::vector<int>(width, 0));
@@ -339,7 +337,7 @@ void Map::loadObjectLayer(const json& layer, const json& map_data)
 // Rendering
 // =============================================================================
 
-void Map::renderLayer(const std::vector<std::vector<int>>& layer, float offset_x, float offset_y)
+void Map::renderLayer(const std::vector<std::vector<int>>& layer, const float offset_x, const float offset_y)
 {
 	for (size_t y = 0; y < layer.size(); ++y) {
 		for (size_t x = 0; x < layer[y].size(); ++x) {
@@ -354,7 +352,7 @@ void Map::renderLayer(const std::vector<std::vector<int>>& layer, float offset_x
 	}
 }
 
-void Map::renderTile(int gid, int world_x, int world_y, float offset_x, float offset_y)
+void Map::renderTile(const int gid, const int world_x, const int world_y, const float offset_x, const float offset_y)
 {
 	auto texture = getTextureForGID(gid);
 	if (!texture) return;
@@ -384,7 +382,7 @@ void Map::renderTile(int gid, int world_x, int world_y, float offset_x, float of
 	DrawTexturePro(*tex, source, dest, origin, 0.0f, WHITE);
 }
 
-void Map::renderWalkabilityDebug(float offset_x, float offset_y)
+void Map::renderWalkabilityDebug(const float offset_x, const float offset_y)
 {
 	constexpr float half_w = TILE_WIDTH / 2.0f;
 	constexpr float half_h = TILE_HEIGHT / 2.0f;
@@ -415,13 +413,13 @@ void Map::renderWalkabilityDebug(float offset_x, float offset_y)
 // Utilities
 // =============================================================================
 
-std::shared_ptr<Texture2D> Map::getTextureForGID(int gid) const
+std::shared_ptr<Texture2D> Map::getTextureForGID(const int gid) const
 {
 	auto it = _tile_textures.find(gid);
 	return (it != _tile_textures.end()) ? it->second : nullptr;
 }
 
-bool Map::getWalkableForGID(int gid) const
+bool Map::getWalkableForGID(const int gid) const
 {
 	// Find tileset containing this GID (search from highest firstgid)
 	for (auto it = _tilesets.rbegin(); it != _tilesets.rend(); ++it) {
@@ -434,7 +432,7 @@ bool Map::getWalkableForGID(int gid) const
 	return true;
 }
 
-Vector2 Map::worldToIso(int world_x, int world_y, float offset_x, float offset_y) const
+Vector2 Map::worldToIso(const int world_x, const int world_y, const float offset_x, const float offset_y) const
 {
 	return {
 		(world_x - world_y) * (TILE_WIDTH / 2.0f) + offset_x,

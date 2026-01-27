@@ -60,8 +60,8 @@ namespace Nawia::Core {
 
 		// Tileset data
 		std::vector<TilesetInfo> _tilesets;
-		std::unordered_map<int, std::shared_ptr<Texture2D>> _tile_textures;  // GID -> texture
-		std::unordered_map<int, Rectangle> _tile_source_rects; // GID -> source rect
+		std::unordered_map<int, std::shared_ptr<Texture2D>> _tile_textures;
+		std::unordered_map<int, Rectangle> _tile_source_rects;
 
 		// Map metadata
 		Vector2 _player_spawn_pos = {0, 0};

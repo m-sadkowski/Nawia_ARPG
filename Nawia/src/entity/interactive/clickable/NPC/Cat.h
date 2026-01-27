@@ -11,7 +11,7 @@ namespace Nawia::Entity {
     public:
         Cat(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& texture);
 
-        void initializeInventory(Item::Loottable& loottable, Item::LOOTTABLE_TYPE loottable_type);
+        void initializeInventory(Item::Loottable& lootable, Item::LOOTTABLE_TYPE lootable_type) const;
 
         void onInteract(Entity& instigator) override;
 
@@ -20,12 +20,12 @@ namespace Nawia::Entity {
         float getInteractionRange() override;
 
         Item::Backpack* getInventory() override { return _inventory.get(); }
-        void addItem(std::shared_ptr<Item::Item> item) {
+        void addItem(const std::shared_ptr<Item::Item>& item) const {
             _inventory->addItem(item);
         }
 
-        const Game::DialogueTree& getDialogueTree() const { return _dialogueTree; }
-        void setDialogue(Game::DialogueTree dialogue) { _dialogueTree = dialogue; }
+        [[nodiscard]] const Game::DialogueTree& getDialogueTree() const { return _dialogueTree; }
+        void setDialogue(const Game::DialogueTree& dialogue) { _dialogueTree = dialogue; }
     private:
         bool _isOpen = false;
         std::unique_ptr<Item::Backpack> _inventory;
