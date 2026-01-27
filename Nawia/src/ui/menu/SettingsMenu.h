@@ -58,7 +58,6 @@ private:
     void drawFullscreenCheckbox(float x, float y, const Font& font) const;
     void drawScaleSlider(float x, float y, float width, const Font& font) const;
     void drawButton(const Rectangle& rect, const char* text, bool is_hovered, const Font& font) const;
-   
 };
 
 } // namespace Nawia::UI
