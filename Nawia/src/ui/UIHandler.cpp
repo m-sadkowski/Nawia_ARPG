@@ -199,19 +199,19 @@ namespace Nawia::UI {
             DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(RED, alpha));
         }
 
-        if (_stats_ui) {
-                 
-                 const float stats_x = Core::GlobalScaling::scaled(220.0f);
-                 const float stats_y = Core::GlobalScaling::scaled(150.0f);
-                 _stats_ui->render(stats_x, stats_y);
-            }
-
-       
-
         if (_is_inventory_open) {
             _inventory_ui->render(_font, *_player);
 
-            
+             if (_stats_ui) {
+                 const float margin = Core::GlobalScaling::scaled(20.0f);
+                 // StatsUI height is now scaled(240.0f) inside the class, so we calculate position assuming that
+                 const float ui_height = Core::GlobalScaling::scaled(240.0f); 
+                 
+                 const float stats_x = margin;
+                 const float stats_y = static_cast<float>(GetScreenHeight()) - ui_height - margin;
+                 
+                 _stats_ui->render(stats_x, stats_y, _font);
+            }
 
             if (_current_chest) {
                 _chest_ui->render(_current_chest->getInventory(), _font);
