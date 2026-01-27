@@ -93,6 +93,7 @@ namespace Nawia::Core {
 
 		const auto cat_tex = _resource_manager.getTexture("../assets/textures/chest.png");
 		auto cat = std::make_shared<Entity::Cat>("Kot Olga", -7.2f, -11.8f, chest_tex);
+		_dialogue_manager.createCatDialogue(this, cat);
 		cat->initializeInventory(_loottable, Item::LOOTTABLE_TYPE::CAT);
 		//auto key = _item_database.createItem(4);
 		//cat->addItem(key);

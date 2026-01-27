@@ -103,6 +103,11 @@ namespace Nawia::UI {
 
     void UIHandler::handleInput() 
 	{
+        if (_dialogueUI.isOpen()) {
+            _dialogueUI.handleInput();
+            return;
+        }
+
         // Future UI input logic (handled by handleMenuInput for menu state)
         if (IsKeyPressed(KEY_I)) {
             if (_current_container) closeContainer();
@@ -159,7 +164,7 @@ namespace Nawia::UI {
         return MenuAction::None;
     }
 
-    void UIHandler::render(const Core::Camera& camera) const 
+    void UIHandler::render(const Core::Camera& camera) 
 	{
         if (!_player || !_entity_manager) return;
 
@@ -173,6 +178,8 @@ namespace Nawia::UI {
                  const float stats_y = Core::GlobalScaling::scaled(150.0f);
                  _stats_ui->render(stats_x, stats_y);
             }
+
+        _dialogueUI.render();
 
         if (_is_inventory_open) {
             _inventory_ui->render(_font, *_player);
@@ -432,6 +439,14 @@ namespace Nawia::UI {
 
     void UIHandler::closeContainer() {
         _current_container = nullptr;
+    }
+
+    bool UIHandler::isInputBlocked() const {
+        if (_dialogueUI.isOpen()) return true;
+        if (_is_inventory_open) return true;
+        if (_current_container) return true;
+
+        return false;
     }
 
 } // namespace Nawia::UI

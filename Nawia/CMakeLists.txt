@@ -37,7 +37,7 @@ include_directories(
     src/entity/interactive/onTrigger
     src/entity/interactive/clickable
     src/entity/interactive/clickable/chest
-    src/entity/interactive/clickable/NPCStatic
+    src/entity/interactive/clickable/NPC
     src/world
     src/world/map
     src/world/level
@@ -45,6 +45,7 @@ include_directories(
     src/ui/hud
     src/ui/inventory
     src/ui/menu
+    src/ui/dialogue
     src/item
     src/item/inventory
     src/item/types

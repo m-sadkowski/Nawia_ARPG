@@ -10,6 +10,7 @@
 #include <UIHandler.h>
 #include <ItemDatabase.h>
 #include <Loottable.h>
+#include "DialogueManager.h"
 
 #include <raylib.h>
 
@@ -64,6 +65,7 @@ namespace Nawia::Core {
 		std::unique_ptr<UI::UIHandler> _ui_handler;
 		Item::ItemDatabase _item_database;
 		Item::Loottable _loottable;
+		Game::DialogueManager _dialogue_manager;
 	};
 
 } // namespace Nawia::Core

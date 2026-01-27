@@ -6,6 +6,7 @@
 #include <EnemyInterface.h>
 #include <string>
 #include <InteractiveClickable.h>
+#include "Cat.h"
 
 #include "InteractiveTrigger.h"
 
@@ -20,6 +21,11 @@ namespace Nawia::Core {
 
 		_last_mouse_x = mouse_world_x;
 		_last_mouse_y = mouse_world_y;
+
+		if (_engine->getUIHandler().isInputBlocked()) {
+			_player->stop();
+			return;
+		}
 
 		handleMouseInput(mouse_world_x, mouse_world_y, screen_x, screen_y);
 		handleKeyboardInput(mouse_world_x, mouse_world_y, screen_x, screen_y);
@@ -74,6 +80,15 @@ namespace Nawia::Core {
 		{
 			_player->stop();
 			_target_interactable->onInteract(*_player);
+
+			if (auto npc = std::dynamic_pointer_cast<Entity::Cat>(_target_interactable))
+			{
+				_player->stop();
+				_engine->getUIHandler().openDialogue(npc->getDialogueTree());
+
+				_target_interactable = nullptr;
+				return true;
+			}
 
 			auto clickable = std::dynamic_pointer_cast<Entity::InteractiveClickable>(_target_interactable);
 			if (clickable && clickable->getInventory() != nullptr)

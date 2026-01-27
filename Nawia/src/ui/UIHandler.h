@@ -6,6 +6,7 @@
 
 #include "InventoryUI.h"
 #include "ChestUI.h"
+#include "DialogueUI.h"
 
 namespace Nawia::Entity {
     class Player;
@@ -48,7 +49,7 @@ namespace Nawia::UI {
         void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager);
         
         void update(float dt);
-        void render(const Core::Camera& camera) const;
+        void render(const Core::Camera& camera);
         void renderMainMenu() const;
         void renderSettingsMenu() const;
         
@@ -82,6 +83,11 @@ namespace Nawia::UI {
         void openContainer(std::shared_ptr<Entity::InteractiveClickable> container);
         void closeContainer();
 
+        void openDialogue(const Game::DialogueTree& tree) { _dialogueUI.open(tree); }
+        void closeDialogue() { _dialogueUI.close(); }
+
+        bool isInputBlocked() const;
+
     private:
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
@@ -103,6 +109,8 @@ namespace Nawia::UI {
         std::shared_ptr<Entity::InteractiveClickable> _current_container;
 
         std::unique_ptr<StatsUI> _stats_ui;
+
+        DialogueUI _dialogueUI;
     };
 
 } // namespace Nawia::UI

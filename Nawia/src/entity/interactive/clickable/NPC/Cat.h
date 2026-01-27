@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "Backpack.h"
 #include "Loottable.h"
+#include "Dialogue.h"
 
 namespace Nawia::Entity {
 
@@ -22,10 +23,14 @@ namespace Nawia::Entity {
         void addItem(std::shared_ptr<Item::Item> item) {
             _inventory->addItem(item);
         }
+
+        const Game::DialogueTree& getDialogueTree() const { return _dialogueTree; }
+        void setDialogue(Game::DialogueTree dialogue) { _dialogueTree = dialogue; }
     private:
         bool _isOpen = false;
         std::unique_ptr<Item::Backpack> _inventory;
         static constexpr int _inv_size = 1;
+        Game::DialogueTree _dialogueTree;
     };
 
 }
