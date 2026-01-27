@@ -117,6 +117,7 @@ namespace Nawia::Entity {
 
 	void Entity::updateAnimation(const float dt)
 	{
+		// todo update when closer to player
 		if (_model_loaded && !_animations.empty())
 		{
 			_anim_frame_counter++;
