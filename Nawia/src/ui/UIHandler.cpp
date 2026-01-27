@@ -94,18 +94,40 @@ namespace Nawia::UI {
         _current_chest = nullptr;
 
         _stats_ui = std::make_unique<StatsUI>(_player);
+
+        _previous_hp = _player->getHP();
     }
 
     void UIHandler::update(float dt) 
 	{
-        // Future UI update logic (animations, etc)
+        // Damage Flash Logic
+        if (_player)
+        {
+            int current_hp = _player->getHP();
+            if (current_hp < _previous_hp)
+            {
+                // Player took damage, trigger flash
+                std:: cout << "Player took damage" << std::endl;
+                _damage_flash_timer = 0.3f; // Flash lasts 0.5 seconds
+            }
+            _previous_hp = current_hp;
+        }
+
+        if (_damage_flash_timer > 0.0f)
+        {
+            _damage_flash_timer -= dt;
+            if (_damage_flash_timer < 0.0f) _damage_flash_timer = 0.0f;
+        }
     }
 
     void UIHandler::handleInput() 
 	{
         // Future UI input logic (handled by handleMenuInput for menu state)
-        if (IsKeyPressed(KEY_I)) {
-            if (_current_chest) closeChest();
+        if (IsKeyPressed(KEY_TAB)) {
+            if (_current_chest){
+                closeChest();
+                toggleInventory();
+            }  
             else toggleInventory();
         }
 
@@ -167,17 +189,32 @@ namespace Nawia::UI {
         renderPlayerAbilityBar();
         renderEnemyHealthBars(camera);
 
-        if (_stats_ui) {
-                 
-                 const float stats_x = Core::GlobalScaling::scaled(220.0f);
-                 const float stats_y = Core::GlobalScaling::scaled(150.0f);
-                 _stats_ui->render(stats_x, stats_y);
-            }
+        // Render damage flash overlay
+        if (_damage_flash_timer > 0.0f)
+        {
+            const float screen_width = static_cast<float>(GetScreenWidth());
+            const float screen_height = static_cast<float>(GetScreenHeight());
+            
+            // Alpha fades out as timer decreases relative to max duration (0.5f)
+            // Max alpha around 0.4 (semi-transparent red)
+            float alpha = (_damage_flash_timer / 0.5f) * 0.4f;
+            
+            DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(RED, alpha));
+        }
 
         if (_is_inventory_open) {
             _inventory_ui->render(_font, *_player);
 
-            
+             if (_stats_ui) {
+                 const float margin = Core::GlobalScaling::scaled(20.0f);
+                 // StatsUI height is now scaled(240.0f) inside the class, so we calculate position assuming that
+                 const float ui_height = Core::GlobalScaling::scaled(240.0f); 
+                 
+                 const float stats_x = margin;
+                 const float stats_y = static_cast<float>(GetScreenHeight()) - ui_height - margin;
+                 
+                 _stats_ui->render(stats_x, stats_y, _font);
+            }
 
             if (_current_chest) {
                 _chest_ui->render(_current_chest->getInventory(), _font);

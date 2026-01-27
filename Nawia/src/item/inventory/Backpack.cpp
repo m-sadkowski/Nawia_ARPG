@@ -12,7 +12,7 @@ namespace Nawia::Item {
                 return true;
             }
         }
-        return false;
+       return false;
     }
 
     void Backpack::removeItem(int index) {
