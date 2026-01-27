@@ -48,9 +48,8 @@ void Map::loadMap(const std::string& filename)
 		return;
 	}
 
-	int min_x, min_y, max_x, max_y;
-	min_x = min_y = std::numeric_limits<int>::max();
-	max_x = max_y = std::numeric_limits<int>::lowest();
+	int min_x, min_y = std::numeric_limits<int>::max();
+	int max_x, max_y = std::numeric_limits<int>::lowest();
 
 	const auto& layers = map_data["layers"];
 	calculateMapBounds(layers, min_x, min_y, max_x, max_y);
@@ -106,6 +105,7 @@ bool Map::loadTilesets(const json& map_data)
 
 	_tilesets.clear();
 	_tile_textures.clear();
+	_tile_source_rects.clear();
 
 	for (const auto& ts : map_data["tilesets"]) {
 		TilesetInfo tileset;
@@ -144,8 +144,7 @@ bool Map::loadTilesetFile(const std::string& tsx_path, TilesetInfo& tileset)
 	// --- Load single-image tileset (spritesheet) ---
 	auto* image_elem = root->FirstChildElement("image");
 	if (image_elem && !root->FirstChildElement("tile")) {
-		const char* img_source = image_elem->Attribute("source");
-		if (img_source) {
+		if (const char* img_source = image_elem->Attribute("source")) {
 			const std::string full_path = tsx_dir + img_source;
 			auto texture = _resource_manager.getTexture(full_path);
 			
@@ -154,8 +153,19 @@ bool Map::loadTilesetFile(const std::string& tsx_path, TilesetInfo& tileset)
 				return false;
 			}
 
+			const int columns = texture->width / TILE_WIDTH;
+
 			for (int i = 0; i < tileset.tilecount; i++) {
 				_tile_textures[tileset.firstgid + i] = texture;
+
+				const int x = (i % columns) * TILE_WIDTH;
+				const int y = (i / columns) * TILE_HEIGHT;
+				_tile_source_rects[tileset.firstgid + i] = Rectangle{
+					static_cast<float>(x), 
+					static_cast<float>(y), 
+					static_cast<float>(TILE_WIDTH), 
+					static_cast<float>(TILE_HEIGHT)
+				};
 			}
 		}
 	}
@@ -171,6 +181,11 @@ bool Map::loadTilesetFile(const std::string& tsx_path, TilesetInfo& tileset)
 			if (const char* src = tile_image->Attribute("source")) {
 				if (auto tex = _resource_manager.getTexture(tsx_dir + src)) {
 					_tile_textures[gid] = tex;
+					_tile_source_rects[gid] = Rectangle{
+						0.0f, 0.0f, 
+						static_cast<float>(tex->width), 
+						static_cast<float>(tex->height)
+					};
 				}
 			}
 		}
@@ -212,12 +227,12 @@ void Map::calculateMapBounds(const json& layers, int& min_x, int& min_y, int& ma
 	}
 }
 
-void Map::initializeGrids(int width, int height)
+void Map::initializeGrids(const int width, const int height)
 {
 	_layer_ground.assign(height, std::vector<int>(width, 0));
 	_layer_on_ground.assign(height, std::vector<int>(width, 0));
 	_layer_over_ground.assign(height, std::vector<int>(width, 0));
-	_walkability_grid.assign(height, std::vector<bool>(width, false));
+	_walkability_grid.assign(height, std::vector<bool>(width, true));
 }
 
 void Map::loadLayers(const json& layers, const json& map_data)
@@ -262,6 +277,9 @@ void Map::loadTileLayer(const json& layer, std::vector<std::vector<int>>& grid)
 				if (gy >= 0 && gy < static_cast<int>(grid.size()) &&
 					gx >= 0 && gx < static_cast<int>(grid[gy].size())) {
 					grid[gy][gx] = gid;
+					if (!getWalkableForGID(gid)) {
+						_walkability_grid[gy][gx] = false;
+					}
 				}
 			}
 		}
@@ -286,7 +304,9 @@ void Map::loadWalkabilityLayer(const json& layer)
 
 				if (gy >= 0 && gy < static_cast<int>(_walkability_grid.size()) &&
 					gx >= 0 && gx < static_cast<int>(_walkability_grid[gy].size())) {
-					_walkability_grid[gy][gx] = getWalkableForGID(gid);
+					if (!getWalkableForGID(gid)) {
+						_walkability_grid[gy][gx] = false;
+					}
 				}
 			}
 		}
@@ -317,7 +337,7 @@ void Map::loadObjectLayer(const json& layer, const json& map_data)
 // Rendering
 // =============================================================================
 
-void Map::renderLayer(const std::vector<std::vector<int>>& layer, float offset_x, float offset_y)
+void Map::renderLayer(const std::vector<std::vector<int>>& layer, const float offset_x, const float offset_y)
 {
 	for (size_t y = 0; y < layer.size(); ++y) {
 		for (size_t x = 0; x < layer[y].size(); ++x) {
@@ -332,7 +352,7 @@ void Map::renderLayer(const std::vector<std::vector<int>>& layer, float offset_x
 	}
 }
 
-void Map::renderTile(int gid, int world_x, int world_y, float offset_x, float offset_y)
+void Map::renderTile(const int gid, const int world_x, const int world_y, const float offset_x, const float offset_y)
 {
 	auto texture = getTextureForGID(gid);
 	if (!texture) return;
@@ -340,24 +360,29 @@ void Map::renderTile(int gid, int world_x, int world_y, float offset_x, float of
 	const Vector2 iso = worldToIso(world_x, world_y, offset_x, offset_y);
 	const Texture2D* tex = texture.get();
 	
-	const Rectangle source = {0, 0, 
-		static_cast<float>(tex->width), 
-		static_cast<float>(tex->height)};
+	Rectangle source;
+	auto rect_it = _tile_source_rects.find(gid);
+	if (rect_it != _tile_source_rects.end()) {
+		source = rect_it->second;
+	} else {
+		// Fallback (should not happen if loaded correctly)
+		source = {0, 0, static_cast<float>(tex->width), static_cast<float>(tex->height)};
+	}
 	
 	const Rectangle dest = {iso.x, iso.y, 
-		static_cast<float>(tex->width), 
-		static_cast<float>(tex->height)};
+		static_cast<float>(source.width), 
+		static_cast<float>(source.height)};
 	
 	// Anchor at diamond base: center horizontally, (height - TILE_HEIGHT) from top
 	const Vector2 origin = {
-		static_cast<float>(tex->width) / 2.0f,
-		static_cast<float>(tex->height - TILE_HEIGHT)
+		static_cast<float>(source.width) / 2.0f,
+		static_cast<float>(source.height - TILE_HEIGHT)
 	};
 	
 	DrawTexturePro(*tex, source, dest, origin, 0.0f, WHITE);
 }
 
-void Map::renderWalkabilityDebug(float offset_x, float offset_y)
+void Map::renderWalkabilityDebug(const float offset_x, const float offset_y)
 {
 	constexpr float half_w = TILE_WIDTH / 2.0f;
 	constexpr float half_h = TILE_HEIGHT / 2.0f;
@@ -388,13 +413,13 @@ void Map::renderWalkabilityDebug(float offset_x, float offset_y)
 // Utilities
 // =============================================================================
 
-std::shared_ptr<Texture2D> Map::getTextureForGID(int gid) const
+std::shared_ptr<Texture2D> Map::getTextureForGID(const int gid) const
 {
 	auto it = _tile_textures.find(gid);
 	return (it != _tile_textures.end()) ? it->second : nullptr;
 }
 
-bool Map::getWalkableForGID(int gid) const
+bool Map::getWalkableForGID(const int gid) const
 {
 	// Find tileset containing this GID (search from highest firstgid)
 	for (auto it = _tilesets.rbegin(); it != _tilesets.rend(); ++it) {
@@ -407,7 +432,7 @@ bool Map::getWalkableForGID(int gid) const
 	return true;
 }
 
-Vector2 Map::worldToIso(int world_x, int world_y, float offset_x, float offset_y) const
+Vector2 Map::worldToIso(const int world_x, const int world_y, const float offset_x, const float offset_y) const
 {
 	return {
 		(world_x - world_y) * (TILE_WIDTH / 2.0f) + offset_x,
