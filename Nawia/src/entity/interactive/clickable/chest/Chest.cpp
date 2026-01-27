@@ -9,6 +9,7 @@ namespace Nawia::Entity {
     Chest::Chest(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& texture)
         : InteractiveClickable(name, x, y, texture, 1) // 1 HP
     {
+        _type = EntityType::Chest;
         setFaction(Faction::None);
         _use_3d_rendering = false;
         setCollider(std::make_unique<RectangleCollider>(this, 0.9f, 0.4f, -0.5f, -0.5f));

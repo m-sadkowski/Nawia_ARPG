@@ -14,6 +14,16 @@ namespace Nawia::Entity {
 	class Ability;
 	class Collider;
 
+	enum class EntityType {
+		None,
+		Player,
+		Enemy,
+		Projectile, // AbilityEffect
+		Trigger, // Checkpoint
+		Chest, // Interactable
+		Item
+	};
+
 	/**
 	 * @class Entity
 	 * @brief Base class for all game objects in the world (players, enemies, projectiles, items).
@@ -239,11 +249,16 @@ namespace Nawia::Entity {
 		[[nodiscard]] Faction getFaction() const { return _faction; }
 		void setFaction(Faction faction) { _faction = faction; }
 
+
+		EntityType getType() const { return _type; }
+		void setType(EntityType type) { _type = type; }
+
 	protected:
 		Vector2 _pos;
 		Vector2 _velocity;
 		float _scale;
 		std::shared_ptr<Texture2D> _texture;
+		EntityType _type = EntityType::None;
 		
 		std::unique_ptr<Collider> _collider;
 		

@@ -84,15 +84,23 @@ namespace Nawia::Core {
     {
         for (auto& entity1 : _active_entities)
         {
-            auto ability = dynamic_cast<Entity::AbilityEffect*>(entity1.get());
-            if (!ability || ability->isExpired()) continue;
+            // check if not projectile
+            if (entity1->getType() != Entity::EntityType::Projectile) continue;
+
+            // static cast is safe since checked with EntityType
+            auto ability = std::static_pointer_cast<Entity::AbilityEffect>(entity1);
+            if (ability->isExpired()) continue;
 
             for (auto& entity2 : _active_entities)
             {
                 if (entity1 == entity2) continue;
 
-                // Abilities ignore interactive objects (like signs/chests)
-                if (dynamic_cast<Entity::Interactable*>(entity2.get())) continue;
+                Entity::EntityType targetType = entity2->getType();
+
+                // ignore other projectiles, chests and checkpoints
+                if (targetType == Entity::EntityType::Projectile ||
+                    targetType == Entity::EntityType::Chest ||
+                    targetType == Entity::EntityType::Trigger) continue;
 
                 if (ability->checkCollision(entity2)) {
                     ability->onCollision(entity2);
@@ -139,16 +147,14 @@ namespace Nawia::Core {
         }
     }
 
-    // Helper to filter entities that participate in physics
+    // Helper to filter entities that participate in physics - Player and Enemy
     bool EntityManager::isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& e) const
     {
         if (e->isDead() || !e->getCollider()) return false;
 
-        // Ignore specific types for physics resolution
-        if (dynamic_cast<Entity::AbilityEffect*>(e.get())) return false;
-        if (dynamic_cast<Entity::Interactable*>(e.get())) return false;
+        Entity::EntityType type = e->getType();
 
-        return true;
+        return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy);
     }
 
     void EntityManager::resolveOverlap(std::shared_ptr<Entity::Entity>& e1, std::shared_ptr<Entity::Entity>& e2) const

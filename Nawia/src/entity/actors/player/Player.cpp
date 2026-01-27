@@ -15,6 +15,7 @@ namespace Nawia::Entity {
 	{
 		_engine = engine;
 		this->setScale(0.03f);
+		_type = EntityType::Player;
 		setFaction(Faction::Player);
 		loadModel("../assets/models/player_idle.glb");
 		addAnimation("walk", "../assets/models/player_walk.glb");
