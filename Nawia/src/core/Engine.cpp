@@ -37,7 +37,7 @@ namespace Nawia::Core {
 		// TEMPORARY SOLUTION
 		// initialize map object
 		_map = std::make_unique<Map>(_resource_manager);
-		_map->loadMap("test_map/test_map.json");
+		_map->loadMap("demo_map/demo_map.json");
 
 		// initialize player
 		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
