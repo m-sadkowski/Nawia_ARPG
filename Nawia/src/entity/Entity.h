@@ -168,6 +168,9 @@ namespace Nawia::Entity {
 		 * @param lock_movement If true, prevents movement during animation
 		 */
 		void playAnimation(const std::string& name, bool loop = true, bool lock_movement = false, int start_frame = 0, bool force = false);
+
+		void setAnimationSpeed(float multiplier) { _anim_speed_multiplier = multiplier; }
+		float getAnimationSpeed() const { return _anim_speed_multiplier; }
 		
 		[[nodiscard]] int getAnimationFrameCount(const std::string& name) const;
 		[[nodiscard]] bool isAnimationLocked() const { return _anim_locked; }
@@ -274,7 +277,9 @@ namespace Nawia::Entity {
 		std::map<std::string, int> _animation_map;
 		
 		int _current_anim_index;
-		int _anim_frame_counter;
+		float _anim_frame_counter;
+		float _anim_speed_multiplier = 1.0f;
+		float _anim_fps = 30.0f; // Default animation FPS
 		float _rotation;
 		bool _model_loaded;
 		bool _anim_looping;

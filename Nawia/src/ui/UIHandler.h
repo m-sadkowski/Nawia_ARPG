@@ -111,6 +111,10 @@ namespace Nawia::UI {
         std::unique_ptr<StatsUI> _stats_ui;
 
         DialogueUI _dialogueUI;
+        
+        // Damage Flash
+        int _previous_hp = -1;
+        float _damage_flash_timer = 0.0f;
     };
 
 } // namespace Nawia::UI

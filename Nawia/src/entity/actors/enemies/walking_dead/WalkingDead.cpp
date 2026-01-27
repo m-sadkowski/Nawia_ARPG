@@ -9,7 +9,7 @@ namespace Nawia::Entity {
 	WalkingDead::WalkingDead(const float x, const float y, Core::Map* map)
 		: EnemyInterface("Walking Dead", x, y, nullptr, 80, map)
 	{
-		setScale(0.03f);
+		setScale(0.015f);
 		setFaction(Faction::Enemy);
 
 		loadModel("../assets/models/walking_dead_idle.glb");

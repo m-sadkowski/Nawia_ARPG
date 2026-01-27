@@ -51,7 +51,7 @@ public:
     
     /// UI scale limits
     static constexpr float UI_SCALE_MIN = 1.0f;
-    static constexpr float UI_SCALE_MAX = 2.5f;
+    static constexpr float UI_SCALE_MAX = 1.5f;
     static constexpr float UI_SCALE_STEP = 0.1f;
     
     /// Available resolution presets
