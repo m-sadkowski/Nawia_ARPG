@@ -4,7 +4,7 @@
 #include <Player.h>
 #include <EntityManager.h>
 #include <Entity.h>
-#include <Chest.h>
+#include <InteractiveClickable.h>
 #include <Constants.h>
 #include <GlobalScaling.h>
 #include <Settings.h>
@@ -91,7 +91,7 @@ namespace Nawia::UI {
 
         // chest
         _chest_ui = std::make_unique<ChestUI>();
-        _current_chest = nullptr;
+        _current_container = nullptr;
 
         _stats_ui = std::make_unique<StatsUI>(_player);
     }
@@ -105,8 +105,8 @@ namespace Nawia::UI {
 	{
         // Future UI input logic (handled by handleMenuInput for menu state)
         if (IsKeyPressed(KEY_I)) {
-            if (_current_chest) closeChest();
-            else toggleInventory();
+            if (_current_container) closeContainer();
+            toggleInventory();
         }
 
         if (_is_inventory_open) {
@@ -122,11 +122,11 @@ namespace Nawia::UI {
             }
 
             // chest handler
-            if (_current_chest) {
+            if (_current_container) {
                 int chestSlot = _chest_ui->handleInput();
 
                 if (chestSlot != -1) {
-                    auto& chestInv = _current_chest->getInventory();
+                    auto& chestInv = *_current_container->getInventory();
                     auto item = chestInv.getItem(chestSlot);
 
                     if (item) {
@@ -179,8 +179,8 @@ namespace Nawia::UI {
 
             
 
-            if (_current_chest) {
-                _chest_ui->render(_current_chest->getInventory(), _font);
+            if (_current_container) {
+                _chest_ui->render(*_current_container->getInventory(), _font);
             }
         }
     }
@@ -425,13 +425,13 @@ namespace Nawia::UI {
         return MenuAction::None;
     }
 
-    void UIHandler::openChest(std::shared_ptr<Entity::Chest> chest) {
-        _current_chest = chest;
+    void UIHandler::openContainer(std::shared_ptr<Entity::InteractiveClickable> container) {
+        _current_container = container;
         _is_inventory_open = true;
     }
 
-    void UIHandler::closeChest() {
-        _current_chest = nullptr;
+    void UIHandler::closeContainer() {
+        _current_container = nullptr;
     }
 
 } // namespace Nawia::UI

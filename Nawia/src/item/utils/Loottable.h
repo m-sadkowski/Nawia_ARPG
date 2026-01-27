@@ -10,6 +10,7 @@ namespace Nawia::Item {
 	class ItemDatabase;
 
 	enum class LOOTTABLE_TYPE {
+		CAT,
 		CHEST_NOOB,
 		CHEST_BAD,
 		CHEST_GOOD

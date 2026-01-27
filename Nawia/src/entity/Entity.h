@@ -18,6 +18,7 @@ namespace Nawia::Entity {
 		None,
 		Player,
 		Enemy,
+		NPCStatic,
 		Projectile, // AbilityEffect
 		Trigger, // Checkpoint
 		Chest, // Interactable

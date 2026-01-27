@@ -9,6 +9,7 @@
 namespace Nawia::Item {
 
     LOOTTABLE_TYPE stringToLootType(const std::string& typeStr) {
+        if (typeStr == "CAT") return LOOTTABLE_TYPE::CAT;
         if (typeStr == "CHEST_NOOB") return LOOTTABLE_TYPE::CHEST_NOOB;
         if (typeStr == "CHEST_BAD") return LOOTTABLE_TYPE::CHEST_BAD;
         if (typeStr == "CHEST_GOOD") return LOOTTABLE_TYPE::CHEST_GOOD;

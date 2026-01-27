@@ -6,9 +6,9 @@
 
 namespace Nawia::Entity {
 
-    class Chest : public InteractiveClickable {
+    class Cat : public InteractiveClickable {
     public:
-        Chest(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& texture);
+        Cat(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& texture);
 
         void initializeInventory(Item::Loottable& loottable, Item::LOOTTABLE_TYPE loottable_type);
 
@@ -25,7 +25,7 @@ namespace Nawia::Entity {
     private:
         bool _isOpen = false;
         std::unique_ptr<Item::Backpack> _inventory;
-        static constexpr int CHEST_INV_SIZE = 12;
+        static constexpr int _inv_size = 1;
     };
 
 }

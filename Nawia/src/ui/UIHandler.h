@@ -10,7 +10,7 @@
 namespace Nawia::Entity {
     class Player;
     class Entity;
-    class Chest;
+    class InteractiveClickable;
 }
 
 namespace Nawia::Core {
@@ -79,8 +79,8 @@ namespace Nawia::UI {
         void toggleInventory() { _is_inventory_open = !_is_inventory_open; }
 
         // chest
-        void openChest(std::shared_ptr<Entity::Chest> chest);
-        void closeChest();
+        void openContainer(std::shared_ptr<Entity::InteractiveClickable> container);
+        void closeContainer();
 
     private:
         void renderPlayerHealthBar() const;
@@ -100,7 +100,7 @@ namespace Nawia::UI {
         bool _is_inventory_open = false;
 
         std::unique_ptr<ChestUI> _chest_ui;
-        std::shared_ptr<Entity::Chest> _current_chest;
+        std::shared_ptr<Entity::InteractiveClickable> _current_container;
 
         std::unique_ptr<StatsUI> _stats_ui;
     };

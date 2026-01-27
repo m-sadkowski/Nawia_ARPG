@@ -37,6 +37,7 @@ include_directories(
     src/entity/interactive/onTrigger
     src/entity/interactive/clickable
     src/entity/interactive/clickable/chest
+    src/entity/interactive/clickable/NPCStatic
     src/world
     src/world/map
     src/world/level
