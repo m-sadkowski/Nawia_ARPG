@@ -48,8 +48,12 @@ void SettingsMenu::render(const Font& font) const {
         font
     );
     
+    // Fullscreen Checkbox
+    const float fullscreen_y = content_y + Core::GlobalScaling::scaled(210.0f);
+    drawFullscreenCheckbox(content_x, fullscreen_y, font);
+
     // UI Scale section
-    const float scale_section_y = content_y + Core::GlobalScaling::scaled(220.0f);
+    const float scale_section_y = content_y + Core::GlobalScaling::scaled(250.0f);
     DrawTextEx(font, "UI Scale:", {content_x, scale_section_y}, label_font_size, spacing, WHITE);
     
     drawScaleSlider(
@@ -111,6 +115,28 @@ void SettingsMenu::drawResolutionSelector(float x, float y, float width, const F
         
         DrawTextEx(font, label.c_str(), {x + Core::GlobalScaling::scaled(10.0f), item_y + (item_height - font_size) / 2.0f}, font_size, spacing, text_color);
     }
+}
+
+void SettingsMenu::drawFullscreenCheckbox(float x, float y, const Font& font) const {
+    const float box_size = Core::GlobalScaling::scaled(24.0f);
+    const float font_size = Core::GlobalScaling::scaled(24.0f);
+    const float spacing = Core::GlobalScaling::scaled(1.0f);
+    const Vector2 mouse_pos = GetMousePosition();
+
+    const Rectangle box_rect = {x, y, box_size, box_size};
+    const bool is_hovered = CheckCollisionPointRec(mouse_pos, box_rect);
+
+    // Draw box
+    DrawRectangleRec(box_rect, is_hovered ? LIGHTGRAY : DARKGRAY);
+    DrawRectangleLinesEx(box_rect, Core::GlobalScaling::scaled(2.0f), WHITE);
+
+    // Draw check if enabled
+    if (_settings.fullscreen) {
+        DrawRectangleRec({x + box_size * 0.2f, y + box_size * 0.2f, box_size * 0.6f, box_size * 0.6f}, GREEN);
+    }
+
+    // Label
+    DrawTextEx(font, "Fullscreen", {x + box_size + Core::GlobalScaling::scaled(10.0f), y}, font_size, spacing, WHITE);
 }
 
 void SettingsMenu::drawScaleSlider(float x, float y, float width, const Font& font) const {
@@ -188,7 +214,7 @@ bool SettingsMenu::handleInput() {
     const float content_y = Core::GlobalScaling::scaled(160.0f);
     
     // Slider area (must match render())
-    const float scale_section_y = content_y + Core::GlobalScaling::scaled(220.0f);
+    const float scale_section_y = content_y + Core::GlobalScaling::scaled(250.0f);
     const float slider_y = scale_section_y + Core::GlobalScaling::scaled(40.0f);
     const float slider_height = Core::GlobalScaling::scaled(20.0f);
     const Rectangle slider_track = {content_x, slider_y, content_width, slider_height};
@@ -217,12 +243,12 @@ bool SettingsMenu::handleInput() {
         _dragging_slider = false;
     }
     
-    // Only process clicks on mouse press
+    
     if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         return false;
     }
     
-    // Check resolution clicks
+   
     const float res_x = content_x;
     const float res_y = content_y + Core::GlobalScaling::scaled(40.0f);
     const float res_width = content_width;
@@ -238,14 +264,24 @@ bool SettingsMenu::handleInput() {
             return false;
         }
     }
+
     
-    // Button dimensions (must match render())
+    const float fullscreen_y = content_y + Core::GlobalScaling::scaled(210.0f);
+    const float box_size = Core::GlobalScaling::scaled(24.0f);
+    const Rectangle box_rect = {content_x, fullscreen_y, box_size, box_size};
+    
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(mouse_pos, box_rect)) {
+        _settings.fullscreen = !_settings.fullscreen;
+        return false;
+    }
+    
+   
     const float btn_width = Core::GlobalScaling::scaled(150.0f);
     const float btn_height = Core::GlobalScaling::scaled(50.0f);
     const float btn_y = screen_height - Core::GlobalScaling::scaled(120.0f);
     const float btn_spacing = Core::GlobalScaling::scaled(30.0f);
     
-    // Apply button
+   
     const Rectangle apply_btn = {
         (screen_width / 2.0f) - btn_width - btn_spacing / 2.0f,
         btn_y,

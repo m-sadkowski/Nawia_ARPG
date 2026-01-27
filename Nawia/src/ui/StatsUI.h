@@ -8,7 +8,7 @@ namespace Nawia::UI {
     class StatsUI {
     public:
         StatsUI(std::shared_ptr<Entity::Player> player);
-        void render(float x, float y) const;
+        void render(float x, float y, const Font& font) const;
     private:
         std::shared_ptr<Entity::Player> _player;
     };

@@ -336,7 +336,23 @@ namespace Nawia::Core {
 	    _settings = new_settings;
 	    
 	    // Apply resolution change
-	    SetWindowSize(_settings.resolution.width, _settings.resolution.height);
+	    if (IsWindowFullscreen())
+	    {
+             if (!_settings.fullscreen) ToggleFullscreen(); // Turn off
+             else SetWindowSize(_settings.resolution.width, _settings.resolution.height); // Update res while fullscreen
+	    }
+        else
+        {
+             if (_settings.fullscreen) 
+             {
+                 SetWindowSize(_settings.resolution.width, _settings.resolution.height);
+                 ToggleFullscreen(); // Turn on
+             }
+             else
+             {
+                 SetWindowSize(_settings.resolution.width, _settings.resolution.height);
+             }
+        }
 	    
 	    // Apply UI scale and update global scaling
 	    GlobalScaling::setManualScale(_settings.uiScale);

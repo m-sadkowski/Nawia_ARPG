@@ -14,7 +14,7 @@ namespace Nawia::Entity {
 	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y),  _is_moving(false) 
 	{
 		_engine = engine;
-		this->setScale(0.03f);
+		this->setScale(0.015f);
 		_type = EntityType::Player;
 		setFaction(Faction::Player);
 		loadModel("../assets/models/player_idle.glb");

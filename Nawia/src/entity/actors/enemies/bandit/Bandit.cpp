@@ -11,7 +11,7 @@ namespace Nawia::Entity {
 	Bandit::Bandit(const float x, const float y, Core::Map* map)
 		: EnemyInterface("Bandit", x, y, nullptr, 80, map)
 	{
-		setScale(0.03f);
+		setScale(0.015f);
 		setFaction(Faction::Enemy);
 		
 		loadModel("../assets/models/bandit_idle.glb");
