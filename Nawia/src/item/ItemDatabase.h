@@ -17,6 +17,7 @@ namespace Nawia::Item {
         void loadDatabase(const std::string& filepath, Core::ResourceManager& resMgr);
 
         std::shared_ptr<Item> createItem(const int id);
+        std::shared_ptr<Item> getItemTemplate(const int id);
 
     private:
         // id -> item object

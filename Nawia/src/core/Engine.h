@@ -9,6 +9,7 @@
 #include <Player.h>
 #include <UIHandler.h>
 #include <ItemDatabase.h>
+#include <Loottable.h>
 
 #include <raylib.h>
 
@@ -62,6 +63,7 @@ namespace Nawia::Core {
 		std::unique_ptr<PlayerController> _controller;
 		std::unique_ptr<UI::UIHandler> _ui_handler;
 		Item::ItemDatabase _item_database;
+		Item::Loottable _loottable;
 	};
 
 } // namespace Nawia::Core

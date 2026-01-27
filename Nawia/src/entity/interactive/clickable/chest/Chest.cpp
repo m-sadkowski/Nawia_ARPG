@@ -16,6 +16,22 @@ namespace Nawia::Entity {
 
         _inventory = std::make_unique<Item::Backpack>(CHEST_INV_SIZE);
     }
+
+    void Chest::initializeInventory(Item::Loottable& loottable, Item::LOOTTABLE_TYPE loottable_type) {
+        const auto& drops = loottable.getLoottable(loottable_type);
+
+        for (const auto& entry : drops) {
+            if (!entry._item) continue;
+
+            float roll = static_cast<float>(GetRandomValue(0, 10000)) / 100.0f;
+
+            if (roll <= entry._chance) {
+                std::shared_ptr<Item::Item> uniqueItem = entry._item->clone();
+
+                addItem(uniqueItem);
+            }
+        }
+    }
     
     void Chest::onInteract(Entity& instigator) {
         if (_isOpen) {

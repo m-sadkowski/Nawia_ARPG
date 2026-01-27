@@ -2,6 +2,7 @@
 #include "InteractiveClickable.h"
 #include "Entity.h"
 #include "Backpack.h"
+#include "Loottable.h"
 
 namespace Nawia::Entity {
 
@@ -9,7 +10,8 @@ namespace Nawia::Entity {
     public:
         Chest(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& texture);
 
-        // Implementujemy tylko to, co nas interesuje
+        void initializeInventory(Item::Loottable& loottable, Item::LOOTTABLE_TYPE loottable_type);
+
         void onInteract(Entity& instigator) override;
 
         void update(float delta_time) override;

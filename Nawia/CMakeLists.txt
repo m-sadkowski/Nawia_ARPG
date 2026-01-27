@@ -47,6 +47,7 @@ include_directories(
     src/item
     src/item/inventory
     src/item/types
+    src/item/utils
     external/json
 )
 
