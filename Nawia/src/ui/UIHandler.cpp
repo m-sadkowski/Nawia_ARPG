@@ -94,11 +94,30 @@ namespace Nawia::UI {
         _current_chest = nullptr;
 
         _stats_ui = std::make_unique<StatsUI>(_player);
+
+        _previous_hp = _player->getHP();
     }
 
     void UIHandler::update(float dt) 
 	{
-        // Future UI update logic (animations, etc)
+        // Damage Flash Logic
+        if (_player)
+        {
+            int current_hp = _player->getHP();
+            if (current_hp < _previous_hp)
+            {
+                // Player took damage, trigger flash
+                std:: cout << "Player took damage" << std::endl;
+                _damage_flash_timer = 0.3f; // Flash lasts 0.5 seconds
+            }
+            _previous_hp = current_hp;
+        }
+
+        if (_damage_flash_timer > 0.0f)
+        {
+            _damage_flash_timer -= dt;
+            if (_damage_flash_timer < 0.0f) _damage_flash_timer = 0.0f;
+        }
     }
 
     void UIHandler::handleInput() 
@@ -167,6 +186,19 @@ namespace Nawia::UI {
         renderPlayerAbilityBar();
         renderEnemyHealthBars(camera);
 
+        // Render damage flash overlay
+        if (_damage_flash_timer > 0.0f)
+        {
+            const float screen_width = static_cast<float>(GetScreenWidth());
+            const float screen_height = static_cast<float>(GetScreenHeight());
+            
+            // Alpha fades out as timer decreases relative to max duration (0.5f)
+            // Max alpha around 0.4 (semi-transparent red)
+            float alpha = (_damage_flash_timer / 0.5f) * 0.4f;
+            
+            DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(RED, alpha));
+        }
+
         if (_stats_ui) {
                  
                  const float stats_x = Core::GlobalScaling::scaled(220.0f);
@@ -174,8 +206,7 @@ namespace Nawia::UI {
                  _stats_ui->render(stats_x, stats_y);
             }
 
-        // FPS Counter (top left corner)
-        DrawText(TextFormat("FPS: %d", GetFPS()), 10, 10, 20, LIME);
+       
 
         if (_is_inventory_open) {
             _inventory_ui->render(_font, *_player);

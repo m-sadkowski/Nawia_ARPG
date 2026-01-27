@@ -21,7 +21,7 @@ namespace Nawia::Entity {
 		addAnimation("walk", "../assets/models/player_walk.glb");
 		addAnimation("attack", "../assets/models/player_auto_attack.glb");
 		playAnimation("default"); // play idle
-
+		setAnimationSpeed(1.0f);
 		// add collider
 		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
 
@@ -59,6 +59,7 @@ namespace Nawia::Entity {
 		_is_moving = true;
 
 		if (!isAnimationLocked())
+			setAnimationSpeed(_current_stats.movement_speed*WALK_ANIM_BASE_SPEED);
 			playAnimation("walk");
 
 		const float dx = _target_x - getX();
@@ -76,7 +77,12 @@ namespace Nawia::Entity {
 		_is_moving = false;
 		if (!isAnimationLocked())
 		{
+		if (!isAnimationLocked())
+		{
+			setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 			playAnimation("default");
+			
+		}
 		}
 	}
 
@@ -96,8 +102,13 @@ namespace Nawia::Entity {
 		const float dy = _target_y - _pos.y;
 		const float distance = std::sqrt(dx * dx + dy * dy);
 
-		if (!isAnimationLocked())
+		if (!isAnimationLocked()) {
+			setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
 			playAnimation("walk");
+			// Scale animation speed based on movement speed
+			// This makes the walk animation faster as the player moves faster
+			
+		}
 
 		if (distance < 0.1f)
 		{

@@ -39,11 +39,17 @@ namespace Nawia::Entity {
 		void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
 
 	private:
-		enum class State { Idle, Chasing, PreparingDash, Dashing, Recovering, Attacking, GettingHit, Dying };
+		enum class State { Idle, Chasing, PreparingDash, Dashing, Recovering, Attacking, Dying };
 		State _state = State::Idle;
-		State _state_before_hit = State::Idle;
+
 
 		std::weak_ptr<Entity> _target;
+
+		//Animation speed set
+		static constexpr float DEVIL_DASH_ANIMATION_SPEED = 3.0f;
+		static constexpr float DEVIL_WALK_ANIMATION_SPEED = 1.0f;
+		static constexpr float DEVIL_DEAD_ANIMATION_SPEED = 2.0f;
+		static constexpr float DEVIL_ATTACK_ANIMATION_SPEED = 1.0f;
 		
 		// Combat stats
 		static constexpr float VISION_RANGE = 8.0f;
@@ -59,7 +65,7 @@ namespace Nawia::Entity {
 		static constexpr float DASH_PREPARE_TIME = 0.5f;    // Telegraph time before dash
 		static constexpr float DASH_ARRIVE_THRESHOLD = 0.3f;// Distance to consider arrived
 		static constexpr int DASH_DAMAGE = 35;              // Damage dealt when dash hits
-		static constexpr float DASH_HIT_RANGE = 2.0f;       // Range to check collision during dash
+		static constexpr float DASH_HIT_RANGE = 1.5f;       // Range to check collision during dash
 		static constexpr float DASH_STUN_DURATION = 2.0f;   // Stun duration after dash ends
 		
 		float _attack_cooldown_timer = 0.0f;
@@ -76,7 +82,7 @@ namespace Nawia::Entity {
 		void handleDashingState(float dt);
 		void handleRecoveringState(float dt);
 		void handleAttackingState(float dt);
-		void handleGettingHitState(float dt);
+
 		void handleDyingState(float dt);
 		
 		// Utility

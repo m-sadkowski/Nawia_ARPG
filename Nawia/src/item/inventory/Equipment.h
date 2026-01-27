@@ -13,7 +13,7 @@ namespace Nawia::Item {
         std::shared_ptr<Item> unequip(EquipmentSlot slot);
 
         std::shared_ptr<Item> getItemAt(EquipmentSlot slot) const;
-
+        const std::map<EquipmentSlot, std::shared_ptr<Item>>& getSlots() const { return _slots; }
 
     private:
         std::map<EquipmentSlot, std::shared_ptr<Item>> _slots;

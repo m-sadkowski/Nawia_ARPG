@@ -46,10 +46,18 @@ namespace Nawia::Entity {
 		void recalculateStats();
 		const Stats& getStats() const { return _current_stats; }
 
+
+		//Constant values for animation
+		
+		static constexpr float DEFAULT_ANIMATION_SPEED = 1.0f;
+		static constexpr float WALK_ANIM_BASE_SPEED = 1.25f;
+		static constexpr float ATTACK_ANIM_BASE_SPEED = 2.0f;
+
+
 	private:
 		Core::Engine* _engine;
+		
 		static constexpr int INIT_BACKPACK_SIZE = 20;
-
 		float _target_x, _target_y;
 		bool _is_moving;
 

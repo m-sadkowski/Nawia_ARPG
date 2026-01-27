@@ -64,71 +64,24 @@ namespace Nawia::Core {
 		// initialize entity manager
 		_entity_manager = std::make_unique<EntityManager>();
 
-		// spawn test enemy
-		// manual setup of a test enemy with specific abilities
-		/*const auto enemy_tex = _resource_manager.getTexture("../assets/textures/enemy.png");
-		const auto dummy = std::make_shared<Entity::Dummy>(-5.0f, -3.0f, enemy_tex, 100, _map.get());
-		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
-		dummy->setTarget(_player);
-		_entity_manager->addEntity(dummy);
-
-
-		const auto dummy2 = std::make_shared<Entity::Dummy>(-5.0f, -2.0f, enemy_tex, 100, _map.get());
-		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
-		dummy->setTarget(_player);
-		_entity_manager->addEntity(dummy2);
-
-
-		const auto dummy3 = std::make_shared<Entity::Dummy>(-5.0f, -1.0f, enemy_tex, 100, _map.get());
-		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
-		dummy->setTarget(_player);
-		_entity_manager->addEntity(dummy3);
-
-		const auto dummy4 = std::make_shared<Entity::Dummy>(-5.0f, 1.0f, enemy_tex, 100, _map.get());
-		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
-		dummy->setTarget(_player);
-		_entity_manager->addEntity(dummy4);
-
-		const auto dummy5 = std::make_shared<Entity::Dummy>(-5.0f, 2.0f, enemy_tex, 100, _map.get());
-		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
-		dummy->setTarget(_player);
-		_entity_manager->addEntity(dummy5);
-
-
-		const auto dummy6 = std::make_shared<Entity::Dummy>(-5.0f, 3.0f, enemy_tex, 100, _map.get());
-		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
-		dummy->setTarget(_player);
-		_entity_manager->addEntity(dummy6);
-
-
-		const auto dummy7 = std::make_shared<Entity::Dummy>(-5.0f, 4.0f, enemy_tex, 100, _map.get());
-		dummy->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
-		dummy->setTarget(_player);
-		_entity_manager->addEntity(dummy7);
-
-		/*
 		//spawn Devil for testing
 		const auto devil = std::make_shared<Entity::Devil>(-2.0f, 3.0f, _map.get());
 		devil->setTarget(_player);
 		_entity_manager->addEntity(devil);
 		
 		//spawn Bandit for testing
-		*/const auto knife_tex = _resource_manager.getTexture("../assets/textures/knife2.png");
+		const auto knife_tex = _resource_manager.getTexture("../assets/textures/knife3.png");
 		const auto bandit = std::make_shared<Entity::Bandit>(0.0f, 0.0f, _map.get());
 		bandit->setTarget(_player);
 		bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex,nullptr,nullptr));
-		_entity_manager->addEntity(bandit);/*
-		
-
-		
-
+		_entity_manager->addEntity(bandit);
 
 
 		// spawn Walking Dead for testing
-		const auto walking_dead = std::make_shared<Entity::WalkingDead>(-2.0f, -3.0f, _map.get());
+		const auto walking_dead = std::make_shared<Entity::WalkingDead>(-2.0f, -5.0f, _map.get());
 		walking_dead->setTarget(_player);
 		_entity_manager->addEntity(walking_dead);
-		*/
+		
 		// add player to entity manager so it can be hit by enemies
 		_entity_manager->addEntity(_player);
 
@@ -306,6 +259,7 @@ namespace Nawia::Core {
 			return;
 
 		_camera.follow(_player.get());
+        if (_ui_handler) _ui_handler->update(delta_time);
 		_controller->update(delta_time);
 
 		_entity_manager->updateEntities(delta_time);

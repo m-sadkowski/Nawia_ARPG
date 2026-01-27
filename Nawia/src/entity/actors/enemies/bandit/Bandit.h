@@ -42,8 +42,8 @@ namespace Nawia::Entity {
 		
 		// Combat stats
 		static constexpr float VISION_RANGE = 10.0f;
-		static constexpr float ATTACK_RANGE = 7.0f;      // Preferred attack distance
-		static constexpr float MIN_DISTANCE = 3.0f;      // Try to keep at least this far
+		static constexpr float ATTACK_RANGE = 8.0f;      // Preferred attack distance
+		static constexpr float MIN_DISTANCE = 5.0f;      // Try to keep at least this far
 		static constexpr float SPEED = 2.0f;
 		static constexpr float KNIFE_COOLDOWN = 3.0f;
 

@@ -13,11 +13,10 @@ namespace Nawia::Entity {
 	{
 		setScale(0.03f);
 		setFaction(Faction::Enemy);
-
-		// TODO: Update paths to actual bandit model files
+		
 		loadModel("../assets/models/bandit_idle.glb");
 		addAnimation("idle", "../assets/models/bandit_idle.glb");
-		addAnimation("walk", "../assets/models/bandit_walk.glb");
+		addAnimation("walk", "../assets/models/bandit_walk_backwards3.glb");
 		addAnimation("throw", "../assets/models/bandit_throw.glb");
 		addAnimation("death", "../assets/models/bandit_death.glb");
 		addAnimation("get_hit", "../assets/models/bandit_hit.glb");
@@ -86,19 +85,17 @@ namespace Nawia::Entity {
 			if (dist <= VISION_RANGE)
 			{
 				_state = State::Chasing;
-				playAnimation("walk");
+				playAnimation("idle");
 			}
 		}
 	}
 
-	void Bandit::handleChasingState(const float dt)
-	{
+	void Bandit::handleChasingState(const float dt) {
 		EnemyInterface::update(dt);
 		updateAbilities(dt);
 
 		auto target = _target.lock();
-		if (!target || target->isDead())
-		{
+		if (!target || target->isDead()) {
 			_state = State::Idle;
 			playAnimation("idle");
 			setVelocity(0, 0);
@@ -107,53 +104,48 @@ namespace Nawia::Entity {
 
 		const float dist = getDistanceToTarget();
 
-		// Return to idle if player escaped
-		if (dist > VISION_RANGE * 1.5f)
-		{
+		if (dist > VISION_RANGE * 1.5f) {
 			_state = State::Idle;
 			playAnimation("idle");
 			setVelocity(0, 0);
 			return;
 		}
 
-		// Try to throw knife if in range and off cooldown
-		if (dist <= ATTACK_RANGE && _knife_cooldown_timer <= 0.0f)
-		{
-			if (const auto knife = getAbility(0))
-			{
-				if (knife->isReady())
-				{
+		
+		if (dist <= ATTACK_RANGE && _knife_cooldown_timer <= 0.0f) {
+			if (const auto knife = getAbility(0)) {
+				if (knife->isReady()) {
 					_state = State::Casting;
+					setAnimationSpeed(1.5f);
 					playAnimation("throw", false, true);
 					rotateTowards(target->getX(), target->getY());
+					setVelocity(0, 0); 
 					return;
 				}
 			}
 		}
 
-		// Move toward or away from player to maintain optimal distance
+	
 		const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
 		const Vector2 target_pos = target->getCollider() ? target->getCollider()->getPosition() : target->getCenter();
-		
 		Vector2 dir = Vector2Normalize(Vector2Subtract(target_pos, my_pos));
-		
-		// If too close, back away
-		if (dist < MIN_DISTANCE)
-		{
-			dir = Vector2Negate(dir);  // Reverse direction
+
+		if (dist < MIN_DISTANCE) {
+			dir = Vector2Negate(dir);
+			playAnimation("walk"); 
+			_pos.x += dir.x * SPEED * dt;
+			_pos.y += dir.y * SPEED * dt;
 		}
-		// If in good range, stop moving
-		else if (dist >= MIN_DISTANCE && dist <= ATTACK_RANGE)
-		{
-			rotateTowards(target->getX(), target->getY());
+		else if (dist > ATTACK_RANGE) {
+			playAnimation("walk");
+			_pos.x += dir.x * SPEED * dt;
+			_pos.y += dir.y * SPEED * dt;
+		}
+		else {
 			playAnimation("idle");
-			return;
 		}
-		
+
 		rotateTowards(target->getX(), target->getY());
-		
-		_pos.x += dir.x * SPEED * dt;
-		_pos.y += dir.y * SPEED * dt;
 	}
 
 	void Bandit::handleCastingState(const float dt)
@@ -166,8 +158,9 @@ namespace Nawia::Entity {
 			rotateTowards(target->getX(), target->getY());
 		}
 
-		// Trigger the throw at exactly frame 60
-		if (_anim_frame_counter == 60)
+		bool _casted_flag = false;
+
+		if (_anim_frame_counter > 60 && !_casted_flag)
 		{
 			if (const auto knife = getAbility(0))
 			{
@@ -176,12 +169,12 @@ namespace Nawia::Entity {
 					const float tx = target->getCenter().x;
 					const float ty = target->getCenter().y;
 
-					// Only cast if we haven't already just casted (though frame counter check handles this mostly)
-					// We rely on the frame counter being exactly 60 for one frame.
+					
 					if (auto effect = knife->cast(tx, ty))
 					{
 						addPendingSpawn(std::move(effect));
 						_knife_cooldown_timer = KNIFE_COOLDOWN;
+						_casted_flag = true;
 					}
 				}
 			}
@@ -230,6 +223,7 @@ namespace Nawia::Entity {
 	float Bandit::getDistanceToTarget() const
 	{
 		const auto target = _target.lock();
+
 		if (!target) return std::numeric_limits<float>::max();
 
 		const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
