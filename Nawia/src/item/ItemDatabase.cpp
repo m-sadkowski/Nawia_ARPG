@@ -89,6 +89,13 @@ namespace Nawia::Item {
         return nullptr;
     }
 
+    std::shared_ptr<Item> ItemDatabase::getItemTemplate(const int id) {
+        if (_templates.find(id) != _templates.end()) {
+            return _templates[id];
+        }
+        return nullptr;
+    }
+
     EquipmentSlot ItemDatabase::stringToSlot(const std::string& str) {
         if (str == "Head") return EquipmentSlot::Head;
         if (str == "Chest") return EquipmentSlot::Chest;

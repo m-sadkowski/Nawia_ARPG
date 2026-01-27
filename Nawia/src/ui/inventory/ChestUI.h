@@ -15,6 +15,7 @@ namespace Nawia::UI {
         int handleInput() const;
 
     private:
+        // todo dynamic slot amount
         static constexpr int SLOT_AMOUNT = 12;
         static constexpr int COLS = 3;
         static constexpr int ROWS = 4;
