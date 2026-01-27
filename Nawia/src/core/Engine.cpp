@@ -15,6 +15,7 @@
 #include "KnifeThrowAbility.h"
 #include "Checkpoint.h"
 #include "Chest.h"
+#include "Cat.h"
 
 namespace Nawia::Core {
 
@@ -58,6 +59,9 @@ namespace Nawia::Core {
 		_item_database.loadDatabase("../assets/data/items.json", _resource_manager);
 		Logger::debugLog("Zaladowano baze danych przedmiotow");
 
+		// init loottables
+		_loottable.loadLoottables("../assets/data/loottables.json", _item_database);
+
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
 
@@ -89,9 +93,16 @@ namespace Nawia::Core {
 
 		const auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png");
 		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", -12.0f, -7.7f, chest_tex);
-		auto chestplate_chest = _item_database.createItem(2);
-		test_chest->addItem(chestplate_chest);
+		test_chest->initializeInventory(_loottable, Item::LOOTTABLE_TYPE::CHEST_NOOB);
 		_entity_manager->addEntity(test_chest);
+
+		const auto cat_tex = _resource_manager.getTexture("../assets/textures/chest.png");
+		auto cat = std::make_shared<Entity::Cat>("Kot Olga", -7.2f, -11.8f, chest_tex);
+		_dialogue_manager.createCatDialogue(this, cat);
+		cat->initializeInventory(_loottable, Item::LOOTTABLE_TYPE::CAT);
+		//auto key = _item_database.createItem(4);
+		//cat->addItem(key);
+		_entity_manager->addEntity(cat);
 
 		// 2. Checkpoint (InteractiveTrigger)
 		auto test_checkpoint = std::make_shared<Entity::Checkpoint>("Punkt Kontrolny", 20.0f, 20.0f);

@@ -29,5 +29,12 @@
             "defense": 2,
             "movement_speed": 1.0
         }
+    },
+    {
+        "id": 4,
+        "name": "Stary klucz",
+        "description": "Pewnie można nim coś otworzyć.",
+        "slot": "",
+        "texture": "assets/textures/items/key.png"
     }
 ]

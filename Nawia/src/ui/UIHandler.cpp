@@ -4,7 +4,7 @@
 #include <Player.h>
 #include <EntityManager.h>
 #include <Entity.h>
-#include <Chest.h>
+#include <InteractiveClickable.h>
 #include <Constants.h>
 #include <GlobalScaling.h>
 #include <Settings.h>
@@ -91,7 +91,7 @@ namespace Nawia::UI {
 
         // chest
         _chest_ui = std::make_unique<ChestUI>();
-        _current_chest = nullptr;
+        _current_container = nullptr;
 
         _stats_ui = std::make_unique<StatsUI>(_player);
 
@@ -122,13 +122,15 @@ namespace Nawia::UI {
 
     void UIHandler::handleInput() 
 	{
+        if (_dialogueUI.isOpen()) {
+            _dialogueUI.handleInput();
+            return;
+        }
+
         // Future UI input logic (handled by handleMenuInput for menu state)
-        if (IsKeyPressed(KEY_TAB)) {
-            if (_current_chest){
-                closeChest();
-                toggleInventory();
-            }  
-            else toggleInventory();
+        if (IsKeyPressed(KEY_I) || IsKeyPressed(KEY_TAB)) {
+            if (_current_container) closeContainer();
+            toggleInventory();
         }
 
         if (_is_inventory_open) {
@@ -144,11 +146,11 @@ namespace Nawia::UI {
             }
 
             // chest handler
-            if (_current_chest) {
+            if (_current_container) {
                 int chestSlot = _chest_ui->handleInput();
 
                 if (chestSlot != -1) {
-                    auto& chestInv = _current_chest->getInventory();
+                    auto& chestInv = *_current_container->getInventory();
                     auto item = chestInv.getItem(chestSlot);
 
                     if (item) {
@@ -181,7 +183,7 @@ namespace Nawia::UI {
         return MenuAction::None;
     }
 
-    void UIHandler::render(const Core::Camera& camera) const 
+    void UIHandler::render(const Core::Camera& camera) 
 	{
         if (!_player || !_entity_manager) return;
 
@@ -202,6 +204,8 @@ namespace Nawia::UI {
             DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(RED, alpha));
         }
 
+        _dialogueUI.render();
+
         if (_is_inventory_open) {
             _inventory_ui->render(_font, *_player);
 
@@ -216,8 +220,8 @@ namespace Nawia::UI {
                  _stats_ui->render(stats_x, stats_y, _font);
             }
 
-            if (_current_chest) {
-                _chest_ui->render(_current_chest->getInventory(), _font);
+            if (_current_container) {
+                _chest_ui->render(*_current_container->getInventory(), _font);
             }
         }
     }
@@ -462,13 +466,21 @@ namespace Nawia::UI {
         return MenuAction::None;
     }
 
-    void UIHandler::openChest(std::shared_ptr<Entity::Chest> chest) {
-        _current_chest = chest;
+    void UIHandler::openContainer(std::shared_ptr<Entity::InteractiveClickable> container) {
+        _current_container = container;
         _is_inventory_open = true;
     }
 
-    void UIHandler::closeChest() {
-        _current_chest = nullptr;
+    void UIHandler::closeContainer() {
+        _current_container = nullptr;
+    }
+
+    bool UIHandler::isInputBlocked() const {
+        if (_dialogueUI.isOpen()) return true;
+        if (_is_inventory_open) return true;
+        if (_current_container) return true;
+
+        return false;
     }
 
 } // namespace Nawia::UI

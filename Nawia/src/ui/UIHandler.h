@@ -6,11 +6,12 @@
 
 #include "InventoryUI.h"
 #include "ChestUI.h"
+#include "DialogueUI.h"
 
 namespace Nawia::Entity {
     class Player;
     class Entity;
-    class Chest;
+    class InteractiveClickable;
 }
 
 namespace Nawia::Core {
@@ -48,7 +49,7 @@ namespace Nawia::UI {
         void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager);
         
         void update(float dt);
-        void render(const Core::Camera& camera) const;
+        void render(const Core::Camera& camera);
         void renderMainMenu() const;
         void renderSettingsMenu() const;
         
@@ -79,8 +80,13 @@ namespace Nawia::UI {
         void toggleInventory() { _is_inventory_open = !_is_inventory_open; }
 
         // chest
-        void openChest(std::shared_ptr<Entity::Chest> chest);
-        void closeChest();
+        void openContainer(std::shared_ptr<Entity::InteractiveClickable> container);
+        void closeContainer();
+
+        void openDialogue(const Game::DialogueTree& tree) { _dialogueUI.open(tree); }
+        void closeDialogue() { _dialogueUI.close(); }
+
+        bool isInputBlocked() const;
 
     private:
         void renderPlayerHealthBar() const;
@@ -100,9 +106,11 @@ namespace Nawia::UI {
         bool _is_inventory_open = false;
 
         std::unique_ptr<ChestUI> _chest_ui;
-        std::shared_ptr<Entity::Chest> _current_chest;
+        std::shared_ptr<Entity::InteractiveClickable> _current_container;
 
         std::unique_ptr<StatsUI> _stats_ui;
+
+        DialogueUI _dialogueUI;
         
         // Damage Flash
         int _previous_hp = -1;
