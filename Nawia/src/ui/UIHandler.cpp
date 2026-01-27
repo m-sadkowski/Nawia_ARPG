@@ -123,8 +123,11 @@ namespace Nawia::UI {
     void UIHandler::handleInput() 
 	{
         // Future UI input logic (handled by handleMenuInput for menu state)
-        if (IsKeyPressed(KEY_I)) {
-            if (_current_chest) closeChest();
+        if (IsKeyPressed(KEY_TAB)) {
+            if (_current_chest){
+                closeChest();
+                toggleInventory();
+            }  
             else toggleInventory();
         }
 
