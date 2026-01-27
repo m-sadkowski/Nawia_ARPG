@@ -1,7 +1,7 @@
 #include "SwordSlashAbility.h"
 #include "SwordSlashEffect.h"
 #include "Entity.h"
-
+#include "Player.h"
 #include <MathUtils.h>
 
 #include <iostream>
@@ -18,7 +18,25 @@ namespace Nawia::Entity {
 		// Force rotation to target immediately
 		_caster->rotateTowardsCenter(target_x, target_y);
 
+
+
+		// Check if _caster is a instance of player in case of setting speed of animation
+		Player* player = dynamic_cast<Player*>(_caster);
+
+		if (player != nullptr) {
+			_caster->rotateTowardsCenter(target_x, target_y);
+			_caster->setAnimationSpeed(player->ATTACK_ANIM_BASE_SPEED*player->getStats().attack_speed);
+			_caster->playAnimation("attack", false, true); 
+		}
+		else {
+			
+			_caster->rotateTowardsCenter(target_x, target_y);
+			_caster->playAnimation("attack", false, true);
+		}
+
+
 		startCooldown();
+		
 		_caster->playAnimation("attack", false, true);
 
 		// store target data and activate delayed spawn

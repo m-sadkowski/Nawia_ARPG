@@ -16,7 +16,7 @@ namespace Nawia::Entity {
 
 	Entity::Entity(const std::string& name, const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
 		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
-		  _current_anim_index(0), _anim_frame_counter(0), _rotation(0.0f), _model_loaded(false), _use_3d_rendering(false),
+		  _current_anim_index(0), _anim_frame_counter(0.0f), _rotation(0.0f), _model_loaded(false), _use_3d_rendering(false),
 		  _velocity{0.0f, 0.0f}, _scale(1.0f), _faction(Faction::None), _pos{start_x, start_y},
 		  _anim_looping(true), _anim_locked(false), _hovered(false) {}
 
@@ -89,7 +89,7 @@ namespace Nawia::Entity {
 			if (force || index != _current_anim_index)
 			{
 				_current_anim_index = index;
-				_anim_frame_counter = start_frame;
+				_anim_frame_counter = static_cast<float>(start_frame);
 				_anim_looping = loop;
 				_anim_locked = lock_movement;
 			}
@@ -120,16 +120,27 @@ namespace Nawia::Entity {
 		// todo update when closer to player
 		if (_model_loaded && !_animations.empty())
 		{
-			_anim_frame_counter++;
-			UpdateModelAnimation(_model, _animations[_current_anim_index], _anim_frame_counter);
+			// Advance frame counter based on time, FPS, and speed multiplier
+			_anim_frame_counter += dt * _anim_fps * _anim_speed_multiplier;
 
+			// Handle looping or stopping
 			if (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
 			{
-				_anim_frame_counter = 0;
-				if (!_anim_looping) {
+				if (_anim_looping) {
+					// Wrap around
+					while (_anim_frame_counter >= _animations[_current_anim_index].frameCount) {
+						_anim_frame_counter -= _animations[_current_anim_index].frameCount;
+					}
+				}
+				else {
+					// Stop at end or reset to default
+					_anim_frame_counter = 0;
 					playAnimation("default", true, false);
 				}
 			}
+
+			// Update the model using the integer part of the frame counter
+			UpdateModelAnimation(_model, _animations[_current_anim_index], static_cast<int>(_anim_frame_counter));
 		}
 	}
 
