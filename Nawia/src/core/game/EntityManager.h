@@ -24,20 +24,20 @@ namespace Nawia::Core {
 		// Game Loop methods
 		void updateEntities(float delta_time);
 		void renderEntities(const Camera& camera) const;
-		void handleEntitiesCollisions();
+		void handleEntitiesCollisions() const;
 
 		// Input 
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, Camera camera) const;
 		void updateHoverState(float screen_x, float screen_y, const Camera& camera);
 
 		// For collisions
-		void processAbilityCollisions();
-		void processTriggerCollisions();
-		void processPhysicalCollisions();
+		void processAbilityCollisions() const;
+		void processTriggerCollisions() const;
+		void processPhysicalCollisions() const;
 
 		// For overlap
-		bool isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& e) const;
-		void resolveOverlap(std::shared_ptr<Entity::Entity>& e1, std::shared_ptr<Entity::Entity>& e2) const;
+		[[nodiscard]] bool isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& e) const;
+		void resolveOverlap(const std::shared_ptr<Entity::Entity>& e1, const std::shared_ptr<Entity::Entity>& e2) const;
 		
 
 	private:

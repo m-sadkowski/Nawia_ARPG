@@ -10,8 +10,7 @@ namespace Nawia::UI {
     public:
         ChestUI();
 
-        void render(const Item::Backpack& chestBackpack, const Font& font) const;
-
+        void render(const Item::Backpack& chest_backpack, const Font& font) const;
         int handleInput() const;
 
     private:
@@ -29,10 +28,7 @@ namespace Nawia::UI {
         static constexpr float TEXT_PADDING_LEFT = 20.0f;
         static constexpr float TEXT_PADDING_TOP = 10.0f;
         static constexpr float FONT_SIZE = 20.0f;
-
-        Vector2 _position = { 600, 150 };
-
-        void drawSlot(float x, float y, bool isHovered, const std::shared_ptr<Item::Item>& item) const;
+        void drawSlot(float x, float y, bool is_hovered, const std::shared_ptr<Item::Item>& item) const;
         void drawTooltip(const Font& font, const std::shared_ptr<Item::Item>& item, float x, float y) const;
     };
 }

@@ -264,7 +264,7 @@ namespace Nawia::Entity {
 		}
 
 		_max_hp = _current_stats.max_hp;
-		if (_hp > _max_hp) 
+		if (std::min(_hp, _max_hp))
 			_hp = _max_hp;
 	}
 

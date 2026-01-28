@@ -7,11 +7,8 @@
 #include <Dummy.h>
 #include <WalkingDead.h>
 #include <FireballAbility.h>
-#include <Projectile.h>
 #include <SwordSlashAbility.h>
 #include "Bandit.h"
-#include <algorithm>
-#include <iostream>
 #include "KnifeThrowAbility.h"
 #include "Checkpoint.h"
 #include "Chest.h"
@@ -33,7 +30,7 @@ namespace Nawia::Core {
 		}
 		
 		// Initialize UI scaling system with saved manual scale
-		GlobalScaling::setManualScale(_settings.uiScale);
+		GlobalScaling::setManualScale(_settings.ui_scale);
 
 		// TEMPORARY SOLUTION
 		// initialize map object
@@ -60,7 +57,7 @@ namespace Nawia::Core {
 		Logger::debugLog("Zaladowano baze danych przedmiotow");
 
 		// init loottables
-		_loottable.loadLoottables("../assets/data/loottables.json", _item_database);
+		_loottable.loadLootTables("../assets/data/loottables.json", _item_database);
 
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
@@ -192,60 +189,67 @@ namespace Nawia::Core {
 		if (_game_state == GameState::SettingsMenu)
 		{
 			// ESC in Settings = go back (same as Back button)
-			if (IsKeyPressed(KEY_ESCAPE)) {
+			if (IsKeyPressed(KEY_ESCAPE)) 
+			{
 				_ui_handler->closeSettingsMenu();
 				_game_state = _previous_state;
-				if (_previous_state == GameState::Playing) {
+				if (_previous_state == GameState::Playing) 
 					_show_pause_menu = true;
-				}
+				
 				return;
 			}
 	    
 			const Nawia::UI::MenuAction action = _ui_handler->handleSettingsInput();
 	    
 			// Check if Back was clicked
-			if (action == Nawia::UI::MenuAction::Play) {
+			if (action == Nawia::UI::MenuAction::Play) 
+			{
 				// Return to previous state
 				_game_state = _previous_state;
-				if (_previous_state == GameState::Playing) {
+				if (_previous_state == GameState::Playing) 
 					_show_pause_menu = true;  // Re-show pause menu when returning from settings
-				}
+
 				return;
 			}
 	    
 			// Check if settings were applied
-			if (_ui_handler->wereSettingsApplied()) {
+			if (_ui_handler->wereSettingsApplied()) 
+			{
 				applySettings(_ui_handler->getAppliedSettings());
 				_ui_handler->closeSettingsMenu();  // Reset menu to clear stale state
 				// Return to previous state (not always Menu)
 				_game_state = _previous_state;
-				if (_previous_state == GameState::Playing) {
+				if (_previous_state == GameState::Playing) 
 					_show_pause_menu = true;
-				}
 			}
 			return;
 		}
 
 		// Playing state - handle ESC for pause menu toggle
-		if (IsKeyPressed(KEY_ESCAPE)) {
+		if (IsKeyPressed(KEY_ESCAPE)) 
+		{
 		    _show_pause_menu = !_show_pause_menu;
 		    return;
 		}
 		
 		// Handle pause menu input when visible
-		if (_show_pause_menu) {
+		if (_show_pause_menu) 
+		{
 		    const Nawia::UI::MenuAction action = _ui_handler->handlePauseMenuInput();
 		    
-		    if (action == Nawia::UI::MenuAction::Play) {
+		    if (action == Nawia::UI::MenuAction::Play) 
+			{
 		        _show_pause_menu = false;  // Resume game
 		    }
-		    else if (action == Nawia::UI::MenuAction::Settings) {
+		    else if (action == Nawia::UI::MenuAction::Settings) 
+			{
 		        _previous_state = GameState::Playing;  // Remember where we came from
 		        _ui_handler->openSettings(_settings);
 		        _game_state = GameState::SettingsMenu;
 		        _show_pause_menu = false;
 		    }
-		    else if (action == Nawia::UI::MenuAction::Exit) {
+		    else if (action == Nawia::UI::MenuAction::Exit) 
+			{
 		        _game_state = GameState::Menu;  // Quit to main menu
 		        _show_pause_menu = false;
 		    }
@@ -256,8 +260,8 @@ namespace Nawia::Core {
 		_ui_handler->handleInput();
 
 		// transform mouse location to position in world
-		Vector2 mouse_pos = GetMousePosition();
-		Vector2 mouse_world_pos =  screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
+		const Vector2 mouse_pos = GetMousePosition();
+		const Vector2 mouse_world_pos =  screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
 
 		_entity_manager->updateHoverState(mouse_pos.x, mouse_pos.y, _camera);
 
@@ -375,7 +379,7 @@ namespace Nawia::Core {
         }
 	    
 	    // Apply UI scale and update global scaling
-	    GlobalScaling::setManualScale(_settings.uiScale);
+	    GlobalScaling::setManualScale(_settings.ui_scale);
 	    
 	    // Save settings to file
 	    _settings.save();

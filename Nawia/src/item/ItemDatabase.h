@@ -14,10 +14,10 @@ namespace Nawia::Item {
 
     class ItemDatabase {
     public:
-        void loadDatabase(const std::string& filepath, Core::ResourceManager& resMgr);
+        void loadDatabase(const std::string& filepath, Core::ResourceManager& res_mgr);
 
-        std::shared_ptr<Item> createItem(const int id);
-        std::shared_ptr<Item> getItemTemplate(const int id);
+        std::shared_ptr<Item> createItem(int id);
+        std::shared_ptr<Item> getItemTemplate(int id);
 
     private:
         // id -> item object

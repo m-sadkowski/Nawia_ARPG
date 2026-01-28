@@ -50,7 +50,7 @@ namespace Nawia::Core {
 		[[nodiscard]] bool isWalkable(float world_x, float world_y) const;
 		[[nodiscard]] bool isGridWalkable(int grid_x, int grid_y) const;
 		
-		void setDebugWalkability(bool enabled) { _debug_walkability = enabled; }
+		void setDebugWalkability(const bool enabled) { _debug_walkability = enabled; }
 
 		[[nodiscard]] std::vector<Vector2> findPath(Vector2 start_world, Vector2 end_world) const;
 		

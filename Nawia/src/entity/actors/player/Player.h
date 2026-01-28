@@ -83,4 +83,4 @@ namespace Nawia::Entity {
 		int _gold = 0;
 	};
 
-}
+} // namespace Nawia::Entity

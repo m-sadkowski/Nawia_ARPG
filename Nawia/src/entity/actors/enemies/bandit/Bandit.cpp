@@ -143,7 +143,7 @@ namespace Nawia::Entity {
 			{
 				// Find a retreat point - 3 tiles away from player, opposite direction
 				const Vector2 away_dir = Vector2Normalize(Vector2Subtract(my_pos, target_pos));
-				const float retreat_dist = 3.0f;
+				constexpr float retreat_dist = 3.0f;
 				
 				// Try to find a walkable retreat point
 				Vector2 retreat_point = { my_pos.x + away_dir.x * retreat_dist, my_pos.y + away_dir.y * retreat_dist };

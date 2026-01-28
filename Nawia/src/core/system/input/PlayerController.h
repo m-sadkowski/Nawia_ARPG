@@ -33,8 +33,6 @@ namespace Nawia::Core {
 		bool processInteraction();
 		void updateRotation();
 
-
-
 		bool trySelectEnemy(float screen_x, float screen_y);
 		void handleGroundClick(float x, float y);
 		void queueAbility(int index, float x, float y, float screen_x, float screen_y);
@@ -43,10 +41,8 @@ namespace Nawia::Core {
 		void processPendingAbility();
 		void updateCombatMovement(float dist_sq, float attack_range);
 
-
-
-
-		struct PendingAction {
+		struct PendingAction 
+		{
 			enum class Type { None, Move, Ability, Interact } type = Type::None;
 			float x = 0.0f;
 			float y = 0.0f;

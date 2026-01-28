@@ -1,4 +1,4 @@
-#include "Chest.h"
+ï»¿#include "Chest.h"
 #include <iostream>
 #include <InteractiveClickable.h>
 
@@ -18,7 +18,7 @@ namespace Nawia::Entity {
     }
 
     void Chest::initializeInventory(Item::Loottable& loottable, Item::LOOTTABLE_TYPE loottable_type) {
-        const auto& drops = loottable.getLoottable(loottable_type);
+        const auto& drops = loottable.getLootTable(loottable_type);
 
         for (const auto& entry : drops) {
             if (!entry._item) continue;
@@ -41,33 +41,27 @@ namespace Nawia::Entity {
 
         std::cout << instigator.getName() << " otwiera skrzynie " << _name << "!" << std::endl;
 
-        // Jeœli masz animacjê otwierania:
         // playAnimation("open_chest", false);
 
         _isOpen = true;
 
-        // Tutaj logika wypadania przedmiotów:
         // instigator.addItem(this->getLoot());
     }
 
-    void Chest::update(float delta_time) {
+    void Chest::update(const float delta_time) 
+	{
         Entity::update(delta_time);
-        // Tutaj ewentualna logika sprawdzania czy gracz jest w zasiêgu wzroku
     }
 
-    void Chest::render(float offset_x, float offset_y) {
-        // Renderuj grafikê bazow¹
+    void Chest::render(const float offset_x, const float offset_y) 
+	{
         Entity::render(offset_x, offset_y);
 
-        // Debug: Jeœli chcesz widzieæ, ¿e to obiekt interaktywny
-        if (!_isOpen) {
-            // Mo¿na dodaæ ikonkê wykrzyknika nad skrzyni¹
-        }
     }
 
     float Chest::getInteractionRange()
     {
-        return 2.5f * 2.5f;
+        return 2.f * 2.f;
     }
 
 } // namespace Nawia::Entity

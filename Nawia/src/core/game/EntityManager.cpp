@@ -28,13 +28,13 @@ namespace Nawia::Core {
     void EntityManager::updateHoverState(const float screen_x, const float screen_y, const Camera& camera)
     {
         // 1. Reset hover state for all active entities
-        for (auto& entity : _active_entities) {
+        for (const auto& entity : _active_entities)
             entity->setHovered(false);
-        }
 
         // 2. Find the top-most entity under the cursor
         // Iterate backwards to prioritize entities drawn on top
-        for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) {
+        for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) 
+        {
             if ((*it)->isMouseOver(screen_x, screen_y, camera.x, camera.y)) {
                 // Core::Logger::debugLog("Hovered Entity: " + (*it)->getName());
                 (*it)->setHovered(true);
@@ -53,34 +53,31 @@ namespace Nawia::Core {
     {
         for (auto it = _active_entities.begin(); it != _active_entities.end();)
         {
-            auto& entity = *it;
+            const auto& entity = *it;
             entity->update(delta_time);
 
             // Check if it's an expired spell
             bool is_expired_spell = false;
-            if (auto spell = dynamic_cast<Entity::AbilityEffect*>(entity.get())) {
+            if (const auto spell = dynamic_cast<Entity::AbilityEffect*>(entity.get()))
                 is_expired_spell = spell->isExpired();
-            }
 
-            if (entity->isDead() || is_expired_spell) {
+            if (entity->isDead() || is_expired_spell)
                 it = _active_entities.erase(it);
-            }
-            else {
+            else
                 ++it;
-            }
         }
     }
 
     // --- Collision System Refactor ---
 
-    void EntityManager::handleEntitiesCollisions() 
+    void EntityManager::handleEntitiesCollisions() const
     {
         processAbilityCollisions();
         processTriggerCollisions();
         processPhysicalCollisions();
     }
 
-    void EntityManager::processAbilityCollisions() 
+    void EntityManager::processAbilityCollisions() const
     {
         for (auto& entity1 : _active_entities)
         {
@@ -110,17 +107,18 @@ namespace Nawia::Core {
         }
     }
 
-    void EntityManager::processTriggerCollisions() 
+    void EntityManager::processTriggerCollisions() const
     {
         if (!_player || _player->isDead()) return;
 
-        for (auto& entity : _active_entities) {
+        for (auto& entity : _active_entities) 
+        {
             if (entity == _player) continue;
 
-            if (auto trigger = dynamic_cast<Entity::InteractiveTrigger*>(entity.get())) {
+            if (const auto trigger = dynamic_cast<Entity::InteractiveTrigger*>(entity.get())) 
+            {
                 // Ensure trigger has a collider before checking
-                if (trigger->getCollider() &&
-                    trigger->getCollider()->checkCollision(_player->getCollider()))
+                if (trigger->getCollider() &&  trigger->getCollider()->checkCollision(_player->getCollider()))
                 {
                     trigger->onTriggerEnter(*_player);
                     trigger->die();
@@ -129,7 +127,7 @@ namespace Nawia::Core {
         }
     }
 
-    void EntityManager::processPhysicalCollisions()
+    void EntityManager::processPhysicalCollisions() const
     {
         for (size_t i = 0; i < _active_entities.size(); ++i)
         {
@@ -141,9 +139,8 @@ namespace Nawia::Core {
                 auto& e2 = _active_entities[j];
                 if (!isCollidablePhysicalEntity(e2)) continue;
 
-                if (e1->getCollider()->checkCollision(e2->getCollider())) {
+                if (e1->getCollider()->checkCollision(e2->getCollider()))
                     resolveOverlap(e1, e2);
-                }
             }
         }
     }
@@ -153,12 +150,12 @@ namespace Nawia::Core {
     {
         if (e->isDead() || !e->getCollider()) return false;
 
-        Entity::EntityType type = e->getType();
+        const Entity::EntityType type = e->getType();
 
         return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy);
     }
 
-    void EntityManager::resolveOverlap(std::shared_ptr<Entity::Entity>& e1, std::shared_ptr<Entity::Entity>& e2) const
+    void EntityManager::resolveOverlap(const std::shared_ptr<Entity::Entity>& e1, const std::shared_ptr<Entity::Entity>& e2) const
     {
         // Only resolve Rectangle vs Rectangle for now
         if (e1->getCollider()->getType() != Entity::ColliderType::RECTANGLE ||
@@ -166,13 +163,13 @@ namespace Nawia::Core {
             return;
         }
 
-        const auto* r1_col = static_cast<const Entity::RectangleCollider*>(e1->getCollider());
-        const auto* r2_col = static_cast<const Entity::RectangleCollider*>(e2->getCollider());
+        const auto* r1_col = dynamic_cast<const Entity::RectangleCollider*>(e1->getCollider());
+        const auto* r2_col = dynamic_cast<const Entity::RectangleCollider*>(e2->getCollider());
 
         const Rectangle r1_rect = r1_col->getRect();
         const Rectangle r2_rect = r2_col->getRect();
 
-        Rectangle overlap = GetCollisionRec(r1_rect, r2_rect);
+        const Rectangle overlap = GetCollisionRec(r1_rect, r2_rect);
 
         if (overlap.width <= 0 || overlap.height <= 0) return;
 
@@ -181,11 +178,13 @@ namespace Nawia::Core {
         {
             const float separation = overlap.width * 0.5f;
             // Push apart horizontally
-            if (r1_rect.x < r2_rect.x) {
+            if (r1_rect.x < r2_rect.x) 
+            {
                 e1->setX(e1->getX() - separation);
                 e2->setX(e2->getX() + separation);
             }
-            else {
+            else 
+            	{
                 e1->setX(e1->getX() + separation);
                 e2->setX(e2->getX() - separation);
             }
@@ -194,11 +193,13 @@ namespace Nawia::Core {
         {
             const float separation = overlap.height * 0.5f;
             // Push apart vertically
-            if (r1_rect.y < r2_rect.y) {
+            if (r1_rect.y < r2_rect.y) 
+            {
                 e1->setY(e1->getY() - separation);
                 e2->setY(e2->getY() + separation);
             }
-            else {
+            else 
+            	{
                 e1->setY(e1->getY() + separation);
                 e2->setY(e2->getY() - separation);
             }

@@ -2,7 +2,8 @@
 
 namespace Nawia::Entity { 
 
-    struct Stats {
+    struct Stats 
+	{
         int max_hp = 0;
         int damage = 0;
         int power = 0;
@@ -11,7 +12,8 @@ namespace Nawia::Entity {
         int tenacity = 0;  
         int armor = 0;
         
-        Stats operator+(const Stats& other) const {
+        Stats operator+(const Stats& other) const 
+    	{
             Stats result;
             result.max_hp = this->max_hp + other.max_hp;
             result.damage = this->damage + other.damage;
@@ -22,7 +24,8 @@ namespace Nawia::Entity {
             return result;
         }
 
-        Stats& operator+=(const Stats& other) {
+        Stats& operator+=(const Stats& other)
+    	{
             this->max_hp += other.max_hp;
             this->damage += other.damage;
             this->attack_speed += other.attack_speed;
@@ -33,4 +36,4 @@ namespace Nawia::Entity {
         }
     };
 
-} 
+} // namespace Nawia::Entity
