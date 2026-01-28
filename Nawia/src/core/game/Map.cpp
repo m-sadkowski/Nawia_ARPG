@@ -51,20 +51,20 @@ void Map::loadMap(const std::string& filename)
 		return;
 	}
 
-	int min_x, min_y = std::numeric_limits<int>::max();
-	int max_x, max_y = std::numeric_limits<int>::lowest();
+	int min_x = std::numeric_limits<int>::max();
+	int min_y = std::numeric_limits<int>::max();
+	int max_x = std::numeric_limits<int>::lowest();
+	int max_y = std::numeric_limits<int>::lowest();
 
 	const auto& layers = map_data["layers"];
 	calculateMapBounds(layers, min_x, min_y, max_x, max_y);
 
-	if (min_x == std::numeric_limits<int>::max()) {
-		Logger::errorLog("Map::loadMap - Empty map");
-		return;
-	}
+	const int width = max_x - min_x;
+	const int height = max_y - min_y;
 
 	_offset_x = min_x;
 	_offset_y = min_y;
-	initializeGrids(max_x - min_x, max_y - min_y);
+	initializeGrids(width, height);
 	loadLayers(layers, map_data);
 
 	Logger::debugLog("Map loaded: " + filename + 
