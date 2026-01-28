@@ -2,7 +2,8 @@
 
 namespace Nawia::Entity {
 
-	struct AbilityStats {
+	struct AbilityStats 
+	{
 		int damage = 0;
 		float cooldown = 0.0f;
 		float projectile_speed = 0.0f;

@@ -5,6 +5,7 @@
 namespace Nawia::Entity { class Player; }
 
 namespace Nawia::UI {
+
     class StatsUI {
     public:
         StatsUI(std::shared_ptr<Entity::Player> player);
@@ -12,4 +13,5 @@ namespace Nawia::UI {
     private:
         std::shared_ptr<Entity::Player> _player;
     };
+
 }

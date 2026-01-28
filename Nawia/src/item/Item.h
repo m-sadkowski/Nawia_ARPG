@@ -20,23 +20,22 @@ namespace Nawia::Item {
 
     class Item {
     public:
-        Item(int id, std::string name, std::string description, EquipmentSlot type, std::shared_ptr<Texture2D> icon);
+        Item(int id, std::string name, std::string description, EquipmentSlot type, const std::shared_ptr<Texture2D>& icon);
         virtual ~Item() = default;
 
-        const int getId() const { return _id; }
-        const std::string& getName() const { return _name; }
-        const std::string& getDescription() const { return _description; }
-        EquipmentSlot getSlot() const { return _slot; }
-        Texture2D getIcon() const {
+        [[nodiscard]] int getId() const { return _id; }
+        [[nodiscard]] const std::string& getName() const { return _name; }
+        [[nodiscard]] const std::string& getDescription() const { return _description; }
+        [[nodiscard]] EquipmentSlot getSlot() const { return _slot; }
+        [[nodiscard]] Texture2D getIcon() const {
             if (_icon) return *_icon;
-            return Texture2D{ 0 };
+            return Texture2D{};
         }
-
-        const Entity::Stats& getStats() const { return _stats; }
+        [[nodiscard]] const Entity::Stats& getStats() const { return _stats; }
 
         virtual bool use() { return false; }
 
-        virtual std::shared_ptr<Item> clone() const {
+        [[nodiscard]] virtual std::shared_ptr<Item> clone() const {
             return std::make_shared<Item>(*this);
         }
 
@@ -46,7 +45,6 @@ namespace Nawia::Item {
         std::string _description;
         EquipmentSlot _slot;
         std::shared_ptr<Texture2D> _icon;
-        
         Entity::Stats _stats;
     };
 

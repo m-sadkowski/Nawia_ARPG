@@ -2,11 +2,14 @@
 #include "Item.h"
 
 namespace Nawia::Item {
+
     class Chestplate : public Item {
+
     public:
-        Chestplate(int id, std::string name, std::string desc, EquipmentSlot slot, std::shared_ptr<Texture2D> icon, 
-            int defense)
-            : Item(id, name, desc, slot, icon), _defense(defense) {
+        Chestplate(const int id, const std::string& name, const std::string& desc, const EquipmentSlot slot, 
+            const std::shared_ptr<Texture2D>& icon, const int defense)
+            : Item(id, name, desc, slot, icon), _defense(defense) 
+    	{
             _stats.tenacity = defense;
         }
 
@@ -19,4 +22,5 @@ namespace Nawia::Item {
     private:
         int _defense;
     };
-}
+
+} // namespace Nawia::Item

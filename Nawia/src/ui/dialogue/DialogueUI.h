@@ -14,12 +14,12 @@ namespace Nawia::UI {
         void render();
         bool handleInput();
 
-        bool isOpen() const { return _isOpen; }
+        bool isOpen() const { return _is_open; }
 
     private:
-        bool _isOpen = false;
-        Game::DialogueTree _currentTree;
-        int _currentNodeID = 0;
+        bool _is_open = false;
+        Game::DialogueTree _current_tree;
+        int _current_node_id = 0;
 
         const float PANEL_HEIGHT = 200.0f;
     };

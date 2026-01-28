@@ -90,7 +90,7 @@ namespace Nawia::Core {
 				return true;
 			}
 
-			auto clickable = std::dynamic_pointer_cast<Entity::InteractiveClickable>(_target_interactable);
+			const auto clickable = std::dynamic_pointer_cast<Entity::InteractiveClickable>(_target_interactable);
 			if (clickable && clickable->getInventory() != nullptr)
 			{
 				_engine->getUIHandler().openContainer(clickable);
@@ -127,7 +127,7 @@ namespace Nawia::Core {
 
 		if (const auto entity = _engine->getEntityAt(screen_x, screen_y))
 		{
-			bool is_trigger = std::dynamic_pointer_cast<Entity::InteractiveTrigger>(entity) != nullptr;
+			const bool is_trigger = std::dynamic_pointer_cast<Entity::InteractiveTrigger>(entity) != nullptr;
 
 			const auto interactable = std::dynamic_pointer_cast<Entity::Interactable>(entity);
 
@@ -166,16 +166,10 @@ namespace Nawia::Core {
 
 		if (ability_index == -1) return;
 
-		const bool is_locked = _player->isAnimationLocked();
-
-		if (is_locked)
-		{
+		if (const bool is_locked = _player->isAnimationLocked())
 			queueAbility(ability_index, mouse_world_x, mouse_world_y, screen_x, screen_y);
-		}
 		else
-		{
 			castAbility(ability_index, mouse_world_x, mouse_world_y, screen_x, screen_y);
-		}
 	}
 
 	void PlayerController::processPendingAction()
@@ -185,13 +179,9 @@ namespace Nawia::Core {
 			return;
 
 		if (_pending_action.type == PendingAction::Type::Move)
-		{
 			processPendingMove();
-		}
 		else if (_pending_action.type == PendingAction::Type::Ability)
-		{
 			processPendingAbility();
-		}
 
 		_pending_action = {}; 
 	}
@@ -273,9 +263,7 @@ namespace Nawia::Core {
 					if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
 					{
 						if (!enemy->isDead() && enemy->getFaction() != Entity::Entity::Faction::None)
-						{
 							_pending_action.target = target;
-						}
 					}
 					else
 					{
@@ -296,11 +284,9 @@ namespace Nawia::Core {
 				case Entity::AbilityTargetType::UNIT:
 					if (const auto target = _engine->getEntityAt(screen_x, screen_y))
 						if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
-						{
 							// only cast if valid target
 							if (!enemy->isDead() && enemy->getFaction() != Entity::Entity::Faction::None)
 								useAbility(index, enemy->getCenter().x, enemy->getCenter().y);
-						}
 				break;
 
 				case Entity::AbilityTargetType::POINT:
@@ -319,18 +305,12 @@ namespace Nawia::Core {
 		_target_enemy = nullptr; // default clear
 		
 		if (const auto target = _pending_action.target.lock() )
-		{
 			// if we queued a move on an enemy, set as target
 			if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
-			{
 				_target_enemy = enemy;
-			}
-		}
 		else
-		{
 			// ground move
 			_player->moveTo(_pending_action.x, _pending_action.y);
-		}
 	}
 
 	void PlayerController::processPendingAbility()
@@ -338,17 +318,11 @@ namespace Nawia::Core {
 		if (const auto ability = _player->getAbility(_pending_action.ability_index))
 		{
 			if (ability->getTargetType() == Entity::AbilityTargetType::UNIT)
-			{
 				if (const auto target = _pending_action.target.lock())
-				{
 					if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
 						useAbility(_pending_action.ability_index, enemy->getCenter().x, enemy->getCenter().y);
-				}
-			}
 			else
-			{
 				useAbility(_pending_action.ability_index, _pending_action.x, _pending_action.y);
-			}
 		}
 	}
 

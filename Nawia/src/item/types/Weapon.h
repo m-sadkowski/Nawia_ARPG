@@ -2,9 +2,10 @@
 #include "Item.h"
 
 namespace Nawia::Item {
+
     class Weapon : public Item {
     public:
-        Weapon(int id, std::string name, std::string desc, EquipmentSlot slot, std::shared_ptr<Texture2D> icon, int damage)
+        Weapon(const int id, const std::string& name, const std::string& desc, const EquipmentSlot slot, const std::shared_ptr<Texture2D>& icon, const int damage)
             : Item(id, name, desc, slot, icon), _damage(damage) {
             _stats.damage = damage;
         }
@@ -18,4 +19,5 @@ namespace Nawia::Item {
     private:
         int _damage;
     };
-}
+
+} // namespace Nawia::Item

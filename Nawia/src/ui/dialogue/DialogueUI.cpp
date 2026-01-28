@@ -2,71 +2,78 @@
 
 namespace Nawia::UI {
 
-    void DialogueUI::open(const Game::DialogueTree& tree) {
-        _currentTree = tree;
-        _currentNodeID = 0;
-        _isOpen = true;
+    void DialogueUI::open(const Game::DialogueTree& tree) 
+	{
+        _current_tree = tree;
+        _current_node_id = 0;
+        _is_open = true;
     }
 
-    void DialogueUI::close() {
-        _isOpen = false;
+    void DialogueUI::close() 
+	{
+        _is_open = false;
     }
 
-    void DialogueUI::render() {
-        if (!_isOpen) return;
+    void DialogueUI::render() 
+	{
+        if (!_is_open) return;
 
-        const auto* node = _currentTree.getNode(_currentNodeID);
-        if (!node) { close(); return; }
+        const auto* node = _current_tree.getNode(_current_node_id);
+        if (!node)
+        {
+	        close(); 
+        	return;
+        }
 
-        float screenW = (float)GetScreenWidth();
-        float screenH = (float)GetScreenHeight();
+        const float screen_w = static_cast<float>(GetScreenWidth());
+        const float screen_h = static_cast<float>(GetScreenHeight());
 
-        Rectangle panelRect = { 0, screenH - PANEL_HEIGHT, screenW, PANEL_HEIGHT };
-        DrawRectangleRec(panelRect, Fade(BLACK, 0.8f));
-        DrawRectangleLinesEx(panelRect, 2, WHITE);
+        const Rectangle panel_rect = { 0, screen_h - PANEL_HEIGHT, screen_w, PANEL_HEIGHT };
+        DrawRectangleRec(panel_rect, Fade(BLACK, 0.8f));
+        DrawRectangleLinesEx(panel_rect, 2, WHITE);
 
-        DrawText(node->speakerName.c_str(), 20, (int)panelRect.y + 10, 20, YELLOW);
+        DrawText(node->speaker_name.c_str(), 20, static_cast<int>(panel_rect.y) + 10, 20, YELLOW);
 
-        DrawText(node->text.c_str(), 20, (int)panelRect.y + 40, 20, WHITE);
+        DrawText(node->text.c_str(), 20, static_cast<int>(panel_rect.y) + 40, 20, WHITE);
 
-        float optionY = panelRect.y + 80;
-        for (const auto& option : node->options) {
-            bool isHovered = false;
-            DrawText(("- " + option.text).c_str(), 40, (int)optionY, 20, LIGHTGRAY);
-
-            optionY += 30;
+        float option_y = panel_rect.y + 80;
+        for (const auto& option : node->options) 
+        {
+            DrawText(("- " + option.text).c_str(), 40, static_cast<int>(option_y), 20, LIGHTGRAY);
+            option_y += 30;
         }
     }
 
-    bool DialogueUI::handleInput() {
-        if (!_isOpen) return false;
+    bool DialogueUI::handleInput() 
+	{
+        if (!_is_open) return false;
 
-        const auto* node = _currentTree.getNode(_currentNodeID);
+        const auto* node = _current_tree.getNode(_current_node_id);
         if (!node) return false;
 
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            Vector2 mouse = GetMousePosition();
-            float screenH = (float)GetScreenHeight();
-            float startY = screenH - PANEL_HEIGHT + 80;
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        {
+            const Vector2 mouse = GetMousePosition();
+            const float screen_h = static_cast<float>(GetScreenHeight());
+        	float start_y = screen_h - PANEL_HEIGHT + 80;
 
-            for (const auto& option : node->options) {
-                Rectangle optionRect = { 40, startY, 500, 25 };
+            for (const auto& option : node->options) 
+            {
+                const Rectangle option_rect = { 40, start_y, 500, 25 };
 
-                if (CheckCollisionPointRec(mouse, optionRect)) {
-
-                    if (option.action != nullptr) {
+                if (CheckCollisionPointRec(mouse, option_rect)) 
+                {
+                    if (option.action != nullptr)
                         option.action();
-                    }
 
-                    if (option.nextNodeID == -1) {
+                    if (option.next_node_id == -1)
                         close();
-                    }
-                    else {
-                        _currentNodeID = option.nextNodeID;
-                    }
+                    else
+                        _current_node_id = option.next_node_id;
+
                     return true;
                 }
-                startY += 30;
+                start_y += 30;
             }
         }
         return true;

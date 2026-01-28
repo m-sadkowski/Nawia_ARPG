@@ -41,13 +41,13 @@ struct Resolution {
 class Settings {
 public:
     /// Current resolution
-    Resolution resolution = {1280, 720};
+    Resolution resolution = {1600, 900};
     
     /// Fullscreen mode enabled
     bool fullscreen = false;
     
     /// UI scale factor (user-controlled)
-    float uiScale = 1.0f;
+    float ui_scale = 1.0f;
     
     /// UI scale limits
     static constexpr float UI_SCALE_MIN = 1.0f;
@@ -78,7 +78,7 @@ public:
      * @param filepath Path to settings file
      * @return true if saved successfully
      */
-    bool save(const std::string& filepath = DEFAULT_PATH) const;
+    [[nodiscard]] bool save(const std::string& filepath = DEFAULT_PATH) const;
     
     /**
      * @brief Get the index of current resolution in AVAILABLE_RESOLUTIONS.
