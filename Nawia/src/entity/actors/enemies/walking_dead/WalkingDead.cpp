@@ -97,7 +97,7 @@ namespace Nawia::Entity {
 
 	void WalkingDead::handleChasingState(const float dt)
 	{
-		EnemyInterface::update(dt);
+		Entity::update(dt);  // Base update for animations
 
 		auto target = _target.lock();
 		if (!target || target->isDead())
@@ -105,6 +105,7 @@ namespace Nawia::Entity {
 			_state = State::Screaming;
 			playAnimation("scream", false, true);
 			setVelocity(0, 0);
+			_is_moving = false;
 			return;
 		}
 
@@ -116,6 +117,7 @@ namespace Nawia::Entity {
 			_state = State::Screaming;
 			playAnimation("scream", false, true);
 			setVelocity(0, 0);
+			_is_moving = false;
 			return;
 		}
 
@@ -125,18 +127,11 @@ namespace Nawia::Entity {
 			_state = State::Attacking;
 			playAnimation("attack", false, true);
 			setVelocity(0, 0);
+			_is_moving = false;
 			return;
 		}
 
-		// Move towards player
-		rotateTowards(target->getX(), target->getY());
-		
-		const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
-		const Vector2 target_pos = target->getCollider() ? target->getCollider()->getPosition() : target->getCenter();
-		
-		const Vector2 dir = Vector2Normalize(Vector2Subtract(target_pos, my_pos));
-		
-		// Check if close enough to run
+		// Determine speed based on distance
 		const bool should_run = dist <= CLOSE_RANGE;
 		if (should_run != _is_running)
 		{
@@ -145,8 +140,37 @@ namespace Nawia::Entity {
 		}
 		
 		const float current_speed = _is_running ? RUN_SPEED : SPEED;
-		_pos.x += dir.x * current_speed * dt;
-		_pos.y += dir.y * current_speed * dt;
+		setMovementSpeed(current_speed);
+		
+		// Get target position
+		const Vector2 target_pos = target->getCollider() ? target->getCollider()->getPosition() : target->getCenter();
+		
+		// If close enough, use direct movement with validation
+		if (dist <= DIRECT_MOVE_DISTANCE)
+		{
+			_is_moving = false;  // Stop pathfinding movement
+			const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
+			const Vector2 dir = Vector2Normalize(Vector2Subtract(target_pos, my_pos));
+			
+			rotateTowards(target->getX(), target->getY());
+			
+			const Vector2 movement = getValidatedMovement(_pos, dir, current_speed, dt);
+			_pos.x += movement.x;
+			_pos.y += movement.y;
+		}
+		else
+		{
+			// Use A* pathfinding when farther away
+			_path_recalc_timer -= dt;
+			
+			if (_path_recalc_timer <= 0.0f || !_is_moving)
+			{
+				moveTo(target_pos.x, target_pos.y);
+				_path_recalc_timer = PATH_RECALC_INTERVAL;
+			}
+			
+			updateMovement(dt);
+		}
 	}
 
 	void WalkingDead::handleAttackingState(const float dt)

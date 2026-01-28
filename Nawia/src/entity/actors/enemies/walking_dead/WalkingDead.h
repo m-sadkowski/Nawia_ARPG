@@ -55,6 +55,11 @@ namespace Nawia::Entity {
 		
 		float _attack_cooldown_timer = 0.0f;
 		bool _is_running = false;  // Track if currently running
+		
+		// Pathfinding
+		static constexpr float PATH_RECALC_INTERVAL = 0.5f;  // Recalculate path every 0.5s
+		static constexpr float DIRECT_MOVE_DISTANCE = 2.0f;  // Use direct movement when closer than 2 tiles
+		float _path_recalc_timer = 0.0f;
 
 		// State handlers
 		void handleIdleState(float dt);

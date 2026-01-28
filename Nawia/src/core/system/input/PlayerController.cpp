@@ -109,6 +109,10 @@ namespace Nawia::Core {
 		if (!spell || !spell->isReady())
 			return;
 
+		// stop movement and rotate towards target before casting
+		_player->stop();
+		_player->rotateTowards(target_x, target_y);
+
 		if (auto effect = spell->cast(target_x, target_y))
 		{
 			Logger::debugLog("Ability " + std::to_string(index) + " used, target location: (" + std::to_string(target_x) + ", " + std::to_string(target_y) + ")");
@@ -354,7 +358,8 @@ namespace Nawia::Core {
 		constexpr float hysteresis = 0.5f;
 		constexpr int auto_attack_index = 0;
 
-		const float hit_range = attack_range + hysteresis;
+		// use half of attack range so player approaches closer before attacking (prevents missing moving targets)
+		const float hit_range = (attack_range * 0.5f) + hysteresis;
 
 		if (dist_sq > hit_range * hit_range) 
 		{

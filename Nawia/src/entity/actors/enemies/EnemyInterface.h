@@ -65,8 +65,28 @@ namespace Nawia::Entity {
 						int max_hp, Core::Map* map);
 
 	protected:
-		bool _is_moving;     ///< Whether the enemy is currently moving
-		Core::Map* _map;    ///< Map reference for pathfinding and collision
+
+		void moveTo(float x, float y);
+		void updateMovement(float dt);
+
+		void setMovementSpeed(float speed) { _movement_speed = speed; }
+		[[nodiscard]] float getMovementSpeed() const { return _movement_speed; }
+	
+		/**
+		 * @brief Validates movement against walkability grid.
+		 * Returns actual movement vector (may be reduced or zeroed if blocked).
+		 * Uses "sliding" - if full movement blocked, tries X-only or Y-only.
+		 */
+		[[nodiscard]] Vector2 getValidatedMovement(Vector2 current_pos, Vector2 direction, float speed, float dt) const;
+
+	protected:
+		bool _is_moving;     // Whether the enemy is currently moving
+		float _movement_speed = 2.0f;
+		
+		std::vector<Vector2> _path;
+		float _target_x, _target_y;
+
+		Core::Map* _map;    // Map reference for pathfinding and collision
 	};
 
 } // namespace Nawia::Entity

@@ -47,42 +47,78 @@ namespace Nawia::Entity {
 
 		Core::Map* map = _engine->getCurrentMap();
 
-		_target_x = x - offset_x;
-		_target_y = y - offset_y;
+		const Vector2 start_world = { center.x, center.y };
+		// We want the center to end up at (x, y)
+		const Vector2 end_world = { x, y };
 
-		//Core::Logger::debugLog("Player::moveTo(org) -> x=" + std::to_string(x) + " y=" + std::to_string(y));
-
-		if (!map->isWalkable(x, y)) {
+		// Check if target is walkable
+		if (map && !map->isWalkable(x, y)) {
+			// Find path even if unwalkable? No, just stop for now.
 			return;
 		}
 
-		_is_moving = true;
-
-		if (!isAnimationLocked())
-			setAnimationSpeed(_current_stats.movement_speed*WALK_ANIM_BASE_SPEED);
-			playAnimation("walk");
-
-		const float dx = _target_x - getX();
-		const float dy = _target_y - getY();
-		const float distance_sq = dx * dx + dy * dy;
-
-		if (distance_sq > 0.001f)
-		{
-			rotateTowards(_target_x, _target_y);
+		_target_x = x - offset_x;
+		_target_y = y - offset_y;
+		
+		if (map) {
+			_path = map->findPath(start_world, end_world);
+			if (!_path.empty()) {
+				// Ensure the final point is exactly the requested pixel coordinates
+				// findPath returns tile centers, but we want precision
+				_path.back() = end_world;
+			}
+		} else {
+			_path.clear();
 		}
+
+		if (_path.empty()) {
+			// If pathfinding failed (e.g. start/end same node or no path), check if we should just move directly (short distance)
+			// or just stop.
+			// Fallback: direct move if very close?
+			// For now, if no path, we don't move unless start and end are close but in same tile
+			const float dx = _target_x - getX();
+			const float dy = _target_y - getY();
+			if (dx*dx + dy*dy > 0.001f) {
+				// Maybe straight line if pathfinding returned empty but distance > 0?
+				// This happens if start/end are in same tile.
+				// In that case we clear path and just let updateMovement handle the final adjustment?
+				// updateMovement currently relies on _target_x/y if path is empty? 
+				// Let's change updateMovement to rely on path, but handle single-step direct movement for sub-tile precision.
+				_is_moving = true;
+			} else {
+				// We are there
+				_is_moving = false;
+				
+				if (!isAnimationLocked())
+				{
+					setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+					playAnimation("default");
+				}
+				return;
+			}
+		} else {
+			_is_moving = true;
+		}
+
+		if (_is_moving && !isAnimationLocked()) {
+			setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
+			playAnimation("walk");
+		}
+		
+		// If we have a path, the immediate target is the first point in path
+		// But we also need to account for offset logic. 
+		// _path contains centers of tiles. 
+		// We want our center to reach that center.
 	}
 
 	void Player::stop()
 	{
 		_is_moving = false;
-		if (!isAnimationLocked())
-		{
+		_path.clear();
 		if (!isAnimationLocked())
 		{
 			setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 			playAnimation("default");
-			
-		}
 		}
 	}
 
@@ -98,52 +134,76 @@ namespace Nawia::Entity {
 		if (!_is_moving)
 			return;
 
-		const float dx = _target_x - _pos.x;
-		const float dy = _target_y - _pos.y;
-		const float distance = std::sqrt(dx * dx + dy * dy);
-
 		if (!isAnimationLocked()) {
 			setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
 			playAnimation("walk");
-			// Scale animation speed based on movement speed
-			// This makes the walk animation faster as the player moves faster
-			
 		}
-
-		if (distance < 0.1f)
-		{
-			_pos.x = _target_x;
-			_pos.y = _target_y;
-			_is_moving = false;
-
-			if (!isAnimationLocked())
-				playAnimation("default");
-		}
-		else
-		{
-			// Calculate next position
-			float next_x = _pos.x + (dx / distance) * _current_stats.movement_speed * delta_time;
-			float next_y = _pos.y + (dy / distance) * _current_stats.movement_speed * delta_time;
-
-			// Check if next position is walkable (check center position)
-			Core::Map* map = _engine->getCurrentMap();
+		
+		Vector2 current_target_world;
+		
+		if (!_path.empty()) {
+			// Move towards next path node
+			current_target_world = _path.front();
+		} else {
+			// Move towards final request target
+			// We need to reconstruct world center target from _target_x/y
 			const Vector2 center = getCenter();
-			float center_offset_x = center.x - getX();
-			float center_offset_y = center.y - getY();
-			float next_center_x = next_x + center_offset_x;
-			float next_center_y = next_y + center_offset_y;
+			const float offset_x = center.x - getX();
+			const float offset_y = center.y - getY();
+			current_target_world.x = _target_x + offset_x;
+			current_target_world.y = _target_y + offset_y;
+		}
 
-			// Temporary: simple check, can be improved with pathfinding
-			if (map && !map->isWalkable(next_center_x, next_center_y)) {
-				// Stop movement if next tile is not walkable
+		// Calculate direction
+		const Vector2 center = getCenter();
+		const float dx = current_target_world.x - center.x;
+		const float dy = current_target_world.y - center.y;
+		const float distance_sq = dx * dx + dy * dy;
+		const float distance = std::sqrt(distance_sq);
+
+		// Rotate towards target
+		if (distance_sq > 0.001f) {
+			rotateTowardsCenter(current_target_world.x, current_target_world.y);
+		}
+
+		// Move
+		// If we are close enough to current target node
+		if (distance < 0.1f * (_current_stats.movement_speed / 4.0f)) { // threshold proportional to speed
+			if (!_path.empty()) {
+				// Reached this node, pop it
+				_path.erase(_path.begin());
+				if (_path.empty()) {
+					// We finished the path, continue to detailed sub-tile target or stop?
+					// Usually A* centers us on tiles. The final click might be slightly off center.
+					// If we want exact precision, we can use the original _target_x/y as the FINAL target after path is empty.
+					// Let's assume after path empty we continue to _target_x/y.
+				}
+			} else {
+				// Reached final target
 				_is_moving = false;
+				_pos.x = _target_x;
+				_pos.y = _target_y;
+				
 				if (!isAnimationLocked())
 					playAnimation("default");
 				return;
 			}
+		}
 
-			_pos.x = next_x;
-			_pos.y = next_y;
+		// Apply velocity
+		const float speed = _current_stats.movement_speed;
+		const float move_dist = speed * delta_time;
+
+		if (move_dist >= distance && _path.empty()) {
+			// We will overshoot final target, just snap
+			_pos.x = _target_x;
+			_pos.y = _target_y;
+			_is_moving = false;
+			if (!isAnimationLocked()) playAnimation("default");
+		} else {
+			// Move normally
+			_pos.x += (dx / distance) * move_dist;
+			_pos.y += (dy / distance) * move_dist;
 		}
 	}
 

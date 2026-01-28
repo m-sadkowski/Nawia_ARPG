@@ -74,6 +74,10 @@ namespace Nawia::Entity {
 		Vector2 _dash_target_pos = {0, 0};  // Locked position for dash
 		bool _dash_hit_target = false;      // Did we already hit during this dash?
 		float _stun_timer = 0.0f;           // Recovery/stun timer after dash
+	
+		// Pathfinding
+		static constexpr float PATH_RECALC_INTERVAL = 0.5f;
+		float _path_recalc_timer = 0.0f;
 
 		// State handlers
 		void handleIdleState(float dt);

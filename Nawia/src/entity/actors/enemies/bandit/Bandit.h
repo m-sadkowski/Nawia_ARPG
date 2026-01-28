@@ -46,6 +46,12 @@ namespace Nawia::Entity {
 		static constexpr float MIN_DISTANCE = 5.0f;      // Try to keep at least this far
 		static constexpr float SPEED = 2.0f;
 		static constexpr float KNIFE_COOLDOWN = 3.0f;
+		
+		// Pathfinding for retreat
+		static constexpr float PATH_RECALC_INTERVAL = 0.3f;
+		float _path_recalc_timer = 0.0f;
+		bool _is_retreating = false;
+		bool _knife_thrown_this_cast = false;  // tracks if knife was thrown during current cast
 
 		// State handlers
 		void handleIdleState(float dt);

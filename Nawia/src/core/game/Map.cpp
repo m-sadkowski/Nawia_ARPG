@@ -4,6 +4,9 @@
 #include <tinyxml2.h>
 #include <fstream>
 #include <filesystem>
+#include <queue>
+#include <algorithm>
+#include <cmath>
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
@@ -387,8 +390,10 @@ void Map::renderWalkabilityDebug(const float offset_x, const float offset_y)
 	constexpr float half_w = TILE_WIDTH / 2.0f;
 	constexpr float half_h = TILE_HEIGHT / 2.0f;
 
-	for (size_t y = 0; y < _walkability_grid.size(); ++y) {
-		for (size_t x = 0; x < _walkability_grid[y].size(); ++x) {
+	for (size_t y = 0; y < _walkability_grid.size(); ++y) 
+	{
+		for (size_t x = 0; x < _walkability_grid[y].size(); ++x) 
+		{
 			const Vector2 iso = worldToIso(
 				static_cast<int>(x) + _offset_x,
 				static_cast<int>(y) + _offset_y,
@@ -415,7 +420,7 @@ void Map::renderWalkabilityDebug(const float offset_x, const float offset_y)
 
 std::shared_ptr<Texture2D> Map::getTextureForGID(const int gid) const
 {
-	auto it = _tile_textures.find(gid);
+	const auto it = _tile_textures.find(gid);
 	return (it != _tile_textures.end()) ? it->second : nullptr;
 }
 
@@ -439,5 +444,275 @@ Vector2 Map::worldToIso(const int world_x, const int world_y, const float offset
 		(world_x + world_y) * (TILE_HEIGHT / 2.0f) + offset_y
 	};
 }
+
+
+	// =============================================================================
+	// Pathfinding
+	// =============================================================================
+
+	constexpr float K_DIAGONAL_COST = 1.414f;  // sqrt(2)
+
+	bool Map::isGridWalkable(const int grid_x, const int grid_y) const
+	{
+		if (grid_y < 0 || grid_y >= static_cast<int>(_walkability_grid.size()))
+			return false;
+		if (grid_x < 0 || grid_x >= static_cast<int>(_walkability_grid[grid_y].size()))
+			return false;
+
+		return _walkability_grid[grid_y][grid_x];
+	}
+
+	Vector2 Map::gridToWorld(const int grid_x, const int grid_y) const
+	{
+		// Center of the tile
+		return Vector2 {
+			static_cast<float>(grid_x + _offset_x) + 0.5f,
+			static_cast<float>(grid_y + _offset_y) + 0.5f
+		};
+	}
+
+	std::vector<Vector2> Map::findPath(const Vector2 start_world, const Vector2 end_world) const
+	{
+		const int start_x = static_cast<int>(std::floor(start_world.x)) - _offset_x;
+		const int start_y = static_cast<int>(std::floor(start_world.y)) - _offset_y;
+		const int end_x = static_cast<int>(std::floor(end_world.x)) - _offset_x;
+		const int end_y = static_cast<int>(std::floor(end_world.y)) - _offset_y;
+
+		// Validation
+		if (!isGridWalkable(start_x, start_y) || !isGridWalkable(end_x, end_y))
+			return {};
+
+		if (start_x == end_x && start_y == end_y)
+			return {};
+
+		// A* Algorithm
+		auto cmp = [](const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b) {
+			return a->f_cost() > b->f_cost();
+		};
+		std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, decltype(cmp)> open_set(cmp);
+
+		std::vector<std::vector<bool>> closed_set(_walkability_grid.size(), std::vector<bool>(_walkability_grid[0].size(), false));
+
+		const auto start_node = std::make_shared<Node>();
+		start_node->x = start_x;
+		start_node->y = start_y;
+		start_node->g_cost = 0;
+		// Heuristic: Octile distance
+		const float dx = static_cast<float>(std::abs(end_x - start_x));
+		const float dy = static_cast<float>(std::abs(end_y - start_y));
+		start_node->h_cost = (dx + dy) + (K_DIAGONAL_COST - 2.0f) * std::min(dx, dy);
+		
+		open_set.push(start_node);
+
+		// 8 Directions: N, NE, E, SE, S, SW, W, NW
+		const int neighbors_x[] = { 0, 1, 1, 1, 0, -1, -1, -1 };
+		const int neighbors_y[] = { -1, -1, 0, 1, 1, 1, 0, -1 };
+		const float neighbor_cost[] = { 1.0f, K_DIAGONAL_COST, 1.0f, K_DIAGONAL_COST, 1.0f, K_DIAGONAL_COST, 1.0f, K_DIAGONAL_COST };
+
+		std::shared_ptr<Node> current_node = nullptr;
+
+		// Safety breaker
+		int iterations = 0;
+		constexpr int max_iterations = 5000;
+
+		while (!open_set.empty()) {
+			current_node = open_set.top();
+			open_set.pop();
+
+			if (iterations++ > max_iterations) {
+				Logger::errorLog("Pathfinding took too long, aborting.");
+				return {};
+			}
+
+			if (current_node->x == end_x && current_node->y == end_y) {
+				// Path found
+				std::vector<Vector2> path;
+				while (current_node != nullptr) {
+					path.push_back(gridToWorld(current_node->x, current_node->y));
+					current_node = current_node->parent;
+				}
+				std::reverse(path.begin(), path.end());
+				
+				// Apply path smoothing (String Pulling)
+				path = simplifyPath(path);
+
+				// Remove start position if it's too close
+				if (!path.empty()) path.erase(path.begin());
+				
+				return path;
+			}
+
+			if (closed_set[current_node->y][current_node->x])
+				continue;
+			
+			closed_set[current_node->y][current_node->x] = true;
+
+			for (int i = 0; i < 8; ++i) {
+				const int nx = current_node->x + neighbors_x[i];
+				const int ny = current_node->y + neighbors_y[i];
+
+				if (!isGridWalkable(nx, ny) || closed_set[ny][nx])
+					continue;
+					
+				// Diagonal movement check: don't cut corners through walls
+				if (i % 2 != 0) { // Diagonals are indices 1, 3, 5, 7
+					// Check adjacent orthogonal tiles
+					// For NE (1, -1), check (1, 0) and (0, -1)
+					const int cx1 = current_node->x + neighbors_x[(i + 7) % 8];
+					const int cy1 = current_node->y + neighbors_y[(i + 7) % 8];
+					const int cx2 = current_node->x + neighbors_x[(i + 1) % 8];
+					const int cy2 = current_node->y + neighbors_y[(i + 1) % 8];
+					
+					// If either orthogonal neighbor is blocked, block diagonal
+					// This prevents walking through "cracks" between two diagonal walls
+					if (!isGridWalkable(cx1, cy1) || !isGridWalkable(cx2, cy2))
+						continue;
+				}
+
+				auto neighbor = std::make_shared<Node>();
+				neighbor->x = nx;
+				neighbor->y = ny;
+				neighbor->g_cost = current_node->g_cost + neighbor_cost[i];
+				
+				const float ndx = static_cast<float>(std::abs(end_x - nx));
+				const float ndy = static_cast<float>(std::abs(end_y - ny));
+				neighbor->h_cost = (ndx + ndy) + (K_DIAGONAL_COST - 2.0f) * std::min(ndx, ndy);
+				
+				neighbor->parent = current_node;
+
+				open_set.push(neighbor);
+			}
+		}
+
+		return {}; // No path found
+	}
+
+	void Map::renderPathDebug(const std::vector<Vector2>& path, const float offset_x, const float offset_y)
+	{
+		if (path.empty()) return;
+
+		for (size_t i = 0; i < path.size(); ++i) {
+			Vector2 p = worldToIso(static_cast<int>(path[i].x), static_cast<int>(path[i].y), offset_x, offset_y);
+			// Center it visually on tile (approx)
+			// Adjusting to center of diamonds
+			p.x += 0.0f; 
+			p.y += TILE_HEIGHT / 2.0f;
+			
+			DrawCircleV(p, 5.0f, BLUE);
+
+			if (i > 0) {
+				Vector2 prev = worldToIso(static_cast<int>(path[i-1].x), static_cast<int>(path[i-1].y), offset_x, offset_y);
+				prev.y += TILE_HEIGHT / 2.0f;
+				DrawLineEx(prev, p, 2.0f, BLUE);
+			}
+		}
+	}
+
+	// =============================================================================
+	// Path Smoothing
+	// =============================================================================
+
+	bool Map::hasLineOfSight(const Vector2 start, const Vector2 end) const
+	{
+		// Bresenham's Line Algorithm tailored for grid checking
+		// Check every tile the line intersects
+		
+		const float x0 = start.x - _offset_x;
+		const float y0 = start.y - _offset_y;
+		const float x1 = end.x - _offset_x;
+		const float y1 = end.y - _offset_y;
+
+		// ray casting on grid (DDA or similar).
+		
+		int x_current = static_cast<int>(std::floor(x0));
+		int y_current = static_cast<int>(std::floor(y0));
+		const int x_end = static_cast<int>(std::floor(x1));
+		const int y_end = static_cast<int>(std::floor(y1));
+
+		const int dx = std::abs(x_end - x_current);
+		const int dy = std::abs(y_end - y_current);
+		
+		const int sx = (x_current < x_end) ? 1 : -1;
+		const int sy = (y_current < y_end) ? 1 : -1;
+		
+		int err = dx - dy;
+
+		// Max iterations to prevent freezes
+		int ops = 0;
+		constexpr int MAX_OPS = 1000;
+
+		while (true) {
+			if (!isGridWalkable(x_current, y_current))
+				return false;
+				
+			if (x_current == x_end && y_current == y_end)
+				break;
+			
+			if (ops++ > MAX_OPS) return false;
+
+			const int e2 = 2 * err;
+			
+			// Diagonal movement handling - check for "cutting corners"
+			// If we move diagonal, we must check adjacent orthogonal cells
+			
+			int next_x = x_current;
+			int next_y = y_current;
+			bool move_x = false;
+			bool move_y = false;
+			
+			if (e2 > -dy) 
+			{
+				err -= dy;
+				next_x += sx;
+				move_x = true;
+			}
+			if (e2 < dx) 
+			{
+				err += dx;
+				next_y += sy;
+				move_y = true;
+			}
+			
+			// If moving diagonally (both changed)
+			if (move_x && move_y) {
+				if (!isGridWalkable(x_current + sx, y_current) || !isGridWalkable(x_current, y_current + sy))
+					return false;
+			}
+
+			x_current = next_x;
+			y_current = next_y;
+		}
+
+		return true;
+	}
+
+	std::vector<Vector2> Map::simplifyPath(const std::vector<Vector2>& path) const
+	{
+		if (path.size() <= 2)
+			return path;
+
+		std::vector<Vector2> smoothed;
+		smoothed.push_back(path[0]);
+		
+		int current_idx = 0;
+		
+		while (current_idx < path.size() - 1) {
+			// Look ahead as far as possible
+			int valid_next = current_idx + 1;
+			
+			for (int i = current_idx + 2; i < path.size(); ++i) 
+			{
+				if (hasLineOfSight(smoothed.back(), path[i])) 
+					valid_next = i;
+				else 
+					break; 
+			}
+			
+			smoothed.push_back(path[valid_next]);
+			current_idx = valid_next;
+		}
+		
+		return smoothed;
+	}
 
 } // namespace Nawia::Core

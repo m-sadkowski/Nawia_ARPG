@@ -33,6 +33,14 @@ namespace Nawia::Core {
 	 */
 	class Map {
 	public:
+		struct Node {
+			int x, y;
+			float g_cost, h_cost;
+			std::shared_ptr<Node> parent;
+
+			float f_cost() const { return g_cost + h_cost; }
+		};
+
 		explicit Map(ResourceManager& resource_manager);
 
 		void loadMap(const std::string& filename);
@@ -40,8 +48,14 @@ namespace Nawia::Core {
 
 		[[nodiscard]] Vector2 getPlayerSpawnPos() const { return _player_spawn_pos; }
 		[[nodiscard]] bool isWalkable(float world_x, float world_y) const;
+		[[nodiscard]] bool isGridWalkable(int grid_x, int grid_y) const;
 		
 		void setDebugWalkability(bool enabled) { _debug_walkability = enabled; }
+
+		[[nodiscard]] std::vector<Vector2> findPath(Vector2 start_world, Vector2 end_world) const;
+		
+		[[nodiscard]] std::vector<Vector2> simplifyPath(const std::vector<Vector2>& path) const;
+		[[nodiscard]] bool hasLineOfSight(Vector2 start, Vector2 end) const;
 
 	private:
 		ResourceManager& _resource_manager;
@@ -82,11 +96,13 @@ namespace Nawia::Core {
 		void renderLayer(const std::vector<std::vector<int>>& layer, float offset_x, float offset_y);
 		void renderTile(int gid, int world_x, int world_y, float offset_x, float offset_y);
 		void renderWalkabilityDebug(float offset_x, float offset_y);
+		void renderPathDebug(const std::vector<Vector2>& path, float offset_x, float offset_y);
 
 		// === Utilities ===
 		[[nodiscard]] std::shared_ptr<Texture2D> getTextureForGID(int gid) const;
 		[[nodiscard]] bool getWalkableForGID(int gid) const;
 		[[nodiscard]] Vector2 worldToIso(int world_x, int world_y, float offset_x, float offset_y) const;
+		[[nodiscard]] Vector2 gridToWorld(int grid_x, int grid_y) const;
 	};
 
 } // namespace Nawia::Core
