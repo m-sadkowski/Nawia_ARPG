@@ -17,6 +17,8 @@ namespace Nawia::Entity {
 	class Player : public Entity {
 	public:
 		Player(Core::Engine* engine, float x, float y, const std::shared_ptr<Texture2D>& texture);
+		
+		Core::Engine* getEngine() const { return _engine; }
 
 		void update(float delta_time) override;
 		[[nodiscard]] bool isMoving() const { return _is_moving; }
@@ -33,19 +35,18 @@ namespace Nawia::Entity {
 		 * @param damage Amount of damage to deal
 		 */
 		void knockDown(int damage);
-
-
-		void equipItemFromBackpack(int backpackIndex);
+		void equipItemFromBackpack(int backpack_index);
 		void unequipItem(Item::EquipmentSlot slot);
 
-		const Item::Backpack& getBackpack() const { return *_backpack; }
+		[[nodiscard]] const Item::Backpack& getBackpack() const { return *_backpack; }
 		Item::Backpack& getBackpack() { return *_backpack; }
-		const Item::Equipment& getEquipment() const { return *_equipment; }
+		[[nodiscard]] const Item::Equipment& getEquipment() const { return *_equipment; }
 
-		int getGold() const { return _gold; }
-		void addGold(int amount) { _gold += amount; }
-		bool spendGold(int amount) {
-			if (_gold >= amount) {
+		[[nodiscard]] int getGold() const { return _gold; }
+		void addGold(const int amount) { _gold += amount; }
+		bool spendGold(const int amount) {
+			if (_gold >= amount) 
+			{
 				_gold -= amount;
 				return true;
 			}
@@ -53,7 +54,7 @@ namespace Nawia::Entity {
 		}
 
 		void recalculateStats();
-		const Stats& getStats() const { return _current_stats; }
+		[[nodiscard]] const Stats& getStats() const { return _current_stats; }
 
 
 		//Constant values for animation

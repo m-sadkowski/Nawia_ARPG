@@ -26,10 +26,21 @@ namespace Nawia::Entity {
 
         [[nodiscard]] const Game::DialogueTree& getDialogueTree() const { return _dialogueTree; }
         void setDialogue(const Game::DialogueTree& dialogue) { _dialogueTree = dialogue; }
+        
+
+
+        using InteractiveClickable::canInteract;
+        bool canInteract() const override {
+            if (_quest_completed) return false;
+            return InteractiveClickable::canInteract();
+        }
+
     private:
         bool _isOpen = false;
+        bool _quest_completed = false;
+
         std::unique_ptr<Item::Backpack> _inventory;
-        static constexpr int _inv_size = 1;
+        static constexpr int _inv_size = 5;
         Game::DialogueTree _dialogueTree;
     };
 

@@ -243,8 +243,8 @@ namespace Nawia::UI {
 	            
 	            // Snap to step
 	            _settings.ui_scale = roundf(_settings.ui_scale / Core::Settings::UI_SCALE_STEP) * Core::Settings::UI_SCALE_STEP;
-	            if (std::min(_settings.ui_scale, Core::Settings::UI_SCALE_MIN)) _settings.ui_scale = Core::Settings::UI_SCALE_MIN;
-	            if (std::min(_settings.ui_scale, Core::Settings::UI_SCALE_MAX)) _settings.ui_scale = Core::Settings::UI_SCALE_MAX;
+	            if (_settings.ui_scale < Core::Settings::UI_SCALE_MIN) _settings.ui_scale = Core::Settings::UI_SCALE_MIN;
+	            if (_settings.ui_scale > Core::Settings::UI_SCALE_MAX) _settings.ui_scale = Core::Settings::UI_SCALE_MAX;
 	            
 	            return false;
 	        }

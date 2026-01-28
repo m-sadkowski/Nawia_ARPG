@@ -11,7 +11,7 @@ namespace Nawia::UI {
         void open(const Game::DialogueTree& tree);
         void close();
 
-        void render();
+        void render(const Font& font);
         bool handleInput();
 
         bool isOpen() const { return _is_open; }

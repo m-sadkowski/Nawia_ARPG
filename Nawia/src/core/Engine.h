@@ -42,6 +42,8 @@ namespace Nawia::Core {
 
 		UI::UIHandler& getUIHandler() const { return *_ui_handler; }
 		Map* getCurrentMap() const { return _map.get(); }
+		Item::ItemDatabase& getItemDatabase() { return _item_database; }
+		Game::DialogueManager& getDialogueManager() { return _dialogue_manager; }
 	private:
 		void update(float delta_time);
 		void render() const;

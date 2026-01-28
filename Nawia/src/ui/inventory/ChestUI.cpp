@@ -18,7 +18,7 @@ namespace Nawia::UI {
 		DrawRectangle(inv_start_x, inv_start_y, inv_width, inv_height, Fade(BLACK, 0.9f));
 		DrawRectangleLines(inv_start_x, inv_start_y, inv_width, inv_height, WHITE);
 
-		DrawTextEx(font, "CHEST", { inv_start_x + text_padding_left, inv_start_y + text_padding_top }, font_size, 1.0f, WHITE);
+		DrawTextEx(font, "SKRZYNIA", { inv_start_x + text_padding_left, inv_start_y + text_padding_top }, font_size, 1.0f, WHITE);
 
         const Vector2 mouse_pos = GetMousePosition();
 

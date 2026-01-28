@@ -41,7 +41,7 @@ struct Resolution {
 class Settings {
 public:
     /// Current resolution
-    Resolution resolution = {1600, 900};
+    Resolution resolution = {1280, 720};
     
     /// Fullscreen mode enabled
     bool fullscreen = false;

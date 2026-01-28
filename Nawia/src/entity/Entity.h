@@ -65,7 +65,7 @@ namespace Nawia::Entity {
 	 *     };
 	 * @endcode
 	 */
-	class Entity {
+	class Entity : public std::enable_shared_from_this<Entity> {
 	public:
 		/**
 		 * @brief Construct a new Entity.

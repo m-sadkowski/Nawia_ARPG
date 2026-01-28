@@ -1,4 +1,5 @@
 #include "DialogueUI.h"
+#include <GlobalScaling.h>
 
 namespace Nawia::UI {
 
@@ -14,7 +15,7 @@ namespace Nawia::UI {
         _is_open = false;
     }
 
-    void DialogueUI::render() 
+    void DialogueUI::render(const Font& font) 
 	{
         if (!_is_open) return;
 
@@ -32,14 +33,17 @@ namespace Nawia::UI {
         DrawRectangleRec(panel_rect, Fade(BLACK, 0.8f));
         DrawRectangleLinesEx(panel_rect, 2, WHITE);
 
-        DrawText(node->speaker_name.c_str(), 20, static_cast<int>(panel_rect.y) + 10, 20, YELLOW);
+        const float font_size = Core::GlobalScaling::scaled(20.0f);
+        const float spacing = Core::GlobalScaling::scaled(1.0f);
 
-        DrawText(node->text.c_str(), 20, static_cast<int>(panel_rect.y) + 40, 20, WHITE);
+        DrawTextEx(font, node->speaker_name.c_str(), { 20, static_cast<float>(panel_rect.y) + 10 }, font_size, spacing, YELLOW);
+
+        DrawTextEx(font, node->text.c_str(), { 20, static_cast<float>(panel_rect.y) + 40 }, font_size, spacing, WHITE);
 
         float option_y = panel_rect.y + 80;
         for (const auto& option : node->options) 
         {
-            DrawText(("- " + option.text).c_str(), 40, static_cast<int>(option_y), 20, LIGHTGRAY);
+            DrawTextEx(font, ("- " + option.text).c_str(), { 40, option_y }, font_size, spacing, LIGHTGRAY);
             option_y += 30;
         }
     }

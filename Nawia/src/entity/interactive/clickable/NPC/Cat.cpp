@@ -1,6 +1,8 @@
 #include "Cat.h"
 #include <iostream>
 #include <InteractiveClickable.h>
+#include "Player.h"
+#include "Engine.h"
 
 #include "Collider.h"
 #include "Logger.h"
@@ -40,6 +42,45 @@ namespace Nawia::Entity {
 
     void Cat::onInteract(Entity& instigator) 
 	{
+        if (_quest_completed) return;
+
+        if (auto* player = dynamic_cast<Player*>(&instigator))
+        {
+             // Check for Fish (ID 6)
+             int fish_index = -1;
+             auto& backpack = player->getBackpack();
+             const auto& items = backpack.getItems();
+             for(int i = 0; i < items.size(); ++i) 
+             {
+                 if (items[i] && items[i]->getId() == 6) 
+                 {
+                     fish_index = i;
+                     break;
+                 }
+             }
+
+             if (fish_index != -1)
+             {
+                 // Remove fish
+                 backpack.removeItem(fish_index);
+                 
+                 // Give Cat Sword (ID 7)
+                 if (const auto sword = player->getEngine()->getItemDatabase().createItem(7))
+                    this->addItem(sword);
+
+                 _quest_completed = true;
+                 
+                  player->getEngine()->getDialogueManager().createCatQuestCompletedDialogue(player->getEngine(), this);
+                 
+                 if (player) 
+                 {
+                    player->getEngine()->getUIHandler().showNotification("Zadanie ukonczone! Otrzymano Miecz Kota.", 4.0f);
+                 }
+
+                 return;
+             }
+        }
+
         if (_isOpen)
             return;
 
@@ -54,10 +95,6 @@ namespace Nawia::Entity {
     void Cat::render(const float offset_x, const float offset_y)
 	{
         Entity::render(offset_x, offset_y);
-
-        if (!_isOpen) {
-            // Można dodać ikonkę wykrzyknika nad skrzynią
-        }
     }
 
     float Cat::getInteractionRange()

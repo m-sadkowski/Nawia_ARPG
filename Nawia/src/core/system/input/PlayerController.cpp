@@ -93,7 +93,7 @@ namespace Nawia::Core {
 			const auto clickable = std::dynamic_pointer_cast<Entity::InteractiveClickable>(_target_interactable);
 			if (clickable && clickable->getInventory() != nullptr)
 			{
-				_engine->getUIHandler().openContainer(clickable);
+				_engine->getUIHandler().openContainer(clickable.get());
 			}
 
 			_target_interactable = nullptr; 
@@ -313,7 +313,7 @@ namespace Nawia::Core {
 			_player->moveTo(_pending_action.x, _pending_action.y);
 	}
 
-	void PlayerController::processPendingAbility()
+	void PlayerController::processPendingAbility() const
 	{
 		if (const auto ability = _player->getAbility(_pending_action.ability_index))
 		{
@@ -326,7 +326,7 @@ namespace Nawia::Core {
 		}
 	}
 
-	void PlayerController::updateCombatMovement(const float dist_sq, const float attack_range)
+	void PlayerController::updateCombatMovement(const float dist_sq, const float attack_range) const
 	{
 		// defines a small buffer zone to prevent the character from jittering at the edge of attack range
 		constexpr float hysteresis = 0.5f;
@@ -352,7 +352,7 @@ namespace Nawia::Core {
 
 	
 
-	void PlayerController::updateRotation()
+	void PlayerController::updateRotation() const
 	{
 		if (_target_enemy) 
 			_player->rotateTowardsCenter(_target_enemy->getCenter().x, _target_enemy->getCenter().y);

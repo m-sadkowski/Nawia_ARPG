@@ -98,16 +98,22 @@ namespace Nawia::Core {
 		_is_running = true;
 
 		const auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png");
-		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", 2.f, -1.f, chest_tex);
+		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", -13.44f, -21.44f, chest_tex);
 		test_chest->initializeInventory(_loottable, Item::LOOTTABLE_TYPE::CHEST_NOOB);
 		_entity_manager->addEntity(test_chest);
 
+		// David's Chest
+		const auto david_chest = std::make_shared<Entity::Chest>("Skrzynia Davida", 2.f, -1.f, chest_tex);
+		// 6 = Fish
+		if (const auto fish = _item_database.createItem(6)) david_chest->addItem(fish);
+		david_chest->setLocked(true, 5); // 5 = David's Key
+		_entity_manager->addEntity(david_chest);
+
 		const auto cat_tex = _resource_manager.getTexture("../assets/textures/chest.png");
-		auto cat = std::make_shared<Entity::Cat>("Kot Olga", -7.2f, -11.8f, chest_tex);
-		_dialogue_manager.createCatDialogue(this, cat);
+		auto cat = std::make_shared<Entity::Cat>("Kot Olga", 0.35f, -18.23f, chest_tex);
+		_dialogue_manager.createCatDialogue(this, cat.get());
 		cat->initializeInventory(_loottable, Item::LOOTTABLE_TYPE::CAT);
-		//auto key = _item_database.createItem(4);
-		//cat->addItem(key);
+
 		_entity_manager->addEntity(cat);
 
 		// 2. Checkpoint (InteractiveTrigger)
@@ -382,7 +388,8 @@ namespace Nawia::Core {
 	    GlobalScaling::setManualScale(_settings.ui_scale);
 	    
 	    // Save settings to file
-	    _settings.save();
+		if (_settings.save())
+			Logger::debugLog("Zapisano ustawienia.");
 	    
 	    // Note: caller is responsible for setting _game_state to _previous_state
 	}
