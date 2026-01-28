@@ -166,7 +166,7 @@ namespace Nawia::Entity {
 			if (_path_recalc_timer <= 0.0f || !_is_moving)
 			{
 				moveTo(target_pos.x, target_pos.y);
-				_path_recalc_timer = PATH_RECALC_INTERVAL;
+				_path_recalc_timer = DEFAULT_PATH_RECALC_INTERVAL;
 			}
 			
 			updateMovement(dt);
@@ -248,17 +248,6 @@ namespace Nawia::Entity {
 		{
 			_hp = 0; // Now truly dead
 		}
-	}
-
-	float WalkingDead::getDistanceToTarget() const
-	{
-		const auto target = _target.lock();
-		if (!target) return std::numeric_limits<float>::max();
-
-		const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
-		const Vector2 target_pos = target->getCollider() ? target->getCollider()->getPosition() : target->getCenter();
-		
-		return Vector2Distance(my_pos, target_pos);
 	}
 
 } // namespace Nawia::Entity

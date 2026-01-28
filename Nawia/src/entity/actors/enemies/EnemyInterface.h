@@ -62,10 +62,16 @@ namespace Nawia::Entity {
 		 * @param map Pointer to game map for navigation
 		 */
 		EnemyInterface(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& texture, 
-						int max_hp, Core::Map* map);
+					int max_hp, Core::Map* map);
+
+		/**
+		 * @brief Set the target entity to track/chase.
+		 * @param target Shared pointer to target entity (usually the player)
+		 */
+		void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
 
 	protected:
-
+		// Movement control
 		void moveTo(float x, float y);
 		void updateMovement(float dt);
 
@@ -79,14 +85,35 @@ namespace Nawia::Entity {
 		 */
 		[[nodiscard]] Vector2 getValidatedMovement(Vector2 current_pos, Vector2 direction, float speed, float dt) const;
 
+		// Target tracking helpers
+		[[nodiscard]] float getDistanceToTarget() const;
+		[[nodiscard]] Vector2 getTargetPosition() const;
+		[[nodiscard]] bool hasValidTarget() const;
+		
+		/**
+		 * @brief Standard chase behavior using A* pathfinding.
+		 * Handles path recalculation timer and movement updates.
+		 * @param dt Delta time
+		 * @param path_recalc_interval How often to recalculate path (default 0.5s)
+		 */
+		void chaseTarget(float dt, float path_recalc_interval = DEFAULT_PATH_RECALC_INTERVAL);
+
+		// Constants
+		static constexpr float DEFAULT_PATH_RECALC_INTERVAL = 0.5f;
+
 	protected:
-		bool _is_moving;     // Whether the enemy is currently moving
+		// Target tracking
+		std::weak_ptr<Entity> _target;
+		float _path_recalc_timer = 0.0f;
+		
+		// Movement state
+		bool _is_moving;
 		float _movement_speed = 2.0f;
 		
 		std::vector<Vector2> _path;
 		float _target_x, _target_y;
 
-		Core::Map* _map;    // Map reference for pathfinding and collision
+		Core::Map* _map;
 	};
 
 } // namespace Nawia::Entity

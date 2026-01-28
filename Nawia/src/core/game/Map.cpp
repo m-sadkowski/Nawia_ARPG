@@ -452,6 +452,28 @@ Vector2 Map::worldToIso(const int world_x, const int world_y, const float offset
 
 	constexpr float K_DIAGONAL_COST = 1.414f;  // sqrt(2)
 
+	namespace {
+		/**
+		 * @brief Calculates octile distance heuristic for A*.
+		 * More accurate than Manhattan for 8-directional movement.
+		 */
+		float octileHeuristic(int from_x, int from_y, int to_x, int to_y)
+		{
+			const float dx = static_cast<float>(std::abs(to_x - from_x));
+			const float dy = static_cast<float>(std::abs(to_y - from_y));
+			return (dx + dy) + (K_DIAGONAL_COST - 2.0f) * std::min(dx, dy);
+		}
+
+		/**
+		 * @brief 8-directional neighbor offsets.
+		 * Order: N, NE, E, SE, S, SW, W, NW
+		 */
+		constexpr int NEIGHBOR_DX[] = { 0, 1, 1, 1, 0, -1, -1, -1 };
+		constexpr int NEIGHBOR_DY[] = { -1, -1, 0, 1, 1, 1, 0, -1 };
+		constexpr float NEIGHBOR_COST[] = { 1.0f, K_DIAGONAL_COST, 1.0f, K_DIAGONAL_COST, 1.0f, K_DIAGONAL_COST, 1.0f, K_DIAGONAL_COST };
+		constexpr int MAX_PATHFINDING_ITERATIONS = 5000;
+	} // anonymous namespace
+
 	bool Map::isGridWalkable(const int grid_x, const int grid_y) const
 	{
 		if (grid_y < 0 || grid_y >= static_cast<int>(_walkability_grid.size()))
@@ -473,98 +495,77 @@ Vector2 Map::worldToIso(const int world_x, const int world_y, const float offset
 
 	std::vector<Vector2> Map::findPath(const Vector2 start_world, const Vector2 end_world) const
 	{
+		// Convert world to grid coordinates
 		const int start_x = static_cast<int>(std::floor(start_world.x)) - _offset_x;
 		const int start_y = static_cast<int>(std::floor(start_world.y)) - _offset_y;
 		const int end_x = static_cast<int>(std::floor(end_world.x)) - _offset_x;
 		const int end_y = static_cast<int>(std::floor(end_world.y)) - _offset_y;
 
-		// Validation
+		// Early out checks
 		if (!isGridWalkable(start_x, start_y) || !isGridWalkable(end_x, end_y))
 			return {};
-
 		if (start_x == end_x && start_y == end_y)
 			return {};
 
-		// A* Algorithm
-		auto cmp = [](const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b) {
+		// A* setup
+		auto nodeCmp = [](const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b) {
 			return a->f_cost() > b->f_cost();
 		};
-		std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, decltype(cmp)> open_set(cmp);
-
+		std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, decltype(nodeCmp)> open_set(nodeCmp);
 		std::vector<std::vector<bool>> closed_set(_walkability_grid.size(), std::vector<bool>(_walkability_grid[0].size(), false));
 
+		// Initialize start node
 		const auto start_node = std::make_shared<Node>();
 		start_node->x = start_x;
 		start_node->y = start_y;
 		start_node->g_cost = 0;
-		// Heuristic: Octile distance
-		const float dx = static_cast<float>(std::abs(end_x - start_x));
-		const float dy = static_cast<float>(std::abs(end_y - start_y));
-		start_node->h_cost = (dx + dy) + (K_DIAGONAL_COST - 2.0f) * std::min(dx, dy);
-		
+		start_node->h_cost = octileHeuristic(start_x, start_y, end_x, end_y);
 		open_set.push(start_node);
 
-		// 8 Directions: N, NE, E, SE, S, SW, W, NW
-		const int neighbors_x[] = { 0, 1, 1, 1, 0, -1, -1, -1 };
-		const int neighbors_y[] = { -1, -1, 0, 1, 1, 1, 0, -1 };
-		const float neighbor_cost[] = { 1.0f, K_DIAGONAL_COST, 1.0f, K_DIAGONAL_COST, 1.0f, K_DIAGONAL_COST, 1.0f, K_DIAGONAL_COST };
-
-		std::shared_ptr<Node> current_node = nullptr;
-
-		// Safety breaker
+		// A* main loop
 		int iterations = 0;
-		constexpr int max_iterations = 5000;
-
-		while (!open_set.empty()) {
-			current_node = open_set.top();
+		while (!open_set.empty()) 
+		{
+			const auto current = open_set.top();
 			open_set.pop();
 
-			if (iterations++ > max_iterations) {
+			if (iterations++ > MAX_PATHFINDING_ITERATIONS) 
+			{
 				Logger::errorLog("Pathfinding took too long, aborting.");
 				return {};
 			}
 
-			if (current_node->x == end_x && current_node->y == end_y) {
-				// Path found
+			// Goal reached - reconstruct path
+			if (current->x == end_x && current->y == end_y) 
+			{
 				std::vector<Vector2> path;
-				while (current_node != nullptr) {
-					path.push_back(gridToWorld(current_node->x, current_node->y));
-					current_node = current_node->parent;
-				}
+				for (auto node = current; node != nullptr; node = node->parent)
+					path.push_back(gridToWorld(node->x, node->y));
 				std::reverse(path.begin(), path.end());
-				
-				// Apply path smoothing (String Pulling)
 				path = simplifyPath(path);
-
-				// Remove start position if it's too close
 				if (!path.empty()) path.erase(path.begin());
-				
 				return path;
 			}
 
-			if (closed_set[current_node->y][current_node->x])
+			if (closed_set[current->y][current->x])
 				continue;
-			
-			closed_set[current_node->y][current_node->x] = true;
+			closed_set[current->y][current->x] = true;
 
-			for (int i = 0; i < 8; ++i) {
-				const int nx = current_node->x + neighbors_x[i];
-				const int ny = current_node->y + neighbors_y[i];
+			// Process neighbors
+			for (int i = 0; i < 8; ++i) 
+			{
+				const int nx = current->x + NEIGHBOR_DX[i];
+				const int ny = current->y + NEIGHBOR_DY[i];
 
 				if (!isGridWalkable(nx, ny) || closed_set[ny][nx])
 					continue;
-					
-				// Diagonal movement check: don't cut corners through walls
-				if (i % 2 != 0) { // Diagonals are indices 1, 3, 5, 7
-					// Check adjacent orthogonal tiles
-					// For NE (1, -1), check (1, 0) and (0, -1)
-					const int cx1 = current_node->x + neighbors_x[(i + 7) % 8];
-					const int cy1 = current_node->y + neighbors_y[(i + 7) % 8];
-					const int cx2 = current_node->x + neighbors_x[(i + 1) % 8];
-					const int cy2 = current_node->y + neighbors_y[(i + 1) % 8];
-					
-					// If either orthogonal neighbor is blocked, block diagonal
-					// This prevents walking through "cracks" between two diagonal walls
+
+				// Prevent diagonal corner cutting
+				if (i % 2 != 0) {
+					const int cx1 = current->x + NEIGHBOR_DX[(i + 7) % 8];
+					const int cy1 = current->y + NEIGHBOR_DY[(i + 7) % 8];
+					const int cx2 = current->x + NEIGHBOR_DX[(i + 1) % 8];
+					const int cy2 = current->y + NEIGHBOR_DY[(i + 1) % 8];
 					if (!isGridWalkable(cx1, cy1) || !isGridWalkable(cx2, cy2))
 						continue;
 				}
@@ -572,14 +573,9 @@ Vector2 Map::worldToIso(const int world_x, const int world_y, const float offset
 				auto neighbor = std::make_shared<Node>();
 				neighbor->x = nx;
 				neighbor->y = ny;
-				neighbor->g_cost = current_node->g_cost + neighbor_cost[i];
-				
-				const float ndx = static_cast<float>(std::abs(end_x - nx));
-				const float ndy = static_cast<float>(std::abs(end_y - ny));
-				neighbor->h_cost = (ndx + ndy) + (K_DIAGONAL_COST - 2.0f) * std::min(ndx, ndy);
-				
-				neighbor->parent = current_node;
-
+				neighbor->g_cost = current->g_cost + NEIGHBOR_COST[i];
+				neighbor->h_cost = octileHeuristic(nx, ny, end_x, end_y);
+				neighbor->parent = current;
 				open_set.push(neighbor);
 			}
 		}

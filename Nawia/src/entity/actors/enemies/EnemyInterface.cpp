@@ -1,9 +1,11 @@
 ﻿#include "EnemyInterface.h"
 #include "Map.h"
+#include "Collider.h"
 #include <cmath>
 
 #include <MathUtils.h>
 #include <Constants.h>
+#include <raymath.h>
 
 namespace Nawia::Entity {
 
@@ -140,6 +142,53 @@ namespace Nawia::Entity {
 		
 		// Completely blocked
 		return { 0.0f, 0.0f };
+	}
+
+	// =============================================================================
+	// Target Tracking Helpers
+	// =============================================================================
+
+	float EnemyInterface::getDistanceToTarget() const
+	{
+		const auto target = _target.lock();
+		if (!target) return std::numeric_limits<float>::max();
+		
+		const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
+		const Vector2 target_pos = target->getCollider() ? 
+			target->getCollider()->getPosition() : target->getCenter();
+		
+		return Vector2Distance(my_pos, target_pos);
+	}
+
+	Vector2 EnemyInterface::getTargetPosition() const
+	{
+		const auto target = _target.lock();
+		if (!target) return _pos;
+		
+		return target->getCollider() ? 
+			target->getCollider()->getPosition() : target->getCenter();
+	}
+
+	bool EnemyInterface::hasValidTarget() const
+	{
+		const auto target = _target.lock();
+		return target && !target->isDead();
+	}
+
+	void EnemyInterface::chaseTarget(const float dt, const float path_recalc_interval)
+	{
+		if (!hasValidTarget()) return;
+		
+		_path_recalc_timer -= dt;
+		
+		if (_path_recalc_timer <= 0.0f || !_is_moving)
+		{
+			const Vector2 target_pos = getTargetPosition();
+			moveTo(target_pos.x, target_pos.y);
+			_path_recalc_timer = path_recalc_interval;
+		}
+		
+		updateMovement(dt);
 	}
 
 } // namespace Nawia::Entity

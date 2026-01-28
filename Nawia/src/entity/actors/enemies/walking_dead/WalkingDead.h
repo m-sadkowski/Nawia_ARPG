@@ -35,14 +35,13 @@ namespace Nawia::Entity {
 		void update(float dt) override;
 		void takeDamage(int dmg) override;
 		
-		void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
 
 	private:
 		enum class State { Idle, Chasing, Attacking, Screaming, GettingHit, Dying };
 		State _state = State::Idle;
 		State _state_before_hit = State::Idle;  // State to return to after get_hit animation
 
-		std::weak_ptr<Entity> _target;
+
 		
 		// Combat stats
 		static constexpr float VISION_RANGE = 6.0f;
@@ -57,9 +56,7 @@ namespace Nawia::Entity {
 		bool _is_running = false;  // Track if currently running
 		
 		// Pathfinding
-		static constexpr float PATH_RECALC_INTERVAL = 0.5f;  // Recalculate path every 0.5s
-		static constexpr float DIRECT_MOVE_DISTANCE = 2.0f;  // Use direct movement when closer than 2 tiles
-		float _path_recalc_timer = 0.0f;
+		static constexpr float DIRECT_MOVE_DISTANCE = 2.0f;
 
 		// State handlers
 		void handleIdleState(float dt);
@@ -69,8 +66,7 @@ namespace Nawia::Entity {
 		void handleGettingHitState(float dt);
 		void handleDyingState(float dt);
 		
-		// Utility
-		float getDistanceToTarget() const;
+
 	};
 
 } // namespace Nawia::Entity
