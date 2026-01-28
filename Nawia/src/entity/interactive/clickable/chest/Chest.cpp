@@ -1,6 +1,8 @@
 ﻿#include "Chest.h"
 #include <iostream>
 #include <InteractiveClickable.h>
+#include "Player.h"
+#include "Engine.h"
 
 #include "Collider.h"
 
@@ -17,8 +19,8 @@ namespace Nawia::Entity {
         _inventory = std::make_unique<Item::Backpack>(CHEST_INV_SIZE);
     }
 
-    void Chest::initializeInventory(Item::Loottable& loottable, Item::LOOTTABLE_TYPE loottable_type) {
-        const auto& drops = loottable.getLootTable(loottable_type);
+    void Chest::initializeInventory(Item::Loottable& loot_table, const Item::LOOTTABLE_TYPE loot_table_type) {
+        const auto& drops = loot_table.getLootTable(loot_table_type);
 
         for (const auto& entry : drops) {
             if (!entry._item) continue;
@@ -26,20 +28,57 @@ namespace Nawia::Entity {
             float roll = static_cast<float>(GetRandomValue(0, 10000)) / 100.0f;
 
             if (roll <= entry._chance) {
-                std::shared_ptr<Item::Item> uniqueItem = entry._item->clone();
+                std::shared_ptr<Item::Item> unique_item = entry._item->clone();
 
-                addItem(uniqueItem);
+                addItem(unique_item);
             }
         }
     }
     
-    void Chest::onInteract(Entity& instigator) {
-        if (_isOpen) {
-            std::cout << "Skrzynia jest juz otwarta." << std::endl;
+    void Chest::onInteract(Entity& instigator) 
+	{
+        if (_isOpen) 
+        {
+            if (const auto* player = dynamic_cast<Player*>(&instigator))
+                player->getEngine()->getUIHandler().showNotification("Skrzynia jest juz otwarta.");
+            
             return;
         }
 
-        std::cout << instigator.getName() << " otwiera skrzynie " << _name << "!" << std::endl;
+        if (_locked) 
+        {
+             if (auto* player = dynamic_cast<Player*>(&instigator)) 
+             {
+                 bool has_key = false;
+                 int key_index = -1;
+                 auto& backpack = player->getBackpack();
+                 const auto& items = backpack.getItems();
+                 for(int i = 0; i < items.size(); ++i) {
+                     if (items[i] && items[i]->getId() == 5) {
+                         key_index = i;
+                         has_key = true;
+                         break;
+                     }
+                 }
+
+                 if (has_key) 
+                 {
+                     backpack.removeItem(key_index);
+                     auto& ui = player->getEngine()->getUIHandler();
+                     ui.showNotification("Skrzynia otwarta! Zuzyto Klucz Kota.", 2.5f);
+                     _locked = false;
+                 } 
+             	 else {
+                     auto& ui = player->getEngine()->getUIHandler();
+                     ui.showNotification("Skrzynia zamknieta! Potrzebny Klucz Kota.", 3.0f);
+                     return;
+                 }
+             } 
+        	 else 
+        	 {
+        		 return;
+        	 }
+        }
 
         // playAnimation("open_chest", false);
 
@@ -61,7 +100,7 @@ namespace Nawia::Entity {
 
     float Chest::getInteractionRange()
     {
-        return 2.f * 2.f;
+        return 2.5f * 2.5f;
     }
 
 } // namespace Nawia::Entity

@@ -76,17 +76,19 @@ namespace Nawia::UI {
         void closeSettingsMenu();
 
         // inventory
-        bool isInventoryOpen() const { return _is_inventory_open; }
+        [[nodiscard]] bool isInventoryOpen() const { return _is_inventory_open; }
         void toggleInventory() { _is_inventory_open = !_is_inventory_open; }
 
         // chest
-        void openContainer(std::shared_ptr<Entity::InteractiveClickable> container);
+        void openContainer(Entity::InteractiveClickable* container);
         void closeContainer();
 
         void openDialogue(const Game::DialogueTree& tree) { _dialogueUI.open(tree); }
         void closeDialogue() { _dialogueUI.close(); }
 
-        bool isInputBlocked() const;
+        void showNotification(const std::string& text, float duration = 2.0f);
+
+        [[nodiscard]] bool isInputBlocked() const;
 
     private:
         void renderPlayerHealthBar() const;
@@ -106,7 +108,7 @@ namespace Nawia::UI {
         bool _is_inventory_open = false;
 
         std::unique_ptr<ChestUI> _chest_ui;
-        std::shared_ptr<Entity::InteractiveClickable> _current_container;
+        Entity::InteractiveClickable* _current_container = nullptr;
 
         std::unique_ptr<StatsUI> _stats_ui;
 
@@ -115,6 +117,15 @@ namespace Nawia::UI {
         // Damage Flash
         int _previous_hp = -1;
         float _damage_flash_timer = 0.0f;
+
+        // Notifications
+        struct Notification 
+    	{
+            std::string text;
+            float timer;
+            float duration;
+        };
+        std::vector<Notification> _notifications;
     };
 
 } // namespace Nawia::UI

@@ -35,8 +35,8 @@ namespace Nawia::UI {
 
         DrawLine(_inv_start_x + _eq_width, _inv_start_y, _inv_start_x + _eq_width, _inv_start_y + _inv_height, WHITE);
 
-        DrawTextEx(font, "EQUIPMENT", { _inv_start_x + _text_padding_left, _inv_start_y + _text_padding_top }, _font_size, 1.0f, WHITE);
-        DrawTextEx(font, "BACKPACK", { _inv_start_x + _eq_width + _text_padding_left, _inv_start_y + _text_padding_top }, _font_size, 1.0f, WHITE);
+        DrawTextEx(font, "EKWIPUNEK", { _inv_start_x + _text_padding_left, _inv_start_y + _text_padding_top }, _font_size, 1.0f, WHITE);
+        DrawTextEx(font, "PLECAK", { _inv_start_x + _eq_width + _text_padding_left, _inv_start_y + _text_padding_top }, _font_size, 1.0f, WHITE);
 
         const Vector2 mouse_pos = GetMousePosition();
 

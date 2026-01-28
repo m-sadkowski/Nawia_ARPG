@@ -1,40 +1,64 @@
 [
-    {
-        "id": 1,
-        "name": "Drewniany miecz",
-        "description": "Stary, drewniany miecz.",
-        "slot": "Weapon",
-        "texture": "assets/textures/items/sword_wooden.png",
-        "stats": {
-            "damage": 5
-        }
-    },
-    {
-        "id": 2,
-        "name": "Skórzana tunika",
-        "description": "Jakaś kurtka ze skóry.",
-        "slot": "Chest",
-        "texture": "assets/textures/items/chest_leather.png",
-        "stats": {
-            "defense": 3
-        }
-    },
-    {
-        "id": 3,
-        "name": "Diamentowe buty",
-        "description": "Lekkie buty z diamentów. Pozwalają szybciej się poruszać.",
-        "slot": "Feet",
-        "texture": "assets/textures/items/boots_diamond.png",
-        "stats": {
-            "defense": 2,
-            "movement_speed": 1.0
-        }
-    },
-    {
-        "id": 4,
-        "name": "Stary klucz",
-        "description": "Pewnie można nim coś otworzyć.",
-        "slot": "",
-        "texture": "assets/textures/items/key.png"
+  {
+    "id": 1,
+    "name": "Drewniany miecz",
+    "description": "Stary, drewniany miecz.",
+    "slot": "Weapon",
+    "texture": "assets/textures/items/sword_wooden.png",
+    "stats": {
+      "damage": 5
     }
+  },
+  {
+    "id": 2,
+    "name": "Skorzana tunika",
+    "description": "Jakas kurtka ze skory.",
+    "slot": "Chest",
+    "texture": "assets/textures/items/chest_leather.png",
+    "stats": {
+      "defense": 3
+    }
+  },
+  {
+    "id": 3,
+    "name": "Diamentowe buty",
+    "description": "Lekkie buty z diamentow. Pozwalaja szybciej sie poruszac.",
+    "slot": "Feet",
+    "texture": "assets/textures/items/boots_diamond.png",
+    "stats": {
+      "defense": 2,
+      "movement_speed": 1.0
+    }
+  },
+  {
+    "id": 4,
+    "name": "Zardzewialy klucz",
+    "description": "Stary klucz.",
+    "slot": "None",
+    "texture": "assets/textures/items/key.png"
+  },
+  {
+    "id": 5,
+    "name": "Klucz Kota",
+    "description": "Klucz nalezacy do Kota Olgi.",
+    "slot": "None",
+    "texture": "assets/textures/items/key.png"
+  },
+  {
+    "id": 6,
+    "name": "Ryba",
+    "description": "Swieza, smaczna ryba.",
+    "slot": "None",
+    "texture": "assets/textures/items/fish.png"
+  },
+  {
+    "id": 7,
+    "name": "Koci Miecz",
+    "description": "Miecz podarowany przez Kota. Pachnie ryba.",
+    "slot": "Weapon",
+    "texture": "assets/textures/items/cat_sword.png",
+    "stats": {
+      "damage": 50
+    }
+  }
 ]

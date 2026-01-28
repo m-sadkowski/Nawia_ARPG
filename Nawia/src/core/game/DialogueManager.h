@@ -9,7 +9,8 @@ namespace Nawia::Game {
 
 	class DialogueManager {
 	public:
-		void createCatDialogue(Core::Engine* engine, const std::shared_ptr<Entity::Cat>& cat);
+		void createCatDialogue(Core::Engine* engine, Entity::Cat* cat);
+		void createCatQuestCompletedDialogue(Core::Engine* engine, Entity::Cat* cat);
 	};
 
 } // namespace Nawia::Game

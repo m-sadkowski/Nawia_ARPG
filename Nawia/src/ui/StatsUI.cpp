@@ -1,10 +1,10 @@
 #include "StatsUI.h"
-#include "../entity/actors/player/Player.h"
-#include "../entity/actors/player/Stats.h"
+#include "Player.h"
+#include "Stats.h"
 #include <GlobalScaling.h>
 
 namespace Nawia::UI {
-    StatsUI::StatsUI(std::shared_ptr<Entity::Player> player) : _player(player) {}
+    StatsUI::StatsUI(const std::shared_ptr<Entity::Player>& player) : _player(player) {}
 
     void StatsUI::render(float x, float y, const Font& font) const {
         if (!_player) return;
@@ -30,7 +30,7 @@ namespace Nawia::UI {
         const float line_height = Core::GlobalScaling::scaled(30.0f);
 
         // Title
-        DrawTextEx(font, "PLAYER STATS", { x + x_padding, current_y }, title_font_size, spacing, GOLD);
+        DrawTextEx(font, "STATYSTYKI", { x + x_padding, current_y }, title_font_size, spacing, GOLD);
         current_y += line_height * 1.2f; // Extra space after title
         
         // Helper lambda for consistent rows
@@ -43,10 +43,10 @@ namespace Nawia::UI {
             current_y += line_height;
         };
 
-        drawStatRow("Health", TextFormat("%d / %d", _player->getHP(), stats.max_hp), RED);
-        drawStatRow("Damage", TextFormat("%d", stats.damage), ORANGE);
-        drawStatRow("Atk Speed", TextFormat("%.2f", stats.attack_speed), YELLOW);
-        drawStatRow("Move Speed", TextFormat("%.2f", stats.movement_speed), SKYBLUE);
-        drawStatRow("Tenacity", TextFormat("%d", stats.tenacity), BLUE);
+        drawStatRow("ZDROWIE", TextFormat("%d / %d", _player->getHP(), stats.max_hp), RED);
+        drawStatRow("SILA", TextFormat("%d", stats.damage), ORANGE);
+        drawStatRow("PREDKOSC ATAKU", TextFormat("%.2f", stats.attack_speed), YELLOW);
+        drawStatRow("PREDKOSC", TextFormat("%.2f", stats.movement_speed), SKYBLUE);
+        drawStatRow("NIEUSTEPLIWOSC", TextFormat("%d", stats.tenacity), BLUE);
     }
 }

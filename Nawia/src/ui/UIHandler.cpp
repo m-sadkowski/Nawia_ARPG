@@ -98,7 +98,7 @@ namespace Nawia::UI {
         _previous_hp = _player->getHP();
     }
 
-    void UIHandler::update(float dt) 
+    void UIHandler::update(const float dt)
 	{
         // Damage Flash Logic
         if (_player)
@@ -118,6 +118,21 @@ namespace Nawia::UI {
             _damage_flash_timer -= dt;
             if (_damage_flash_timer < 0.0f) _damage_flash_timer = 0.0f;
         }
+
+        // Update notifications
+        for (auto it = _notifications.begin(); it != _notifications.end();) 
+        {
+            it->timer -= dt;
+            if (it->timer <= 0.0f)
+                it = _notifications.erase(it);
+            else
+                ++it;
+        }
+    }
+
+    void UIHandler::showNotification(const std::string& text, const float duration) 
+	{
+        _notifications.push_back({ text, duration, duration });
     }
 
     void UIHandler::handleInput() 
@@ -204,7 +219,29 @@ namespace Nawia::UI {
             DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(RED, alpha));
         }
 
-        _dialogueUI.render();
+        // Render Notifications
+
+        // Render Notifications
+        float notif_y = 10.0f;
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        for (const auto& notif : _notifications) 
+        {
+            const float font_size = Core::GlobalScaling::scaled(24.0f);
+            const float spacing = Core::GlobalScaling::scaled(1.0f);
+            const Vector2 text_size = MeasureTextEx(_font, notif.text.c_str(), font_size, spacing);
+            
+            const float x = screen_width - text_size.x - 20.0f;
+            
+            // Background
+            DrawRectangle(x - 5, notif_y - 5, text_size.x + 10, text_size.y + 10, Fade(BLACK, 0.7f));
+            DrawRectangleLines(x - 5, notif_y - 5, text_size.x + 10, text_size.y + 10, WHITE);
+            
+            DrawTextEx(_font, notif.text.c_str(), { x, notif_y }, font_size, spacing, WHITE);
+            
+            notif_y += text_size.y + 20.0f;
+        }
+
+        _dialogueUI.render(_font);
 
         if (_is_inventory_open) {
             _inventory_ui->render(_font, *_player);
@@ -245,9 +282,9 @@ namespace Nawia::UI {
         const auto layout = getMenuLayout(screen_width, screen_height);
         const Vector2 mouse_pos = GetMousePosition();
 
-        drawMenuButton(layout.play_btn, "PLAY", CheckCollisionPointRec(mouse_pos, layout.play_btn));
-        drawMenuButton(layout.settings_btn, "SETTINGS", CheckCollisionPointRec(mouse_pos, layout.settings_btn));
-        drawMenuButton(layout.exit_btn, "EXIT", CheckCollisionPointRec(mouse_pos, layout.exit_btn));
+        drawMenuButton(layout.play_btn, "GRAJ", CheckCollisionPointRec(mouse_pos, layout.play_btn));
+        drawMenuButton(layout.settings_btn, "USTAWIENIA", CheckCollisionPointRec(mouse_pos, layout.settings_btn));
+        drawMenuButton(layout.exit_btn, "WYJDZ", CheckCollisionPointRec(mouse_pos, layout.exit_btn));
     }
 
     void UIHandler::drawMenuButton(const Rectangle& rect, const char* text, const bool is_hovered) const
@@ -428,7 +465,7 @@ namespace Nawia::UI {
         // Title
         const float title_font_size = Core::GlobalScaling::scaled(40.0f);
         const float spacing = Core::GlobalScaling::scaled(2.0f);
-        const char* title = "PAUSED";
+        const char* title = "PAUZA";
         Vector2 title_size = MeasureTextEx(_font, title, title_font_size, spacing);
         DrawTextEx(
             _font, 
@@ -443,9 +480,9 @@ namespace Nawia::UI {
         const auto layout = getMenuLayout(screen_width, screen_height);
         const Vector2 mouse_pos = GetMousePosition();
         
-        drawMenuButton(layout.play_btn, "RESUME", CheckCollisionPointRec(mouse_pos, layout.play_btn));
-        drawMenuButton(layout.settings_btn, "SETTINGS", CheckCollisionPointRec(mouse_pos, layout.settings_btn));
-        drawMenuButton(layout.exit_btn, "QUIT TO MENU", CheckCollisionPointRec(mouse_pos, layout.exit_btn));
+        drawMenuButton(layout.play_btn, "KONTYNUUJ", CheckCollisionPointRec(mouse_pos, layout.play_btn));
+        drawMenuButton(layout.settings_btn, "USTAWIENIA", CheckCollisionPointRec(mouse_pos, layout.settings_btn));
+        drawMenuButton(layout.exit_btn, "MENU", CheckCollisionPointRec(mouse_pos, layout.exit_btn));
     }
 
     MenuAction UIHandler::handlePauseMenuInput() {
@@ -466,7 +503,7 @@ namespace Nawia::UI {
         return MenuAction::None;
     }
 
-    void UIHandler::openContainer(std::shared_ptr<Entity::InteractiveClickable> container) {
+    void UIHandler::openContainer(Entity::InteractiveClickable* container) {
         _current_container = container;
         _is_inventory_open = true;
     }
