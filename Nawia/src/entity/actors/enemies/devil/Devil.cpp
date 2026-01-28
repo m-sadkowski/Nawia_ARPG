@@ -1,4 +1,5 @@
 #include "Devil.h"
+#include "Player.h"
 #include <Map.h>
 #include "Collider.h"
 
@@ -204,7 +205,11 @@ namespace Nawia::Entity {
 				const float dist_to_player = getDistanceToTarget();
 				if (dist_to_player <= DASH_HIT_RANGE)
 				{
-					target->takeDamage(DASH_DAMAGE);
+					// Try to knock down the player, otherwise just deal damage
+					if (target->getType() == EntityType::Player)
+						dynamic_cast<Player*>(target.get())->knockDown(DASH_DAMAGE);
+					else
+						target->takeDamage(DASH_DAMAGE);
 					_dash_hit_target = true;
 				}
 			}

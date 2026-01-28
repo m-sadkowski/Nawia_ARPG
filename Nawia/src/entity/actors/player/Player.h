@@ -20,10 +20,19 @@ namespace Nawia::Entity {
 
 		void update(float delta_time) override;
 		[[nodiscard]] bool isMoving() const { return _is_moving; }
+		[[nodiscard]] bool isKnockedDown() const { return _is_knocked_down; }
 
 		void moveTo(float x, float y);
 		void stop();
 		void updateMovement(float delta_time);
+		
+		/**
+		 * @brief Knock the player down (e.g. from Devil dash attack).
+		 * Plays knocked animation followed by stand_up animation.
+		 * Movement is blocked during this sequence.
+		 * @param damage Amount of damage to deal
+		 */
+		void knockDown(int damage);
 
 
 		void equipItemFromBackpack(int backpackIndex);
@@ -60,6 +69,9 @@ namespace Nawia::Entity {
 		static constexpr int INIT_BACKPACK_SIZE = 20;
 		float _target_x, _target_y;
 		bool _is_moving;
+		bool _is_knocked_down = false;
+		enum class KnockdownPhase { None, Knocked, StandingUp };
+		KnockdownPhase _knockdown_phase = KnockdownPhase::None;
 		std::vector<Vector2> _path;
 
 		std::unique_ptr<Item::Backpack> _backpack;

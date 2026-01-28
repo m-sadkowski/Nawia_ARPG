@@ -20,6 +20,8 @@ namespace Nawia::Entity {
 		loadModel("../assets/models/player_idle.glb");
 		addAnimation("walk", "../assets/models/player_walk.glb");
 		addAnimation("attack", "../assets/models/player_auto_attack.glb");
+		addAnimation("knocked", "../assets/models/player_knocked.glb");
+		addAnimation("stand_up", "../assets/models/player_stand_up.glb");
 		playAnimation("default"); // play idle
 		setAnimationSpeed(1.0f);
 		// add collider
@@ -52,41 +54,36 @@ namespace Nawia::Entity {
 		const Vector2 end_world = { x, y };
 
 		// Check if target is walkable
-		if (map && !map->isWalkable(x, y)) {
-			// Find path even if unwalkable? No, just stop for now.
+		if (map && !map->isWalkable(x, y))
 			return;
-		}
 
 		_target_x = x - offset_x;
 		_target_y = y - offset_y;
 		
-		if (map) {
+		if (map) 
+		{
 			_path = map->findPath(start_world, end_world);
-			if (!_path.empty()) {
+			if (!_path.empty())
 				// Ensure the final point is exactly the requested pixel coordinates
-				// findPath returns tile centers, but we want precision
 				_path.back() = end_world;
-			}
-		} else {
+			
+		} 
+		else 
+		{
 			_path.clear();
 		}
 
-		if (_path.empty()) {
-			// If pathfinding failed (e.g. start/end same node or no path), check if we should just move directly (short distance)
-			// or just stop.
-			// Fallback: direct move if very close?
-			// For now, if no path, we don't move unless start and end are close but in same tile
+		if (_path.empty()) 
+		{
+			// If pathfinding failed just stop
 			const float dx = _target_x - getX();
 			const float dy = _target_y - getY();
-			if (dx*dx + dy*dy > 0.001f) {
-				// Maybe straight line if pathfinding returned empty but distance > 0?
-				// This happens if start/end are in same tile.
-				// In that case we clear path and just let updateMovement handle the final adjustment?
-				// updateMovement currently relies on _target_x/y if path is empty? 
-				// Let's change updateMovement to rely on path, but handle single-step direct movement for sub-tile precision.
+			if (dx * dx + dy * dy > 0.001f) 
+			{
 				_is_moving = true;
-			} else {
-				// We are there
+			} 
+			else 
+			{
 				_is_moving = false;
 				
 				if (!isAnimationLocked())
@@ -96,19 +93,17 @@ namespace Nawia::Entity {
 				}
 				return;
 			}
-		} else {
+		} 
+		else 
+		{
 			_is_moving = true;
 		}
 
-		if (_is_moving && !isAnimationLocked()) {
+		if (_is_moving && !isAnimationLocked()) 
+		{
 			setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
 			playAnimation("walk");
 		}
-		
-		// If we have a path, the immediate target is the first point in path
-		// But we also need to account for offset logic. 
-		// _path contains centers of tiles. 
-		// We want our center to reach that center.
 	}
 
 	void Player::stop()
@@ -126,27 +121,52 @@ namespace Nawia::Entity {
 	{
 		Entity::update(delta_time);
 		updateAbilities(delta_time);
+		
+		// Handle knockdown animation sequence
+		if (_is_knocked_down)
+		{
+			if (!isAnimationLocked())
+			{
+				if (_knockdown_phase == KnockdownPhase::Knocked)
+				{
+					_knockdown_phase = KnockdownPhase::StandingUp;
+					playAnimation("stand_up", false, true, 0, true);
+				}
+				else
+				{
+					_is_knocked_down = false;
+					_knockdown_phase = KnockdownPhase::None;
+					setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+					playAnimation("default");
+				}
+			}
+			return; // Don't process movement while knocked
+		}
+		
 		updateMovement(delta_time);
 	}
 
 	void Player::updateMovement(const float delta_time)
 	{
-		if (!_is_moving)
+		if (!_is_moving || _is_knocked_down)
 			return;
 
-		if (!isAnimationLocked()) {
+		if (!isAnimationLocked()) 
+		{
 			setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
 			playAnimation("walk");
 		}
 		
 		Vector2 current_target_world;
 		
-		if (!_path.empty()) {
+		if (!_path.empty()) 
+		{
 			// Move towards next path node
 			current_target_world = _path.front();
-		} else {
+		} 
+		else 
+		{
 			// Move towards final request target
-			// We need to reconstruct world center target from _target_x/y
 			const Vector2 center = getCenter();
 			const float offset_x = center.x - getX();
 			const float offset_y = center.y - getY();
@@ -162,23 +182,19 @@ namespace Nawia::Entity {
 		const float distance = std::sqrt(distance_sq);
 
 		// Rotate towards target
-		if (distance_sq > 0.001f) {
+		if (distance_sq > 0.001f)
 			rotateTowardsCenter(current_target_world.x, current_target_world.y);
-		}
 
 		// Move
 		// If we are close enough to current target node
-		if (distance < 0.1f * (_current_stats.movement_speed / 4.0f)) { // threshold proportional to speed
+		if (distance < 0.1f * (_current_stats.movement_speed / 4.0f)) // threshold proportional to speed
+		{ 
 			if (!_path.empty()) {
 				// Reached this node, pop it
 				_path.erase(_path.begin());
-				if (_path.empty()) {
-					// We finished the path, continue to detailed sub-tile target or stop?
-					// Usually A* centers us on tiles. The final click might be slightly off center.
-					// If we want exact precision, we can use the original _target_x/y as the FINAL target after path is empty.
-					// Let's assume after path empty we continue to _target_x/y.
-				}
-			} else {
+			} 
+			else 
+			{
 				// Reached final target
 				_is_moving = false;
 				_pos.x = _target_x;
@@ -194,38 +210,39 @@ namespace Nawia::Entity {
 		const float speed = _current_stats.movement_speed;
 		const float move_dist = speed * delta_time;
 
-		if (move_dist >= distance && _path.empty()) {
+		if (move_dist >= distance && _path.empty()) 
+		{
 			// We will overshoot final target, just snap
 			_pos.x = _target_x;
 			_pos.y = _target_y;
 			_is_moving = false;
 			if (!isAnimationLocked()) playAnimation("default");
-		} else {
+		} 
+		else 
+		{
 			// Move normally
 			_pos.x += (dx / distance) * move_dist;
 			_pos.y += (dy / distance) * move_dist;
 		}
 	}
 
-	void Player::equipItemFromBackpack(int backpackIndex) {
-		auto item = _backpack->getItem(backpackIndex);
+	void Player::equipItemFromBackpack(const int backpack_index) 
+	{
+		const auto item = _backpack->getItem(backpack_index);
 		if (!item) return;
 
-		_backpack->removeItem(backpackIndex);
+		_backpack->removeItem(backpack_index);
 
-		// equip item
-		auto old_item = _equipment->equip(item);
-
-		// if cannot equip go back to backpack
-		if (old_item) {
+		if (const auto old_item = _equipment->equip(item)) 
 			_backpack->addItem(old_item);
 			// todo what if backpack full (player somehow picked up item while equip)
-		}
+
 		recalculateStats();
 	}
 
-	void Player::unequipItem(Item::EquipmentSlot slot) {
-		auto item = _equipment->getItemAt(slot);
+	void Player::unequipItem(const Item::EquipmentSlot slot) 
+	{
+		const auto item = _equipment->getItemAt(slot);
 		if (!item) return;
 
 		if (_backpack->getRemainingCapacity() > 0) {
@@ -235,19 +252,37 @@ namespace Nawia::Entity {
 		}
 	}
 
-	void Player::recalculateStats() {
+	void Player::recalculateStats() 
+	{
 		_current_stats = _base_stats;
 		
 		// Check all slots  
-		for (int i = 1; i <= 8; ++i) {
-			auto item = _equipment->getItemAt(static_cast<Item::EquipmentSlot>(i));
-			if (item) {
+		for (int i = 1; i <= 8; ++i) 
+		{
+			if (const auto item = _equipment->getItemAt(static_cast<Item::EquipmentSlot>(i)))
 				_current_stats += item->getStats();
-			}
 		}
 
 		_max_hp = _current_stats.max_hp;
-		if (_hp > _max_hp) _hp = _max_hp;
+		if (_hp > _max_hp) 
+			_hp = _max_hp;
+	}
+
+	void Player::knockDown(const int damage)
+	{
+		if (_is_knocked_down)
+		{
+			takeDamage(damage);
+			return;
+		}
+
+		stop();
+		takeDamage(damage);
+
+		_is_knocked_down = true;
+		_knockdown_phase = KnockdownPhase::Knocked;
+		setAnimationSpeed(4.0f);
+		playAnimation("knocked", false, true, 0, true);
 	}
 
 } // namespace Nawia::Entity

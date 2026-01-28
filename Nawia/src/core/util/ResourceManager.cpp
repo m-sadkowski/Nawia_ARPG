@@ -21,14 +21,14 @@ namespace Nawia::Core {
 			return nullptr;
 		}
 
-		Logger::debugLog("Resource Manager - loaded file: " + filename);
+		// Logger::debugLog("Resource Manager - loaded file: " + filename);
 
 		// create a shared_ptr to put in map, custom deleter calls UnloadTexture
 		std::shared_ptr<Texture2D> new_texture(new Texture2D(tex), [](const Texture2D *t) 
 			{
 				UnloadTexture(*t);
 				delete t;
-				Logger::debugLog("Resource Manager - removed resource.");
+				// Logger::debugLog("Resource Manager - removed resource.");
 			}
 		);
 
