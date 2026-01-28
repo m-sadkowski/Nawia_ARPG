@@ -100,7 +100,8 @@ namespace Nawia::Core {
                 // ignore other projectiles, chests and checkpoints
                 if (targetType == Entity::EntityType::Projectile ||
                     targetType == Entity::EntityType::Chest ||
-                    targetType == Entity::EntityType::Trigger) continue;
+                    targetType == Entity::EntityType::Trigger ||
+                    targetType == Entity::EntityType::NPCStatic) continue;
 
                 if (ability->checkCollision(entity2)) {
                     ability->onCollision(entity2);

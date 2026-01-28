@@ -42,7 +42,7 @@ namespace Nawia::Core {
 
 		// initialize player
 		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
-		Vector2 player_spawn_pos = {5.0f, 5.0f};//_map->getPlayerSpawnPos();
+		Vector2 player_spawn_pos = {10.0f, -6.5f};//_map->getPlayerSpawnPos();
 		_player = std::make_shared<Entity::Player>(this, player_spawn_pos.x, player_spawn_pos.y, player_texture);
 
 		// initialize spells
@@ -69,22 +69,31 @@ namespace Nawia::Core {
 		_entity_manager = std::make_unique<EntityManager>();
 
 		//spawn Devil for testing
-		const auto devil = std::make_shared<Entity::Devil>(-2.0f, 3.0f, _map.get());
+		const auto devil = std::make_shared<Entity::Devil>(2.5f, 2.7f, _map.get());
 		devil->setTarget(_player);
 		_entity_manager->addEntity(devil);
 		
 		//spawn Bandit for testing
 		const auto knife_tex = _resource_manager.getTexture("../assets/textures/knife3.png");
-		const auto bandit = std::make_shared<Entity::Bandit>(0.0f, 0.0f, _map.get());
+		const auto bandit = std::make_shared<Entity::Bandit>(-11.21f, -21.38f, _map.get());
 		bandit->setTarget(_player);
 		bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex,nullptr,nullptr));
 		_entity_manager->addEntity(bandit);
-
+		const auto bandit2 = std::make_shared<Entity::Bandit>(-13.f, -17.f, _map.get());
+		bandit2->setTarget(_player);
+		bandit2->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr));
+		_entity_manager->addEntity(bandit2);
 
 		// spawn Walking Dead for testing
-		const auto walking_dead = std::make_shared<Entity::WalkingDead>(-2.0f, -5.0f, _map.get());
+		const auto walking_dead = std::make_shared<Entity::WalkingDead>(3.36f, 8.49f, _map.get());
 		walking_dead->setTarget(_player);
 		_entity_manager->addEntity(walking_dead);
+		const auto walking_dead2 = std::make_shared<Entity::WalkingDead>(6.97f, 8.98f, _map.get());
+		walking_dead2->setTarget(_player);
+		_entity_manager->addEntity(walking_dead2);
+		const auto walking_dead3 = std::make_shared<Entity::WalkingDead>(6.79f, 11.3f, _map.get());
+		walking_dead3->setTarget(_player);
+		_entity_manager->addEntity(walking_dead3);
 		
 		// add player to entity manager so it can be hit by enemies
 		_entity_manager->addEntity(_player);
@@ -92,7 +101,7 @@ namespace Nawia::Core {
 		_is_running = true;
 
 		const auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png");
-		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", -12.0f, -7.7f, chest_tex);
+		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", 2.f, -1.f, chest_tex);
 		test_chest->initializeInventory(_loottable, Item::LOOTTABLE_TYPE::CHEST_NOOB);
 		_entity_manager->addEntity(test_chest);
 

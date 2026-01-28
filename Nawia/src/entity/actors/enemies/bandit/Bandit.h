@@ -30,15 +30,13 @@ namespace Nawia::Entity {
 		void update(float dt) override;
 		void takeDamage(int dmg) override;
 		
-		void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
 
 	private:
 		enum class State { Idle, Chasing, Casting, GettingHit, Dying };
 		State _state = State::Idle;
 		State _state_before_hit = State::Idle;
 
-		std::weak_ptr<Entity> _target;
-		float _knife_cooldown_timer = 0.0f;
+
 		
 		// Combat stats
 		static constexpr float VISION_RANGE = 10.0f;
@@ -46,6 +44,12 @@ namespace Nawia::Entity {
 		static constexpr float MIN_DISTANCE = 5.0f;      // Try to keep at least this far
 		static constexpr float SPEED = 2.0f;
 		static constexpr float KNIFE_COOLDOWN = 3.0f;
+		
+		// Pathfinding for retreat
+		static constexpr float PATH_RECALC_INTERVAL = 0.3f;
+		float _knife_cooldown_timer = 0.0f;
+		bool _is_retreating = false;
+		bool _knife_thrown_this_cast = false;  // tracks if knife was thrown during current cast
 
 		// State handlers
 		void handleIdleState(float dt);
@@ -54,8 +58,7 @@ namespace Nawia::Entity {
 		void handleGettingHitState(float dt);
 		void handleDyingState(float dt);
 		
-		// Utility
-		float getDistanceToTarget() const;
+
 	};
 
 } // namespace Nawia::Entity

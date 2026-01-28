@@ -20,6 +20,8 @@ namespace Nawia::Entity {
 		loadModel("../assets/models/player_idle.glb");
 		addAnimation("walk", "../assets/models/player_walk.glb");
 		addAnimation("attack", "../assets/models/player_auto_attack.glb");
+		addAnimation("knocked", "../assets/models/player_knocked.glb");
+		addAnimation("stand_up", "../assets/models/player_stand_up.glb");
 		playAnimation("default"); // play idle
 		setAnimationSpeed(1.0f);
 		// add collider
@@ -47,42 +49,71 @@ namespace Nawia::Entity {
 
 		Core::Map* map = _engine->getCurrentMap();
 
+		const Vector2 start_world = { center.x, center.y };
+		// We want the center to end up at (x, y)
+		const Vector2 end_world = { x, y };
+
+		// Check if target is walkable
+		if (map && !map->isWalkable(x, y))
+			return;
+
 		_target_x = x - offset_x;
 		_target_y = y - offset_y;
-
-		//Core::Logger::debugLog("Player::moveTo(org) -> x=" + std::to_string(x) + " y=" + std::to_string(y));
-
-		if (!map->isWalkable(x, y)) {
-			return;
+		
+		if (map) 
+		{
+			_path = map->findPath(start_world, end_world);
+			if (!_path.empty())
+				// Ensure the final point is exactly the requested pixel coordinates
+				_path.back() = end_world;
+			
+		} 
+		else 
+		{
+			_path.clear();
 		}
 
-		_is_moving = true;
-
-		if (!isAnimationLocked())
-			setAnimationSpeed(_current_stats.movement_speed*WALK_ANIM_BASE_SPEED);
-			playAnimation("walk");
-
-		const float dx = _target_x - getX();
-		const float dy = _target_y - getY();
-		const float distance_sq = dx * dx + dy * dy;
-
-		if (distance_sq > 0.001f)
+		if (_path.empty()) 
 		{
-			rotateTowards(_target_x, _target_y);
+			// If pathfinding failed just stop
+			const float dx = _target_x - getX();
+			const float dy = _target_y - getY();
+			if (dx * dx + dy * dy > 0.001f) 
+			{
+				_is_moving = true;
+			} 
+			else 
+			{
+				_is_moving = false;
+				
+				if (!isAnimationLocked())
+				{
+					setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+					playAnimation("default");
+				}
+				return;
+			}
+		} 
+		else 
+		{
+			_is_moving = true;
+		}
+
+		if (_is_moving && !isAnimationLocked()) 
+		{
+			setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
+			playAnimation("walk");
 		}
 	}
 
 	void Player::stop()
 	{
 		_is_moving = false;
-		if (!isAnimationLocked())
-		{
+		_path.clear();
 		if (!isAnimationLocked())
 		{
 			setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 			playAnimation("default");
-			
-		}
 		}
 	}
 
@@ -90,82 +121,128 @@ namespace Nawia::Entity {
 	{
 		Entity::update(delta_time);
 		updateAbilities(delta_time);
+		
+		// Handle knockdown animation sequence
+		if (_is_knocked_down)
+		{
+			if (!isAnimationLocked())
+			{
+				if (_knockdown_phase == KnockdownPhase::Knocked)
+				{
+					_knockdown_phase = KnockdownPhase::StandingUp;
+					playAnimation("stand_up", false, true, 0, true);
+				}
+				else
+				{
+					_is_knocked_down = false;
+					_knockdown_phase = KnockdownPhase::None;
+					setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+					playAnimation("default");
+				}
+			}
+			return; // Don't process movement while knocked
+		}
+		
 		updateMovement(delta_time);
 	}
 
 	void Player::updateMovement(const float delta_time)
 	{
-		if (!_is_moving)
+		if (!_is_moving || _is_knocked_down)
 			return;
 
-		const float dx = _target_x - _pos.x;
-		const float dy = _target_y - _pos.y;
-		const float distance = std::sqrt(dx * dx + dy * dy);
-
-		if (!isAnimationLocked()) {
+		if (!isAnimationLocked()) 
+		{
 			setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
 			playAnimation("walk");
-			// Scale animation speed based on movement speed
-			// This makes the walk animation faster as the player moves faster
-			
 		}
-
-		if (distance < 0.1f)
+		
+		Vector2 current_target_world;
+		
+		if (!_path.empty()) 
 		{
-			_pos.x = _target_x;
-			_pos.y = _target_y;
-			_is_moving = false;
-
-			if (!isAnimationLocked())
-				playAnimation("default");
-		}
-		else
+			// Move towards next path node
+			current_target_world = _path.front();
+		} 
+		else 
 		{
-			// Calculate next position
-			float next_x = _pos.x + (dx / distance) * _current_stats.movement_speed * delta_time;
-			float next_y = _pos.y + (dy / distance) * _current_stats.movement_speed * delta_time;
-
-			// Check if next position is walkable (check center position)
-			Core::Map* map = _engine->getCurrentMap();
+			// Move towards final request target
 			const Vector2 center = getCenter();
-			float center_offset_x = center.x - getX();
-			float center_offset_y = center.y - getY();
-			float next_center_x = next_x + center_offset_x;
-			float next_center_y = next_y + center_offset_y;
+			const float offset_x = center.x - getX();
+			const float offset_y = center.y - getY();
+			current_target_world.x = _target_x + offset_x;
+			current_target_world.y = _target_y + offset_y;
+		}
 
-			// Temporary: simple check, can be improved with pathfinding
-			if (map && !map->isWalkable(next_center_x, next_center_y)) {
-				// Stop movement if next tile is not walkable
+		// Calculate direction
+		const Vector2 center = getCenter();
+		const float dx = current_target_world.x - center.x;
+		const float dy = current_target_world.y - center.y;
+		const float distance_sq = dx * dx + dy * dy;
+		const float distance = std::sqrt(distance_sq);
+
+		// Rotate towards target
+		if (distance_sq > 0.001f)
+			rotateTowardsCenter(current_target_world.x, current_target_world.y);
+
+		// Move
+		// If we are close enough to current target node
+		if (distance < 0.1f * (_current_stats.movement_speed / 4.0f)) // threshold proportional to speed
+		{ 
+			if (!_path.empty()) {
+				// Reached this node, pop it
+				_path.erase(_path.begin());
+			} 
+			else 
+			{
+				// Reached final target
 				_is_moving = false;
+				_pos.x = _target_x;
+				_pos.y = _target_y;
+				
 				if (!isAnimationLocked())
 					playAnimation("default");
 				return;
 			}
+		}
 
-			_pos.x = next_x;
-			_pos.y = next_y;
+		// Apply velocity
+		const float speed = _current_stats.movement_speed;
+		const float move_dist = speed * delta_time;
+
+		if (move_dist >= distance && _path.empty()) 
+		{
+			// We will overshoot final target, just snap
+			_pos.x = _target_x;
+			_pos.y = _target_y;
+			_is_moving = false;
+			if (!isAnimationLocked()) playAnimation("default");
+		} 
+		else 
+		{
+			// Move normally
+			_pos.x += (dx / distance) * move_dist;
+			_pos.y += (dy / distance) * move_dist;
 		}
 	}
 
-	void Player::equipItemFromBackpack(int backpackIndex) {
-		auto item = _backpack->getItem(backpackIndex);
+	void Player::equipItemFromBackpack(const int backpack_index) 
+	{
+		const auto item = _backpack->getItem(backpack_index);
 		if (!item) return;
 
-		_backpack->removeItem(backpackIndex);
+		_backpack->removeItem(backpack_index);
 
-		// equip item
-		auto old_item = _equipment->equip(item);
-
-		// if cannot equip go back to backpack
-		if (old_item) {
+		if (const auto old_item = _equipment->equip(item)) 
 			_backpack->addItem(old_item);
 			// todo what if backpack full (player somehow picked up item while equip)
-		}
+
 		recalculateStats();
 	}
 
-	void Player::unequipItem(Item::EquipmentSlot slot) {
-		auto item = _equipment->getItemAt(slot);
+	void Player::unequipItem(const Item::EquipmentSlot slot) 
+	{
+		const auto item = _equipment->getItemAt(slot);
 		if (!item) return;
 
 		if (_backpack->getRemainingCapacity() > 0) {
@@ -175,19 +252,37 @@ namespace Nawia::Entity {
 		}
 	}
 
-	void Player::recalculateStats() {
+	void Player::recalculateStats() 
+	{
 		_current_stats = _base_stats;
 		
 		// Check all slots  
-		for (int i = 1; i <= 8; ++i) {
-			auto item = _equipment->getItemAt(static_cast<Item::EquipmentSlot>(i));
-			if (item) {
+		for (int i = 1; i <= 8; ++i) 
+		{
+			if (const auto item = _equipment->getItemAt(static_cast<Item::EquipmentSlot>(i)))
 				_current_stats += item->getStats();
-			}
 		}
 
 		_max_hp = _current_stats.max_hp;
-		if (_hp > _max_hp) _hp = _max_hp;
+		if (_hp > _max_hp) 
+			_hp = _max_hp;
+	}
+
+	void Player::knockDown(const int damage)
+	{
+		if (_is_knocked_down)
+		{
+			takeDamage(damage);
+			return;
+		}
+
+		stop();
+		takeDamage(damage);
+
+		_is_knocked_down = true;
+		_knockdown_phase = KnockdownPhase::Knocked;
+		setAnimationSpeed(4.0f);
+		playAnimation("knocked", false, true, 0, true);
 	}
 
 } // namespace Nawia::Entity

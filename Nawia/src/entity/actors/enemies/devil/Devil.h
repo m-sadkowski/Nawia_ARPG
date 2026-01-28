@@ -36,14 +36,12 @@ namespace Nawia::Entity {
 		void update(float dt) override;
 		void takeDamage(int dmg) override;
 		
-		void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
 
 	private:
 		enum class State { Idle, Chasing, PreparingDash, Dashing, Recovering, Attacking, Dying };
 		State _state = State::Idle;
 
 
-		std::weak_ptr<Entity> _target;
 
 		//Animation speed set
 		static constexpr float DEVIL_DASH_ANIMATION_SPEED = 3.0f;
@@ -74,7 +72,8 @@ namespace Nawia::Entity {
 		Vector2 _dash_target_pos = {0, 0};  // Locked position for dash
 		bool _dash_hit_target = false;      // Did we already hit during this dash?
 		float _stun_timer = 0.0f;           // Recovery/stun timer after dash
-
+	
+	
 		// State handlers
 		void handleIdleState(float dt);
 		void handleChasingState(float dt);
@@ -85,8 +84,7 @@ namespace Nawia::Entity {
 
 		void handleDyingState(float dt);
 		
-		// Utility
-		float getDistanceToTarget() const;
+
 	};
 
 } // namespace Nawia::Entity
