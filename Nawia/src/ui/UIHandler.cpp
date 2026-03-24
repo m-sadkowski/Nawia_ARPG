@@ -337,7 +337,7 @@ namespace Nawia::UI {
 
         for (const auto& entity : _entity_manager->getEntities())
         {
-            if (entity->getFaction() == Entity::Entity::Faction::Enemy && 
+            if (entity->getFaction() == Entity::Faction::Enemy && 
                 entity->getHP() < entity->getMaxHP() && 
                 entity->getHP() > 0) 
             {

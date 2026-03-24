@@ -10,13 +10,13 @@
 
 namespace Nawia::Entity {
 
-	Player::Player(Core::Engine* engine, const float x, const float y, const std::shared_ptr<Texture2D>& texture)
-	    : Entity("Player", x, y, texture, 100), _target_x(x), _target_y(y),  _is_moving(false) 
-	{
-		_engine = engine;
-		this->setScale(0.015f);
+	Player::Player() {
+		_name = "Player";
+		_hp = 100;
+		_max_hp = 100;
+		_scale = 0.015f;
 		_type = EntityType::Player;
-		setFaction(Faction::Player);
+		_faction = Faction::Player;
 		loadModel("../assets/models/player_idle.glb");
 		addAnimation("walk", "../assets/models/player_walk.glb");
 		addAnimation("attack", "../assets/models/player_auto_attack.glb");
@@ -24,6 +24,7 @@ namespace Nawia::Entity {
 		addAnimation("stand_up", "../assets/models/player_stand_up.glb");
 		playAnimation("default"); // play idle
 		setAnimationSpeed(1.0f);
+
 		// add collider
 		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
 

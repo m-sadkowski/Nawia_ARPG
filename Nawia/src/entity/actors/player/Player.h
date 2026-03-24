@@ -16,8 +16,6 @@ namespace Nawia::Entity {
 
 	class Player : public Entity {
 	public:
-		Player(Core::Engine* engine, float x, float y, const std::shared_ptr<Texture2D>& texture);
-		
 		Core::Engine* getEngine() const { return _engine; }
 
 		void update(float delta_time) override;
@@ -65,11 +63,14 @@ namespace Nawia::Entity {
 
 
 	private:
+		friend class PlayerBuilder;
+		Player();
+
 		Core::Engine* _engine;
 		
 		static constexpr int INIT_BACKPACK_SIZE = 20;
 		float _target_x, _target_y;
-		bool _is_moving;
+		bool _is_moving = false;
 		bool _is_knocked_down = false;
 		enum class KnockdownPhase { None, Knocked, StandingUp };
 		KnockdownPhase _knockdown_phase = KnockdownPhase::None;
@@ -82,6 +83,41 @@ namespace Nawia::Entity {
 		Stats _current_stats;
 
 		int _gold = 0;
+	};
+
+	class PlayerBuilder : public EntityBuilder<PlayerBuilder> {
+	public:
+		PlayerBuilder(Core::Engine* engine) {
+			_player_ptr = std::unique_ptr<Player>(new Player());
+			_player_ptr->_engine = engine;
+
+			this->_entity = _player_ptr.get();
+		}
+
+		PlayerBuilder& setPosition(const Vector2 pos) {
+			EntityBuilder<PlayerBuilder>::setPosition(pos);
+			_player_ptr->_target_x = pos.x;
+			_player_ptr->_target_y = pos.y;
+			return *this;
+		}
+
+		PlayerBuilder& setX(const float x) {
+			EntityBuilder<PlayerBuilder>::setX(x);
+			_player_ptr->_target_x = x;
+			return *this;
+		}
+
+		PlayerBuilder& setY(const float y) {
+			EntityBuilder<PlayerBuilder>::setY(y);
+			_player_ptr->_target_y = y;
+			return *this;
+		}
+
+		std::unique_ptr<Player> build() {
+			return std::move(_player_ptr);
+		}
+	private:
+		std::unique_ptr<Player> _player_ptr;
 	};
 
 } // namespace Nawia::Entity

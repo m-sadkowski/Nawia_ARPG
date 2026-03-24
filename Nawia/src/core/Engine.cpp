@@ -40,7 +40,8 @@ namespace Nawia::Core {
 		// initialize player
 		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
 		Vector2 player_spawn_pos = {10.0f, -6.5f};//_map->getPlayerSpawnPos();
-		_player = std::make_shared<Entity::Player>(this, player_spawn_pos.x, player_spawn_pos.y, player_texture);
+		//_player = std::make_shared<Entity::Player>(this, player_spawn_pos.x, player_spawn_pos.y, player_texture);
+		_player = Entity::PlayerBuilder(this).setPosition(player_spawn_pos).build();
 
 		// initialize spells
 		const auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");

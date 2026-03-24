@@ -26,6 +26,18 @@ namespace Nawia::Entity {
 	};
 
 	/**
+	* @enum Faction
+	* @brief Determines friend/foe relationships for combat and AI.
+	*/
+	enum class Faction {
+		Player,   ///< Player-controlled entities
+		Enemy,    ///< Hostile to player
+		Neutral,  ///< Non-combatant
+		Ally,     ///< Friendly to player
+		None      ///< No faction (e.g., projectiles inherit caster's faction)
+	};
+
+	/**
 	 * @class Entity
 	 * @brief Base class for all game objects in the world (players, enemies, projectiles, items).
 	 * 
@@ -237,18 +249,6 @@ namespace Nawia::Entity {
 		// ═══════════════════════════════════════════════════════════════════════
 		// FACTION SYSTEM
 		// ═══════════════════════════════════════════════════════════════════════
-		
-		/**
-		 * @enum Faction
-		 * @brief Determines friend/foe relationships for combat and AI.
-		 */
-		enum class Faction {
-			Player,   ///< Player-controlled entities
-			Enemy,    ///< Hostile to player
-			Neutral,  ///< Non-combatant
-			Ally,     ///< Friendly to player
-			None      ///< No faction (e.g., projectiles inherit caster's faction)
-		};
 
 		[[nodiscard]] Faction getFaction() const { return _faction; }
 		void setFaction(Faction faction) { _faction = faction; }
@@ -258,9 +258,12 @@ namespace Nawia::Entity {
 		void setType(EntityType type) { _type = type; }
 
 	protected:
+		template <typename T> friend class EntityBuilder;
+		Entity() = default;
+
 		Vector2 _pos;
 		Vector2 _velocity;
-		float _scale;
+		float _scale = 1.0f;
 		std::shared_ptr<Texture2D> _texture;
 		EntityType _type = EntityType::None;
 		
@@ -276,28 +279,71 @@ namespace Nawia::Entity {
 		std::vector<ModelAnimation> _animations;
 		std::map<std::string, int> _animation_map;
 		
-		int _current_anim_index;
-		float _anim_frame_counter;
+		int _current_anim_index = 0;
+		float _anim_frame_counter = 0.0f;
 		float _anim_speed_multiplier = 1.0f;
 		float _anim_fps = 30.0f; // Default animation FPS
-		float _rotation;
-		bool _model_loaded;
-		bool _anim_looping;
-		bool _anim_locked;
-		bool _hovered;
+		float _rotation = 0.0f;
+		bool _model_loaded = false;
+		bool _anim_looping = true;
+		bool _anim_locked = false;
+		bool _hovered = false;
 
-		Faction _faction;
+		Faction _faction = Faction::None;
 
 		std::string _name;
 
 		// 3D Rendering Support
 		RenderTexture2D _target;
 		Camera3D _camera;
-		bool _use_3d_rendering;
+		bool _use_3d_rendering = false;
 
 		void updateAnimation(float dt);
 		
 		std::vector<std::shared_ptr<Ability>> _abilities;
+	};
+
+	template <typename Derived>
+	class EntityBuilder {
+	public:
+		EntityBuilder() = default;
+
+		Derived& setName(const std::string& name) {
+			_entity->_name = name;
+			return self();
+		}
+
+		Derived& setTexture(const std::shared_ptr<Texture> texture) {
+			_entity->_texture = texture;
+			return self();
+		}
+
+		Derived& setPosition(const Vector2 pos) {
+			_entity->_pos = pos;
+			return self();
+		}
+
+		Derived& setX(const float x) {
+			_entity->_pos.x = x;
+			return self();
+		}
+
+		Derived& setY(const float y) {
+			_entity->_pos.y = y;
+			return self();
+		}
+
+		Derived& setMaxHp(const int max_hp) {
+			_entity->_max_hp = max_hp;
+			_entity->_hp = max_hp;
+			return self();
+		}
+	protected:
+		Entity* _entity = nullptr;
+
+		Derived& self() {
+			return static_cast<Derived&>(*this);
+		}
 	};
 
 } // namespace Nawia::Entity
