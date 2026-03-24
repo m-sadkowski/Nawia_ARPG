@@ -71,6 +71,11 @@ namespace Nawia::Entity {
 		void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
 
 	protected:
+		template <typename T> friend class EnemyBuilder;
+		EnemyInterface() {
+			_type = EntityType::Enemy;
+		}
+
 		// Movement control
 		void moveTo(float x, float y);
 		void updateMovement(float dt);
@@ -101,7 +106,6 @@ namespace Nawia::Entity {
 		// Constants
 		static constexpr float DEFAULT_PATH_RECALC_INTERVAL = 0.5f;
 
-	protected:
 		// Target tracking
 		std::weak_ptr<Entity> _target;
 		float _path_recalc_timer = 0.0f;
@@ -114,6 +118,18 @@ namespace Nawia::Entity {
 		float _target_x, _target_y;
 
 		Core::Map* _map;
+	};
+
+	template <typename Derived>
+	class EnemyBuilder : public EntityBuilder<Derived> {
+	public:
+		EnemyBuilder() = default;
+
+		Derived& setMap(Core::Map* map) {
+			auto enemy_ptr = static_cast<EnemyInterface*>(this->_entity);
+			enemy_ptr->_map = map;
+			return this->self();
+		}
 	};
 
 } // namespace Nawia::Entity

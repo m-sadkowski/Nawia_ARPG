@@ -73,14 +73,21 @@ namespace Nawia::Core {
 		
 		//spawn Bandit for testing
 		const auto knife_tex = _resource_manager.getTexture("../assets/textures/knife3.png");
-		const auto bandit = std::make_shared<Entity::Bandit>(-11.21f, -21.38f, _map.get());
+		//const auto bandit = std::make_shared<Entity::Bandit>(-11.21f, -21.38f, _map.get());
+		std::shared_ptr<Entity::Bandit> bandit = Entity::BanditBuilder()
+			.setName("Bandyta")
+			.setPosition({ -11.21f, -21.38f })
+			.setMap(_map.get())
+			.setMaxHp(80)
+			.build();
+
 		bandit->setTarget(_player);
 		bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex,nullptr,nullptr));
 		_entity_manager->addEntity(bandit);
-		const auto bandit2 = std::make_shared<Entity::Bandit>(-13.f, -17.f, _map.get());
-		bandit2->setTarget(_player);
-		bandit2->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr));
-		_entity_manager->addEntity(bandit2);
+		//const auto bandit2 = std::make_shared<Entity::Bandit>(-13.f, -17.f, _map.get());
+		//bandit2->setTarget(_player);
+		//bandit2->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr));
+		//_entity_manager->addEntity(bandit2);
 
 		// spawn Walking Dead for testing
 		const auto walking_dead = std::make_shared<Entity::WalkingDead>(3.36f, 8.49f, _map.get());

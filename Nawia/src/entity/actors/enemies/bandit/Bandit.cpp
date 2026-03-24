@@ -8,6 +8,21 @@
 
 namespace Nawia::Entity {
 
+	Bandit::Bandit() {
+		setScale(0.015f);
+		setFaction(Faction::Enemy);
+
+		loadModel("../assets/models/bandit_idle.glb");
+		addAnimation("idle", "../assets/models/bandit_idle.glb");
+		addAnimation("walk", "../assets/models/bandit_walk_backwards3.glb");
+		addAnimation("throw", "../assets/models/bandit_throw.glb");
+		addAnimation("death", "../assets/models/bandit_death.glb");
+		addAnimation("get_hit", "../assets/models/bandit_hit.glb");
+
+		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
+	}
+
+	// delete
 	Bandit::Bandit(const float x, const float y, Core::Map* map)
 		: EnemyInterface("Bandit", x, y, nullptr, 80, map)
 	{
@@ -22,8 +37,6 @@ namespace Nawia::Entity {
 		addAnimation("get_hit", "../assets/models/bandit_hit.glb");
 
 		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
-
-		
 	}
 
 	void Bandit::takeDamage(const int dmg)
