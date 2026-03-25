@@ -339,12 +339,6 @@ namespace Nawia::Entity {
 			_entity->_hp = max_hp;
 			return self();
 		}
-
-		Derived& addAbility(const std::shared_ptr<Ability>& ability) {
-			ability->setCaster(this);
-			_entity->_abilities.push_back(ability);
-			return self();
-		}
 	protected:
 		Entity* _entity = nullptr;
 

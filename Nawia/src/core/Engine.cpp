@@ -84,8 +84,8 @@ namespace Nawia::Core {
 			.setMap(_map.get())
 			.setMaxHp(80)
 			.setTarget(_player)
-			.addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr))
 			.build();
+		bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr));
 		_entity_manager->addEntity(bandit);
 		//const auto bandit2 = std::make_shared<Entity::Bandit>(-13.f, -17.f, _map.get());
 		//bandit2->setTarget(_player);
@@ -93,15 +93,21 @@ namespace Nawia::Core {
 		//_entity_manager->addEntity(bandit2);
 
 		// spawn Walking Dead for testing
-		const auto walking_dead = std::make_shared<Entity::WalkingDead>(3.36f, 8.49f, _map.get());
-		walking_dead->setTarget(_player);
+		//const auto walking_dead = std::make_shared<Entity::WalkingDead>(3.36f, 8.49f, _map.get());
+		std::shared_ptr<Entity::WalkingDead> walking_dead = Entity::WalkingDeadBuilder()
+			.setName("Walking Dead")
+			.setPosition({ 3.36f, 8.49f })
+			.setMap(_map.get())
+			.setMaxHp(80)
+			.setTarget(_player)
+			.build();
 		_entity_manager->addEntity(walking_dead);
-		const auto walking_dead2 = std::make_shared<Entity::WalkingDead>(6.97f, 8.98f, _map.get());
-		walking_dead2->setTarget(_player);
-		_entity_manager->addEntity(walking_dead2);
-		const auto walking_dead3 = std::make_shared<Entity::WalkingDead>(6.79f, 11.3f, _map.get());
-		walking_dead3->setTarget(_player);
-		_entity_manager->addEntity(walking_dead3);
+		//const auto walking_dead2 = std::make_shared<Entity::WalkingDead>(6.97f, 8.98f, _map.get());
+		//walking_dead2->setTarget(_player);
+		//_entity_manager->addEntity(walking_dead2);
+		//const auto walking_dead3 = std::make_shared<Entity::WalkingDead>(6.79f, 11.3f, _map.get());
+		//walking_dead3->setTarget(_player);
+		//_entity_manager->addEntity(walking_dead3);
 		
 		// add player to entity manager so it can be hit by enemies
 		_entity_manager->addEntity(_player);
