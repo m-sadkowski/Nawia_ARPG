@@ -25,13 +25,14 @@ namespace Nawia::Entity {
 	 */
 	class Bandit : public EnemyInterface {
 	public:
-		Bandit(float x, float y, Core::Map* map);
-
 		void update(float dt) override;
 		void takeDamage(int dmg) override;
 		
 
 	private:
+		Bandit();
+		friend class BanditBuilder;
+
 		enum class State { Idle, Chasing, Casting, GettingHit, Dying };
 		State _state = State::Idle;
 		State _state_before_hit = State::Idle;
@@ -59,6 +60,21 @@ namespace Nawia::Entity {
 		void handleDyingState(float dt);
 		
 
+	};
+
+	class BanditBuilder : public EnemyBuilder<BanditBuilder> {
+	public:
+		BanditBuilder() {
+			_bandit_ptr = std::unique_ptr<Bandit>(new Bandit());
+
+			this->_entity = _bandit_ptr.get();
+		}
+
+		std::unique_ptr<Bandit> build() {
+			return std::move(_bandit_ptr);
+		}
+	private:
+		std::unique_ptr<Bandit> _bandit_ptr;
 	};
 
 } // namespace Nawia::Entity

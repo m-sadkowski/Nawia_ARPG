@@ -190,7 +190,7 @@ namespace Nawia::Core {
 	{
 		if (_player->isAnimationLocked()) return;
 
-		if (!_target_enemy || _target_enemy->isDead() || _target_enemy->getFaction() == Entity::Entity::Faction::None)
+		if (!_target_enemy || _target_enemy->isDead() || _target_enemy->getFaction() == Entity::Faction::None)
 		{
 			_target_enemy = nullptr;
 			return;
@@ -218,7 +218,7 @@ namespace Nawia::Core {
 		if (!enemy) return false;
 
 		// check target validity: alive and belongs to an enemy faction
-		if (enemy->isDead() || enemy->getFaction() == Entity::Entity::Faction::None)
+		if (enemy->isDead() || enemy->getFaction() == Entity::Faction::None)
 			return false; // treat as ground click
 
 		if (_player->isAnimationLocked())
@@ -262,7 +262,7 @@ namespace Nawia::Core {
 					// if invalid target, allow standard valid target check (or just ignore specific unit lock)
 					if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
 					{
-						if (!enemy->isDead() && enemy->getFaction() != Entity::Entity::Faction::None)
+						if (!enemy->isDead() && enemy->getFaction() != Entity::Faction::None)
 							_pending_action.target = target;
 					}
 					else
@@ -285,7 +285,7 @@ namespace Nawia::Core {
 					if (const auto target = _engine->getEntityAt(screen_x, screen_y))
 						if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
 							// only cast if valid target
-							if (!enemy->isDead() && enemy->getFaction() != Entity::Entity::Faction::None)
+							if (!enemy->isDead() && enemy->getFaction() != Entity::Faction::None)
 								useAbility(index, enemy->getCenter().x, enemy->getCenter().y);
 				break;
 

@@ -313,6 +313,7 @@ namespace Nawia::Entity {
 		return {};
 	}
 
+	// delete
 	void Entity::addAbility(const std::shared_ptr<Ability>& ability) 
 	{
 		ability->setCaster(this);

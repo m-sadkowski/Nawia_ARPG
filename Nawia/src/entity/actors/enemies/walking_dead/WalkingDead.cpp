@@ -6,9 +6,7 @@
 
 namespace Nawia::Entity {
 
-	WalkingDead::WalkingDead(const float x, const float y, Core::Map* map)
-		: EnemyInterface("Walking Dead", x, y, nullptr, 80, map)
-	{
+	WalkingDead::WalkingDead() {
 		setScale(0.015f);
 		setFaction(Faction::Enemy);
 

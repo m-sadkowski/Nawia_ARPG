@@ -8,6 +8,20 @@
 
 namespace Nawia::Entity {
 
+	Devil::Devil() {
+		setScale(0.025f);
+		setFaction(Faction::Enemy);
+
+		loadModel("../assets/models/devil_idle.glb");
+		addAnimation("idle", "../assets/models/devil_idle.glb");
+		addAnimation("walk", "../assets/models/devil_walk.glb");
+		addAnimation("run", "../assets/models/devil_run.glb");
+		addAnimation("attack", "../assets/models/devil_attack.glb");
+		addAnimation("death", "../assets/models/devil_dead.glb");
+
+		setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, -2.3f, -1.7f));
+	}
+
 	Devil::Devil(const float x, const float y, Core::Map* map)
 		: EnemyInterface("Devil", x, y, nullptr, 120, map)
 	{
