@@ -68,6 +68,7 @@ namespace Nawia::Entity {
 		 * @brief Set the target entity to track/chase.
 		 * @param target Shared pointer to target entity (usually the player)
 		 */
+		// delete
 		void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
 
 	protected:
@@ -128,6 +129,12 @@ namespace Nawia::Entity {
 		Derived& setMap(Core::Map* map) {
 			auto enemy_ptr = static_cast<EnemyInterface*>(this->_entity);
 			enemy_ptr->_map = map;
+			return this->self();
+		}
+
+		Derived& setTarget(const std::shared_ptr<Entity>& target) {
+			auto enemy_ptr = static_cast<EnemyInterface*>(this->_entity);
+			enemy_ptr->_target = target;
 			return this->self();
 		}
 	};

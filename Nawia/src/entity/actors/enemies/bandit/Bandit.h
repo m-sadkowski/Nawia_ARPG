@@ -25,8 +25,6 @@ namespace Nawia::Entity {
 	 */
 	class Bandit : public EnemyInterface {
 	public:
-		Bandit(float x, float y, Core::Map* map);
-
 		void update(float dt) override;
 		void takeDamage(int dmg) override;
 		

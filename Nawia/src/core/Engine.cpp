@@ -67,22 +67,25 @@ namespace Nawia::Core {
 		_entity_manager = std::make_unique<EntityManager>();
 
 		//spawn Devil for testing
-		const auto devil = std::make_shared<Entity::Devil>(2.5f, 2.7f, _map.get());
-		devil->setTarget(_player);
+		std::shared_ptr<Entity::Devil> devil = Entity::DevilBuilder()
+			.setName("Devil")
+			.setPosition({ 2.5f, 2.7f })
+			.setMap(_map.get())
+			.setMaxHp(120)
+			.setTarget(_player)
+			.build();
 		_entity_manager->addEntity(devil);
 		
 		//spawn Bandit for testing
 		const auto knife_tex = _resource_manager.getTexture("../assets/textures/knife3.png");
-		//const auto bandit = std::make_shared<Entity::Bandit>(-11.21f, -21.38f, _map.get());
 		std::shared_ptr<Entity::Bandit> bandit = Entity::BanditBuilder()
 			.setName("Bandyta")
 			.setPosition({ -11.21f, -21.38f })
 			.setMap(_map.get())
 			.setMaxHp(80)
+			.setTarget(_player)
+			.addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr))
 			.build();
-
-		bandit->setTarget(_player);
-		bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex,nullptr,nullptr));
 		_entity_manager->addEntity(bandit);
 		//const auto bandit2 = std::make_shared<Entity::Bandit>(-13.f, -17.f, _map.get());
 		//bandit2->setTarget(_player);

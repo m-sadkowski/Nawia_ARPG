@@ -218,6 +218,7 @@ namespace Nawia::Entity {
 		static AbilityStats getAbilityStatsFromJson(const std::string& name);
 		
 		/** @brief Add an ability to this entity's ability list. */
+		// delete
 		void addAbility(const std::shared_ptr<Ability>& ability);
 		
 		/** @brief Get ability by slot index (0-based). */
@@ -336,6 +337,12 @@ namespace Nawia::Entity {
 		Derived& setMaxHp(const int max_hp) {
 			_entity->_max_hp = max_hp;
 			_entity->_hp = max_hp;
+			return self();
+		}
+
+		Derived& addAbility(const std::shared_ptr<Ability>& ability) {
+			ability->setCaster(this);
+			_entity->_abilities.push_back(ability);
 			return self();
 		}
 	protected:

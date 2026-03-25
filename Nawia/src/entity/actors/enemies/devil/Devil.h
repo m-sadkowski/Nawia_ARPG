@@ -38,6 +38,9 @@ namespace Nawia::Entity {
 		
 
 	private:
+		Devil();
+		friend class DevilBuilder;
+
 		enum class State { Idle, Chasing, PreparingDash, Dashing, Recovering, Attacking, Dying };
 		State _state = State::Idle;
 
@@ -85,6 +88,21 @@ namespace Nawia::Entity {
 		void handleDyingState(float dt);
 		
 
+	};
+
+	class DevilBuilder : public EnemyBuilder<DevilBuilder> {
+	public:
+		DevilBuilder() {
+			_devil_ptr = std::unique_ptr<Devil>(new Devil());
+
+			this->_entity = _devil_ptr.get();
+		}
+
+		std::unique_ptr<Devil> build() {
+			return std::move(_devil_ptr);
+		}
+	private:
+		std::unique_ptr<Devil> _devil_ptr;
 	};
 
 } // namespace Nawia::Entity
