@@ -22,7 +22,11 @@ namespace Nawia::World {
 		virtual void onEnter(Core::Engine* engine) = 0;
 
 		/// @brief Called when leaving this level
-		virtual void onExit(Core::Engine* engine) {}
+		virtual void onExit(Core::Engine* engine) = 0;
+		
+		virtual void handleInput(Core::Engine* engine) {}
+		virtual void update(Core::Engine* engine, float dt) {}
+		virtual void renderUI(Core::Engine* engine) {}
 
 		/// @brief Returns the map owned by this level
 		[[nodiscard]] virtual Core::Map* getMap() const = 0;

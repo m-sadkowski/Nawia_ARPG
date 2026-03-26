@@ -28,6 +28,7 @@ namespace Nawia::Core {
 		enum class GameState {
 			Menu,           ///< Main menu
 			SettingsMenu,   ///< Settings menu overlay
+			LevelSelect,    ///< Level Selection overlay
 			Playing         ///< Gameplay
 		};
 
@@ -53,6 +54,7 @@ namespace Nawia::Core {
 		Item::Loottable& getLoottable() { return _loottable; }
 		EntityManager& getEntityManager() const { return *_entity_manager; }
 		std::shared_ptr<Entity::Player> getPlayer() const { return _player; }
+		const Camera& getCamera() const { return _camera; }
 	private:
 		void update(float delta_time);
 		void render() const;

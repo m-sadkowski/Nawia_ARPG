@@ -34,8 +34,29 @@ namespace Nawia::World {
 		}
 	}
 
+	std::vector<std::string> LevelManager::getRegisteredLevels() const {
+		std::vector<std::string> names;
+		names.reserve(_levels.size());
+		for (const auto& [name, level] : _levels) {
+			names.push_back(name);
+		}
+		return names;
+	}
+
 	Level* LevelManager::getCurrentLevel() const {
 		return _current_level.get();
+	}
+
+	void LevelManager::handleInput(Core::Engine* engine) {
+		if (_current_level) _current_level->handleInput(engine);
+	}
+
+	void LevelManager::update(Core::Engine* engine, float dt) {
+		if (_current_level) _current_level->update(engine, dt);
+	}
+
+	void LevelManager::renderUI(Core::Engine* engine) {
+		if (_current_level) _current_level->renderUI(engine);
 	}
 
 } // namespace Nawia::World

@@ -1,6 +1,8 @@
 #include "UIHandler.h"
 #include "SettingsMenu.h"
+#include "LevelSelectMenu.h"
 #include "StatsUI.h"
+
 #include <Player.h>
 #include <EntityManager.h>
 #include <Entity.h>
@@ -10,6 +12,7 @@
 #include <Settings.h>
 #include <Camera.h>
 #include <Collider.h>
+
 #include <algorithm>
 #include <iostream>
 
@@ -453,6 +456,27 @@ namespace Nawia::UI {
 
     void UIHandler::closeSettingsMenu() {
         _settings_menu.reset();
+    }
+
+    void UIHandler::renderLevelSelectMenu() const {
+        if (_level_select_menu) {
+            _level_select_menu->render(_font);
+        }
+    }
+
+    void UIHandler::openLevelSelect(const std::vector<std::string>& levels) {
+        _level_select_menu = std::make_unique<LevelSelectMenu>(levels);
+    }
+
+    void UIHandler::closeLevelSelect() {
+        _level_select_menu.reset();
+    }
+
+    std::string UIHandler::handleLevelSelectInput() {
+        if (_level_select_menu) {
+            return _level_select_menu->handleInput();
+        }
+        return "";
     }
 
     void UIHandler::renderPauseMenu() const {

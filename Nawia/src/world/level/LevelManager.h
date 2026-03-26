@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include <vector>
 
 namespace Nawia::Core {
     class Engine;
@@ -23,6 +24,12 @@ namespace Nawia::World {
 
 		void registerLevel(std::shared_ptr<Level> level);
 		void changeLevel(const std::string& name, Core::Engine* engine);
+
+		[[nodiscard]] std::vector<std::string> getRegisteredLevels() const;
+
+		void handleInput(Core::Engine* engine);
+		void update(Core::Engine* engine, float dt);
+		void renderUI(Core::Engine* engine);
 
 		[[nodiscard]] Level* getCurrentLevel() const;
 

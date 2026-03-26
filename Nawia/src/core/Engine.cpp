@@ -7,6 +7,7 @@
 #include <FireballAbility.h>
 #include <SwordSlashAbility.h>
 #include <DemoLevel.h>
+#include <DevLevel.h>
 #include <LevelManager.h>
 
 namespace Nawia::Core {
@@ -59,8 +60,9 @@ namespace Nawia::Core {
 		// initialize LevelManager
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
-		_level_manager->changeLevel("DemoLevel", this);
-
+		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
+		// We no longer changeLevel here, we wait for LevelSelect.
+		
 		_is_running = true;
 
         // initialize UI
@@ -119,7 +121,9 @@ namespace Nawia::Core {
 			const Nawia::UI::MenuAction action = _ui_handler->handleMenuInput();
             if (action == Nawia::UI::MenuAction::Play)
             {
-                _game_state = GameState::Playing;
+                _previous_state = GameState::Menu;
+                _ui_handler->openLevelSelect(_level_manager->getRegisteredLevels());
+                _game_state = GameState::LevelSelect;
             }
             else if (action == Nawia::UI::MenuAction::Settings)
             {
@@ -173,6 +177,22 @@ namespace Nawia::Core {
 			return;
 		}
 
+		if (_game_state == GameState::LevelSelect)
+		{
+			std::string selected_lvl = _ui_handler->handleLevelSelectInput();
+			
+			if (selected_lvl == "BACK") {
+				_ui_handler->closeLevelSelect();
+				_game_state = GameState::Menu;
+			}
+			else if (!selected_lvl.empty()) {
+				_ui_handler->closeLevelSelect();
+				_level_manager->changeLevel(selected_lvl, this);
+				_game_state = GameState::Playing;
+			}
+			return;
+		}
+
 		// Playing state - handle ESC for pause menu toggle
 		if (IsKeyPressed(KEY_ESCAPE)) 
 		{
@@ -213,6 +233,13 @@ namespace Nawia::Core {
 
 		_entity_manager->updateHoverState(mouse_pos.x, mouse_pos.y, _camera);
 
+		// Przekaż do levela
+		_level_manager->handleInput(this);
+		auto devLevel = dynamic_cast<World::DevLevel*>(_level_manager->getCurrentLevel());
+		if (devLevel && devLevel->isTyping()) {
+			return; // DevLevel zjada input gracza
+		}
+
 		if (!_controller)
 			return;
 
@@ -221,7 +248,7 @@ namespace Nawia::Core {
 
 	void Engine::update(const float delta_time) 
 	{
-		if (_game_state == GameState::Menu || _game_state == GameState::SettingsMenu)
+		if (_game_state == GameState::Menu || _game_state == GameState::SettingsMenu || _game_state == GameState::LevelSelect)
         {
             if (_ui_handler) _ui_handler->update(delta_time);
             return;
@@ -232,6 +259,7 @@ namespace Nawia::Core {
 
 		_camera.follow(_player.get());
         if (_ui_handler) _ui_handler->update(delta_time);
+        _level_manager->update(this, delta_time);
 		_controller->update(delta_time);
 
 		_entity_manager->updateEntities(delta_time);
@@ -273,6 +301,13 @@ namespace Nawia::Core {
                 _ui_handler->renderSettingsMenu();
             }
         }
+		else if (_game_state == GameState::LevelSelect)
+		{
+			if (_ui_handler) {
+				_ui_handler->renderMainMenu();
+				_ui_handler->renderLevelSelectMenu();
+			}
+		}
         else
         {
 		    if (!getCurrentMap() || !_player || !_entity_manager) 
@@ -294,6 +329,8 @@ namespace Nawia::Core {
             if (_show_pause_menu && _ui_handler) {
                 _ui_handler->renderPauseMenu();
             }
+
+			_level_manager->renderUI(const_cast<Engine*>(this));
 
 		    /* RENDER END */
         }

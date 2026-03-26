@@ -25,6 +25,7 @@ namespace Nawia::UI {
 
     class StatsUI;
     class SettingsMenu;
+    class LevelSelectMenu;
 
     /**
      * @enum MenuAction
@@ -62,6 +63,11 @@ namespace Nawia::UI {
         
         /// Render pause menu overlay (semi-transparent)
         void renderPauseMenu() const;
+
+        void renderLevelSelectMenu() const;
+        void openLevelSelect(const std::vector<std::string>& levels);
+        void closeLevelSelect();
+        std::string handleLevelSelectInput();
         
         /// Open settings menu with current settings
         void openSettings(const Core::Settings& settings);
@@ -103,6 +109,7 @@ namespace Nawia::UI {
         Font _font;
         
         std::unique_ptr<SettingsMenu> _settings_menu;
+        std::unique_ptr<LevelSelectMenu> _level_select_menu;
 
         std::unique_ptr<InventoryUI> _inventory_ui;
         bool _is_inventory_open = false;

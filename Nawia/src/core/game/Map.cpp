@@ -182,13 +182,16 @@ bool Map::loadTilesetFile(const std::string& tsx_path, TilesetInfo& tileset)
 		// Load tile image (for image collections)
 		if (auto* tile_image = tile->FirstChildElement("image")) {
 			if (const char* src = tile_image->Attribute("source")) {
-				if (auto tex = _resource_manager.getTexture(tsx_dir + src)) {
-					_tile_textures[gid] = tex;
-					_tile_source_rects[gid] = Rectangle{
-						0.0f, 0.0f, 
-						static_cast<float>(tex->width), 
-						static_cast<float>(tex->height)
-					};
+				std::string full_path = tsx_dir + src;
+				if (std::filesystem::exists(full_path)) {
+					if (auto tex = _resource_manager.getTexture(full_path)) {
+						_tile_textures[gid] = tex;
+						_tile_source_rects[gid] = Rectangle{
+							0.0f, 0.0f, 
+							static_cast<float>(tex->width), 
+							static_cast<float>(tex->height)
+						};
+					}
 				}
 			}
 		}
