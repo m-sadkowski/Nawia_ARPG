@@ -262,8 +262,8 @@ namespace Nawia::Entity {
 		template <typename T> friend class EntityBuilder;
 		Entity() = default;
 
-		Vector2 _pos;
-		Vector2 _velocity;
+		Vector2 _pos = {0.0f, 0.0f};
+		Vector2 _velocity = {0.0f, 0.0f};
 		float _scale = 1.0f;
 		std::shared_ptr<Texture2D> _texture;
 		EntityType _type = EntityType::None;
@@ -272,8 +272,8 @@ namespace Nawia::Entity {
 		
 		std::vector<std::shared_ptr<Entity>> _pending_spawns;
 
-		int _hp;
-		int _max_hp;
+		int _hp = 1;
+		int _max_hp = 1;
 
 		// 3D Model & Animation Data
 		Model _model;

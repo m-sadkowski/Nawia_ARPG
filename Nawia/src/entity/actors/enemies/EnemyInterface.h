@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Entity.h"
 
 #include <memory>
@@ -112,13 +112,13 @@ namespace Nawia::Entity {
 		float _path_recalc_timer = 0.0f;
 		
 		// Movement state
-		bool _is_moving;
+		bool _is_moving = false;
 		float _movement_speed = 2.0f;
 		
 		std::vector<Vector2> _path;
-		float _target_x, _target_y;
+		float _target_x = 0.0f, _target_y = 0.0f;
 
-		Core::Map* _map;
+		Core::Map* _map = nullptr;
 	};
 
 	template <typename Derived>
