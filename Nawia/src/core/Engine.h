@@ -2,7 +2,7 @@
 #include "Camera.h"
 #include "Constants.h"
 #include "EntityManager.h"
-#include "Map.h"
+#include "LevelManager.h"
 #include "ResourceManager.h"
 #include "Settings.h"
 
@@ -10,7 +10,7 @@
 #include <UIHandler.h>
 #include <ItemDatabase.h>
 #include <Loottable.h>
-#include "DialogueManager.h"
+#include <DialogueManager.h>
 
 #include <raylib.h>
 
@@ -41,9 +41,18 @@ namespace Nawia::Core {
 		void spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const;
 
 		UI::UIHandler& getUIHandler() const { return *_ui_handler; }
-		Map* getCurrentMap() const { return _map.get(); }
+		Map* getCurrentMap() const {
+			if (_level_manager && _level_manager->getCurrentLevel()) {
+				return _level_manager->getCurrentLevel()->getMap();
+			}
+			return nullptr;
+		}
 		Item::ItemDatabase& getItemDatabase() { return _item_database; }
 		Game::DialogueManager& getDialogueManager() { return _dialogue_manager; }
+		ResourceManager& getResourceManager() { return _resource_manager; }
+		Item::Loottable& getLoottable() { return _loottable; }
+		EntityManager& getEntityManager() const { return *_entity_manager; }
+		std::shared_ptr<Entity::Player> getPlayer() const { return _player; }
 	private:
 		void update(float delta_time);
 		void render() const;
@@ -60,7 +69,7 @@ namespace Nawia::Core {
 
 		ResourceManager _resource_manager;
 		Camera _camera;
-		std::unique_ptr<Map> _map;
+		std::unique_ptr<World::LevelManager> _level_manager;
 		std::unique_ptr<EntityManager> _entity_manager;
 		std::shared_ptr<Entity::Player> _player;
 		std::unique_ptr<PlayerController> _controller;

@@ -1,5 +1,6 @@
 #include "EntityManager.h"
 #include "Logger.h"
+
 #include <AbilityEffect.h>
 #include <EnemyInterface.h>
 #include <Collider.h>
@@ -14,6 +15,25 @@ namespace Nawia::Core {
     {
         _active_entities.push_back(std::move(new_entity));
     }
+
+	void EntityManager::clearNonPlayerEntities() {
+		std::vector<std::shared_ptr<Entity::Entity>> new_entities;
+		if (_player) 
+        {
+			new_entities.push_back(_player);
+		} 
+    	else 
+    	{
+			// If player is lost, we can try to find it in active entities
+			for (const auto& entity : _active_entities) {
+				if (entity->getName() == "Player") {
+					new_entities.push_back(entity);
+					break;
+				}
+			}
+		}
+		_active_entities = std::move(new_entities);
+	}
 
     std::shared_ptr<Entity::Entity> EntityManager::getEntityAt(const float screen_x, const float screen_y, const Camera camera) const
     {

@@ -1,18 +1,13 @@
-﻿#include "Engine.h"
+#include "Engine.h"
 #include "GlobalScaling.h"
 #include "Logger.h"
 #include "MathUtils.h"
 #include "PlayerController.h"
-#include "Devil.h"
-#include <Dummy.h>
-#include <WalkingDead.h>
+
 #include <FireballAbility.h>
 #include <SwordSlashAbility.h>
-#include "Bandit.h"
-#include "KnifeThrowAbility.h"
-#include "Checkpoint.h"
-#include "Chest.h"
-#include "Cat.h"
+#include <DemoLevel.h>
+#include <LevelManager.h>
 
 namespace Nawia::Core {
 
@@ -32,15 +27,15 @@ namespace Nawia::Core {
 		// Initialize UI scaling system with saved manual scale
 		GlobalScaling::setManualScale(_settings.ui_scale);
 
-		// TEMPORARY SOLUTION
-		// initialize map object
-		_map = std::make_unique<Map>(_resource_manager);
-		_map->loadMap("demo_map/demo_map.json");
+		// init item database
+		_item_database.loadDatabase("../assets/data/items.json", _resource_manager);
+		Logger::debugLog("Zaladowano baze danych przedmiotow");
+
+		// init loottables
+		_loottable.loadLootTables("../assets/data/loottables.json", _item_database);
 
 		// initialize player
-		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
-		Vector2 player_spawn_pos = {10.0f, -6.5f};//_map->getPlayerSpawnPos();
-		//_player = std::make_shared<Entity::Player>(this, player_spawn_pos.x, player_spawn_pos.y, player_texture);
+		Vector2 player_spawn_pos = {10.0f, -6.5f};
 		_player = Entity::PlayerBuilder(this).setPosition(player_spawn_pos).build();
 
 		// initialize spells
@@ -53,90 +48,20 @@ namespace Nawia::Core {
 		const auto fireball_icon = _resource_manager.getTexture("../assets/textures/icons/fireball_icon.png");
 		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
 
-		// init item database
-		_item_database.loadDatabase("../assets/data/items.json", _resource_manager);
-		Logger::debugLog("Zaladowano baze danych przedmiotow");
-
-		// init loottables
-		_loottable.loadLootTables("../assets/data/loottables.json", _item_database);
-
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
 
 		// initialize entity manager
 		_entity_manager = std::make_unique<EntityManager>();
-
-		//spawn Devil for testing
-		std::shared_ptr<Entity::Devil> devil = Entity::DevilBuilder()
-			.setName("Devil")
-			.setPosition({ 2.5f, 2.7f })
-			.setMap(_map.get())
-			.setMaxHp(120)
-			.setTarget(_player)
-			.build();
-		_entity_manager->addEntity(devil);
-		
-		//spawn Bandit for testing
-		const auto knife_tex = _resource_manager.getTexture("../assets/textures/knife3.png");
-		std::shared_ptr<Entity::Bandit> bandit = Entity::BanditBuilder()
-			.setName("Bandyta")
-			.setPosition({ -11.21f, -21.38f })
-			.setMap(_map.get())
-			.setMaxHp(80)
-			.setTarget(_player)
-			.build();
-		bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr));
-		_entity_manager->addEntity(bandit);
-		//const auto bandit2 = std::make_shared<Entity::Bandit>(-13.f, -17.f, _map.get());
-		//bandit2->setTarget(_player);
-		//bandit2->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr));
-		//_entity_manager->addEntity(bandit2);
-
-		// spawn Walking Dead for testing
-		//const auto walking_dead = std::make_shared<Entity::WalkingDead>(3.36f, 8.49f, _map.get());
-		std::shared_ptr<Entity::WalkingDead> walking_dead = Entity::WalkingDeadBuilder()
-			.setName("Walking Dead")
-			.setPosition({ 3.36f, 8.49f })
-			.setMap(_map.get())
-			.setMaxHp(80)
-			.setTarget(_player)
-			.build();
-		_entity_manager->addEntity(walking_dead);
-		//const auto walking_dead2 = std::make_shared<Entity::WalkingDead>(6.97f, 8.98f, _map.get());
-		//walking_dead2->setTarget(_player);
-		//_entity_manager->addEntity(walking_dead2);
-		//const auto walking_dead3 = std::make_shared<Entity::WalkingDead>(6.79f, 11.3f, _map.get());
-		//walking_dead3->setTarget(_player);
-		//_entity_manager->addEntity(walking_dead3);
-		
-		// add player to entity manager so it can be hit by enemies
 		_entity_manager->addEntity(_player);
+		_entity_manager->setPlayer(_player);
+
+		// initialize LevelManager
+		_level_manager = std::make_unique<World::LevelManager>();
+		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
+		_level_manager->changeLevel("DemoLevel", this);
 
 		_is_running = true;
-
-		const auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png");
-		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", -13.44f, -21.44f, chest_tex);
-		test_chest->initializeInventory(_loottable, Item::LOOTTABLE_TYPE::CHEST_NOOB);
-		_entity_manager->addEntity(test_chest);
-
-		// David's Chest
-		const auto david_chest = std::make_shared<Entity::Chest>("Skrzynia Davida", 2.f, -1.f, chest_tex);
-		// 6 = Fish
-		if (const auto fish = _item_database.createItem(6)) david_chest->addItem(fish);
-		david_chest->setLocked(true, 5); // 5 = David's Key
-		_entity_manager->addEntity(david_chest);
-
-		const auto cat_tex = _resource_manager.getTexture("../assets/textures/chest.png");
-		auto cat = std::make_shared<Entity::Cat>("Kot Olga", 0.35f, -18.23f, chest_tex);
-		_dialogue_manager.createCatDialogue(this, cat.get());
-		cat->initializeInventory(_loottable, Item::LOOTTABLE_TYPE::CAT);
-
-		_entity_manager->addEntity(cat);
-
-		// 2. Checkpoint (InteractiveTrigger)
-		auto test_checkpoint = std::make_shared<Entity::Checkpoint>("Punkt Kontrolny", 20.0f, 20.0f);
-		_entity_manager->addEntity(test_checkpoint);
-		_entity_manager->setPlayer(_player);
 
         // initialize UI
         _ui_handler = std::make_unique<Nawia::UI::UIHandler>();
@@ -350,7 +275,7 @@ namespace Nawia::Core {
         }
         else
         {
-		    if (!_map || !_player || !_entity_manager) 
+		    if (!getCurrentMap() || !_player || !_entity_manager) 
 		    {
 			    EndDrawing();
 			    return;
@@ -360,7 +285,7 @@ namespace Nawia::Core {
 
 		    // BeginMode2D(_camera); // If we use Raylib Camera2D, otherwise manual offset
 
-		    _map->render(_camera.x, _camera.y);
+		    getCurrentMap()->render(_camera.x, _camera.y);
 		    _entity_manager->renderEntities(_camera);
             
             if (_ui_handler) _ui_handler->render(_camera);

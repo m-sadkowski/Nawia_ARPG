@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "Collider.h"
 
+#include <Map.h>
 #include <Constants.h>
 #include <MathUtils.h>
 #include <Engine.h>

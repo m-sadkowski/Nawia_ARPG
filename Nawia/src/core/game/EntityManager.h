@@ -16,11 +16,12 @@ namespace Nawia::Core {
 		/// Get all active entities (for rendering health bars, etc.)
 		[[nodiscard]] const std::vector<std::shared_ptr<Entity::Entity>>& getEntities() const { return _active_entities; }
 
-	private:
 		// Core management
 		void addEntity(std::shared_ptr<Entity::Entity> new_entity);
 		void setPlayer(std::shared_ptr<Entity::Entity> player) { _player = std::move(player); }
+		void clearNonPlayerEntities();
 
+	private:
 		// Game Loop methods
 		void updateEntities(float delta_time);
 		void renderEntities(const Camera& camera) const;
