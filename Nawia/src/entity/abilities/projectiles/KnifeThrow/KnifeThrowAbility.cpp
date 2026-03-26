@@ -15,7 +15,7 @@ namespace Nawia::Entity {
 
 		startCooldown();
 
-		return std::make_unique<Projectile>("Knife Projectile", _caster->getCollider()->getPosition().x, _caster->getCollider()->getPosition().y, target_x, target_y, _texture, _hit_texture, _stats, _caster);
+		return std::make_unique<Projectile>("Knife Projectile", _caster->getCenter().x, _caster->getCenter().y, target_x, target_y, _texture, _hit_texture, _stats, _caster);
 	}
 
 } // namespace Nawia::Entity

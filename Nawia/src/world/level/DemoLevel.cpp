@@ -24,7 +24,7 @@ namespace Nawia::World {
 
 		// initialize map object
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
-		_map->loadMap("demo_map/demo_map.json");
+		_map->loadPlaceholder();
 
 		auto& rm = engine->getResourceManager();
 		auto& em = engine->getEntityManager();

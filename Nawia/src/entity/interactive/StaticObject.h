@@ -15,7 +15,7 @@ namespace Nawia::Entity {
 		~StaticObject() override = default;
 
 		void update(float delta_time) override;
-		void render(float offset_x, float offset_y) override;
+		void render(const Camera3D& camera) override;
 	};
 
 	class StaticObjectBuilder : public EntityBuilder<StaticObjectBuilder> {

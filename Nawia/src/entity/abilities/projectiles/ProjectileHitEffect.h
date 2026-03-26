@@ -11,7 +11,7 @@ namespace Nawia::Entity {
         ProjectileHitEffect(float x, float y, const std::shared_ptr<Texture2D>& tex);
 
         void update(float dt) override;
-        void render(float offset_x, float offset_y) override;
+        void render(const Camera3D& camera) override;
 
         // No collision needed for visual effect
         [[nodiscard]] bool checkCollision(const std::shared_ptr<Entity>& target) const override { return false; }

@@ -16,7 +16,7 @@ namespace Nawia::Entity {
         setFaction(Faction::None);
         this->setScale(0.03f);
         loadModel("../assets/models/cat_bounce.glb", false);
-        setCollider(std::make_unique<RectangleCollider>(this, 0.8f, 0.4f, -1.6f, -0.8f));
+        setCollider(std::make_unique<RectangleCollider>(this, 0.8f, 0.4f, 0.0f, 0.0f));
         playAnimation("default");
 
         _inventory = std::make_unique<Item::Backpack>(_inv_size);
@@ -92,9 +92,9 @@ namespace Nawia::Entity {
         Entity::update(delta_time);
     }
 
-    void Cat::render(const float offset_x, const float offset_y)
+    void Cat::render(const Camera3D& camera)
 	{
-        Entity::render(offset_x, offset_y);
+        Entity::render(camera);
     }
 
     float Cat::getInteractionRange()

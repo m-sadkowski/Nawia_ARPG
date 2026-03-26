@@ -24,12 +24,12 @@ namespace Nawia::Core {
 	private:
 		// Game Loop methods
 		void updateEntities(float delta_time);
-		void renderEntities(const Camera& camera) const;
+		void renderEntities(const Camera3D& camera) const;
 		void handleEntitiesCollisions() const;
 
 		// Input 
-		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, Camera camera) const;
-		void updateHoverState(float screen_x, float screen_y, const Camera& camera);
+		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, const Camera3D& camera) const;
+		void updateHoverState(float screen_x, float screen_y, const Camera3D& camera);
 
 		// For collisions
 		void processAbilityCollisions() const;

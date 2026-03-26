@@ -1,33 +1,50 @@
-﻿#pragma once
+#pragma once
 #include "Constants.h"
 
 #include <Entity.h>
+#include <raylib.h>
 
 namespace Nawia::Core
 {
 
-	struct Camera
+	/**
+	 * @class GameCamera
+	 * @brief Wraps Raylib Camera3D with isometric-like follow behavior.
+	 *
+	 * The camera looks down at an angle, following the player on the XZ plane.
+	 * Entity positions use Vector2{x, y} which maps to world 3D as {x, 0, y}.
+	 */
+	struct GameCamera
 	{
-		float x = 0.0f;
-		float y = 0.0f;
+		Camera3D cam3d = {};
+
+		GameCamera()
+		{
+			cam3d.position = Vector3{ 0.0f, CAMERA_HEIGHT, CAMERA_DISTANCE };
+			cam3d.target = Vector3{ 0.0f, 0.0f, 0.0f };
+			cam3d.up = Vector3{ 0.0f, 1.0f, 0.0f };
+			cam3d.fovy = CAMERA_FOV;
+			cam3d.projection = CAMERA_PERSPECTIVE;
+		}
 
 		void follow(const Entity::Entity* target)
 		{
 			if (!target) return;
 
 			const float world_x = target->getX();
-			const float world_y = target->getY();
+			const float world_z = target->getY(); // Entity Y maps to world Z
 
-			const float player_iso_x = (world_x - world_y) * (TILE_WIDTH / 2.0f);
-			const float player_iso_y = (world_x + world_y) * (TILE_HEIGHT / 2.0f);
-
-			// Use actual screen dimensions for proper centering after resolution change
-			const float screen_width = static_cast<float>(GetScreenWidth());
-			const float screen_height = static_cast<float>(GetScreenHeight());
-
-			x = (screen_width / 2.0f) - player_iso_x;
-			y = (screen_height / 2.0f) - player_iso_y;
+			cam3d.target = Vector3{ world_x, 0.0f, world_z };
+			cam3d.position = Vector3{
+				world_x - CAMERA_DISTANCE * 0.7f,
+				CAMERA_HEIGHT,
+				world_z + CAMERA_DISTANCE * 0.7f
+			};
 		}
+
+		/// Get the underlying Camera3D for Raylib calls
+		[[nodiscard]] const Camera3D& get() const { return cam3d; }
+		[[nodiscard]] Camera3D& get() { return cam3d; }
 	};
 
 } // namespace Nawia::Core

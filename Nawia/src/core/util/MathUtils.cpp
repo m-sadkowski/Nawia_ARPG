@@ -1,20 +1,37 @@
 #include "MathUtils.h"
-#include "Map.h"
+#include <raymath.h>
+#include <cmath>
 
 namespace Nawia::Core {
 
-    Vector2 screenToIso(const float mouse_x, const float mouse_y, const float offset_x, const float offset_y) 
+    Vector2 screenToWorld(const Camera3D& camera, const float screen_x, const float screen_y)
     {
-        float adj_x = mouse_x - offset_x;
-        const float adj_y = mouse_y - offset_y;
+        // Get a ray from the screen point through the camera
+        const Ray ray = GetScreenToWorldRay({screen_x, screen_y}, camera);
 
-        constexpr float half_width = TILE_WIDTH / 2.0f;
-        constexpr float half_height = TILE_HEIGHT / 2.0f;
+        // Intersect with the ground plane Y = 0
+        // ray.position + t * ray.direction, solve for y = 0:
+        // ray.position.y + t * ray.direction.y = 0
+        // t = -ray.position.y / ray.direction.y
 
-        const float iso_x = (adj_y / half_height + adj_x / half_width) / 2.0f;
-        const float iso_y = (adj_y / half_height - adj_x / half_width) / 2.0f;
+        if (std::abs(ray.direction.y) < 0.0001f)
+        {
+            // Ray is parallel to the ground plane, return camera target projection
+            return { camera.target.x, camera.target.z };
+        }
 
-        return { iso_x, iso_y };
+        const float t = -ray.position.y / ray.direction.y;
+
+        if (t < 0.0f)
+        {
+            // Intersection is behind the camera
+            return { camera.target.x, camera.target.z };
+        }
+
+        const float world_x = ray.position.x + t * ray.direction.x;
+        const float world_z = ray.position.z + t * ray.direction.z;
+
+        return { world_x, world_z };
     }
 
 } // namespace Nawia::Core

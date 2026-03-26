@@ -19,7 +19,7 @@ namespace Nawia::Entity {
 		addAnimation("scream", "../assets/models/walking_dead_scream.glb");
 		addAnimation("get_hit", "../assets/models/walking_dead_hit.glb");
 
-		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
+		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, 0.0f, 0.0f));
 	}
 
 	void WalkingDead::takeDamage(const int dmg)
@@ -141,20 +141,19 @@ namespace Nawia::Entity {
 		setMovementSpeed(current_speed);
 		
 		// Get target position
-		const Vector2 target_pos = target->getCollider() ? target->getCollider()->getPosition() : target->getCenter();
+		const Vector2 target_pos = target->getCenter();
 		
 		// If close enough, use direct movement with validation
 		if (dist <= DIRECT_MOVE_DISTANCE)
 		{
 			_is_moving = false;  // Stop pathfinding movement
-			const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
+			const Vector2 my_pos = getCenter();
 			const Vector2 dir = Vector2Normalize(Vector2Subtract(target_pos, my_pos));
 			
 			rotateTowards(target->getX(), target->getY());
 			
-			const Vector2 movement = getValidatedMovement(_pos, dir, current_speed, dt);
-			_pos.x += movement.x;
-			_pos.y += movement.y;
+			_pos.x += dir.x * current_speed * dt;
+			_pos.y += dir.y * current_speed * dt;
 		}
 		else
 		{

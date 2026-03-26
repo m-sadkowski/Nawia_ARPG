@@ -54,7 +54,7 @@ namespace Nawia::Core {
 		Item::Loottable& getLoottable() { return _loottable; }
 		EntityManager& getEntityManager() const { return *_entity_manager; }
 		std::shared_ptr<Entity::Player> getPlayer() const { return _player; }
-		const Camera& getCamera() const { return _camera; }
+		const GameCamera& getCamera() const { return _camera; }
 	private:
 		void update(float delta_time);
 		void render() const;
@@ -65,12 +65,12 @@ namespace Nawia::Core {
 
 		bool _is_running;
 		GameState _game_state;
-		bool _show_pause_menu = false;  ///< ESC menu overlay during gameplay
-		GameState _previous_state = GameState::Menu;  ///< State before opening settings
+		bool _show_pause_menu = false;
+		GameState _previous_state = GameState::Menu;
 		Settings _settings;
 
 		ResourceManager _resource_manager;
-		Camera _camera;
+		GameCamera _camera;
 		std::unique_ptr<World::LevelManager> _level_manager;
 		std::unique_ptr<EntityManager> _entity_manager;
 		std::shared_ptr<Entity::Player> _player;

@@ -16,7 +16,7 @@ namespace Nawia::Entity {
 
 namespace Nawia::Core {
     class EntityManager;
-    struct Camera;
+    struct GameCamera;
     class Settings;
     class ResourceManager;
 }
@@ -50,7 +50,7 @@ namespace Nawia::UI {
         void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager);
         
         void update(float dt);
-        void render(const Core::Camera& camera);
+        void render(const Core::GameCamera& camera);
         void renderMainMenu() const;
         void renderSettingsMenu() const;
         
@@ -99,7 +99,7 @@ namespace Nawia::UI {
     private:
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
-        void renderEnemyHealthBars(const Core::Camera& camera) const;
+        void renderEnemyHealthBars(const Core::GameCamera& camera) const;
         
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;
         void drawMenuButton(const Rectangle& rect, const char* text, bool is_hovered) const;

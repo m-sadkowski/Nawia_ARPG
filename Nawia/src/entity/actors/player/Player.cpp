@@ -26,8 +26,8 @@ namespace Nawia::Entity {
 		playAnimation("default"); // play idle
 		setAnimationSpeed(1.0f);
 
-		// add collider
-		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
+		// Collider with zero offset (clean 3D coordinates)
+		setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.5f, 0.0f, 0.0f));
 
 		// init backpack and eq
 		_backpack = std::make_unique<Item::Backpack>(INIT_BACKPACK_SIZE);
@@ -36,7 +36,7 @@ namespace Nawia::Entity {
 		_base_stats.max_hp = 100;
 		_base_stats.damage = 10;
 		_base_stats.attack_speed = 1.0f;
-		_base_stats.movement_speed = 4.0f;  // Base movement speed
+		_base_stats.movement_speed = 4.0f;
 		_base_stats.tenacity = 0;
 
 		recalculateStats();
@@ -44,61 +44,25 @@ namespace Nawia::Entity {
 
 	void Player::moveTo(const float x, const float y)
 	{
-		// Adjusted target so that the CENTER of the collider lands on the click point, not the feet.
-		const Vector2 center = getCenter();
-		const float offset_x = center.x - getX();
-		const float offset_y = center.y - getY();
+		_target_x = x;
+		_target_y = y;
 
-		Core::Map* map = _engine->getCurrentMap();
-
-		const Vector2 start_world = { center.x, center.y };
-		// We want the center to end up at (x, y)
-		const Vector2 end_world = { x, y };
-
-		// Check if target is walkable
-		if (map && !map->isWalkable(x, y))
-			return;
-
-		_target_x = x - offset_x;
-		_target_y = y - offset_y;
+		const float dx = _target_x - getX();
+		const float dy = _target_y - getY();
 		
-		if (map) 
-		{
-			_path = map->findPath(start_world, end_world);
-			if (!_path.empty())
-				// Ensure the final point is exactly the requested pixel coordinates
-				_path.back() = end_world;
-			
-		} 
-		else 
-		{
-			_path.clear();
-		}
-
-		if (_path.empty()) 
-		{
-			// If pathfinding failed just stop
-			const float dx = _target_x - getX();
-			const float dy = _target_y - getY();
-			if (dx * dx + dy * dy > 0.001f) 
-			{
-				_is_moving = true;
-			} 
-			else 
-			{
-				_is_moving = false;
-				
-				if (!isAnimationLocked())
-				{
-					setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
-					playAnimation("default");
-				}
-				return;
-			}
-		} 
-		else 
+		if (dx * dx + dy * dy > 0.001f) 
 		{
 			_is_moving = true;
+		} 
+		else 
+		{
+			_is_moving = false;
+			if (!isAnimationLocked())
+			{
+				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+				playAnimation("default");
+			}
+			return;
 		}
 
 		if (_is_moving && !isAnimationLocked()) 
@@ -158,63 +122,23 @@ namespace Nawia::Entity {
 			setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
 			playAnimation("walk");
 		}
-		
-		Vector2 current_target_world;
-		
-		if (!_path.empty()) 
-		{
-			// Move towards next path node
-			current_target_world = _path.front();
-		} 
-		else 
-		{
-			// Move towards final request target
-			const Vector2 center = getCenter();
-			const float offset_x = center.x - getX();
-			const float offset_y = center.y - getY();
-			current_target_world.x = _target_x + offset_x;
-			current_target_world.y = _target_y + offset_y;
-		}
 
-		// Calculate direction
-		const Vector2 center = getCenter();
-		const float dx = current_target_world.x - center.x;
-		const float dy = current_target_world.y - center.y;
-		const float distance_sq = dx * dx + dy * dy;
-		const float distance = std::sqrt(distance_sq);
+		// Calculate direction to target (straight-line movement)
+		const float dx = _target_x - getX();
+		const float dy = _target_y - getY();
+		const float distance = std::sqrt(dx * dx + dy * dy);
 
 		// Rotate towards target
-		if (distance_sq > 0.001f)
-			rotateTowardsCenter(current_target_world.x, current_target_world.y);
-
-		// Move
-		// If we are close enough to current target node
-		if (distance < 0.1f * (_current_stats.movement_speed / 4.0f)) // threshold proportional to speed
-		{ 
-			if (!_path.empty()) {
-				// Reached this node, pop it
-				_path.erase(_path.begin());
-			} 
-			else 
-			{
-				// Reached final target
-				_is_moving = false;
-				_pos.x = _target_x;
-				_pos.y = _target_y;
-				
-				if (!isAnimationLocked())
-					playAnimation("default");
-				return;
-			}
-		}
+		if (distance > 0.001f)
+			rotateTowards(_target_x, _target_y);
 
 		// Apply velocity
 		const float speed = _current_stats.movement_speed;
 		const float move_dist = speed * delta_time;
 
-		if (move_dist >= distance && _path.empty()) 
+		if (move_dist >= distance) 
 		{
-			// We will overshoot final target, just snap
+			// Snap to target
 			_pos.x = _target_x;
 			_pos.y = _target_y;
 			_is_moving = false;
@@ -237,7 +161,6 @@ namespace Nawia::Entity {
 
 		if (const auto old_item = _equipment->equip(item)) 
 			_backpack->addItem(old_item);
-			// todo what if backpack full (player somehow picked up item while equip)
 
 		recalculateStats();
 	}
@@ -258,7 +181,6 @@ namespace Nawia::Entity {
 	{
 		_current_stats = _base_stats;
 		
-		// Check all slots  
 		for (int i = 1; i <= 8; ++i) 
 		{
 			if (const auto item = _equipment->getItemAt(static_cast<Item::EquipmentSlot>(i)))

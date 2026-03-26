@@ -21,7 +21,7 @@ namespace Nawia::World {
 		Core::Logger::debugLog("Ladowanie poziomu DevLevel...");
 
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
-		_map->loadMap("demo_map/demo_map.json"); // Using demo map
+		_map->loadPlaceholder(); // Use placeholder 3D plane
 
 		auto& em = engine->getEntityManager();
 		em.clearNonPlayerEntities();
@@ -62,12 +62,11 @@ namespace Nawia::World {
 				_input_text = "";
 			}
 		} else {
-			// Sprawdzamy, czy wcisnieto LPM (oraz blokujemy w Engine ruch jesli klikniemy - patrz update w Engine.cpp)
 			if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
 				Vector2 mouse_pos = GetMousePosition();
 				
-				// Transform screen pos to Isometric World
-				_saved_iso_pos = Core::screenToIso(mouse_pos.x, mouse_pos.y, engine->getCamera().x, engine->getCamera().y);
+				// Transform screen pos to world using ray-cast
+				_saved_iso_pos = Core::screenToWorld(engine->getCamera().get(), mouse_pos.x, mouse_pos.y);
 				
 				_is_typing = true;
 				_input_text = "";
@@ -81,7 +80,6 @@ namespace Nawia::World {
 
 	void DevLevel::renderUI(Core::Engine* engine) {
 		if (_is_typing) {
-			// Draw input box in screen center
 			int screen_w = GetScreenWidth();
 			int screen_h = GetScreenHeight();
 			
@@ -98,7 +96,7 @@ namespace Nawia::World {
 			DrawText("Podaj nazwe propa (zapisze sie do static_objects_dev.json):", box_x + 10, box_y + 10, 16, RAYWHITE);
 			DrawText(_input_text.c_str(), box_x + 10, box_y + 50, 30, GREEN);
 			
-			std::string coords_text = "X: " + std::to_string(_saved_iso_pos.x) + " Y: " + std::to_string(_saved_iso_pos.y);
+			std::string coords_text = "X: " + std::to_string(_saved_iso_pos.x) + " Z: " + std::to_string(_saved_iso_pos.y);
 			DrawText(coords_text.c_str(), box_x + 10, box_y + box_h + 10, 16, GREEN);
 		}
 	}

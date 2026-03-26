@@ -1,4 +1,4 @@
-﻿#include "Chest.h"
+#include "Chest.h"
 #include <iostream>
 #include <InteractiveClickable.h>
 #include "Player.h"
@@ -13,8 +13,7 @@ namespace Nawia::Entity {
     {
         _type = EntityType::Chest;
         setFaction(Faction::None);
-        _use_3d_rendering = false;
-        setCollider(std::make_unique<RectangleCollider>(this, 0.9f, 0.4f, -0.5f, -0.5f));
+        setCollider(std::make_unique<RectangleCollider>(this, 0.9f, 0.4f, 0.0f, 0.0f));
 
         _inventory = std::make_unique<Item::Backpack>(CHEST_INV_SIZE);
     }
@@ -92,10 +91,9 @@ namespace Nawia::Entity {
         Entity::update(delta_time);
     }
 
-    void Chest::render(const float offset_x, const float offset_y) 
+    void Chest::render(const Camera3D& camera) 
 	{
-        Entity::render(offset_x, offset_y);
-
+        Entity::render(camera);
     }
 
     float Chest::getInteractionRange()

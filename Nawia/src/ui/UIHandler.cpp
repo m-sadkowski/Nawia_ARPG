@@ -42,34 +42,9 @@ namespace Nawia::UI {
             };
         }
 
-        float getHealthBarYOffset(const Entity::Entity& entity) 
-    	{
-            float y_offset = Core::TILE_HEIGHT; // Default fallback for no collider
-
-            if (const auto collider = entity.getCollider()) 
-            {
-                // Convert world units to approximate screen pixels where 1 unit ~ TILE_HEIGHT pixels roughly in verticality
-                constexpr float world_to_screen_factor = static_cast<float>(Core::TILE_HEIGHT);
-                switch (collider->getType()) 
-            	{
-                    case Entity::ColliderType::CIRCLE:
-                        if (const auto circle = dynamic_cast<const Entity::CircleCollider*>(collider)) 
-                            y_offset = (circle->getRadius() * world_to_screen_factor);
-                        break;
-                    case Entity::ColliderType::RECTANGLE:
-                        if (const auto rect = dynamic_cast<const Entity::RectangleCollider*>(collider)) 
-                            y_offset = (rect->getHeight() / 2.0f * world_to_screen_factor);
-                        break;
-                    case Entity::ColliderType::CONE:
-                        if (const auto cone = dynamic_cast<const Entity::ConeCollider*>(collider))
-                            y_offset = (cone->getRadius() * world_to_screen_factor);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            return y_offset + Core::TILE_HEIGHT;
-        }
+        // Health bar is positioned above the entity in screen space
+        // We use a fixed pixel offset above the projected screen position
+        constexpr float HEALTH_BAR_Y_OFFSET = 60.0f;
     }
 
     UIHandler::UIHandler() : _player(nullptr), _entity_manager(nullptr) {}
@@ -201,7 +176,7 @@ namespace Nawia::UI {
         return MenuAction::None;
     }
 
-    void UIHandler::render(const Core::Camera& camera) 
+    void UIHandler::render(const Core::GameCamera& camera) 
 	{
         if (!_player || !_entity_manager) return;
 
@@ -334,7 +309,7 @@ namespace Nawia::UI {
         DrawTextEx(_font, text, { screen_x + (bar_width - text_size.x) / 2.0f, screen_y + (bar_height - text_size.y) / 2.0f }, font_size, text_spacing, WHITE);
     }
 
-    void UIHandler::renderEnemyHealthBars(const Core::Camera& camera) const 
+    void UIHandler::renderEnemyHealthBars(const Core::GameCamera& camera) const 
 	{
         if (!_entity_manager) return;
 
@@ -344,17 +319,15 @@ namespace Nawia::UI {
                 entity->getHP() < entity->getMaxHP() && 
                 entity->getHP() > 0) 
             {
-                // Use collider center (or entity pos) projected to screen space, then offset upwards
-                const Vector2 world_center = entity->getCenter();
-                const Vector2 screen_center = entity->getIsoPos(world_center.x, world_center.y, camera.x, camera.y);
+                // Project entity world position to screen
+                const Vector2 screen_pos = entity->getScreenPosition(camera.get());
                 
                 // Bar Config (scaled)
                 const float bar_width = Core::GlobalScaling::scaled(40.0f);
                 const float bar_height = Core::GlobalScaling::scaled(6.0f);
                 
-                const float y_offset = getHealthBarYOffset(*entity) * Core::GlobalScaling::getScale();
-                const float bar_x = screen_center.x - bar_width / 2.0f;
-                const float bar_y = screen_center.y - y_offset;
+                const float bar_x = screen_pos.x - bar_width / 2.0f;
+                const float bar_y = screen_pos.y - HEALTH_BAR_Y_OFFSET * Core::GlobalScaling::getScale();
                 
                 const float hp_pct = std::clamp(static_cast<float>(entity->getHP()) / static_cast<float>(entity->getMaxHP()), 0.0f, 1.0f);
                 

@@ -24,7 +24,6 @@ namespace Nawia::Core {
 		} 
     	else 
     	{
-			// If player is lost, we can try to find it in active entities
 			for (const auto& entity : _active_entities) {
 				if (entity->getName() == "Player") {
 					new_entities.push_back(entity);
@@ -35,38 +34,36 @@ namespace Nawia::Core {
 		_active_entities = std::move(new_entities);
 	}
 
-    std::shared_ptr<Entity::Entity> EntityManager::getEntityAt(const float screen_x, const float screen_y, const Camera camera) const
+    std::shared_ptr<Entity::Entity> EntityManager::getEntityAt(const float screen_x, const float screen_y, const Camera3D& camera) const
     {
-        // Iterate backwards to click the "top-most" entity first (rendering order usually)
+        // Iterate backwards to click the "top-most" entity first
         for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) {
-            if ((*it)->isMouseOver(screen_x, screen_y, camera.x, camera.y))
+            if ((*it)->isMouseOver(screen_x, screen_y, camera))
                 return *it;
         }
         return nullptr;
     }
 
-    void EntityManager::updateHoverState(const float screen_x, const float screen_y, const Camera& camera)
+    void EntityManager::updateHoverState(const float screen_x, const float screen_y, const Camera3D& camera)
     {
         // 1. Reset hover state for all active entities
         for (const auto& entity : _active_entities)
             entity->setHovered(false);
 
         // 2. Find the top-most entity under the cursor
-        // Iterate backwards to prioritize entities drawn on top
         for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) 
         {
-            if ((*it)->isMouseOver(screen_x, screen_y, camera.x, camera.y)) {
-                // Core::Logger::debugLog("Hovered Entity: " + (*it)->getName());
+            if ((*it)->isMouseOver(screen_x, screen_y, camera)) {
                 (*it)->setHovered(true);
-                return; // Found the top-most entity, stop searching
+                return;
             }
         }
     }
 
-    void EntityManager::renderEntities(const Camera& camera) const
+    void EntityManager::renderEntities(const Camera3D& camera) const
     {
         for (const auto& entity : _active_entities)
-            entity->render(camera.x, camera.y);
+            entity->render(camera);
     }
 
     void EntityManager::updateEntities(const float delta_time)
@@ -88,7 +85,7 @@ namespace Nawia::Core {
         }
     }
 
-    // --- Collision System Refactor ---
+    // --- Collision System ---
 
     void EntityManager::handleEntitiesCollisions() const
     {
@@ -101,10 +98,8 @@ namespace Nawia::Core {
     {
         for (auto& entity1 : _active_entities)
         {
-            // check if not projectile
             if (entity1->getType() != Entity::EntityType::Projectile) continue;
 
-            // static cast is safe since checked with EntityType
             auto ability = std::static_pointer_cast<Entity::AbilityEffect>(entity1);
             if (ability->isExpired()) continue;
 
@@ -114,7 +109,6 @@ namespace Nawia::Core {
 
                 Entity::EntityType targetType = entity2->getType();
 
-                // ignore other projectiles, chests and checkpoints
                 if (targetType == Entity::EntityType::Projectile ||
                     targetType == Entity::EntityType::Chest ||
                     targetType == Entity::EntityType::Trigger ||
@@ -137,7 +131,6 @@ namespace Nawia::Core {
 
             if (const auto trigger = dynamic_cast<Entity::InteractiveTrigger*>(entity.get())) 
             {
-                // Ensure trigger has a collider before checking
                 if (trigger->getCollider() &&  trigger->getCollider()->checkCollision(_player->getCollider()))
                 {
                     trigger->onTriggerEnter(*_player);
@@ -165,7 +158,6 @@ namespace Nawia::Core {
         }
     }
 
-    // Helper to filter entities that participate in physics - Player and Enemy
     bool EntityManager::isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& e) const
     {
         if (e->isDead() || !e->getCollider()) return false;
@@ -193,18 +185,16 @@ namespace Nawia::Core {
 
         if (overlap.width <= 0 || overlap.height <= 0) return;
 
-        // Determine smallest axis of penetration
         if (overlap.width < overlap.height)
         {
             const float separation = overlap.width * 0.5f;
-            // Push apart horizontally
             if (r1_rect.x < r2_rect.x) 
             {
                 e1->setX(e1->getX() - separation);
                 e2->setX(e2->getX() + separation);
             }
             else 
-            	{
+            {
                 e1->setX(e1->getX() + separation);
                 e2->setX(e2->getX() - separation);
             }
@@ -212,14 +202,13 @@ namespace Nawia::Core {
         else
         {
             const float separation = overlap.height * 0.5f;
-            // Push apart vertically
             if (r1_rect.y < r2_rect.y) 
             {
                 e1->setY(e1->getY() - separation);
                 e2->setY(e2->getY() + separation);
             }
             else 
-            	{
+            {
                 e1->setY(e1->getY() + separation);
                 e2->setY(e2->getY() - separation);
             }

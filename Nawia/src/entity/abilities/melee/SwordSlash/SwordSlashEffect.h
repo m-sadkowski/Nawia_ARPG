@@ -11,7 +11,7 @@ namespace Nawia::Entity {
 		SwordSlashEffect(float x, float y, float angle, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats, Entity* caster);
 
 		void update(float dt) override;
-		void render(float camera_x, float camera_y) override;
+		void render(const Camera3D& camera) override;
 
 		[[nodiscard]] float getAngle() const { return _angle; }
 		[[nodiscard]] bool checkCollision(const std::shared_ptr<Entity>& target) const override;

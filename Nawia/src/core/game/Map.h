@@ -1,108 +1,58 @@
 #pragma once
-#include "Constants.h"
-#include "MathUtils.h"
 #include "ResourceManager.h"
 
 #include <raylib.h>
-#include <json.hpp>
 #include <string>
 #include <vector>
-#include <unordered_map>
-#include <memory>
 
 namespace Nawia::Core {
 
 	/**
-	 * Stores metadata about a single tileset loaded from .tsx file
-	 */
-	struct TilesetInfo {
-		int firstgid = 0;
-		int tilecount = 0;
-		std::string source;
-		std::unordered_map<int, bool> tile_walkable;  // local_id -> isWalkable
-	};
-
-	/**
-	 * Manages loading and rendering of Tiled maps with multiple layers.
-	 * 
-	 * Supports:
-	 * - 3 visual layers: ground, on_ground, over_ground (rendered in order)
-	 * - 1 logical layer: walkability (not rendered, used for collision)
-	 * - Multiple tilesets in .tsx format
-	 * - Infinite maps with chunks
+	 * @class Map
+	 * @brief Loads and renders a 3D map model (.glb) or a procedural placeholder.
+	 *
+	 * The map is a 3D model placed at origin. Entity movement happens on the XZ plane (Y=0).
+	 * Walkability and pathfinding will be added in a later phase.
 	 */
 	class Map {
 	public:
-		struct Node {
-			int x, y;
-			float g_cost, h_cost;
-			std::shared_ptr<Node> parent;
-
-			float f_cost() const { return g_cost + h_cost; }
-		};
-
 		explicit Map(ResourceManager& resource_manager);
+		~Map();
 
+		/**
+		 * @brief Load a 3D map model from a .glb file.
+		 * @param filename Path relative to assets/maps/ (e.g. "demo_map.glb")
+		 */
 		void loadMap(const std::string& filename);
-		void render(float offset_x, float offset_y);
+
+		/**
+		 * @brief Generate a placeholder ground plane (colored grid).
+		 * Use this when no .glb map is available.
+		 */
+		void loadPlaceholder();
+
+		/**
+		 * @brief Render the map in the current 3D mode context.
+		 * Must be called between BeginMode3D/EndMode3D.
+		 */
+		void render() const;
+
+		/// @brief Always returns true (walkability disabled for now)
+		[[nodiscard]] bool isWalkable(float world_x, float world_z) const;
+
+		/// @brief Returns empty path (pathfinding disabled for now)
+		[[nodiscard]] std::vector<Vector2> findPath(Vector2 start, Vector2 end) const;
 
 		[[nodiscard]] Vector2 getPlayerSpawnPos() const { return _player_spawn_pos; }
-		[[nodiscard]] bool isWalkable(float world_x, float world_y) const;
-		[[nodiscard]] bool isGridWalkable(int grid_x, int grid_y) const;
-		
-		void setDebugWalkability(const bool enabled) { _debug_walkability = enabled; }
-
-		[[nodiscard]] std::vector<Vector2> findPath(Vector2 start_world, Vector2 end_world) const;
-		
-		[[nodiscard]] std::vector<Vector2> simplifyPath(const std::vector<Vector2>& path) const;
-		[[nodiscard]] bool hasLineOfSight(Vector2 start, Vector2 end) const;
 
 	private:
 		ResourceManager& _resource_manager;
+		
+		Model _model = {};
+		bool _model_loaded = false;
+		bool _is_placeholder = false;
 
-		// Map offset for infinite maps with negative coordinates
-		int _offset_x = 0;
-		int _offset_y = 0;
-
-		// Visual layers (store tile GIDs, 0 = empty)
-		std::vector<std::vector<int>> _layer_ground;
-		std::vector<std::vector<int>> _layer_on_ground;
-		std::vector<std::vector<int>> _layer_over_ground;
-
-		// Collision layer
-		std::vector<std::vector<bool>> _walkability_grid;
-
-		// Tileset data
-		std::vector<TilesetInfo> _tilesets;
-		std::unordered_map<int, std::shared_ptr<Texture2D>> _tile_textures;
-		std::unordered_map<int, Rectangle> _tile_source_rects;
-
-		// Map metadata
-		Vector2 _player_spawn_pos = {0, 0};
-		std::string _map_base_path;
-		bool _debug_walkability = false;
-
-		// === Loading (JSON) ===
-		bool loadTilesets(const nlohmann::json& map_data);
-		bool loadTilesetFile(const std::string& tsx_path, TilesetInfo& tileset);
-		void loadLayers(const nlohmann::json& layers, const nlohmann::json& map_data);
-		void loadTileLayer(const nlohmann::json& layer, std::vector<std::vector<int>>& grid);
-		void loadWalkabilityLayer(const nlohmann::json& layer);
-		void loadObjectLayer(const nlohmann::json& layer, const nlohmann::json& map_data);
-		void calculateMapBounds(const nlohmann::json& layers, int& min_x, int& min_y, int& max_x, int& max_y);
-		void initializeGrids(int width, int height);
-
-		// === Rendering ===
-		void renderLayer(const std::vector<std::vector<int>>& layer, float offset_x, float offset_y);
-		void renderTile(int gid, int world_x, int world_y, float offset_x, float offset_y);
-		void renderWalkabilityDebug(float offset_x, float offset_y);
-		void renderPathDebug(const std::vector<Vector2>& path, float offset_x, float offset_y);
-
-		// === Utilities ===
-		[[nodiscard]] std::shared_ptr<Texture2D> getTextureForGID(int gid) const;
-		[[nodiscard]] bool getWalkableForGID(int gid) const;
-		[[nodiscard]] Vector2 worldToIso(int world_x, int world_y, float offset_x, float offset_y) const;
-		[[nodiscard]] Vector2 gridToWorld(int grid_x, int grid_y) const;
+		Vector2 _player_spawn_pos = {0.0f, 0.0f};
 	};
 
 } // namespace Nawia::Core

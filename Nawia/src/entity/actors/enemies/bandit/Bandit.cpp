@@ -19,7 +19,7 @@ namespace Nawia::Entity {
 		addAnimation("death", "../assets/models/bandit_death.glb");
 		addAnimation("get_hit", "../assets/models/bandit_hit.glb");
 
-		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
+		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, 0.0f, 0.0f));
 	}
 
 	void Bandit::takeDamage(const int dmg)
@@ -125,8 +125,8 @@ namespace Nawia::Entity {
 			}
 		}
 
-		const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
-		const Vector2 target_pos = target->getCollider() ? target->getCollider()->getPosition() : target->getCenter();
+		const Vector2 my_pos = getCenter();
+		const Vector2 target_pos = target->getCenter();
 		
 		setMovementSpeed(SPEED);
 		

@@ -2,7 +2,6 @@
 #include "Entity.h"
 
 #include <MathUtils.h>
-#include <Constants.h>
 
 #include <raymath.h>
 #include <algorithm>
@@ -21,14 +20,11 @@ namespace Nawia::Entity {
     }
 
     // check collision between two rectangles
-    // Standard AABB collision check
     bool checkRectRect(const Rectangle rect_1, const Rectangle rect_2) {
         return CheckCollisionRecs(rect_1, rect_2);
     }
 
     // check collision between cone and circle
-    // 1. Distance Check: Is circle within max range of cone?
-    // 2. Angle Check: Is the circle center within the angular field of view of the cone?
     bool checkConeCircle(const Vector2 cone_pos, const float cone_radius, const float cone_angle, const float cone_rotation, const Vector2 circle_pos, const float circle_radius) {
         const float dist_sq = Vector2DistanceSqr(cone_pos, circle_pos);
         const float max_dist = cone_radius + circle_radius;
@@ -39,18 +35,15 @@ namespace Nawia::Entity {
         const Vector2 dir_to_circle = Vector2Subtract(circle_pos, cone_pos);
         const float angle_to_circle = std::atan2(dir_to_circle.y, dir_to_circle.x) * RAD2DEG;
 
-        // normalize angle difference to -180..180 range
         float angle_diff = angle_to_circle - cone_rotation;
         while (angle_diff > 180.0f) angle_diff -= 360.0f;
         while (angle_diff < -180.0f) angle_diff += 360.0f;
 
-        // check if angle is within the cone's field of view
         return std::abs(angle_diff) <= cone_angle / 2.0f;
     }
 
     // check collision between cone and rectangle
     bool checkConeRect(const Vector2 cone_pos, const float cone_radius, const float cone_angle, const float cone_rotation, const Rectangle rect) {
-        // approximate rectangle as a circle for simpler cone check
         const float rect_radius = std::sqrt(rect.width * rect.width + rect.height * rect.height) / 2.0f;
         const Vector2 rect_center = { rect.x + rect.width / 2.0f, rect.y + rect.height / 2.0f };
         return checkConeCircle(cone_pos, cone_radius, cone_angle, cone_rotation, rect_center, rect_radius);
@@ -62,6 +55,10 @@ namespace Nawia::Entity {
         }
         return _offset;
     }
+
+    // =========================================================================
+    // CircleCollider
+    // =========================================================================
 
     bool CircleCollider::checkCollision(const Collider* other) const {
         if (!other) return false;
@@ -79,25 +76,36 @@ namespace Nawia::Entity {
             }
             case ColliderType::CONE: {
                 const auto* other_cone = dynamic_cast<const ConeCollider*>(other);
-                const float rot = 0.0f; // placeholder
+                const float rot = 0.0f;
                 return checkConeCircle(other_cone->getPosition(), other_cone->getRadius(), other_cone->getAngle(), rot, my_pos, _radius);
             }
             default: return false;
         }
     }
 
-    void CircleCollider::render(const float offset_x, const float offset_y) const {
-    	Vector2 screen_pt = _owner->getIsoPos(_owner->getX() + _offset.x, _owner->getY() + _offset.y, offset_x, offset_y);
-        const auto screen_pos = screen_pt;
-
-        DrawCircleLines(static_cast<int>(screen_pos.x), static_cast<int>(screen_pos.y), _radius * Core::TILE_WIDTH / 2.0f, RED);
+    void CircleCollider::render(const Camera3D& camera) const {
+        const Vector2 pos = getPosition();
+        // Draw circle on ground plane (Y = 0.01 to avoid z-fighting)
+        DrawCircle3D(
+            Vector3{ pos.x, 0.01f, pos.y },
+            _radius,
+            Vector3{ 1.0f, 0.0f, 0.0f }, 90.0f,
+            RED
+        );
     }
 
-    bool CircleCollider::checkPoint(float screen_x, float screen_y, float cam_x, float cam_y) const {
-        Vector2 center_screen = _owner->getIsoPos(_owner->getX() + _offset.x, _owner->getY() + _offset.y, cam_x, cam_y);
-        float screen_radius = _radius * Core::TILE_WIDTH / 2.0f; // Matching render logic
-        return CheckCollisionPointCircle({ screen_x, screen_y }, center_screen, screen_radius);
+    bool CircleCollider::checkPoint(float screen_x, float screen_y, const Camera3D& camera) const {
+        // Convert screen click to world position on ground plane
+        const Vector2 world_click = Core::screenToWorld(camera, screen_x, screen_y);
+        const Vector2 center = getPosition();
+        const float dx = world_click.x - center.x;
+        const float dy = world_click.y - center.y;
+        return (dx * dx + dy * dy) <= (_radius * _radius);
     }
+
+    // =========================================================================
+    // RectangleCollider
+    // =========================================================================
 
     Rectangle RectangleCollider::getRect() const {
         const Vector2 pos = getPosition();
@@ -121,47 +129,34 @@ namespace Nawia::Entity {
             }
             case ColliderType::CONE: {
                 const auto* other_cone = dynamic_cast<const ConeCollider*>(other);
-                const float rot = 0.0f; // placeholder
+                const float rot = 0.0f;
                 return checkConeRect(other_cone->getPosition(), other_cone->getRadius(), other_cone->getAngle(), rot, my_rect);
             }
             default: return false;
          }
     }
 
-    void RectangleCollider::render(const float offset_x, const float offset_y) const {
-        Vector2 center_pt = _owner->getIsoPos(getPosition().x, getPosition().y, offset_x, offset_y);
-        
-        // Convert world size to screen size (assuming 1 unit = 1 tile width for billboard visualization)
-        // using TILE_WIDTH for both to maintain squareness if world size is square
-        float screen_w = _width * Core::TILE_WIDTH;
-        float screen_h = _height * Core::TILE_WIDTH; 
-
-        Rectangle rect = {
-            center_pt.x - screen_w / 2.0f,
-            center_pt.y - screen_h / 2.0f, // Center strictly at the iso position
-            screen_w,
-            screen_h
-        };
-        
-        DrawRectangleLinesEx(rect, 2.0f, BLUE);
-        DrawCircle(static_cast<int>(center_pt.x), static_cast<int>(center_pt.y), 2, RED); // Center mark
+    void RectangleCollider::render(const Camera3D& camera) const {
+        const Vector2 center = getPosition();
+        // Draw a wireframe cube on the ground plane to represent the rectangle
+        DrawCubeWires(
+            Vector3{ center.x, 0.5f, center.y },
+            _width, 1.0f, _height,
+            BLUE
+        );
+        // Center mark
+        DrawSphere(Vector3{ center.x, 0.01f, center.y }, 0.05f, RED);
     }
 
-    bool RectangleCollider::checkPoint(float screen_x, float screen_y, float cam_x, float cam_y) const {
-        Vector2 center_pt = _owner->getIsoPos(getPosition().x, getPosition().y, cam_x, cam_y);
-
-        float screen_w = _width * Core::TILE_WIDTH;
-        float screen_h = _height * Core::TILE_WIDTH;
-
-        Rectangle rect = {
-            center_pt.x - screen_w / 2.0f,
-            center_pt.y - screen_h / 2.0f,
-            screen_w,
-            screen_h
-        };
-
-        return CheckCollisionPointRec({ screen_x, screen_y }, rect);
+    bool RectangleCollider::checkPoint(float screen_x, float screen_y, const Camera3D& camera) const {
+        const Vector2 world_click = Core::screenToWorld(camera, screen_x, screen_y);
+        const Rectangle rect = getRect();
+        return CheckCollisionPointRec(world_click, rect);
     }
+
+    // =========================================================================
+    // ConeCollider
+    // =========================================================================
 
     bool ConeCollider::checkCollision(const Collider* other) const {
          if (!other) return false;
@@ -185,51 +180,45 @@ namespace Nawia::Entity {
          }
     }
 
-    void ConeCollider::render(const float offset_x, const float offset_y) const {
+    void ConeCollider::render(const Camera3D& camera) const {
         const Vector2 tip_world = getPosition();
         
         const float rot_deg = _owner->getRotation();
         const float angle_half = _angle / 2.0f;
         
-        // calculate endpoints in world space
         const float rad_left = (rot_deg - angle_half) * DEG2RAD;
         const float rad_right = (rot_deg + angle_half) * DEG2RAD;
         
-        const Vector2 end_left_world = {
-             tip_world.x + cos(rad_left) * _radius,
-             tip_world.y + sin(rad_left) * _radius
+        const Vector3 tip_3d = { tip_world.x, 0.05f, tip_world.y };
+        
+        const Vector3 end_left_3d = {
+            tip_world.x + cos(rad_left) * _radius,
+            0.05f,
+            tip_world.y + sin(rad_left) * _radius
         };
         
-        const Vector2 end_right_world = {
-             tip_world.x + cos(rad_right) * _radius,
-             tip_world.y + sin(rad_right) * _radius
+        const Vector3 end_right_3d = {
+            tip_world.x + cos(rad_right) * _radius,
+            0.05f,
+            tip_world.y + sin(rad_right) * _radius
         };
         
-        // project to screen space
-    	Vector2 tip_screen_pt = _owner->getIsoPos(tip_world.x, tip_world.y, offset_x, offset_y);
-    	Vector2 left_screen_pt = _owner->getIsoPos(end_left_world.x, end_left_world.y, offset_x, offset_y);
-    	Vector2 right_screen_pt = _owner->getIsoPos(end_right_world.x, end_right_world.y, offset_x, offset_y);
-
-    	const Vector2 tip_screen = tip_screen_pt;
-        const Vector2 left_screen = left_screen_pt;
-        const Vector2 right_screen = right_screen_pt;
-        
-        // draw lines
-        DrawLineV(tip_screen, left_screen, GREEN);
-        DrawLineV(tip_screen, right_screen, GREEN);
-        DrawLineV(left_screen, right_screen, GREEN); // arc approximation
+        DrawLine3D(tip_3d, end_left_3d, GREEN);
+        DrawLine3D(tip_3d, end_right_3d, GREEN);
+        DrawLine3D(end_left_3d, end_right_3d, GREEN);
 
         // debug center line
         const float rad_center = rot_deg * DEG2RAD;
-        const Vector2 end_center_world = {
-             tip_world.x + cos(rad_center) * _radius,
-             tip_world.y + sin(rad_center) * _radius
+        const Vector3 end_center_3d = {
+            tip_world.x + cos(rad_center) * _radius,
+            0.05f,
+            tip_world.y + sin(rad_center) * _radius
         };
-        Vector2 center_screen_pt = _owner->getIsoPos(end_center_world.x, end_center_world.y, offset_x, offset_y);
-        DrawLineV(tip_screen, center_screen_pt, YELLOW);
+        DrawLine3D(tip_3d, end_center_3d, YELLOW);
     }
 
-    bool ConeCollider::checkPoint(float screen_x, float screen_y, float cam_x, float cam_y) const {
+    bool ConeCollider::checkPoint(float screen_x, float screen_y, const Camera3D& camera) const {
+        const Vector2 world_click = Core::screenToWorld(camera, screen_x, screen_y);
         const Vector2 tip_world = getPosition();
 
         const float rot_deg = _owner->getRotation();
@@ -238,21 +227,17 @@ namespace Nawia::Entity {
         const float rad_left = (rot_deg - angle_half) * DEG2RAD;
         const float rad_right = (rot_deg + angle_half) * DEG2RAD;
 
-        const Vector2 end_left_world = {
+        const Vector2 end_left = {
              tip_world.x + cos(rad_left) * _radius,
              tip_world.y + sin(rad_left) * _radius
         };
 
-        const Vector2 end_right_world = {
+        const Vector2 end_right = {
              tip_world.x + cos(rad_right) * _radius,
              tip_world.y + sin(rad_right) * _radius
         };
 
-        Vector2 tip_screen = _owner->getIsoPos(tip_world.x, tip_world.y, cam_x, cam_y);
-        Vector2 left_screen = _owner->getIsoPos(end_left_world.x, end_left_world.y, cam_x, cam_y);
-        Vector2 right_screen = _owner->getIsoPos(end_right_world.x, end_right_world.y, cam_x, cam_y);
-
-        return CheckCollisionPointTriangle({ screen_x, screen_y }, tip_screen, left_screen, right_screen);
+        return CheckCollisionPointTriangle(world_click, tip_world, end_left, end_right);
     }
 
 

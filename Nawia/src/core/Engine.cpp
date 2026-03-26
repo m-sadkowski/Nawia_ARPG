@@ -36,7 +36,7 @@ namespace Nawia::Core {
 		_loottable.loadLootTables("../assets/data/loottables.json", _item_database);
 
 		// initialize player
-		Vector2 player_spawn_pos = {10.0f, -6.5f};
+		Vector2 player_spawn_pos = {0.0f, 0.0f};
 		_player = Entity::PlayerBuilder(this).setPosition(player_spawn_pos).build();
 
 		// initialize spells
@@ -61,7 +61,6 @@ namespace Nawia::Core {
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
-		// We no longer changeLevel here, we wait for LevelSelect.
 		
 		_is_running = true;
 
@@ -93,7 +92,7 @@ namespace Nawia::Core {
 
 	std::shared_ptr<Entity::Entity> Engine::getEntityAt(const float screen_x, const float screen_y) const 
 	{
-		return _entity_manager->getEntityAt(screen_x, screen_y, _camera);
+		return _entity_manager->getEntityAt(screen_x, screen_y, _camera.get());
 	}
 
 	void Engine::spawnEntity(const std::shared_ptr<Entity::Entity> &new_entity) const 
@@ -127,7 +126,7 @@ namespace Nawia::Core {
             }
             else if (action == Nawia::UI::MenuAction::Settings)
             {
-                _previous_state = GameState::Menu;  // Remember where we came from
+                _previous_state = GameState::Menu;
                 _ui_handler->openSettings(_settings);
                 _game_state = GameState::SettingsMenu;
             }
@@ -140,7 +139,6 @@ namespace Nawia::Core {
 		
 		if (_game_state == GameState::SettingsMenu)
 		{
-			// ESC in Settings = go back (same as Back button)
 			if (IsKeyPressed(KEY_ESCAPE)) 
 			{
 				_ui_handler->closeSettingsMenu();
@@ -153,23 +151,19 @@ namespace Nawia::Core {
 	    
 			const Nawia::UI::MenuAction action = _ui_handler->handleSettingsInput();
 	    
-			// Check if Back was clicked
 			if (action == Nawia::UI::MenuAction::Play) 
 			{
-				// Return to previous state
 				_game_state = _previous_state;
 				if (_previous_state == GameState::Playing) 
-					_show_pause_menu = true;  // Re-show pause menu when returning from settings
+					_show_pause_menu = true;
 
 				return;
 			}
 	    
-			// Check if settings were applied
 			if (_ui_handler->wereSettingsApplied()) 
 			{
 				applySettings(_ui_handler->getAppliedSettings());
-				_ui_handler->closeSettingsMenu();  // Reset menu to clear stale state
-				// Return to previous state (not always Menu)
+				_ui_handler->closeSettingsMenu();
 				_game_state = _previous_state;
 				if (_previous_state == GameState::Playing) 
 					_show_pause_menu = true;
@@ -207,31 +201,31 @@ namespace Nawia::Core {
 		    
 		    if (action == Nawia::UI::MenuAction::Play) 
 			{
-		        _show_pause_menu = false;  // Resume game
+		        _show_pause_menu = false;
 		    }
 		    else if (action == Nawia::UI::MenuAction::Settings) 
 			{
-		        _previous_state = GameState::Playing;  // Remember where we came from
+		        _previous_state = GameState::Playing;
 		        _ui_handler->openSettings(_settings);
 		        _game_state = GameState::SettingsMenu;
 		        _show_pause_menu = false;
 		    }
 		    else if (action == Nawia::UI::MenuAction::Exit) 
 			{
-		        _game_state = GameState::Menu;  // Quit to main menu
+		        _game_state = GameState::Menu;
 		        _show_pause_menu = false;
 		    }
-		    return;  // Don't process gameplay input while pause menu is open
+		    return;
 		}
 
 		// handle ui in-game input
 		_ui_handler->handleInput();
 
-		// transform mouse location to position in world
+		// transform mouse location to world position using ray-cast
 		const Vector2 mouse_pos = GetMousePosition();
-		const Vector2 mouse_world_pos =  screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
+		const Vector2 mouse_world_pos = screenToWorld(_camera.get(), mouse_pos.x, mouse_pos.y);
 
-		_entity_manager->updateHoverState(mouse_pos.x, mouse_pos.y, _camera);
+		_entity_manager->updateHoverState(mouse_pos.x, mouse_pos.y, _camera.get());
 
 		// Przekaż do levela
 		_level_manager->handleInput(this);
@@ -265,7 +259,7 @@ namespace Nawia::Core {
 		_entity_manager->updateEntities(delta_time);
 		_entity_manager->handleEntitiesCollisions();
 
-		// collects new entities spawned by existing ones (like projectiles) and adds them to the game world
+		// collects new entities spawned by existing ones (like projectiles)
 		std::vector<std::shared_ptr<Entity::Entity>> new_spawns;
 		const auto& entities = _entity_manager->getEntities(); 
 		for (const auto& entity : entities)
@@ -287,7 +281,7 @@ namespace Nawia::Core {
 	void Engine::render() const 
 	{
 		BeginDrawing();
-		ClearBackground(BLACK);
+		ClearBackground(Color{30, 30, 35, 255});
 
         if (_game_state == GameState::Menu)
         {
@@ -295,7 +289,6 @@ namespace Nawia::Core {
         }
         else if (_game_state == GameState::SettingsMenu)
         {
-            // Render main menu as background, then settings overlay
             if (_ui_handler) {
                 _ui_handler->renderMainMenu();
                 _ui_handler->renderSettingsMenu();
@@ -316,13 +309,15 @@ namespace Nawia::Core {
 			    return;
 		    }
 
-		    /* RENDER START */
+		    /* RENDER 3D SCENE */
+		    BeginMode3D(_camera.get());
 
-		    // BeginMode2D(_camera); // If we use Raylib Camera2D, otherwise manual offset
+		    getCurrentMap()->render();
+		    _entity_manager->renderEntities(_camera.get());
 
-		    getCurrentMap()->render(_camera.x, _camera.y);
-		    _entity_manager->renderEntities(_camera);
-            
+		    EndMode3D();
+
+		    /* RENDER 2D UI OVERLAY */
             if (_ui_handler) _ui_handler->render(_camera);
             
             // Render pause menu overlay if visible
@@ -331,8 +326,6 @@ namespace Nawia::Core {
             }
 
 			_level_manager->renderUI(const_cast<Engine*>(this));
-
-		    /* RENDER END */
         }
 
 		DrawFPS(10, 10);
@@ -344,18 +337,17 @@ namespace Nawia::Core {
 	{
 	    _settings = new_settings;
 	    
-	    // Apply resolution change
 	    if (IsWindowFullscreen())
 	    {
-             if (!_settings.fullscreen) ToggleFullscreen(); // Turn off
-             else SetWindowSize(_settings.resolution.width, _settings.resolution.height); // Update res while fullscreen
+             if (!_settings.fullscreen) ToggleFullscreen();
+             else SetWindowSize(_settings.resolution.width, _settings.resolution.height);
 	    }
         else
         {
              if (_settings.fullscreen) 
              {
                  SetWindowSize(_settings.resolution.width, _settings.resolution.height);
-                 ToggleFullscreen(); // Turn on
+                 ToggleFullscreen();
              }
              else
              {
@@ -363,14 +355,10 @@ namespace Nawia::Core {
              }
         }
 	    
-	    // Apply UI scale and update global scaling
 	    GlobalScaling::setManualScale(_settings.ui_scale);
 	    
-	    // Save settings to file
 		if (_settings.save())
 			Logger::debugLog("Zapisano ustawienia.");
-	    
-	    // Note: caller is responsible for setting _game_state to _previous_state
 	}
 
 } // namespace Nawia::Core
