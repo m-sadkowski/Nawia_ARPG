@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Settings.h"
+#include <Settings.h>
 #include <GlobalScaling.h>
+
 #include <raylib.h>
 #include <functional>
 

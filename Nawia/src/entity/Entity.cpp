@@ -1,13 +1,13 @@
 #include "Entity.h"
-#include <json.hpp>
-#include <fstream>
-#include <raymath.h>
 #include "Ability.h"
 #include "Collider.h"
 
 #include <Logger.h>
 #include <MathUtils.h>
 
+#include <json.hpp>
+#include <fstream>
+#include <raymath.h>
 
 namespace Nawia::Entity {
 

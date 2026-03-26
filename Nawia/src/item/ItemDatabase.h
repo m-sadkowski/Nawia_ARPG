@@ -1,12 +1,15 @@
 #pragma once
+
+#include "Item.h"
+
+#include <ResourceManager.h>
+
 #include <map>
 #include <string>
 #include <memory>
 #include <vector>
 #include <fstream>
 #include "json.hpp"
-#include <ResourceManager.h>
-#include "Item.h"
 
 using json = nlohmann::json;
 

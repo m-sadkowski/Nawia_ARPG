@@ -3,13 +3,11 @@
 #include "Engine.h"
 #include "Logger.h"
 #include "UIHandler.h"
+
 #include <EnemyInterface.h>
+#include <InteractiveTrigger.h>
+
 #include <string>
-#include <InteractiveClickable.h>
-#include "Cat.h"
-
-#include "InteractiveTrigger.h"
-
 
 namespace Nawia::Core {
 

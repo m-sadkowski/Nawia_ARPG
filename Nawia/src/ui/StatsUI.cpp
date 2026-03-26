@@ -1,6 +1,7 @@
 #include "StatsUI.h"
-#include "Player.h"
-#include "Stats.h"
+
+#include <Player.h>
+#include <Stats.h>
 #include <GlobalScaling.h>
 
 namespace Nawia::UI {

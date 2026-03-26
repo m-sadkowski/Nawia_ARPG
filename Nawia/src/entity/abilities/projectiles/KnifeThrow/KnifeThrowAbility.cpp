@@ -1,5 +1,4 @@
 #include "KnifeThrowAbility.h"
-
 #include "Collider.h"
 #include "Projectile.h"
 

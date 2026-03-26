@@ -1,4 +1,5 @@
 #include "SettingsMenu.h"
+
 #include <GlobalScaling.h>
 
 namespace Nawia::UI {

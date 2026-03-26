@@ -1,12 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <raylib.h>
-
 #include "InventoryUI.h"
 #include "ChestUI.h"
 #include "DialogueUI.h"
+
+#include <memory>
+#include <vector>
+#include <raylib.h>
 
 namespace Nawia::Entity {
     class Player;

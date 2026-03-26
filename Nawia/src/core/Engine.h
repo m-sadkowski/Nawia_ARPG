@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Camera.h"
 #include "Constants.h"
 #include "EntityManager.h"

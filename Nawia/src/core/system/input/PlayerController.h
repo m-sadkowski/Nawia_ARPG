@@ -1,11 +1,10 @@
 #pragma once
+
 #include <Player.h>
+#include <Interactable.h>
 
 #include <raylib.h>
 #include <memory>
-
-#include "Interactable.h"
-
 
 namespace Nawia::Core {
 

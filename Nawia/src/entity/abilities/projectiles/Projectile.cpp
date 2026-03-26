@@ -1,15 +1,14 @@
 #include "Projectile.h"
 #include "EnemyInterface.h"
 #include "Collider.h"
-
 #include "ProjectileHitEffect.h"
+#include "Player.h"
+
 #include <Logger.h>
 #include <Constants.h>
 #include <MathUtils.h>
 
 #include <cmath>
-
-#include "Player.h"
 
 namespace Nawia::Entity {
 

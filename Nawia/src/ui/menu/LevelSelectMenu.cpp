@@ -1,4 +1,5 @@
 #include "LevelSelectMenu.h"
+
 #include <GlobalScaling.h>
 
 namespace Nawia::UI {

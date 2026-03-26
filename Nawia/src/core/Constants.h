@@ -1,9 +1,9 @@
 #pragma once
+
 #include <raylib.h>
 
 namespace Nawia::Core
 {
-
 	constexpr int WINDOW_WIDTH = 1280;
 	constexpr int WINDOW_HEIGHT = 720;
 
@@ -15,5 +15,4 @@ namespace Nawia::Core
 	constexpr float CAMERA_DISTANCE = 25.0f;
 	constexpr float CAMERA_HEIGHT = 20.0f;
 	constexpr float CAMERA_FOV = 45.0f;
-
 }

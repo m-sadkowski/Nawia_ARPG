@@ -1,12 +1,12 @@
 #include "Dummy.h"
 #include "Ability.h"
 #include "FireballAbility.h"
+#include "Collider.h"
 
 #include <MathUtils.h>
 
 #include <cmath>
 #include <cstdlib>
-#include "Collider.h"
 
 namespace Nawia::Entity {
 

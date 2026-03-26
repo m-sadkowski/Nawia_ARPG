@@ -1,4 +1,5 @@
 #include "Settings.h"
+
 #include <json.hpp>
 
 namespace Nawia::Core {

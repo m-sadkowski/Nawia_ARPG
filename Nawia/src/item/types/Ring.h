@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Item.h"
 
 namespace Nawia::Item {

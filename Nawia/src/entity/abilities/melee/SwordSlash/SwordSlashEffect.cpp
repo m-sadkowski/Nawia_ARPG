@@ -1,7 +1,7 @@
 #include "SwordSlashEffect.h"
 #include "EnemyInterface.h"
 #include "Collider.h"
-#include "../../../actors/player/Player.h"
+#include "Player.h"
 
 #include <Logger.h>
 

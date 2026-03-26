@@ -1,11 +1,12 @@
 #include "Cat.h"
-#include <iostream>
-#include <InteractiveClickable.h>
+#include "InteractiveClickable.h"
 #include "Player.h"
-#include "Engine.h"
-
 #include "Collider.h"
-#include "Logger.h"
+
+#include <Logger.h>
+#include <Engine.h>
+
+#include <iostream>
 
 namespace Nawia::Entity {
 

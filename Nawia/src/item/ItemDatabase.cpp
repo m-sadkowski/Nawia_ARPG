@@ -7,7 +7,8 @@
 #include "Legs.h"
 #include "Boots.h"
 #include "Ring.h"
-#include "Logger.h"
+
+#include <Logger.h>
 
 namespace Nawia::Item {
 

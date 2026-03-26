@@ -1,9 +1,9 @@
 #pragma once
+
 #include <raylib.h>
 #include <map>
 #include <memory>
 #include <string>
-
 
 namespace Nawia::Core {
 

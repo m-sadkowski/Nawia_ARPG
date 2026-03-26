@@ -1,8 +1,9 @@
 #pragma once
+
 #include "InteractiveClickable.h"
 #include "Entity.h"
-#include "Backpack.h"
-#include "Loottable.h"
+#include <Backpack.h>
+#include <Loottable.h>
 
 namespace Nawia::Entity {
 

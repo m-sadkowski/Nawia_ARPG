@@ -1,8 +1,8 @@
 #include "Devil.h"
 #include "Player.h"
-#include <Map.h>
 #include "Collider.h"
 
+#include <Map.h>
 #include <MathUtils.h>
 #include <raymath.h>
 
