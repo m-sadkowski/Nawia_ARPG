@@ -27,9 +27,10 @@ Map::~Map()
 // Loading
 // =============================================================================
 
-void Map::loadMap(const std::string& filename) 
+void Map::loadMap(const std::string& filename, const float scale) 
 {
 	const std::string filepath = "../assets/maps/" + filename;
+	_scale = scale;
 	
 	if (!std::filesystem::exists(filepath))
 	{
@@ -50,7 +51,10 @@ void Map::loadMap(const std::string& filename)
 	_model_loaded = true;
 	_is_placeholder = false;
 
-	Logger::debugLog("Map loaded: " + filename + " (meshes=" + std::to_string(_model.meshCount) + ")");
+	// Reset y_offset to 0 so the map floor aligns exactly with the Y=0 plane
+	_y_offset = 0.0f;
+
+	Logger::debugLog("Map loaded: " + filename + " (meshes=" + std::to_string(_model.meshCount) + ", scale=" + std::to_string(_scale) + ")");
 }
 
 void Map::loadPlaceholder()
@@ -76,7 +80,7 @@ void Map::render() const
 {
 	if (!_model_loaded) return;
 
-	DrawModel(_model, Vector3{0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
+	DrawModel(_model, Vector3{0.0f, _y_offset, 0.0f}, _scale, WHITE);
 
 	if (_is_placeholder)
 	{

@@ -21,16 +21,15 @@ namespace Nawia::World {
 		Core::Logger::debugLog("Ladowanie poziomu DevLevel...");
 
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
-		_map->loadPlaceholder(); // Use placeholder 3D plane
+		_map->loadMap("demo_map/demo.glb", 2.0f);
 
 		auto& em = engine->getEntityManager();
 		em.clearNonPlayerEntities();
 	}
 
 	void DevLevel::onExit(Core::Engine* engine) {
-		if (engine) {
+		if (engine)
 			engine->getEntityManager().clearNonPlayerEntities();
-		}
 	}
 
 	void DevLevel::handleInput(Core::Engine* engine) {
@@ -44,9 +43,9 @@ namespace Nawia::World {
 				key = GetCharPressed();
 			}
 
-			if (IsKeyPressed(KEY_BACKSPACE)) {
-				if (!_input_text.empty()) _input_text.pop_back();
-			}
+			if (IsKeyPressed(KEY_BACKSPACE))
+				if (!_input_text.empty()) 
+					_input_text.pop_back();
 
 			if (IsKeyPressed(KEY_ENTER)) {
 				if (!_input_text.empty()) {
@@ -61,7 +60,8 @@ namespace Nawia::World {
 				_is_typing = false;
 				_input_text = "";
 			}
-		} else {
+		} 
+		else {
 			if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
 				Vector2 mouse_pos = GetMousePosition();
 				
@@ -74,9 +74,7 @@ namespace Nawia::World {
 		}
 	}
 
-	void DevLevel::update(Core::Engine* engine, float dt) {
-		// Nothing special here
-	}
+	void DevLevel::update(Core::Engine* engine, float dt) {}
 
 	void DevLevel::renderUI(Core::Engine* engine) {
 		if (_is_typing) {
@@ -104,9 +102,8 @@ namespace Nawia::World {
 	void DevLevel::saveObjectToJson(const std::string& name, float x, float y) {
 		std::string path = "../assets/data/static_objects_dev.json";
 		
-		if (!std::filesystem::exists("../assets/data")) {
+		if (!std::filesystem::exists("../assets/data"))
 			std::filesystem::create_directories("../assets/data");
-		}
 		
 		json objects_data = json::array();
 		
@@ -115,7 +112,8 @@ namespace Nawia::World {
 			if (file.is_open()) {
 				try {
 					file >> objects_data;
-				} catch(...) {
+				} 
+				catch(...) {
 					// empty / corrupted
 				}
 			}

@@ -24,7 +24,7 @@ namespace Nawia::World {
 
 		// initialize map object
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
-		_map->loadPlaceholder();
+		_map->loadMap("demo_map/demo.glb", 2.0f);
 
 		auto& rm = engine->getResourceManager();
 		auto& em = engine->getEntityManager();
@@ -34,10 +34,15 @@ namespace Nawia::World {
 		em.clearNonPlayerEntities();
 
 		const auto player = engine->getPlayer();
+		if (player) {
+			player->setX(-4.3f);
+			player->setY(33.0f);
+			player->stop();
+		}
 
 		std::shared_ptr<Entity::Devil> devil = Entity::DevilBuilder()
 			.setName("Devil")
-			.setPosition({ 2.5f, 2.7f })
+			.setPosition({ 0.f, 12.1f })
 			.setMap(_map.get())
 			.setMaxHp(120)
 			.setTarget(player)
@@ -47,7 +52,7 @@ namespace Nawia::World {
 		const auto knife_tex = rm.getTexture("../assets/textures/knife3.png");
 		std::shared_ptr<Entity::Bandit> bandit = Entity::BanditBuilder()
 			.setName("Bandyta")
-			.setPosition({ -11.21f, -21.38f })
+			.setPosition({ 15.9f, 12.6f })
 			.setMap(_map.get())
 			.setMaxHp(80)
 			.setTarget(player)
@@ -57,7 +62,7 @@ namespace Nawia::World {
 
 		std::shared_ptr<Entity::WalkingDead> walking_dead = Entity::WalkingDeadBuilder()
 			.setName("Walking Dead")
-			.setPosition({ 3.36f, 8.49f })
+			.setPosition({ 23.36f, 20.49f })
 			.setMap(_map.get())
 			.setMaxHp(80)
 			.setTarget(player)
@@ -78,7 +83,7 @@ namespace Nawia::World {
 		test_chest->initializeInventory(loottable, Item::LOOTTABLE_TYPE::CHEST_NOOB);
 		em.addEntity(test_chest);
 
-		const auto david_chest = std::make_shared<Entity::Chest>("Skrzynia Davida", 2.f, -1.f, chest_tex);
+		const auto david_chest = std::make_shared<Entity::Chest>("Skrzynia Davida", 5.6f, 8.57f, chest_tex);
 		if (const auto fish = itemDB.createItem(6)) david_chest->addItem(fish);
 		david_chest->setLocked(true, 5);
 		em.addEntity(david_chest);
@@ -93,9 +98,8 @@ namespace Nawia::World {
 	}
 
 	void DemoLevel::onExit(Core::Engine* engine) {
-		if (engine) {
+		if (engine)
 			engine->getEntityManager().clearNonPlayerEntities();
-		}
 	}
 
 	Core::Map* DemoLevel::getMap() const {
