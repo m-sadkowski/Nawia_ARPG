@@ -12,6 +12,7 @@
 #include <Settings.h>
 #include <Camera.h>
 #include <Collider.h>
+#include <ResourceManager.h>
 
 #include <algorithm>
 #include <iostream>
@@ -63,6 +64,8 @@ namespace Nawia::UI {
         _font = LoadFontEx("../assets/fonts/slavic_font.ttf", font_size, nullptr, 0);
         GenTextureMipmaps(&_font.texture);
         SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
+
+        _main_menu_bg = resource_manager.getTexture("../assets/textures/main_menu.png");
 
         _inventory_ui = std::make_unique<InventoryUI>();
         _inventory_ui->loadResources(resource_manager);
@@ -247,14 +250,28 @@ namespace Nawia::UI {
         const float screen_height = static_cast<float>(GetScreenHeight());
 
         // Draw Background
-        DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.8f));
+        if (_main_menu_bg) {
+            DrawTexturePro(*_main_menu_bg, 
+                { 0, 0, static_cast<float>(_main_menu_bg->width), static_cast<float>(_main_menu_bg->height) }, 
+                { 0, 0, screen_width, screen_height }, 
+                { 0, 0 }, 0.0f, WHITE);
+        } else {
+            DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.8f));
+        }
 
         // Draw Title
-        const auto* title_text = "NAWIA ARPG";
-        const float title_font_size = Core::GlobalScaling::scaled(60.0f);
+        const auto* title_text = "Nawia";
+        const float title_font_size = Core::GlobalScaling::scaled(100.0f);
         const float spacing = Core::GlobalScaling::scaled(2.0f);
         Vector2 title_size = MeasureTextEx(_font, title_text, title_font_size, spacing);
-        DrawTextEx(_font, title_text, { (screen_width - title_size.x) / 2.0f, screen_height / 4.0f }, title_font_size, spacing, DARKGREEN);
+        
+        Vector2 title_pos = { (screen_width - title_size.x) / 2.0f, screen_height / 3.0f };
+        
+        // shadow
+        const float shadow_offset = Core::GlobalScaling::scaled(4.0f);
+        DrawTextEx(_font, title_text, { title_pos.x + shadow_offset, title_pos.y + shadow_offset }, title_font_size, spacing, BLACK);
+        // text
+        DrawTextEx(_font, title_text, title_pos, title_font_size, spacing, WHITE);
 
         // Draw Buttons
         const auto layout = getMenuLayout(screen_width, screen_height);
@@ -267,8 +284,8 @@ namespace Nawia::UI {
 
     void UIHandler::drawMenuButton(const Rectangle& rect, const char* text, const bool is_hovered) const
     {
-        DrawRectangleRec(rect, is_hovered ? LIGHTGRAY : RAYWHITE);
-        DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), BLACK);
+        DrawRectangleRec(rect, is_hovered ? Fade(WHITE, 0.4f) : Fade(WHITE, 0.15f));
+        DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), WHITE);
         
         const float font_size = Core::GlobalScaling::scaled(20.0f);
         const float spacing = Core::GlobalScaling::scaled(1.0f);
@@ -279,7 +296,7 @@ namespace Nawia::UI {
             rect.y + (rect.height - text_size.y) / 2.0f 
         };
         
-        DrawTextEx(_font, text, text_pos, font_size, spacing, BLACK);
+        DrawTextEx(_font, text, text_pos, font_size, spacing, WHITE);
     }
 
     void UIHandler::renderPlayerHealthBar() const 

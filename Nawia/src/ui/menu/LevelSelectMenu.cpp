@@ -18,7 +18,11 @@ namespace Nawia::UI {
         const float spacing = Core::GlobalScaling::scaled(2.0f);
         const char* title = "WYBIERZ POZIOM";
         const Vector2 title_size = MeasureTextEx(font, title, title_font_size, spacing);
-        DrawTextEx(font, title, { (screen_w - title_size.x) / 2.0f, screen_h / 4.0f }, title_font_size, spacing, DARKGREEN);
+        
+        Vector2 title_pos = { (screen_w - title_size.x) / 2.0f, screen_h / 4.0f };
+        const float shadow_offset = Core::GlobalScaling::scaled(4.0f);
+        DrawTextEx(font, title, { title_pos.x + shadow_offset, title_pos.y + shadow_offset }, title_font_size, spacing, BLACK);
+        DrawTextEx(font, title, title_pos, title_font_size, spacing, WHITE);
 
         const float btn_width = Core::GlobalScaling::scaled(200.0f);
         const float btn_height = Core::GlobalScaling::scaled(50.0f);
@@ -75,8 +79,8 @@ namespace Nawia::UI {
     }
 
     void LevelSelectMenu::drawButton(const Rectangle& rect, const char* text, const bool is_hovered, const Font& font) const {
-        DrawRectangleRec(rect, is_hovered ? LIGHTGRAY : RAYWHITE);
-        DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), BLACK);
+        DrawRectangleRec(rect, is_hovered ? Fade(WHITE, 0.4f) : Fade(WHITE, 0.15f));
+        DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), WHITE);
         
         const float font_size = Core::GlobalScaling::scaled(20.0f);
         const float spacing = Core::GlobalScaling::scaled(1.0f);
@@ -87,7 +91,7 @@ namespace Nawia::UI {
             rect.y + (rect.height - text_size.y) / 2.0f 
         };
         
-        DrawTextEx(font, text, text_pos, font_size, spacing, BLACK);
+        DrawTextEx(font, text, text_pos, font_size, spacing, WHITE);
     }
 
 } // namespace Nawia::UI

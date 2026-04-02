@@ -107,6 +107,7 @@ namespace Nawia::UI {
         std::shared_ptr<Entity::Player> _player;
         Core::EntityManager* _entity_manager;
         Font _font;
+        std::shared_ptr<Texture2D> _main_menu_bg;
         
         std::unique_ptr<SettingsMenu> _settings_menu;
         std::unique_ptr<LevelSelectMenu> _level_select_menu;
