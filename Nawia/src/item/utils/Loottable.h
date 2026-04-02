@@ -1,9 +1,10 @@
 #pragma once
+#include "Item.h"
+
 #include <map>
 #include <vector>
 #include <string>
 #include <memory>
-#include "Item.h"
 
 namespace Nawia::Item {
 

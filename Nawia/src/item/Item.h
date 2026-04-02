@@ -1,8 +1,11 @@
 #pragma once
+
+#include <Stats.h>
+
 #include <string>
 #include <raylib.h>
 #include <memory>
-#include <Stats.h>
+
 namespace Nawia::Item {
 
     // item type

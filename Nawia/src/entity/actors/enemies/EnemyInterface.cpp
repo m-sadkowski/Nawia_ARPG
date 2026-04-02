@@ -1,10 +1,8 @@
-﻿#include "EnemyInterface.h"
+#include "EnemyInterface.h"
 #include "Map.h"
 #include "Collider.h"
-#include <cmath>
 
-#include <MathUtils.h>
-#include <Constants.h>
+#include <cmath>
 #include <raymath.h>
 
 namespace Nawia::Entity {
@@ -17,131 +15,43 @@ namespace Nawia::Entity {
 
 	void EnemyInterface::moveTo(const float x, const float y)
 	{
-		const Vector2 center = getCenter();
-		const float offset_x = center.x - getX();
-		const float offset_y = center.y - getY();
+		_target_x = x;
+		_target_y = y;
 
-		if (!_map->isWalkable(x, y))
-			return;
-
-		_target_x = x - offset_x;
-		_target_y = y - offset_y;
-
-		const Vector2 start_world = { center.x, center.y };
-		const Vector2 end_world = { x, y };
-
-		_path = _map->findPath(start_world, end_world);
+		const float dx = _target_x - getX();
+		const float dy = _target_y - getY();
 		
-		if (_path.empty())
-		{
-			// Fallback: if very close, move directly
-			const float dx = _target_x - getX();
-			const float dy = _target_y - getY();
-			if (dx * dx + dy * dy > 0.001f)
-				_is_moving = true;
-			else
-				_is_moving = false;
-			
-		} 
-		else 
-		{
+		if (dx * dx + dy * dy > 0.001f)
 			_is_moving = true;
-		}
+		else
+			_is_moving = false;
 	}
 
 	void EnemyInterface::updateMovement(const float dt)
 	{
 		if (!_is_moving) return;
 
-		Vector2 current_target_world;
-		const Vector2 center = getCenter();
-		
-		if (!_path.empty()) 
-		{
-			current_target_world = _path.front();
-		} 
-		else 
-		{
-			const float offset_x = center.x - getX();
-			const float offset_y = center.y - getY();
-			current_target_world.x = _target_x + offset_x;
-			current_target_world.y = _target_y + offset_y;
-		}
+		const float dx = _target_x - getX();
+		const float dy = _target_y - getY();
+		const float distance = std::sqrt(dx * dx + dy * dy);
 
-		const float dx = current_target_world.x - center.x;
-		const float dy = current_target_world.y - center.y;
-		const float distance_sq = dx * dx + dy * dy;
-		const float distance = std::sqrt(distance_sq);
-
-		if (distance_sq > 0.001f)
-			rotateTowardsCenter(current_target_world.x, current_target_world.y);
-
-		if (distance < 0.1f * (_movement_speed / 4.0f)) 
-		{
-			if (!_path.empty()) 
-			{
-				_path.erase(_path.begin());
-			} 
-			else 
-			{
-				_is_moving = false;
-				_pos.x = _target_x;
-				_pos.y = _target_y;
-				return;
-			}
-		}
+		if (distance > 0.001f)
+			rotateTowards(_target_x, _target_y);
 
 		const float speed = _movement_speed;
 		const float move_dist = speed * dt;
 
-		if (move_dist >= distance && _path.empty()) {
+		if (move_dist >= distance) 
+		{
 			_pos.x = _target_x;
 			_pos.y = _target_y;
 			_is_moving = false;
 		} 
 		else 
 		{
-			// Validate movement against walkability
-			const Vector2 direction = { dx / distance, dy / distance };
-			const Vector2 validated_move = getValidatedMovement(center, direction, speed, dt);
-			
-			// If completely blocked, stop moving to force path recalculation
-			if (std::abs(validated_move.x) < 0.0001f && std::abs(validated_move.y) < 0.0001f)
-			{
-				_is_moving = false;
-				_path.clear();  // Clear invalid path
-				return;
-			}
-			
-			_pos.x += validated_move.x;
-			_pos.y += validated_move.y;
+			_pos.x += (dx / distance) * move_dist;
+			_pos.y += (dy / distance) * move_dist;
 		}
-	}
-
-	Vector2 EnemyInterface::getValidatedMovement(const Vector2 current_pos, const Vector2 direction, const float speed, const float dt) const
-	{
-		if (!_map) return { direction.x * speed * dt, direction.y * speed * dt };
-		
-		const float move_x = direction.x * speed * dt;
-		const float move_y = direction.y * speed * dt;
-		
-		// Try full movement
-		const float new_x = current_pos.x + move_x;
-		const float new_y = current_pos.y + move_y;
-		
-		if (_map->isWalkable(new_x, new_y))
-			return { move_x, move_y };
-		
-		// Try X-only movement (sliding along Y wall)
-		if (std::abs(move_x) > 0.0001f && _map->isWalkable(current_pos.x + move_x, current_pos.y))
-			return { move_x, 0.0f };
-		
-		// Try Y-only movement (sliding along X wall)
-		if (std::abs(move_y) > 0.0001f && _map->isWalkable(current_pos.x, current_pos.y + move_y))
-			return { 0.0f, move_y };
-		
-		// Completely blocked
-		return { 0.0f, 0.0f };
 	}
 
 	// =============================================================================
@@ -153,9 +63,8 @@ namespace Nawia::Entity {
 		const auto target = _target.lock();
 		if (!target) return std::numeric_limits<float>::max();
 		
-		const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
-		const Vector2 target_pos = target->getCollider() ? 
-			target->getCollider()->getPosition() : target->getCenter();
+		const Vector2 my_pos = getCenter();
+		const Vector2 target_pos = target->getCenter();
 		
 		return Vector2Distance(my_pos, target_pos);
 	}
@@ -165,8 +74,7 @@ namespace Nawia::Entity {
 		const auto target = _target.lock();
 		if (!target) return _pos;
 		
-		return target->getCollider() ? 
-			target->getCollider()->getPosition() : target->getCenter();
+		return target->getCenter();
 	}
 
 	bool EnemyInterface::hasValidTarget() const

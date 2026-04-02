@@ -1,5 +1,7 @@
 #include "InventoryUI.h"
+
 #include <ResourceManager.h>
+
 #include <string>
 
 namespace Nawia::UI {

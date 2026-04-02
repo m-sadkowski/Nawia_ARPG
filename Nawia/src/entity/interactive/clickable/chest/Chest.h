@@ -1,8 +1,9 @@
 #pragma once
+
 #include "InteractiveClickable.h"
 #include "Entity.h"
-#include "Backpack.h"
-#include "Loottable.h"
+#include <Backpack.h>
+#include <Loottable.h>
 
 namespace Nawia::Entity {
 
@@ -15,7 +16,7 @@ namespace Nawia::Entity {
         void onInteract(Entity& instigator) override;
 
         void update(float delta_time) override;
-        void render(float offset_x, float offset_y) override;
+        void render(const Camera3D& camera) override;
         float getInteractionRange() override;
 
         Item::Backpack* getInventory() override { 

@@ -1,18 +1,14 @@
-﻿#include "Engine.h"
+#include "Engine.h"
 #include "GlobalScaling.h"
 #include "Logger.h"
 #include "MathUtils.h"
 #include "PlayerController.h"
-#include "Devil.h"
-#include <Dummy.h>
-#include <WalkingDead.h>
+
 #include <FireballAbility.h>
 #include <SwordSlashAbility.h>
-#include "Bandit.h"
-#include "KnifeThrowAbility.h"
-#include "Checkpoint.h"
-#include "Chest.h"
-#include "Cat.h"
+#include <DemoLevel.h>
+#include <DevLevel.h>
+#include <LevelManager.h>
 
 namespace Nawia::Core {
 
@@ -32,27 +28,6 @@ namespace Nawia::Core {
 		// Initialize UI scaling system with saved manual scale
 		GlobalScaling::setManualScale(_settings.ui_scale);
 
-		// TEMPORARY SOLUTION
-		// initialize map object
-		_map = std::make_unique<Map>(_resource_manager);
-		_map->loadMap("demo_map/demo_map.json");
-
-		// initialize player
-		auto player_texture = _resource_manager.getTexture("../assets/textures/player.png");
-		Vector2 player_spawn_pos = {10.0f, -6.5f};//_map->getPlayerSpawnPos();
-		//_player = std::make_shared<Entity::Player>(this, player_spawn_pos.x, player_spawn_pos.y, player_texture);
-		_player = Entity::PlayerBuilder(this).setPosition(player_spawn_pos).build();
-
-		// initialize spells
-		const auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");
-		const auto sword_slash_icon = _resource_manager.getTexture("../assets/textures/icons/sword_slash_icon.png");
-		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_tex, sword_slash_icon));
-		
-		const auto fireball_tex = _resource_manager.getTexture("../assets/textures/fireball.png");
-		const auto fireball_hit_tex = _resource_manager.getTexture("../assets/textures/fireball_hit.png");
-		const auto fireball_icon = _resource_manager.getTexture("../assets/textures/icons/fireball_icon.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
-
 		// init item database
 		_item_database.loadDatabase("../assets/data/items.json", _resource_manager);
 		Logger::debugLog("Zaladowano baze danych przedmiotow");
@@ -60,83 +35,33 @@ namespace Nawia::Core {
 		// init loottables
 		_loottable.loadLootTables("../assets/data/loottables.json", _item_database);
 
+		// initialize player
+		Vector2 player_spawn_pos = {0.0f, 0.0f};
+		_player = Entity::PlayerBuilder(this).setPosition(player_spawn_pos).build();
+
+		// initialize spells
+		const auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");
+		const auto sword_slash_icon = _resource_manager.getTexture("../assets/textures/icons/sword_slash_icon.png");
+		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_tex, sword_slash_icon));
+		
+		const auto fireball_hit_tex = _resource_manager.getTexture("../assets/textures/fireball_hit.png");
+		const auto fireball_icon = _resource_manager.getTexture("../assets/textures/icons/fireball_icon.png");
+		_player->addAbility(std::make_shared<Entity::FireballAbility>("../assets/models/fireball.glb", 0.5f, fireball_hit_tex, fireball_icon));
+
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
 
 		// initialize entity manager
 		_entity_manager = std::make_unique<EntityManager>();
-
-		//spawn Devil for testing
-		std::shared_ptr<Entity::Devil> devil = Entity::DevilBuilder()
-			.setName("Devil")
-			.setPosition({ 2.5f, 2.7f })
-			.setMap(_map.get())
-			.setMaxHp(120)
-			.setTarget(_player)
-			.build();
-		_entity_manager->addEntity(devil);
-		
-		//spawn Bandit for testing
-		const auto knife_tex = _resource_manager.getTexture("../assets/textures/knife3.png");
-		std::shared_ptr<Entity::Bandit> bandit = Entity::BanditBuilder()
-			.setName("Bandyta")
-			.setPosition({ -11.21f, -21.38f })
-			.setMap(_map.get())
-			.setMaxHp(80)
-			.setTarget(_player)
-			.build();
-		bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr));
-		_entity_manager->addEntity(bandit);
-		//const auto bandit2 = std::make_shared<Entity::Bandit>(-13.f, -17.f, _map.get());
-		//bandit2->setTarget(_player);
-		//bandit2->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr));
-		//_entity_manager->addEntity(bandit2);
-
-		// spawn Walking Dead for testing
-		//const auto walking_dead = std::make_shared<Entity::WalkingDead>(3.36f, 8.49f, _map.get());
-		std::shared_ptr<Entity::WalkingDead> walking_dead = Entity::WalkingDeadBuilder()
-			.setName("Walking Dead")
-			.setPosition({ 3.36f, 8.49f })
-			.setMap(_map.get())
-			.setMaxHp(80)
-			.setTarget(_player)
-			.build();
-		_entity_manager->addEntity(walking_dead);
-		//const auto walking_dead2 = std::make_shared<Entity::WalkingDead>(6.97f, 8.98f, _map.get());
-		//walking_dead2->setTarget(_player);
-		//_entity_manager->addEntity(walking_dead2);
-		//const auto walking_dead3 = std::make_shared<Entity::WalkingDead>(6.79f, 11.3f, _map.get());
-		//walking_dead3->setTarget(_player);
-		//_entity_manager->addEntity(walking_dead3);
-		
-		// add player to entity manager so it can be hit by enemies
 		_entity_manager->addEntity(_player);
-
-		_is_running = true;
-
-		const auto chest_tex = _resource_manager.getTexture("../assets/textures/chest.png");
-		auto test_chest = std::make_shared<Entity::Chest>("Stara Skrzynia", -13.44f, -21.44f, chest_tex);
-		test_chest->initializeInventory(_loottable, Item::LOOTTABLE_TYPE::CHEST_NOOB);
-		_entity_manager->addEntity(test_chest);
-
-		// David's Chest
-		const auto david_chest = std::make_shared<Entity::Chest>("Skrzynia Davida", 2.f, -1.f, chest_tex);
-		// 6 = Fish
-		if (const auto fish = _item_database.createItem(6)) david_chest->addItem(fish);
-		david_chest->setLocked(true, 5); // 5 = David's Key
-		_entity_manager->addEntity(david_chest);
-
-		const auto cat_tex = _resource_manager.getTexture("../assets/textures/chest.png");
-		auto cat = std::make_shared<Entity::Cat>("Kot Olga", 0.35f, -18.23f, chest_tex);
-		_dialogue_manager.createCatDialogue(this, cat.get());
-		cat->initializeInventory(_loottable, Item::LOOTTABLE_TYPE::CAT);
-
-		_entity_manager->addEntity(cat);
-
-		// 2. Checkpoint (InteractiveTrigger)
-		auto test_checkpoint = std::make_shared<Entity::Checkpoint>("Punkt Kontrolny", 20.0f, 20.0f);
-		_entity_manager->addEntity(test_checkpoint);
 		_entity_manager->setPlayer(_player);
+
+		// initialize LevelManager
+		_level_manager = std::make_unique<World::LevelManager>();
+		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
+		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
+		
+		_is_running = true;
 
         // initialize UI
         _ui_handler = std::make_unique<Nawia::UI::UIHandler>();
@@ -166,7 +91,7 @@ namespace Nawia::Core {
 
 	std::shared_ptr<Entity::Entity> Engine::getEntityAt(const float screen_x, const float screen_y) const 
 	{
-		return _entity_manager->getEntityAt(screen_x, screen_y, _camera);
+		return _entity_manager->getEntityAt(screen_x, screen_y, _camera.get());
 	}
 
 	void Engine::spawnEntity(const std::shared_ptr<Entity::Entity> &new_entity) const 
@@ -194,11 +119,13 @@ namespace Nawia::Core {
 			const Nawia::UI::MenuAction action = _ui_handler->handleMenuInput();
             if (action == Nawia::UI::MenuAction::Play)
             {
-                _game_state = GameState::Playing;
+                _previous_state = GameState::Menu;
+                _ui_handler->openLevelSelect(_level_manager->getRegisteredLevels());
+                _game_state = GameState::LevelSelect;
             }
             else if (action == Nawia::UI::MenuAction::Settings)
             {
-                _previous_state = GameState::Menu;  // Remember where we came from
+                _previous_state = GameState::Menu;
                 _ui_handler->openSettings(_settings);
                 _game_state = GameState::SettingsMenu;
             }
@@ -211,7 +138,6 @@ namespace Nawia::Core {
 		
 		if (_game_state == GameState::SettingsMenu)
 		{
-			// ESC in Settings = go back (same as Back button)
 			if (IsKeyPressed(KEY_ESCAPE)) 
 			{
 				_ui_handler->closeSettingsMenu();
@@ -224,26 +150,38 @@ namespace Nawia::Core {
 	    
 			const Nawia::UI::MenuAction action = _ui_handler->handleSettingsInput();
 	    
-			// Check if Back was clicked
 			if (action == Nawia::UI::MenuAction::Play) 
 			{
-				// Return to previous state
 				_game_state = _previous_state;
 				if (_previous_state == GameState::Playing) 
-					_show_pause_menu = true;  // Re-show pause menu when returning from settings
+					_show_pause_menu = true;
 
 				return;
 			}
 	    
-			// Check if settings were applied
 			if (_ui_handler->wereSettingsApplied()) 
 			{
 				applySettings(_ui_handler->getAppliedSettings());
-				_ui_handler->closeSettingsMenu();  // Reset menu to clear stale state
-				// Return to previous state (not always Menu)
+				_ui_handler->closeSettingsMenu();
 				_game_state = _previous_state;
 				if (_previous_state == GameState::Playing) 
 					_show_pause_menu = true;
+			}
+			return;
+		}
+
+		if (_game_state == GameState::LevelSelect)
+		{
+			std::string selected_lvl = _ui_handler->handleLevelSelectInput();
+			
+			if (selected_lvl == "BACK") {
+				_ui_handler->closeLevelSelect();
+				_game_state = GameState::Menu;
+			}
+			else if (!selected_lvl.empty()) {
+				_ui_handler->closeLevelSelect();
+				_level_manager->changeLevel(selected_lvl, this);
+				_game_state = GameState::Playing;
 			}
 			return;
 		}
@@ -262,31 +200,38 @@ namespace Nawia::Core {
 		    
 		    if (action == Nawia::UI::MenuAction::Play) 
 			{
-		        _show_pause_menu = false;  // Resume game
+		        _show_pause_menu = false;
 		    }
 		    else if (action == Nawia::UI::MenuAction::Settings) 
 			{
-		        _previous_state = GameState::Playing;  // Remember where we came from
+		        _previous_state = GameState::Playing;
 		        _ui_handler->openSettings(_settings);
 		        _game_state = GameState::SettingsMenu;
 		        _show_pause_menu = false;
 		    }
 		    else if (action == Nawia::UI::MenuAction::Exit) 
 			{
-		        _game_state = GameState::Menu;  // Quit to main menu
+		        _game_state = GameState::Menu;
 		        _show_pause_menu = false;
 		    }
-		    return;  // Don't process gameplay input while pause menu is open
+		    return;
 		}
 
 		// handle ui in-game input
 		_ui_handler->handleInput();
 
-		// transform mouse location to position in world
+		// transform mouse location to world position using ray-cast
 		const Vector2 mouse_pos = GetMousePosition();
-		const Vector2 mouse_world_pos =  screenToIso(mouse_pos.x, mouse_pos.y, _camera.x, _camera.y);
+		const Vector2 mouse_world_pos = screenToWorld(_camera.get(), mouse_pos.x, mouse_pos.y);
 
-		_entity_manager->updateHoverState(mouse_pos.x, mouse_pos.y, _camera);
+		_entity_manager->updateHoverState(mouse_pos.x, mouse_pos.y, _camera.get());
+
+		// Przekaż do levela
+		_level_manager->handleInput(this);
+		auto devLevel = dynamic_cast<World::DevLevel*>(_level_manager->getCurrentLevel());
+		if (devLevel && devLevel->isTyping()) {
+			return; // DevLevel zjada input gracza
+		}
 
 		if (!_controller)
 			return;
@@ -296,7 +241,7 @@ namespace Nawia::Core {
 
 	void Engine::update(const float delta_time) 
 	{
-		if (_game_state == GameState::Menu || _game_state == GameState::SettingsMenu)
+		if (_game_state == GameState::Menu || _game_state == GameState::SettingsMenu || _game_state == GameState::LevelSelect)
         {
             if (_ui_handler) _ui_handler->update(delta_time);
             return;
@@ -307,12 +252,13 @@ namespace Nawia::Core {
 
 		_camera.follow(_player.get());
         if (_ui_handler) _ui_handler->update(delta_time);
+        _level_manager->update(this, delta_time);
 		_controller->update(delta_time);
 
 		_entity_manager->updateEntities(delta_time);
 		_entity_manager->handleEntitiesCollisions();
 
-		// collects new entities spawned by existing ones (like projectiles) and adds them to the game world
+		// collects new entities spawned by existing ones (like projectiles)
 		std::vector<std::shared_ptr<Entity::Entity>> new_spawns;
 		const auto& entities = _entity_manager->getEntities(); 
 		for (const auto& entity : entities)
@@ -334,7 +280,7 @@ namespace Nawia::Core {
 	void Engine::render() const 
 	{
 		BeginDrawing();
-		ClearBackground(BLACK);
+		ClearBackground(Color{30, 30, 35, 255});
 
         if (_game_state == GameState::Menu)
         {
@@ -342,27 +288,35 @@ namespace Nawia::Core {
         }
         else if (_game_state == GameState::SettingsMenu)
         {
-            // Render main menu as background, then settings overlay
             if (_ui_handler) {
                 _ui_handler->renderMainMenu();
                 _ui_handler->renderSettingsMenu();
             }
         }
+		else if (_game_state == GameState::LevelSelect)
+		{
+			if (_ui_handler) {
+				_ui_handler->renderMainMenu();
+				_ui_handler->renderLevelSelectMenu();
+			}
+		}
         else
         {
-		    if (!_map || !_player || !_entity_manager) 
+		    if (!getCurrentMap() || !_player || !_entity_manager) 
 		    {
 			    EndDrawing();
 			    return;
 		    }
 
-		    /* RENDER START */
+		    /* RENDER 3D SCENE */
+		    BeginMode3D(_camera.get());
 
-		    // BeginMode2D(_camera); // If we use Raylib Camera2D, otherwise manual offset
+		    getCurrentMap()->render();
+		    _entity_manager->renderEntities(_camera.get());
 
-		    _map->render(_camera.x, _camera.y);
-		    _entity_manager->renderEntities(_camera);
-            
+		    EndMode3D();
+
+		    /* RENDER 2D UI OVERLAY */
             if (_ui_handler) _ui_handler->render(_camera);
             
             // Render pause menu overlay if visible
@@ -370,7 +324,7 @@ namespace Nawia::Core {
                 _ui_handler->renderPauseMenu();
             }
 
-		    /* RENDER END */
+			_level_manager->renderUI(const_cast<Engine*>(this));
         }
 
 		DrawFPS(10, 10);
@@ -382,18 +336,17 @@ namespace Nawia::Core {
 	{
 	    _settings = new_settings;
 	    
-	    // Apply resolution change
 	    if (IsWindowFullscreen())
 	    {
-             if (!_settings.fullscreen) ToggleFullscreen(); // Turn off
-             else SetWindowSize(_settings.resolution.width, _settings.resolution.height); // Update res while fullscreen
+             if (!_settings.fullscreen) ToggleFullscreen();
+             else SetWindowSize(_settings.resolution.width, _settings.resolution.height);
 	    }
         else
         {
              if (_settings.fullscreen) 
              {
                  SetWindowSize(_settings.resolution.width, _settings.resolution.height);
-                 ToggleFullscreen(); // Turn on
+                 ToggleFullscreen();
              }
              else
              {
@@ -401,14 +354,10 @@ namespace Nawia::Core {
              }
         }
 	    
-	    // Apply UI scale and update global scaling
 	    GlobalScaling::setManualScale(_settings.ui_scale);
 	    
-	    // Save settings to file
 		if (_settings.save())
 			Logger::debugLog("Zapisano ustawienia.");
-	    
-	    // Note: caller is responsible for setting _game_state to _previous_state
 	}
 
 } // namespace Nawia::Core

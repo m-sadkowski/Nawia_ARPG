@@ -1,8 +1,8 @@
 #include "Devil.h"
 #include "Player.h"
-#include <Map.h>
 #include "Collider.h"
 
+#include <Map.h>
 #include <MathUtils.h>
 #include <raymath.h>
 
@@ -18,8 +18,6 @@ namespace Nawia::Entity {
 		addAnimation("run", "../assets/models/devil_run.glb");
 		addAnimation("attack", "../assets/models/devil_attack.glb");
 		addAnimation("death", "../assets/models/devil_dead.glb");
-
-		setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, -2.3f, -1.7f));
 	}
 
 	Devil::Devil(const float x, const float y, Core::Map* map)
@@ -35,7 +33,7 @@ namespace Nawia::Entity {
 		addAnimation("attack", "../assets/models/devil_attack.glb");
 		addAnimation("death", "../assets/models/devil_dead.glb");
 
-		setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, -2.3f, -1.7f));
+		setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, 0.0f, 0.0f));
 	}
 
 	void Devil::takeDamage(const int dmg)
@@ -146,27 +144,20 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		const Vector2 target_pos = target->getCollider() ? target->getCollider()->getPosition() : target->getCenter();
+		const Vector2 target_pos = target->getCenter();
 
 		// Dash Trigger Logic
 		// Requirements: In range, cooldown ready, AND clear line of sight (walkable path)
 		if (dist <= DASH_TRIGGER_RANGE && dist > ATTACK_RANGE && _dash_cooldown_timer <= 0.0f)
 		{
-			const Vector2 my_center = getCenter();
-			// We check if we can rush directly to target, rush is a straight line. 
-			
-			if (_map && _map->hasLineOfSight(my_center, target_pos)) 
-			{
-				_dash_target_pos = target_pos;
-				_state = State::PreparingDash;
-				_dash_prepare_timer = DASH_PREPARE_TIME;
-				setVelocity(0, 0);
-				_is_moving = false;
-				setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
-				playAnimation("idle");
-				return;
-			}
-			// If no LOS, we continue to chase normally using pathfinding
+			_dash_target_pos = target_pos;
+			_state = State::PreparingDash;
+			_dash_prepare_timer = DASH_PREPARE_TIME;
+			setVelocity(0, 0);
+			_is_moving = false;
+			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
+			playAnimation("idle");
+			return;
 		}
 		
 		// Normal Pathfinding Chase with timer
@@ -210,7 +201,7 @@ namespace Nawia::Entity {
 	void Devil::handleDashingState(const float dt)
 	{
 		Entity::update(dt);
-		const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
+		const Vector2 my_pos = getCenter();
 		const float dist_to_dash_target = Vector2Distance(my_pos, _dash_target_pos);
 		if (!_dash_hit_target)
 		{

@@ -1,7 +1,9 @@
 #pragma once
+
 #include <raylib.h>
 #include <memory>
 #include <map>
+
 #include <Player.h>
 #include <GlobalScaling.h>
 

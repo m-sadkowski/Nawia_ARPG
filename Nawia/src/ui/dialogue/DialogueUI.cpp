@@ -1,4 +1,5 @@
 #include "DialogueUI.h"
+
 #include <GlobalScaling.h>
 
 namespace Nawia::UI {

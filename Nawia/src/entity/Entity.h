@@ -1,7 +1,6 @@
 #pragma once
-#include "AbilityStats.h"
 
-#include <MathUtils.h>
+#include "AbilityStats.h"
 
 #include <raylib.h>
 #include <iostream>
@@ -42,40 +41,15 @@ namespace Nawia::Entity {
 	 * @brief Base class for all game objects in the world (players, enemies, projectiles, items).
 	 * 
 	 * Entity provides core functionality shared by all game objects:
-	 * - Position and movement in isometric world coordinates
+	 * - Position and movement in world coordinates (XZ plane, Y=0)
 	 * - Health and damage system
 	 * - 3D model rendering with animation support
 	 * - Collision detection via attached Collider
 	 * - Ability system for casting spells/attacks
 	 * - Faction system for friend/foe detection
 	 * 
-	 * @note All coordinates are in isometric world space. Use getScreenPos() to convert
-	 *       to screen coordinates for rendering or mouse interaction.
-	 * 
-	 * Usage example - Creating a simple entity:
-	 * @code
-	 *     auto texture = resourceManager.getTexture("player.png");
-	 *     auto player = std::make_shared<Entity>("Player", 10.0f, 10.0f, texture, 100);
-	 *     player->setFaction(Entity::Faction::Player);
-	 *     player->setCollider(std::make_unique<CircleCollider>(0.5f));
-	 *     player->addAbility(std::make_shared<FireballAbility>(fireballTex));
-	 * @endcode
-	 * 
-	 * Usage example - Subclassing:
-	 * @code
-	 *     class Enemy : public Entity {
-	 *     public:
-	 *         Enemy(float x, float y, std::shared_ptr<Texture2D> tex)
-	 *             : Entity("Enemy", x, y, tex, 50) {
-	 *             setFaction(Faction::Enemy);
-	 *         }
-	 *         
-	 *         void update(float dt) override {
-	 *             Entity::update(dt);
-	 *             // Custom AI logic here
-	 *         }
-	 *     };
-	 * @endcode
+	 * @note Positions use Vector2{x, y} internally, which maps to 3D world as {x, 0, y}.
+	 *       getX() corresponds to world X, getY() corresponds to world Z.
 	 */
 	class Entity : public std::enable_shared_from_this<Entity> {
 	public:
@@ -83,8 +57,8 @@ namespace Nawia::Entity {
 		 * @brief Construct a new Entity.
 		 * @param name Display name of the entity
 		 * @param start_x Initial X position in world coordinates
-		 * @param start_y Initial Y position in world coordinates
-		 * @param texture Shared texture for rendering
+		 * @param start_y Initial Y (Z in 3D) position in world coordinates
+		 * @param texture Shared texture for rendering (fallback 2D)
 		 * @param max_hp Maximum (and initial) health points
 		 */
 		Entity(const std::string& name, float start_x, float start_y, const std::shared_ptr<Texture2D>& texture, int max_hp);
@@ -98,11 +72,11 @@ namespace Nawia::Entity {
 		virtual void update(float delta_time);
 		
 		/**
-		 * @brief Render the entity at its current position.
-		 * @param offset_x Camera X offset for screen positioning
-		 * @param offset_y Camera Y offset for screen positioning
+		 * @brief Render the entity in 3D space.
+		 * Must be called between BeginMode3D/EndMode3D.
+		 * @param camera The 3D camera (for debug rendering, hover effects, etc.)
 		 */
-		virtual void render(float offset_x, float offset_y);
+		virtual void render(const Camera3D& camera);
 
 
 		// ═══════════════════════════════════════════════════════════════════════
@@ -119,17 +93,29 @@ namespace Nawia::Entity {
 		/// @}
 
 		/// @name Coordinate Conversion
-		/// @brief Helpers for converting between world (isometric) and screen coordinates.
 		/// @{
 		
-		/** @brief Convert world position to screen pixel coordinates. */
-		[[nodiscard]] Vector2 getScreenPos(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
+		/** @brief Get 3D world position (on ground plane). Override for altitude. */
+		[[nodiscard]] virtual Vector3 getWorldPos3D() const { return { _pos.x, 0.0f, _pos.y }; }
+
+		/** @brief Project entity world position to screen coordinates. */
+		[[nodiscard]] Vector2 getScreenPosition(const Camera3D& camera) const;
 		
-		/** @brief Convert world position to raw isometric coordinates (before camera offset). */
-		[[nodiscard]] Vector2 getIsoPos(float world_x, float world_y, float cam_x, float cam_y) const;
+		/** @brief Check if mouse ray hits the entity's 3D bounding box. */
+		[[nodiscard]] virtual bool isMouseOver(float screen_x, float screen_y, const Camera3D& camera) const;
 		
-		/** @brief Check if mouse is hovering over this entity. */
-		[[nodiscard]] virtual bool isMouseOver(float mouse_x, float mouse_y, float cam_x, float cam_y) const;
+		/** @brief Get world-space axis-aligned bounding box of the 3D model. */
+		[[nodiscard]] BoundingBox getBoundingBox() const;
+
+		/** @brief Build the world transform matrix used for rendering & collision. */
+		[[nodiscard]] Matrix getWorldTransformMatrix() const;
+
+		/** @brief Test if a ray hits this entity's 3D mesh (triangle-level). 
+		 *  @return true if any mesh triangle is hit */
+		[[nodiscard]] bool checkRayHitsMesh(const Ray& ray) const;
+
+		/** @brief Test if a ray hits this entity's 3D mesh and return collision info. */
+		[[nodiscard]] RayCollision getRayMeshCollision(const Ray& ray) const;
 		/// @}
 
 
@@ -189,6 +175,11 @@ namespace Nawia::Entity {
 
 		void setRotation(const float angle) { _rotation = angle; }
 		[[nodiscard]] float getRotation() const { return _rotation; }
+
+		/** @brief Visual offset (degrees) added ONLY when rendering the model.
+		 *  Use this to align the model's "front" with the math direction.
+		 *  Does NOT affect getRotation() or ability directions. */
+		void setModelFacingOffset(const float deg) { _model_facing_offset = deg; }
 		
 		/** @brief Rotate entity to face world coordinates. */
 		void rotateTowards(float world_x, float world_y);
@@ -218,7 +209,6 @@ namespace Nawia::Entity {
 		static AbilityStats getAbilityStatsFromJson(const std::string& name);
 		
 		/** @brief Add an ability to this entity's ability list. */
-		// delete
 		void addAbility(const std::shared_ptr<Ability>& ability);
 		
 		/** @brief Get ability by slot index (0-based). */
@@ -234,14 +224,6 @@ namespace Nawia::Entity {
 		// ENTITY SPAWNING
 		// ═══════════════════════════════════════════════════════════════════════
 		
-		/**
-		 * @brief Queue an entity to be spawned after the update loop.
-		 * 
-		 * Use this instead of direct spawning to avoid modifying the entity list
-		 * during iteration. EntityManager processes pending spawns each frame.
-		 * 
-		 * @param entity Entity to spawn (e.g., projectile from ability)
-		 */
 		void addPendingSpawn(const std::shared_ptr<Entity>& entity) { _pending_spawns.push_back(entity); }
 		[[nodiscard]] std::vector<std::shared_ptr<Entity>> getPendingSpawns() { return _pending_spawns; }
 		void clearPendingSpawns() { _pending_spawns.clear(); }
@@ -262,8 +244,8 @@ namespace Nawia::Entity {
 		template <typename T> friend class EntityBuilder;
 		Entity() = default;
 
-		Vector2 _pos;
-		Vector2 _velocity;
+		Vector2 _pos = {0.0f, 0.0f};
+		Vector2 _velocity = {0.0f, 0.0f};
 		float _scale = 1.0f;
 		std::shared_ptr<Texture2D> _texture;
 		EntityType _type = EntityType::None;
@@ -272,8 +254,8 @@ namespace Nawia::Entity {
 		
 		std::vector<std::shared_ptr<Entity>> _pending_spawns;
 
-		int _hp;
-		int _max_hp;
+		int _hp = 1;
+		int _max_hp = 1;
 
 		// 3D Model & Animation Data
 		Model _model;
@@ -283,8 +265,9 @@ namespace Nawia::Entity {
 		int _current_anim_index = 0;
 		float _anim_frame_counter = 0.0f;
 		float _anim_speed_multiplier = 1.0f;
-		float _anim_fps = 30.0f; // Default animation FPS
+		float _anim_fps = 30.0f;
 		float _rotation = 0.0f;
+		float _model_facing_offset = 90.0f; // visual offset for model facing vs math angle
 		bool _model_loaded = false;
 		bool _anim_looping = true;
 		bool _anim_locked = false;
@@ -293,11 +276,6 @@ namespace Nawia::Entity {
 		Faction _faction = Faction::None;
 
 		std::string _name;
-
-		// 3D Rendering Support
-		RenderTexture2D _target;
-		Camera3D _camera;
-		bool _use_3d_rendering = false;
 
 		void updateAnimation(float dt);
 		

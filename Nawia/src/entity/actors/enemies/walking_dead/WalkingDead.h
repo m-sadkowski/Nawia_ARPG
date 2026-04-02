@@ -1,4 +1,5 @@
 #pragma once
+
 #include "EnemyInterface.h"
 
 #include <Map.h>
@@ -47,7 +48,7 @@ namespace Nawia::Entity {
 
 		
 		// Combat stats
-		static constexpr float VISION_RANGE = 6.0f;
+		static constexpr float VISION_RANGE = 10.0f;
 		static constexpr float CLOSE_RANGE = VISION_RANGE / 2;    // Distance at which zombie starts running
 		static constexpr float ATTACK_RANGE = 1.0f;
 		static constexpr float SPEED = 1.0f;

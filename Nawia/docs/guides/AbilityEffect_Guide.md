@@ -1,21 +1,21 @@
 # Przewodnik po klasie AbilityEffect
 
-Klasa `AbilityEffect` (`src/entity/abilities/AbilityEffect.h`) to wyspecjalizowana klasa `Entity` reprezentująca efekty umiejętności, takie jak pociski, eksplozje, czy obszary działania (AoE).
+Klasa `AbilityEffect` (`src/entity/abilities/AbilityEffect.h`) to wyspecjalizowana klasa `Entity` reprezentująca fizyczne efekty umiejętności, takie jak pociski, eksplozje, czy obszary działania (AoE) rzucane przez graczy lub przeciwników.
 
 ## Czym różni się od zwykłego Entity?
 - Posiada `AbilityStats` (obrażenia, czas trwania).
-- Posiada wbudowaną obsługę czasu życia (`Lifetime`). zniknie sam po upływie `duration`.
-- Posiada metody do obsługi kolizji specyficzne dla walki (`onCollision`, `checkCollision`).
+- Posiada wbudowaną obsługę czasu życia (`Lifetime`) i wygasa samoistnie po przeterminowaniu `duration`.
+- Filtruje zderzenia używając zaawansowanej, hybrydowej dwufazowej logiki 3D Mesh Collider (Broadphase + Narrowphase Mesh Intersection).
 
-## Jak stworzyć efekt (np. Pocisk)?
+## Jak stworzyć efekt (np. Pocisk Cudu Zniszczenia)?
 
-Tworzymy klasę dziedziczącą po `Nawia::Entity::AbilityEffect` (lub bezpośrednio po `Entity`, jeśli nie potrzebujemy mechanik AbilityEffect, ale zalecane jest użycie dedykowanej bazy).
+Tworzymy klasę dziedziczącą po `Nawia::Entity::AbilityEffect`. To tutaj, w przeciwieństwie do potworów, nadal implementujemy bazowe, dwuwymiarowe obszary "Collider" ze starszych typów, gdyż to one rzutują czy trafiamy cel strefą wybuchu!
 
 ### Krok 1: Implementacja
 
 ```cpp
 #include "AbilityEffect.h"
-#include "Collider.h" // Poprawny include
+#include "Collider.h"
 
 namespace Nawia::Entity {
 
@@ -24,64 +24,52 @@ namespace Nawia::Entity {
         FireballEffect(float startX, float startY, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats, float targetX, float targetY)
             : AbilityEffect("FireballEffect", startX, startY, tex, stats)
         {
-            // Oblicz wektor prędkości w stronę celu
+            // Oś rotacji (obliczanie wektora kierunkowego do rzutu izometrycznego / perspektywy wektorowej na X-Z).
             float angle = atan2(targetY - startY, targetX - startX);
             float speed = stats.projectile_speed;
             
             setVelocity(cos(angle) * speed, sin(angle) * speed);
 
-            // Ustaw collider
-            // Pociski są małe, zazwyczaj koło bez offsetu wystarcza. promień bierzemy z stats.hitbox_radius.
+            // Wymiar obszaru zadawania obrażeń pocisku. Koło wokół środka efektu.
             setCollider(std::make_unique<CircleCollider>(this, stats.hitbox_radius, 0.0f, 0.0f));
+            
+            // Opcjonalne: Użycie zaawansowanego modelu na lecącej kuli
+            // loadModel("assets/models/fireball.glb");
         }
 
-        // Możesz nadpisać update, jeśli potrzebujesz specjalnego zachowania (np. naprowadzanie)
         void update(float dt) override {
-            AbilityEffect::update(dt); // WAŻNE: Obsługuje ruch i czas życia (_timer)
+            AbilityEffect::update(dt); // WAŻNE: Obsługuje ruch i obniżanie czasu wygaśnięcia pocisku
         }
 
         // Obsługa trafienia
         void onCollision(const std::shared_ptr<Entity>& target) override {
-            // Klasa bazowa sprawdza czy już trafiliśmy ten cel (żeby nie zadawać dmg co klatkę)
+            // Klasa bazowa dba by nie doliczać hitboxów po dziesięć razy dla jednej fazy cięcia mieczem
             if (hasHit(target)) return;
             
-            // Frakcje są zazwyczaj filtrowane w checkCollision, ale dla pewności:
-            if (target->getFaction() == getFaction()) return;
-
-            // Zadaj obrażenia
+            // Reakcja: Zadaj obrażenia
             target->takeDamage(_stats.damage);
-            addHit(target); // Zapisz, że ten cel już dostał
-
-            // Jeśli to pocisk "jednorazowy" (znika po trafieniu):
-            // die(); 
-            // lub stwórz efekt wybuchu i dopiero zgiń.
+            addHit(target); // Zapisz, że ten cel przyjął strzał
+            
+            // Ponieważ To fireball, ulegnie destrukcji
+            die();
         }
     };
 }
 ```
 
-## Kluczowe Metody
+## Kluczowe Procesy Kolizji Walki: Dwuetapowa Weryfikacja
 
-### `checkCollision(target)`
-Domyślna implementacja w `AbilityEffect` używa colliderów obu obiektów oraz sprawdza frakcje (ignoruje sojuszników).
-Nadpisz tę metodę, jeśli potrzebujesz niestandardowej logiki (np. hitscan, ignorowanie ścian).
+Twoje efekty wyłapują interakcje ze wrogami korzystając z precyzyjnej mechaniki `checkCollision(target)`. Od migracji na natywny układ głębi 3D robimy to zaawansowanymi metodami silnika, unikając mylnych zderzeń z rogiem powietrza!
+
+### 1. Krok: Broadphase (`BoundingBox` spięcie z `Colliderem`)
+Efekt w pierwszej fazie próbuje dociec, czy w ogóle zderzył się z animacyjnym polem brzegowym celu (Wbudowane pudło na modelach objętościowych potworów z Blendera). Jeżeli szeroki ConeCollider (Strefa miecza) chociaż ułamkiem musnęła Boxa Ogra, przechodzi do Narrowphase.
+
+### 2. Krok: Narrowphase (`Mesh Intersection Raycasting`)
+Wiązki punktów rzutowane są od epicentrum efektu w siatkę wroga (`getRayMeshCollision()`). Jeśli miecz uderzył celnie siatkę geometryczną przeciwnika na poprawnej wielkości osi, `checkCollision` zezwala wywołać reakcję zadania bólu!
 
 ### `onCollision(target)`
-Wywoływana przez silnik, gdy wykryta zostanie kolizja z **wrogim** bytem (zwróconym przez `checkCollision`).
-Tutaj implementujesz logikę: zadanie obrażeń, nałożenie statusu (slow/stun), zniszczenie pocisku.
-
-### `update(dt)`
-Bazowa metoda `AbilityEffect::update`:
-1. Aktualizuje pozycję na podstawie velocity.
-2. Zlicza `_timer`.
-3. Jeśli `_timer > _stats.duration`, oznacza obiekt jako martwy (`die()`).
+Wywoływana przez silnik, gdy przejdą obie fazy sprawdzenia z wrogiem. Tutaj definiujesz konsekwencje (Obrażenia, efekty obezwładniania, eksplozje).
 
 ## System Kolizji i Frakcji (Szczegóły)
-- Pamiętaj, aby ustawić Frakcję pocisku taką samą jak Castera (`setFaction`).
-- `AbilityEffect` filtruje kolizje sojusznicze. Fireball gracza nie trafi gracza ani innego gracza (w coop), trafil tylko wroga (`Faction::Enemy`).
-
-## Tekstury i Animacje
-Działają tak samo jak w `Entity`.
-- **2D**: Przekaż teksturę w konstruktorze.
-- **3D**: Użyj `loadModel` w ciele konstruktora.
-- **Particles**: Dla efektów cząsteczkowych (np. dym, ogień) możesz stworzyć osobne klasy particles, lub użyć prostych animowanych Entity spawnowanych przy `die()`.
+- Pamiętaj, aby ustawić Frakcję pocisku taką samą jak Castera przy wykluwaniu jego jajka w klasie macierzy umiejętności `SuperSlashBase->cast(...)` - tak unika rażenia przyjaciół (`Faction::Ally`).
+- Efekty mogą zadawać trafienia strefą koła (`CircleCollider`) wokół promienia rzutu dla pocisków, i strefą stożka (`ConeCollider`) idealnie pasującą pod frontowe ataki w walce wręcz!

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Interactable.h"
 #include "Entity.h"
 #include "InteractiveTrigger.h"
@@ -11,7 +11,7 @@ namespace Nawia::Entity {
 
         void onTriggerEnter(Entity& other) override;
         void update(float delta_time) override;
-        void render(float offset_x, float offset_y) override;
+        void render(const Camera3D& camera) override;
 
         [[nodiscard]] bool isActivated() const { return _activated; }
         float getInteractionRange() override;

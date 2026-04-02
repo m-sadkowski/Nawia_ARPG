@@ -1,18 +1,15 @@
-# System Entity - Przewodnik Dewelopera
+# Nawia ARPG - Przewodnik Dewelopera
 
-Ten dokument stanowi kompletny przewodnik po systemie Entity w projekcie Nawia. Opisuje hierarchię klas, system kolizji, tworzenie nowych przeciwników (Enemies) oraz umiejętności (Abilities) i ich efektów.
+Ten dokument stanowi kompletny przewodnik po architekturze projektu Nawia. Opisuje hierarchię klas, nowy w pełni 3D system kolizji, tworzenie poziomów, przeciwników (Enemies) oraz umiejętności (Abilities).
 
 ## Spis Treści
 1.  [Hierarchia Klas](#1-hierarchia-klas)
-2.  [Tworzenie Nowego Entity](#2-tworzenie-nowego-entity)
-    *   [Konstrukcja i Modele](#konstrukcja-i-modele-3d)
-    *   [Pozycjonowanie i Rotacja](#pozycjonowanie-i-rotacja)
-3.  [System Kolizji (Collider)](#3-system-kolizji-collider)
-4.  [Tworzenie Przeciwników (Enemies)](#4-tworzenie-przeciwników-enemies)
-5.  [System Umiejętności (AbILITIES)](#5-system-umiejętności-abilities)
-    *   [Konfiguracja JSON](#51-konfiguracja-json)
-    *   [Klasa Ability](#52-klasa-ability)
-    *   [AbilityEffect (Pociski/Efekty)](#53-abilityeffect-pociskiefekty)
+2.  [Tworzenie Map i Poziomów (Levels)](#2-tworzenie-map-i-poziomów-levels)
+3.  [Tworzenie Nowego Entity](#3-tworzenie-nowego-entity)
+4.  [Fizyka i System Kolizji 3D](#4-fizyka-i-system-kolizji-3d)
+5.  [Tworzenie Przeciwników (Enemies)](#5-tworzenie-przeciwników-enemies)
+6.  [System Umiejętności (Abilities)](#6-system-umiejętności-abilities)
+7.  [Renderowanie i Y-Sorting](#7-renderowanie-i-y-sorting)
 
 ---
 
@@ -20,151 +17,118 @@ Ten dokument stanowi kompletny przewodnik po systemie Entity w projekcie Nawia. 
 
 Podstawowym budulcem jest klasa `Nawia::Entity::Entity`.
 
-*   **Entity**: Klasa bazowa. Posiada pozycję, teksturę/model, życie (HP), system animacji i kolizji.
+*   **Entity**: Klasa bazowa. Posiada pozycję, teksturę/model, życie (HP), system animacji.
 *   **EnemyInterface**: Dziedziczy po `Entity`. Rozszerza bazę o wskaźnik na `Map` (dla pathfindingu) i logikę specyficzną dla wrogów.
-*   **Ability**: Klasa logiczna umiejętności (nie jest Entity, ale jest trzymana przez Entity). Odpowiada za "rzucenie" czaru (funkcja `cast`).
-*   **AbilityEffect**: Dziedziczy po `Entity`. Reprezentuje wizualny i fizyczny efekt umiejętności (np. kula ognia, cięcie mieczem).
+*   **Level**: Reprezentuje dany poziom, agregując obiekty na nim poprzez Managery.
+*   **Map**: Odpowiada za wczytywanie pliku środowiska `.obj` oraz parametry nawigacji i sprawdzanie możliwości chodzenia (tzw. walkability, dawniej izometryczne płytki).
+*   **Ability**: Klasa logiczna umiejętności (nie jest Entity). Odpowiada za "rzucenie" czaru (funkcja `cast`).
+*   **AbilityEffect**: Dziedziczy po `Entity`. Reprezentuje fizyczny i geometryczny efekt ataku (np. promień pocisku, zakres cięcia mieczem).
 
 ---
 
-## 2. Tworzenie Nowego Entity
+## 2. Tworzenie Map i Poziomów (Levels)
 
-Aby stworzyć nowy obiekt w grze, stwórz klasę dziedziczącą po `Entity`.
+Cały świat w Nawii wyrósł ze środowiska 2.5D i teraz operuje na **natywnym silniku 3D z perspektywą**. 
+Aby stworzyć nowy poziom (Level) dla gracza:
 
-### Konstruktor
+1. Podłącz Menedżery: Powołaj klasę dziedziczącą ze standardowego poziomu (np. `DevLevel`).
+2. Przygotuj plik mapy 3D (wyeksportuj model poziom/teren jako `.obj` z Blendera).
+3. Podmień mapę w `DevLevel::init()` na nową i dostosuj jej pozycję głębokości (Offset Y):
+    ```cpp
+    _map.loadMap(engine, "../assets/models/twoja_mapa.obj");
+    _map.setScale(0.04f);              // Ustaw domyślną skalę (jeśli model jest ogromny/mały)
+    _map.setPosition(0.0f, -0.65f);    // Offset Y: obniż lub podnieś mapę 3D, by jej wizualny pułap "Ziemi" zgrał się z płaszczyzną Y=0 skryptów postaci. 
+    ```
+4. Wypełnij level w inicjalizatorze pożądanymi instancjami: np. zespawnuj NPC, dodaj skrzynki, postaw Devilów. Wszystkie współrzędne X oraz Y dla postaci są teraz globalnymi koordynatami w widoku top-down (gdzie silnikowe Y odzwierciedla w rzeczywistym świecie Oś Z).
 
-Konstruktor bazowy wymaga podstawowych danych:
-```cpp
-Entity(
-    const std::string& name,                // Debugowa nazwa
-    float start_x, float start_y,           // Pozycja w świecie (siatka izometryczna)
-    const std::shared_ptr<Texture2D>& texture, // Tekstura 2D (ikona/sprite)
-    int max_hp                              // Maksymalne życie
-);
-```
+---
+
+## 3. Tworzenie Nowego Entity
+
+Aby stworzyć nowy obiekt, stwórz klasę dziedziczącą po `Entity`.
 
 ### Konstrukcja i Modele 3D
-W ciele konstruktora swojej klasy powinieneś załadować model 3D oraz animacje.
+W ciele konstruktora swojej klasy po prostu załaduj oryginalny i prawidłowy model 3D (format `.glb` ze wsparciem dla kości animacji) oraz wylistuj klipy.
+Znacznie uproszczono proces - **nie trzeba już dodawać pod postać sztucznych colliderów**. Silnik jest w pełni 3D-świadomy.
 
 ```cpp
-// MyEntity.cpp
-MyEntity::MyEntity(float x, float y, const std::shared_ptr<Texture2D>& tex)
-    : Entity("MyEntity", x, y, tex, 100)
+// Barrel.cpp
+Barrel::Barrel(float x, float y, const std::shared_ptr<Texture2D>& tex)
+    : Entity("Barrel", x, y, tex, 100)
 {
-    // Ładowanie modelu 3D
-    // Drugi parametr 'true' obraca model o -90 stopni na osi X (częste dla modeli z Blendera/Z-up)
-    loadModel("../assets/models/barrel.glb", true);
+    // Ładowanie precyzyjnego modelu 3D
+    loadModel("../assets/models/barrel.glb");
     
-    // Rejestracja animacji
-    addAnimation("idle", "../assets/models/barrel_idle.glb");
-    
-    // Uruchomienie domyślnej animacji
+    // Uruchomienie domyślnej zapętlonej animacji
     playAnimation("idle");
     
-    // playAnimation - pełna sygnatura:
+    // UWAGA:
     // playAnimation(name, loop, lock_movement, startFrame, force)
-    // - name: nazwa animacji
-    // - loop: czy zapętlać (default: true)
-    // - lock_movement: czy blokować ruch (default: false)
-    // - startFrame: od której klatki zacząć (default: 0)
-    // - force: wymusić restart nawet tej samej animacji (default: false)
-    
-    // Przykład: animacja od klatki 10, wymuszona
-    playAnimation("get_hit", false, true, 10, true);
+    // Przykład uderzenia z wymuszonym odtworzeniem:
+    // playAnimation("get_hit", false, true, 0, true);
 }
 ```
 
 ### Pozycjonowanie i Rotacja
-
-W grze izometrycznej rozróżniamy pozycję "stóp" (gdzie postać stoi na ziemi) od "środka" (gdzie postać powinna oberwać pociskiem).
-
-*   `getX()`, `getY()`: Zwraca pozycję 2D na mapie (podstawa modelu).
-*   `getCenter()`: Zwraca `Vector2`, który jest środkiem geometrycznym (często środkiem Collidera). **Używaj tego do celowania w tę postać.**
-
-#### Rotacja Postaci
-Entity posiada dwie metody do obracania się, w zależności od kontekstu:
-
-1.  **`rotateTowards(x, y)`** - Rotacja względem stóp (bazy).
-    *   Używane przy **chodzeniu** (postać idzie tam, gdzie wskazują stopy).
-2.  **`rotateTowardsCenter(x, y)`** - Rotacja względem środka (`getCenter()`).
-    *   Używane przy **walce i celowaniu** (postać obraca korpus i twarz w stronę celu/kursora).
-
-> **Ważne:** Jeśli tworzysz umiejętność, która wymaga precyzyjnego celowania, użyj `rotateTowardsCenter` w momencie rzucania (cast), aby upewnić się, że pocisk poleci dokładnie z "klatki piersiowej" w stronę kursora.
+*   `getX()`, `getY()`: Zwraca fizyczną pozycję 2D na logice mapy względem punktu styku butów / korzeni z glebą (Oś Y graficzna jest traktowana jako stała 0).
+*   `getCenter()`: Zwraca środek modelu 3D (X oraz głębokość jako `Vector2`).
+*   **Rotacja**: `rotateTowards(x, y)` obraca ciało bazując od stop po cel (do swobodnego chodzenia). Z kolei `rotateTowardsCenter(x, y)` upewnia się, by przy castingu promienie i rzuty ataków leciały z właściwego korpusu / torsu postaci.
 
 ---
 
-## 3. System Kolizji (Collider)
+## 4. Fizyka i System Kolizji 3D
 
-Collider definiuje fizyczny kształt obiektu. Jest kluczowy dla wykrywania trafień i interakcji myszką. Kolizje są dodawane w konstruktorze za pomocą `setCollider`.
+Cały system opierał się dawniej na manualnych komponentach `RectangleCollider` umieszczanych w środku ciał, które przysparzały o ból głowy. System ewoluował na profesjonalny **pół-matematyczny ray-tracing po objętości 3D**:
 
-### Typy Colliderów:
+### 1. Odpychanie Fizyczne (PushBox / Ruch)
+Postacie, przeciwnicy i gracze automatycznie omijają się w tłumie (nie potrafią stać w jednym miejscu). Zapobiega to całkowicie błędom blokujących się rogów starożytnych, kwadratowych boxów.
+Silnik sam dystansuje jednostki przy kolizjach fizycznych `EntityManager::resolveOverlap`, stosując wirtualny "dystans promienia" pomiędzy bazą obu ciał.
 
-1.  **`RectangleCollider`**: Prostokąt. Standard dla postaci.
-    ```cpp
-    // (właściciel, szerokość, wysokość)
-    setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.8f));
-    ```
+### 2. Walka, Umiejętności i Area of Effect (Precyzyjna Siatka/Mesh)
+Wrogowane modele (nawet dla nie-hitscan pocisków) są analizowane rygorystycznie za sprawą dwuetapowej weryfikacji trafienia "pola w model", np. w ramach rzutu obszarowego (Cięcie mieczem):
 
-2.  **`CircleCollider`**: Koło. Standard dla pocisków typu Fireball.
-    ```cpp
-    // (właściciel, promień)
-    setCollider(std::make_unique<CircleCollider>(this, 0.5f));
-    ```
+1. **Broadphase**: W pierwszym kroku sprawdzane jest naturalne stykanie się pola z 3D `Bounding Boxem` wroga (Bądź ostrożny: `GetModelBoundingBox` na animowanych plikach `.glb` często bywa ogromne z winy wychylających kości klipów animacji atakujących).
+2. **Raycast / Mesh Sweep**: Ze względu na duże gabaryty Bounding Boxa animacji, gdy cel pozytywnie przejdzie pretest broadphase, odbywa się **Ostateczny Mesh Check**. Silnik fizyczny miota ułamek wiązek laserowych w tors przeciwnika z identyczną matematyką raylib z jakiej korzystasz do precyzyjnego hoverowania (zaznaczania i wyczerniania postaci myszką!). 
+    * Jeśli celnik minął pustą pustkę między nogami obrzydistnie pokracznego wroga – trafienie nie jest zaliczone!
+    * System rozwiązuje ten test bezpośrednio, czy powierzchnia uderzyła w 3D siatkę, ignorując sztuczne i sztywne strefy przestrzenne.
 
-3.  **`ConeCollider`**: Stożek/Wycinek koła. Dla ataków obszarowych (Cleave/Slash).
-    ```cpp
-    // (właściciel, zasięg/promień, kąt widzenia w stopniach)
-    setCollider(std::make_unique<ConeCollider>(this, 1.5f, 90.0f));
-    ```
+### 3. Triggery 
+Triggery obiektowe oparte o zdarzenia (np. wejście na ukrytego Checkpointa na podłodze) stosują inteligentną hybrydę sprawdzając własną skrzynkę nałożoną na Bounding Box gracza.
 
-> Aby widzieć hitboxy w grze, ustaw `Entity::DebugColliders = true;` w kodzie.
+### Kwalifikatory Rejonu Efektów Umiejętności:
+Służą **tylko** jako pole definiujące zasięg danego zaklęcia / ataku / triggera (Używać tylko w plikach efektów!):
+*   **`RectangleCollider`**: Podłużne płaszczyzny i ściany ognia.
+*   **`CircleCollider`**: Rzucany pocisk kulisty wędrujący by trafić w model (np. Fireball).
+*   **`ConeCollider`**: Szerokie zamaszyste cięcia mieczem (SwordSlash).
 
 ---
 
-## 4. Tworzenie Przeciwników (Enemies)
+## 5. Tworzenie Przeciwników (Enemies)
 
-Przeciwnicy powinni dziedziczyć po `Nawia::Entity::EnemyInterface`, nie po pustym `Entity`. Klasa ta zapewnia integrację z systemem mapy.
-
-### Przykład: Orc
-```cpp
-// Orc.h
-class Orc : public Nawia::Entity::EnemyInterface {
-public:
-    Orc(float x, float y, std::shared_ptr<Texture2D> tex, Nawia::Core::Map* map);
-    void update(float dt) override;
-};
-```
+Klasa wrogów zapewnia własną autentyczną funkcję do pathfindingu omijającą statyczne przeszkody (wymaga `Map*` mapy).
+Podpinaj dla wroga modele bazowe z sufixem typu `_idle.glb` a wszystkie poboczne operacje podpinaj pod konkretne String'i.
 
 ```cpp
-// Orc.cpp
 Orc::Orc(float x, float y, std::shared_ptr<Texture2D> tex, Nawia::Core::Map* map)
-    : EnemyInterface("Orc", x, y, tex, 200, map) // 200 HP
+    : EnemyInterface("Orc", x, y, tex, 200, map) // HP Wroga
 {
-    loadModel("../assets/models/orc.glb", true);
+    // Modele
+    loadModel("../assets/models/orc.glb");
     addAnimation("run", "../assets/models/orc_run.glb");
     addAnimation("attack", "../assets/models/orc_attack.glb");
     
-    // Ważne: Collider ustawiamy tak, żeby pasował do modelu
-    setCollider(std::make_unique<RectangleCollider>(this, 0.6f, 0.8f));
-}
-
-void Orc::update(float dt) {
-    EnemyInterface::update(dt); // Obsługa fizyki i animacji bazowej
-    
-    // Prosta logika AI
-    // if (player_is_close) { ... }
+    // Od zaktualizowanej wersji 3D postać NIE narzuca sobie własnego collidera na plecy!
 }
 ```
 
 ---
 
-## 5. System Umiejętności (Abilities)
+## 6. System Umiejętności (Abilities)
 
-System ten pozwala oddzielić dane (JSON) od logiki (C++).
+Rozdzielamy suche statystyki w czystym JSON od wysoce zoptymalizowanej logiki pętli C++.
 
-### 5.1. Konfiguracja JSON
-Dodaj wpis do `assets/data/abilities.json`. To tutaj definiujesz zasięg, obrażenia i cooldowny.
-
+### 1. Konfiguracja JSON
+Edytuj `assets/data/abilities.json`:
 ```json
 {
   "name": "SuperSlash",
@@ -178,55 +142,31 @@ Dodaj wpis do `assets/data/abilities.json`. To tutaj definiujesz zasięg, obraż
 }
 ```
 
-### 5.2. Klasa Ability
-Odpowiada za logikę "użycia". Musisz stworzyć klasę dziedziczącą po `Ability`.
-
-**Kluczowa metoda: `cast()`**
-To tutaj decydujesz co się dzieje. Czy spawnuje się pocisk? Czy postać musi się obrócić?
+### 2. Wykonywane Skrypty i Efekty
+Obiekt typu `AbilityEffect` jest rzucany w przestrzeń `EntityManager` od wywołania go przez klasę matkę Ability. Implementuje unikalny efekt wizualny w swoim obrysie kolizyjnym. 
+Aby nadać mu ten obrys, wykrój mu promień rany np. stożek, a jego bazowa metoda na każdej nowej klatce zatroszczy się (patrz Punkt 4) o wyłuskanie wszystkich żywych zaszczepionych celów modelowych ze strefy Mesh Sweepingu i aplikowanie na celach funkcji trafień:
 
 ```cpp
-std::unique_ptr<Entity> SuperSlashAbility::cast(float target_x, float target_y) 
-{
-    // 1. Wymuś rotację w stronę celu (szczególnie ważne przy sterowaniu klawiaturą Q/W/E/R)
-    getCaster()->rotateTowardsCenter(target_x, target_y);
-
-    // 2. Uruchom cooldown i animację postaci
-    startCooldown();
-    getCaster()->playAnimation("attack", false, true); // true = blokuje ruch na czas ataku
-
-    // 3. Stwórz efekt (hitbox zadający obrażenia)
-    // Pobierz statystyki z _stats (załadowane z JSON)
-    // Kąt w tym przypadku to -getCaster()->getRotation()
-    auto slash = std::make_unique<SwordSlashEffect>(
-        getCaster()->getCenter().x, 
-        getCaster()->getCenter().y, 
-        -getCaster()->getRotation(), 
-        _texture, 
-        _stats
-    );
-    
-    return slash;
-}
-```
-
-### 5.3. AbilityEffect (Pociski/Efekty)
-To jest fizyczna reprezentacja ataku w świecie gry. Dziedziczy po `AbilityEffect` (który dziedziczy po `Entity`).
-
-Musi implementować:
-*   `onCollision`: Zadawanie obrażeń.
-*   `render`: Rysowanie (tekstura lub collider).
-
-```cpp
+// wewnątrz skryptu Effectu np. SwordSlashEffect::onCollision(const std::shared_ptr<Entity>& target)
 void SwordSlashEffect::onCollision(const std::shared_ptr<Entity>& target)
 {
-    // Rzutowanie na EnemyInterface (żeby nie bić skrzynek czy sojuszników, chyba że chcemy)
+    // Gwarancja zaatakowania odpowiedniej rasy, nie zranienia przyjacielskich npc.
     if (auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target))
     {
-        // Sprawdź czy już go nie trafiliśmy w tym samym ataku (żeby nie zadać obrażeń co klatkę)
+        // Pamięć przebytych trafionych zapobiega multi-hitom od jednej fazy efektu rzutu
         if (!hasHit(enemy)) {
             enemy->takeDamage(getDamage());
-            addHit(enemy); // Dodaj do listy trafionych
+            addHit(enemy); 
         }
     }
 }
 ```
+
+---
+
+## 7. Renderowanie i Y-Sorting
+
+Całe malowanie scenerii oparte o render-liste wewnątrz `EntityManager::renderEntities` posiada wbudowane zarządzanie głębią metodą **Y-Sorting**:
+- Zależnie od tego z jakiej perspektywicznej odległości patrzy kamera przestrzenna 3D na płasko renderowaną przestrzeń.
+- Wykorzystuje wewnętrznie element sortujący stawiając byty wizualne dalej na Osi głębokości jako bazę tła obrysowego od postaci które stoją w linii niższej z racji kamery.
+To gwarantuje gładkie perspektywalne przykrywanie się i brak nachodzenia pikseli 2D sprite'ów czy dziwnych zachowań głębi modeli.

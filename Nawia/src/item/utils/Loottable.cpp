@@ -1,10 +1,12 @@
 #include "Loottable.h"
+#include "ItemDatabase.h"
+
+#include <Logger.h>
+
 #include <fstream>
 #include <iostream>
 #include <string>
 #include "json.hpp"
-#include "Logger.h"
-#include "ItemDatabase.h"
 
 namespace Nawia::Item {
 

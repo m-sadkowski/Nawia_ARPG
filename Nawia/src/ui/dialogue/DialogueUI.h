@@ -1,7 +1,10 @@
 #pragma once
-#include <raylib.h>
+
 #include "Dialogue.h"
-#include "Cat.h"
+
+#include <Cat.h>
+
+#include <raylib.h>
 #include <memory>
 
 namespace Nawia::UI {

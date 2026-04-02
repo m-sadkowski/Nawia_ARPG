@@ -1,6 +1,8 @@
 #include "UIHandler.h"
 #include "SettingsMenu.h"
+#include "LevelSelectMenu.h"
 #include "StatsUI.h"
+
 #include <Player.h>
 #include <EntityManager.h>
 #include <Entity.h>
@@ -10,6 +12,8 @@
 #include <Settings.h>
 #include <Camera.h>
 #include <Collider.h>
+#include <ResourceManager.h>
+
 #include <algorithm>
 #include <iostream>
 
@@ -39,34 +43,9 @@ namespace Nawia::UI {
             };
         }
 
-        float getHealthBarYOffset(const Entity::Entity& entity) 
-    	{
-            float y_offset = Core::TILE_HEIGHT; // Default fallback for no collider
-
-            if (const auto collider = entity.getCollider()) 
-            {
-                // Convert world units to approximate screen pixels where 1 unit ~ TILE_HEIGHT pixels roughly in verticality
-                constexpr float world_to_screen_factor = static_cast<float>(Core::TILE_HEIGHT);
-                switch (collider->getType()) 
-            	{
-                    case Entity::ColliderType::CIRCLE:
-                        if (const auto circle = dynamic_cast<const Entity::CircleCollider*>(collider)) 
-                            y_offset = (circle->getRadius() * world_to_screen_factor);
-                        break;
-                    case Entity::ColliderType::RECTANGLE:
-                        if (const auto rect = dynamic_cast<const Entity::RectangleCollider*>(collider)) 
-                            y_offset = (rect->getHeight() / 2.0f * world_to_screen_factor);
-                        break;
-                    case Entity::ColliderType::CONE:
-                        if (const auto cone = dynamic_cast<const Entity::ConeCollider*>(collider))
-                            y_offset = (cone->getRadius() * world_to_screen_factor);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            return y_offset + Core::TILE_HEIGHT;
-        }
+        // Health bar is positioned above the entity in screen space
+        // We use a fixed pixel offset above the projected screen position
+        constexpr float HEALTH_BAR_Y_OFFSET = 60.0f;
     }
 
     UIHandler::UIHandler() : _player(nullptr), _entity_manager(nullptr) {}
@@ -85,6 +64,8 @@ namespace Nawia::UI {
         _font = LoadFontEx("../assets/fonts/slavic_font.ttf", font_size, nullptr, 0);
         GenTextureMipmaps(&_font.texture);
         SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
+
+        _main_menu_bg = resource_manager.getTexture("../assets/textures/main_menu.png");
 
         _inventory_ui = std::make_unique<InventoryUI>();
         _inventory_ui->loadResources(resource_manager);
@@ -198,7 +179,7 @@ namespace Nawia::UI {
         return MenuAction::None;
     }
 
-    void UIHandler::render(const Core::Camera& camera) 
+    void UIHandler::render(const Core::GameCamera& camera) 
 	{
         if (!_player || !_entity_manager) return;
 
@@ -269,14 +250,28 @@ namespace Nawia::UI {
         const float screen_height = static_cast<float>(GetScreenHeight());
 
         // Draw Background
-        DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.8f));
+        if (_main_menu_bg) {
+            DrawTexturePro(*_main_menu_bg, 
+                { 0, 0, static_cast<float>(_main_menu_bg->width), static_cast<float>(_main_menu_bg->height) }, 
+                { 0, 0, screen_width, screen_height }, 
+                { 0, 0 }, 0.0f, WHITE);
+        } else {
+            DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.8f));
+        }
 
         // Draw Title
-        const auto* title_text = "NAWIA ARPG";
-        const float title_font_size = Core::GlobalScaling::scaled(60.0f);
+        const auto* title_text = "Nawia";
+        const float title_font_size = Core::GlobalScaling::scaled(100.0f);
         const float spacing = Core::GlobalScaling::scaled(2.0f);
         Vector2 title_size = MeasureTextEx(_font, title_text, title_font_size, spacing);
-        DrawTextEx(_font, title_text, { (screen_width - title_size.x) / 2.0f, screen_height / 4.0f }, title_font_size, spacing, DARKGREEN);
+        
+        Vector2 title_pos = { (screen_width - title_size.x) / 2.0f, screen_height / 3.0f };
+        
+        // shadow
+        const float shadow_offset = Core::GlobalScaling::scaled(4.0f);
+        DrawTextEx(_font, title_text, { title_pos.x + shadow_offset, title_pos.y + shadow_offset }, title_font_size, spacing, BLACK);
+        // text
+        DrawTextEx(_font, title_text, title_pos, title_font_size, spacing, WHITE);
 
         // Draw Buttons
         const auto layout = getMenuLayout(screen_width, screen_height);
@@ -289,8 +284,8 @@ namespace Nawia::UI {
 
     void UIHandler::drawMenuButton(const Rectangle& rect, const char* text, const bool is_hovered) const
     {
-        DrawRectangleRec(rect, is_hovered ? LIGHTGRAY : RAYWHITE);
-        DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), BLACK);
+        DrawRectangleRec(rect, is_hovered ? Fade(WHITE, 0.4f) : Fade(WHITE, 0.15f));
+        DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), WHITE);
         
         const float font_size = Core::GlobalScaling::scaled(20.0f);
         const float spacing = Core::GlobalScaling::scaled(1.0f);
@@ -301,7 +296,7 @@ namespace Nawia::UI {
             rect.y + (rect.height - text_size.y) / 2.0f 
         };
         
-        DrawTextEx(_font, text, text_pos, font_size, spacing, BLACK);
+        DrawTextEx(_font, text, text_pos, font_size, spacing, WHITE);
     }
 
     void UIHandler::renderPlayerHealthBar() const 
@@ -331,7 +326,7 @@ namespace Nawia::UI {
         DrawTextEx(_font, text, { screen_x + (bar_width - text_size.x) / 2.0f, screen_y + (bar_height - text_size.y) / 2.0f }, font_size, text_spacing, WHITE);
     }
 
-    void UIHandler::renderEnemyHealthBars(const Core::Camera& camera) const 
+    void UIHandler::renderEnemyHealthBars(const Core::GameCamera& camera) const 
 	{
         if (!_entity_manager) return;
 
@@ -341,17 +336,15 @@ namespace Nawia::UI {
                 entity->getHP() < entity->getMaxHP() && 
                 entity->getHP() > 0) 
             {
-                // Use collider center (or entity pos) projected to screen space, then offset upwards
-                const Vector2 world_center = entity->getCenter();
-                const Vector2 screen_center = entity->getIsoPos(world_center.x, world_center.y, camera.x, camera.y);
+                // Project entity world position to screen
+                const Vector2 screen_pos = entity->getScreenPosition(camera.get());
                 
                 // Bar Config (scaled)
                 const float bar_width = Core::GlobalScaling::scaled(40.0f);
                 const float bar_height = Core::GlobalScaling::scaled(6.0f);
                 
-                const float y_offset = getHealthBarYOffset(*entity) * Core::GlobalScaling::getScale();
-                const float bar_x = screen_center.x - bar_width / 2.0f;
-                const float bar_y = screen_center.y - y_offset;
+                const float bar_x = screen_pos.x - bar_width / 2.0f;
+                const float bar_y = screen_pos.y - HEALTH_BAR_Y_OFFSET * Core::GlobalScaling::getScale();
                 
                 const float hp_pct = std::clamp(static_cast<float>(entity->getHP()) / static_cast<float>(entity->getMaxHP()), 0.0f, 1.0f);
                 
@@ -453,6 +446,27 @@ namespace Nawia::UI {
 
     void UIHandler::closeSettingsMenu() {
         _settings_menu.reset();
+    }
+
+    void UIHandler::renderLevelSelectMenu() const {
+        if (_level_select_menu) {
+            _level_select_menu->render(_font);
+        }
+    }
+
+    void UIHandler::openLevelSelect(const std::vector<std::string>& levels) {
+        _level_select_menu = std::make_unique<LevelSelectMenu>(levels);
+    }
+
+    void UIHandler::closeLevelSelect() {
+        _level_select_menu.reset();
+    }
+
+    std::string UIHandler::handleLevelSelectInput() {
+        if (_level_select_menu) {
+            return _level_select_menu->handleInput();
+        }
+        return "";
     }
 
     void UIHandler::renderPauseMenu() const {

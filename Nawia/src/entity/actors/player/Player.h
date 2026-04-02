@@ -1,7 +1,9 @@
 #pragma once
+
 #include "Entity.h"
 #include "Ability.h"
 #include "Stats.h"
+
 #include <Backpack.h>
 #include <Equipment.h>
 

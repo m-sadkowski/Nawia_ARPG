@@ -1,12 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <raylib.h>
-
 #include "InventoryUI.h"
 #include "ChestUI.h"
 #include "DialogueUI.h"
+
+#include <memory>
+#include <vector>
+#include <raylib.h>
 
 namespace Nawia::Entity {
     class Player;
@@ -16,7 +16,7 @@ namespace Nawia::Entity {
 
 namespace Nawia::Core {
     class EntityManager;
-    struct Camera;
+    struct GameCamera;
     class Settings;
     class ResourceManager;
 }
@@ -25,6 +25,7 @@ namespace Nawia::UI {
 
     class StatsUI;
     class SettingsMenu;
+    class LevelSelectMenu;
 
     /**
      * @enum MenuAction
@@ -49,7 +50,7 @@ namespace Nawia::UI {
         void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager);
         
         void update(float dt);
-        void render(const Core::Camera& camera);
+        void render(const Core::GameCamera& camera);
         void renderMainMenu() const;
         void renderSettingsMenu() const;
         
@@ -62,6 +63,11 @@ namespace Nawia::UI {
         
         /// Render pause menu overlay (semi-transparent)
         void renderPauseMenu() const;
+
+        void renderLevelSelectMenu() const;
+        void openLevelSelect(const std::vector<std::string>& levels);
+        void closeLevelSelect();
+        std::string handleLevelSelectInput();
         
         /// Open settings menu with current settings
         void openSettings(const Core::Settings& settings);
@@ -93,7 +99,7 @@ namespace Nawia::UI {
     private:
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
-        void renderEnemyHealthBars(const Core::Camera& camera) const;
+        void renderEnemyHealthBars(const Core::GameCamera& camera) const;
         
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;
         void drawMenuButton(const Rectangle& rect, const char* text, bool is_hovered) const;
@@ -101,8 +107,10 @@ namespace Nawia::UI {
         std::shared_ptr<Entity::Player> _player;
         Core::EntityManager* _entity_manager;
         Font _font;
+        std::shared_ptr<Texture2D> _main_menu_bg;
         
         std::unique_ptr<SettingsMenu> _settings_menu;
+        std::unique_ptr<LevelSelectMenu> _level_select_menu;
 
         std::unique_ptr<InventoryUI> _inventory_ui;
         bool _is_inventory_open = false;

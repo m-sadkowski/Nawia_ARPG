@@ -1,22 +1,21 @@
 #include "Entity.h"
-#include <json.hpp>
-#include <fstream>
-#include <raymath.h>
 #include "Ability.h"
 #include "Collider.h"
 
 #include <Logger.h>
-#include <Map.h>
-#include <Constants.h>
+#include <MathUtils.h>
 
+#include <json.hpp>
+#include <fstream>
+#include <raymath.h>
 
 namespace Nawia::Entity {
 
-	bool Entity::DebugColliders = false; // enable debug hitbox drawing
+	bool Entity::DebugColliders = true; // enable debug hitbox drawing
 
 	Entity::Entity(const std::string& name, const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
 		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
-		  _current_anim_index(0), _anim_frame_counter(0.0f), _rotation(0.0f), _model_loaded(false), _use_3d_rendering(false),
+		  _current_anim_index(0), _anim_frame_counter(0.0f), _rotation(0.0f), _model_loaded(false),
 		  _velocity{0.0f, 0.0f}, _scale(1.0f), _faction(Faction::None), _pos{start_x, start_y},
 		  _anim_looping(true), _anim_locked(false), _hovered(false) {}
 
@@ -28,7 +27,6 @@ namespace Nawia::Entity {
 				UnloadModelAnimation(anim);
 
 			UnloadModel(_model);
-			UnloadRenderTexture(_target);
 		}
 	}
 
@@ -46,15 +44,6 @@ namespace Nawia::Entity {
 			_model.transform = MatrixRotateX(-PI / 2.0f);
 
 		_model_loaded = true;
-		_use_3d_rendering = true;
-
-		// initialize 3D Rendering
-		_target = LoadRenderTexture(Core::MODEL_RENDER_SIZE, Core::MODEL_RENDER_SIZE);
-		_camera.position = Core::ISOMETRIC_CAMERA_POS;
-		_camera.target = Vector3{ 0.0f, 0.0f, 0.0f };
-		_camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
-		_camera.fovy = 45.0f;
-		_camera.projection = CAMERA_PERSPECTIVE;
 
 		// load animations from the initial file
 		addAnimation("default", path);
@@ -117,98 +106,52 @@ namespace Nawia::Entity {
 
 	void Entity::updateAnimation(const float dt)
 	{
-		// todo update when closer to player
 		if (_model_loaded && !_animations.empty())
 		{
-			// Advance frame counter based on time, FPS, and speed multiplier
 			_anim_frame_counter += dt * _anim_fps * _anim_speed_multiplier;
 
-			// Handle looping or stopping
 			if (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
 			{
 				if (_anim_looping) {
-					// Wrap around
 					while (_anim_frame_counter >= _animations[_current_anim_index].frameCount) {
 						_anim_frame_counter -= _animations[_current_anim_index].frameCount;
 					}
 				}
 				else {
-					// Stop at end or reset to default
 					_anim_frame_counter = 0;
 					playAnimation("default", true, false);
 				}
 			}
 
-			// Update the model using the integer part of the frame counter
 			UpdateModelAnimation(_model, _animations[_current_anim_index], static_cast<int>(_anim_frame_counter));
 		}
 	}
 
-	void Entity::render(const float offset_x, const float offset_y) 
+	void Entity::render(const Camera3D& camera) 
 	{
-		Vector2 pos = getScreenPos(getX(), getY(), offset_x, offset_y);
-
-		if (_use_3d_rendering && _model_loaded)
+		if (_model_loaded)
 		{
-			BeginTextureMode(_target);
-			ClearBackground(BLANK);
-			BeginMode3D(_camera);
+			const Vector3 pos3d = getWorldPos3D();
+			const float visual_rotation = _rotation + _model_facing_offset;
+			DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, WHITE);
 
-			DrawModelEx(_model, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, _rotation, { _scale, _scale, _scale }, WHITE);
-			
-			EndMode3D();
-			EndTextureMode();
-			
-			const float texture_width = static_cast<float>(_target.texture.width);
-			const float texture_height = static_cast<float>(_target.texture.height);
-
-			const Rectangle source = { 0.0f, 0.0f, texture_width, -texture_height };
-			const Rectangle dest = { pos.x, pos.y, texture_width, texture_height };
-			const Vector2 origin = { dest.width / 2.0f, dest.height / 2.0f };
-
-			DrawTexturePro(_target.texture, source, dest, origin, 0.0f, WHITE);
-		}
-		else if (_texture)
-		{
-			const float source_texture_width = static_cast<float>(_texture->width);
-			const float source_texture_height = static_cast<float>(_texture->height);
-			constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
-			constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
-
-			const Rectangle source = {0.0f, 0.0f, source_texture_width, source_texture_height };
-			const Rectangle dest = {pos.x, pos.y, dest_texture_width, dest_texture_height };
-			constexpr Vector2 origin = {0.0f, 0.0f};
-			DrawTexturePro(*_texture, source, dest, origin, 0.0f, WHITE);
-		}
-
-		if (_hovered)
-		{
-			if (_use_3d_rendering && _model_loaded)
+			if (_hovered)
 			{
-			    const float texture_width = static_cast<float>(_target.texture.width);
-			    const float texture_height = static_cast<float>(_target.texture.height);
-			    const Rectangle source = { 0.0f, 0.0f, texture_width, -texture_height };
-			    const Rectangle dest = { pos.x, pos.y, texture_width, texture_height };
-			    const Vector2 origin = { dest.width / 2.0f, dest.height / 2.0f };
-			    
-			    DrawTexturePro(_target.texture, source, dest, origin, 0.0f, Fade(BLACK, 0.2f));
-			}
-			else if (_texture)
-			{
-			    const float source_texture_width = static_cast<float>(_texture->width);
-			    const float source_texture_height = static_cast<float>(_texture->height);
-			    constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
-			    constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
-
-			    const Rectangle source = {0.0f, 0.0f, source_texture_width, source_texture_height };
-			    const Rectangle dest = {pos.x, pos.y, dest_texture_width, dest_texture_height };
-			    constexpr Vector2 origin = {0.0f, 0.0f};
-				DrawTexturePro(*_texture, source, dest, origin, 0.0f, Fade(BLACK, 0.2f));
+				// Draw the model again with a dark tint overlay for hover effect
+				DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, Fade(BLACK, 0.2f));
 			}
 		}
 
-		if (DebugColliders && _collider) {
-			_collider->render(offset_x, offset_y);
+		if (DebugColliders) {
+			if (_collider)
+				_collider->render(camera);
+
+			// Draw 3D bounding box (green = clickable area)
+			if (_model_loaded)
+			{
+				const BoundingBox bbox = getBoundingBox();
+				DrawBoundingBox(bbox, GREEN);
+			}
 		}
 	}
 
@@ -229,38 +172,105 @@ namespace Nawia::Entity {
 		Core::Logger::debugLog("Entity " + getName() + " killed!");
 	}
 
-	bool Entity::isMouseOver(const float mouse_x, const float mouse_y, const float cam_x, const float cam_y) const 
+	bool Entity::isMouseOver(const float screen_x, const float screen_y, const Camera3D& camera) const 
 	{
-		if (_collider) {
-			return _collider->checkPoint(mouse_x, mouse_y, cam_x, cam_y);
+		if (_model_loaded)
+		{
+			const Ray mouse_ray = GetScreenToWorldRay(Vector2{ screen_x, screen_y }, camera);
+			return checkRayHitsMesh(mouse_ray);
 		}
 
-		Vector2 screen_pos = getScreenPos(getX(), getY(), cam_x, cam_y);
-
-		return (mouse_x >= screen_pos.x &&  mouse_x <= screen_pos.x + Core::ENTITY_TEXTURE_WIDTH &&
-		      mouse_y >= screen_pos.y && mouse_y <= screen_pos.y + Core::ENTITY_TEXTURE_HEIGHT);
+		// Fallback for entities without a 3D model
+		const Vector2 screen_pos = getScreenPosition(camera);
+		constexpr float click_radius = 30.0f;
+		const float dx = screen_x - screen_pos.x;
+		const float dy = screen_y - screen_pos.y;
+		return (dx * dx + dy * dy) < (click_radius * click_radius);
 	}
 
-	Vector2 Entity::getScreenPos(const float world_x, const float world_y, const float cam_x, const float cam_y) const
+	Matrix Entity::getWorldTransformMatrix() const
 	{
-		Vector2 screen_pos = getIsoPos(world_x, world_y, cam_x, cam_y);
-		screen_pos.x -= Core::ENTITY_TEXTURE_WIDTH / 2.0f;
-		screen_pos.y -= Core::ENTITY_TEXTURE_HEIGHT; // pivot at bottom (feet)
-
-		return screen_pos;
+		const Vector3 pos3d = getWorldPos3D();
+		const Matrix mat_translate = MatrixTranslate(pos3d.x, pos3d.y, pos3d.z);
+		const float visual_rotation = (_rotation + _model_facing_offset) * DEG2RAD;
+		const Matrix mat_rotate = MatrixRotate({ 0.0f, 1.0f, 0.0f }, visual_rotation);
+		const Matrix mat_scale = MatrixScale(_scale, _scale, _scale);
+		return MatrixMultiply(
+			MatrixMultiply(MatrixMultiply(mat_scale, _model.transform), mat_rotate),
+			mat_translate
+		);
 	}
 
-	Vector2 Entity::getIsoPos(const float world_x, const float world_y, const float cam_x, const float cam_y) const
+	bool Entity::checkRayHitsMesh(const Ray& ray) const
 	{
-		float screen_x = (world_x - world_y) * (Core::TILE_WIDTH / 2.0f) + cam_x;
-		float screen_y = (world_x + world_y) * (Core::TILE_HEIGHT / 2.0f) + cam_y;
-		return { screen_x, screen_y };
+		if (!_model_loaded) return false;
+
+		const Matrix world_transform = getWorldTransformMatrix();
+		for (int i = 0; i < _model.meshCount; i++)
+		{
+			const RayCollision collision = GetRayCollisionMesh(ray, _model.meshes[i], world_transform);
+			if (collision.hit)
+				return true;
+		}
+		return false;
+	}
+
+	RayCollision Entity::getRayMeshCollision(const Ray& ray) const
+	{
+		RayCollision closest = {};
+		closest.hit = false;
+		closest.distance = 1e30f;
+
+		if (!_model_loaded) return closest;
+
+		const Matrix world_transform = getWorldTransformMatrix();
+		for (int i = 0; i < _model.meshCount; i++)
+		{
+			const RayCollision collision = GetRayCollisionMesh(ray, _model.meshes[i], world_transform);
+			if (collision.hit && collision.distance < closest.distance)
+				closest = collision;
+		}
+		return closest;
+	}
+
+	BoundingBox Entity::getBoundingBox() const
+	{
+		if (!_model_loaded)
+		{
+			// Return a small default box at position
+			const Vector3 pos = getWorldPos3D();
+			return BoundingBox{
+				Vector3{ pos.x - 0.5f, pos.y, pos.z - 0.5f },
+				Vector3{ pos.x + 0.5f, pos.y + 1.0f, pos.z + 0.5f }
+			};
+		}
+
+		// Get model-local bounding box
+		const BoundingBox local_bb = GetModelBoundingBox(_model);
+		const Vector3 pos = getWorldPos3D();
+
+		// Scale and translate the bounding box to world space
+		return BoundingBox{
+			Vector3{
+				local_bb.min.x * _scale + pos.x,
+				local_bb.min.y * _scale + pos.y,
+				local_bb.min.z * _scale + pos.z
+			},
+			Vector3{
+				local_bb.max.x * _scale + pos.x,
+				local_bb.max.y * _scale + pos.y,
+				local_bb.max.z * _scale + pos.z
+			}
+		};
+	}
+
+	Vector2 Entity::getScreenPosition(const Camera3D& camera) const
+	{
+		const Vector3 world_pos = { _pos.x, 0.0f, _pos.y };
+		return GetWorldToScreen(world_pos, camera);
 	}
 
 	Vector2 Entity::getCenter() const {
-		if (_collider) {
-			return _collider->getPosition();
-		}
 		return _pos;
 	}
 
@@ -313,7 +323,6 @@ namespace Nawia::Entity {
 		return {};
 	}
 
-	// delete
 	void Entity::addAbility(const std::shared_ptr<Ability>& ability) 
 	{
 		ability->setCaster(this);
@@ -341,7 +350,6 @@ namespace Nawia::Entity {
 
 	void Entity::rotateTowards(const float world_x, const float world_y)
 	{
-		// Standard Rotation (Feet Pivot) - Best for Movement
 		const float dx = world_x - getX();
 		const float dy = world_y - getY();
 
@@ -354,7 +362,6 @@ namespace Nawia::Entity {
 
 	void Entity::rotateTowardsCenter(const float world_x, const float world_y)
 	{
-		// Combat Rotation (Center Pivot) - Best for Aiming/Interaction
 		Vector2 center = getCenter();
 		const float dx = world_x - center.x;
 		const float dy = world_y - center.y;

@@ -1,8 +1,11 @@
 #pragma once
+
+#include "Backpack.h"
+
+#include <GlobalScaling.h>
+
 #include <raylib.h>
 #include <memory>
-#include "Backpack.h"
-#include <GlobalScaling.h>
 
 namespace Nawia::UI {
 
