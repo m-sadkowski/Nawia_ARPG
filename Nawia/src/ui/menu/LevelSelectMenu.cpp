@@ -12,19 +12,19 @@ namespace Nawia::UI {
         const float screen_h = static_cast<float>(GetScreenHeight());
 
         // Background
-        DrawRectangle(0, 0, static_cast<int>(screen_w), static_cast<int>(screen_h), Fade(BLACK, 0.9f));
+        DrawRectangle(0, 0, static_cast<int>(screen_w), static_cast<int>(screen_h), BLACK);
 
-        const float title_font_size = Core::GlobalScaling::scaled(50.0f);
+        const float title_font_size = Core::GlobalScaling::scaled(60.0f);
         const float spacing = Core::GlobalScaling::scaled(2.0f);
         const char* title = "WYBIERZ POZIOM";
         const Vector2 title_size = MeasureTextEx(font, title, title_font_size, spacing);
-        DrawTextEx(font, title, { (screen_w - title_size.x) / 2.0f, screen_h * 0.15f }, title_font_size, spacing, WHITE);
+        DrawTextEx(font, title, { (screen_w - title_size.x) / 2.0f, screen_h / 4.0f }, title_font_size, spacing, DARKGREEN);
 
-        const float btn_width = Core::GlobalScaling::scaled(300.0f);
-        const float btn_height = Core::GlobalScaling::scaled(60.0f);
+        const float btn_width = Core::GlobalScaling::scaled(200.0f);
+        const float btn_height = Core::GlobalScaling::scaled(50.0f);
         const float btn_spacing = Core::GlobalScaling::scaled(20.0f);
         
-        float current_y = screen_h * 0.3f;
+        float current_y = screen_h / 2.0f;
         const float center_x = (screen_w - btn_width) / 2.0f;
         const Vector2 mouse_pos = GetMousePosition();
 
@@ -48,11 +48,11 @@ namespace Nawia::UI {
 
         const float screen_w = static_cast<float>(GetScreenWidth());
         const float screen_h = static_cast<float>(GetScreenHeight());
-        const float btn_width = Core::GlobalScaling::scaled(300.0f);
-        const float btn_height = Core::GlobalScaling::scaled(60.0f);
+        const float btn_width = Core::GlobalScaling::scaled(200.0f);
+        const float btn_height = Core::GlobalScaling::scaled(50.0f);
         const float btn_spacing = Core::GlobalScaling::scaled(20.0f);
         
-        float current_y = screen_h * 0.3f;
+        float current_y = screen_h / 2.0f;
         const float center_x = (screen_w - btn_width) / 2.0f;
         const Vector2 mouse_pos = GetMousePosition();
 
@@ -75,10 +75,10 @@ namespace Nawia::UI {
     }
 
     void LevelSelectMenu::drawButton(const Rectangle& rect, const char* text, const bool is_hovered, const Font& font) const {
-        DrawRectangleRec(rect, is_hovered ? LIGHTGRAY : DARKGRAY);
+        DrawRectangleRec(rect, is_hovered ? LIGHTGRAY : RAYWHITE);
         DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), BLACK);
         
-        const float font_size = Core::GlobalScaling::scaled(24.0f);
+        const float font_size = Core::GlobalScaling::scaled(20.0f);
         const float spacing = Core::GlobalScaling::scaled(1.0f);
         const Vector2 text_size = MeasureTextEx(font, text, font_size, spacing);
         
@@ -87,7 +87,7 @@ namespace Nawia::UI {
             rect.y + (rect.height - text_size.y) / 2.0f 
         };
         
-        DrawTextEx(font, text, text_pos, font_size, spacing, WHITE);
+        DrawTextEx(font, text, text_pos, font_size, spacing, BLACK);
     }
 
 } // namespace Nawia::UI
