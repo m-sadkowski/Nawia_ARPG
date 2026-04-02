@@ -27,10 +27,12 @@ Map::~Map()
 // Loading
 // =============================================================================
 
-void Map::loadMap(const std::string& filename, const float scale) 
+void Map::loadMap(const std::string& filename, const float scale, const Vector3 offset, const Vector3 rotation) 
 {
 	const std::string filepath = "../assets/maps/" + filename;
 	_scale = scale;
+	_offset = offset;
+	_rotation = rotation;
 	
 	if (!std::filesystem::exists(filepath))
 	{
@@ -51,10 +53,13 @@ void Map::loadMap(const std::string& filename, const float scale)
 	_model_loaded = true;
 	_is_placeholder = false;
 
-	// Reset y_offset to 0 so the map floor aligns exactly with the Y=0 plane
-	_y_offset = 0.0f;
+	// Apply rotation to model transform (Euler angles in degrees -> radians)
+	Matrix matRotX = MatrixRotateX(_rotation.x * DEG2RAD);
+	Matrix matRotY = MatrixRotateY(_rotation.y * DEG2RAD);
+	Matrix matRotZ = MatrixRotateZ(_rotation.z * DEG2RAD);
+	_model.transform = MatrixMultiply(MatrixMultiply(matRotX, matRotY), matRotZ);
 
-	Logger::debugLog("Map loaded: " + filename + " (meshes=" + std::to_string(_model.meshCount) + ", scale=" + std::to_string(_scale) + ")");
+	Logger::debugLog("Map loaded: " + filename + " (meshes=" + std::to_string(_model.meshCount) + ", scale=" + std::to_string(_scale) + ", offset={" + std::to_string(_offset.x) + ", " + std::to_string(_offset.y) + ", " + std::to_string(_offset.z) + "}, rotation={" + std::to_string(_rotation.x) + ", " + std::to_string(_rotation.y) + ", " + std::to_string(_rotation.z) + "})");
 }
 
 void Map::loadPlaceholder()
@@ -80,7 +85,7 @@ void Map::render() const
 {
 	if (!_model_loaded) return;
 
-	DrawModel(_model, Vector3{0.0f, _y_offset, 0.0f}, _scale, WHITE);
+	DrawModel(_model, _offset, _scale, WHITE);
 
 	if (_is_placeholder)
 	{

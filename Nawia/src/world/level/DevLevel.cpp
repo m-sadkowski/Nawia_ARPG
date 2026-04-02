@@ -21,7 +21,7 @@ namespace Nawia::World {
 		Core::Logger::debugLog("Ladowanie poziomu DevLevel...");
 
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
-		_map->loadMap("demo_map/demo.glb", 2.0f);
+		_map->loadMap("demo_map/inferno.glb", 1.f, {0.0f, -20.0f, 0.0f}, {0, 180, 00});
 
 		auto& em = engine->getEntityManager();
 		em.clearNonPlayerEntities();

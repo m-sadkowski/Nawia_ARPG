@@ -22,6 +22,8 @@ namespace Nawia::Entity {
 
         [[nodiscard]] virtual ColliderType getType() const = 0;
         [[nodiscard]] virtual bool checkCollision(const Collider* other) const = 0;
+        [[nodiscard]] virtual bool checkCollision(const BoundingBox& target_box) const = 0;
+        [[nodiscard]] virtual bool checkMeshCollision(const Entity* target) const = 0;
         [[nodiscard]] virtual bool checkPoint(float screen_x, float screen_y, const Camera3D& camera) const = 0;
         virtual void render(const Camera3D& camera) const = 0;
 
@@ -40,6 +42,8 @@ namespace Nawia::Entity {
 
         [[nodiscard]] ColliderType getType() const override { return ColliderType::CIRCLE; }
         [[nodiscard]] bool checkCollision(const Collider* other) const override;
+        [[nodiscard]] bool checkCollision(const BoundingBox& target_box) const override;
+        [[nodiscard]] bool checkMeshCollision(const Entity* target) const override;
         [[nodiscard]] bool checkPoint(float screen_x, float screen_y, const Camera3D& camera) const override;
         void render(const Camera3D& camera) const override;
 
@@ -56,6 +60,8 @@ namespace Nawia::Entity {
 
         [[nodiscard]] ColliderType getType() const override { return ColliderType::RECTANGLE; }
         [[nodiscard]] bool checkCollision(const Collider* other) const override;
+        [[nodiscard]] bool checkCollision(const BoundingBox& target_box) const override;
+        [[nodiscard]] bool checkMeshCollision(const Entity* target) const override;
         [[nodiscard]] bool checkPoint(float screen_x, float screen_y, const Camera3D& camera) const override;
         void render(const Camera3D& camera) const override;
 
@@ -75,6 +81,8 @@ namespace Nawia::Entity {
 
         [[nodiscard]] ColliderType getType() const override { return ColliderType::CONE; }
         [[nodiscard]] bool checkCollision(const Collider* other) const override;
+        [[nodiscard]] bool checkCollision(const BoundingBox& target_box) const override;
+        [[nodiscard]] bool checkMeshCollision(const Entity* target) const override;
         [[nodiscard]] bool checkPoint(float screen_x, float screen_y, const Camera3D& camera) const override;
         void render(const Camera3D& camera) const override;
 

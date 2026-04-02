@@ -95,8 +95,8 @@ namespace Nawia::Entity {
 		/// @name Coordinate Conversion
 		/// @{
 		
-		/** @brief Get 3D world position (on ground plane). */
-		[[nodiscard]] Vector3 getWorldPos3D() const { return { _pos.x, 0.0f, _pos.y }; }
+		/** @brief Get 3D world position (on ground plane). Override for altitude. */
+		[[nodiscard]] virtual Vector3 getWorldPos3D() const { return { _pos.x, 0.0f, _pos.y }; }
 
 		/** @brief Project entity world position to screen coordinates. */
 		[[nodiscard]] Vector2 getScreenPosition(const Camera3D& camera) const;
@@ -106,6 +106,16 @@ namespace Nawia::Entity {
 		
 		/** @brief Get world-space axis-aligned bounding box of the 3D model. */
 		[[nodiscard]] BoundingBox getBoundingBox() const;
+
+		/** @brief Build the world transform matrix used for rendering & collision. */
+		[[nodiscard]] Matrix getWorldTransformMatrix() const;
+
+		/** @brief Test if a ray hits this entity's 3D mesh (triangle-level). 
+		 *  @return true if any mesh triangle is hit */
+		[[nodiscard]] bool checkRayHitsMesh(const Ray& ray) const;
+
+		/** @brief Test if a ray hits this entity's 3D mesh and return collision info. */
+		[[nodiscard]] RayCollision getRayMeshCollision(const Ray& ray) const;
 		/// @}
 
 

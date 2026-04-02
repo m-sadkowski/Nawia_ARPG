@@ -18,8 +18,6 @@ namespace Nawia::Entity {
 		addAnimation("death", "../assets/models/walking_dead_death.glb");
 		addAnimation("scream", "../assets/models/walking_dead_scream.glb");
 		addAnimation("get_hit", "../assets/models/walking_dead_hit.glb");
-
-		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, 0.0f, 0.0f));
 	}
 
 	void WalkingDead::takeDamage(const int dmg)

@@ -49,7 +49,6 @@ namespace Nawia::World {
 			.build();
 		em.addEntity(devil);
 
-		const auto knife_tex = rm.getTexture("../assets/textures/knife3.png");
 		std::shared_ptr<Entity::Bandit> bandit = Entity::BanditBuilder()
 			.setName("Bandyta")
 			.setPosition({ 15.9f, 12.6f })
@@ -57,7 +56,7 @@ namespace Nawia::World {
 			.setMaxHp(80)
 			.setTarget(player)
 			.build();
-		bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(knife_tex, nullptr, nullptr));
+		bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>("../assets/models/knife.glb", 0.05f, nullptr, nullptr, 180.0f));
 		em.addEntity(bandit);
 
 		std::shared_ptr<Entity::WalkingDead> walking_dead = Entity::WalkingDeadBuilder()

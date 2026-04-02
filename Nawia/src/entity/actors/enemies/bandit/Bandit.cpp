@@ -18,8 +18,6 @@ namespace Nawia::Entity {
 		addAnimation("throw", "../assets/models/bandit_throw.glb");
 		addAnimation("death", "../assets/models/bandit_death.glb");
 		addAnimation("get_hit", "../assets/models/bandit_hit.glb");
-
-		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, 0.0f, 0.0f));
 	}
 
 	void Bandit::takeDamage(const int dmg)

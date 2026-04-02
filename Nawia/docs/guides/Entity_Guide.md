@@ -1,197 +1,78 @@
 # Przewodnik po klasie Entity
 
-Klasa `Entity` (`src/entity/Entity.h`) jest bazową klasą dla wszystkich obiektów w grze Nawia ARPG. Reprezentuje ona każdy byt, który posiada pozycję w świecie, może być wyświetlany, posiadać punkty życia oraz wchodzić w interakcje fizyczne.
+Klasa `Entity` (`src/entity/Entity.h`) jest bazową klasą dla absolutnie wszystkich obiektów wizualnych w grze Nawia ARPG. Reprezentuje ona każdy byt, który funkcjonuje przestrzennie, korzysta z zasobów 3D (`loadModel`), posiada punkty życia i ewentualnie system inteligencji oraz reaguje na oświetlenie lub ray-collision na silniku.
 
 ## Czym jest Entity?
-Entity to nie tylko statyczny obiekt. To kontener na:
-- **Transformację**: Pozycja (`_pos`), prędkość (`_velocity`), skala (`_scale`), rotacja (`_rotation`).
-- **Grafikę**: Tekstura 2D lub Model 3D z animacjami.
-- **Fizykę**: Collider (`_collider`) służący do detekcji kolizji.
-- **Logikę gry**: Punkty życia (`_hp`), frakcja (`_faction`), umiejętności (`_abilities`).
+To scentralizowany port na całą abstrakcję postaci lub bryły:
+- **Transformacja**: Pozycja 3D rzutowana wektorową mapą podłogi (`_pos.x`, `_pos.y` jako Oś Głębokości), wbudowany ułamek skali, rotacja.
+- **Grafika**: Moduły zaczytywania modeli .glb wraz ze stosem zaimplementowanego mechanizmu animacyjnego 60 klatek na sekundę.
+- **Fizyka**: Metody natywnej ewaluacji pudła `BoundingBox` generującego brzegowe krawędzie z uwzględnieniem animacji dla testów Broadphase.
+- **Logika gry**: Paski odporności, punkty HP, przynależności frakcyjne (`_faction`).
 
 ## Jak zaimplementować własny obiekt?
 
-Aby stworzyć nowy obiekt, należy stworzyć klasę dziedziczącą publicznie po `Nawia::Entity::Entity`.
+Stworzenie nowego potwora czy NPC zazwyczaj objawia się dziedziczeniem publicznym po `Nawia::Entity::Entity` lub po pobranym do systemu wrogu `EnemyInterface`.
 
-### Krok 1: Nagłówek (.h)
+### Krok 1: Implementacja (.cpp)
 ```cpp
-#pragma once
-#include "Entity.h"
+#include "MyCustomNPC.h"
 
 namespace Nawia::Entity {
 
-    class MyCustomEntity : public Entity {
-    public:
-        // Konstruktor
-        MyCustomEntity(float x, float y, const std::shared_ptr<Texture2D>& texture);
-
-        // Nadpisane metody
-        void update(float dt) override;
-        void render(float offset_x, float offset_y) override; // Opcjonalne, jeśli standardowy render wystarcza
-        void takeDamage(int dmg) override; // Opcjonalne
-
-    private:
-        float _timer = 0.0f;
-    };
-
-}
-```
-
-### Krok 2: Implementacja (.cpp)
-```cpp
-#include "MyCustomEntity.h"
-#include "Collider.h" // Poprawny include (bez podkatalogów)
-
-namespace Nawia::Entity {
-
-    MyCustomEntity::MyCustomEntity(float x, float y, const std::shared_ptr<Texture2D>& texture)
-        : Entity("MyEntity", x, y, texture, 100) // 100 to Max HP
+    MyCustomNPC::MyCustomNPC(float x, float y)
+        : Entity("Shopkeeper", x, y, nullptr, 100) 
     {
         // ------------------------------------------------------------------
-        // KONFIGURACJA COLLIDERA
+        // WERSJA ARCHITEKTURY - GRAFIKA 3D
         // ------------------------------------------------------------------
-        // Collider jest kluczowy nie tylko dla kolizji, ale też dla hitboxów.
-        // Często tekstury mają dużo pustego, przezroczystego miejsca naokoło postaci.
-        // Dlatego NIE NALEŻY polegać na środku tekstury, ale ustawić collider z offsetem.
+        // Obecny silnik jest przystosowany pod Raylib 3D Models. Od razu wrzucamy:
+        loadModel("../assets/models/shopkeeper.glb");
         
-        float radius = 20.0f;
-        float offsetX = 0.0f; 
-        float offsetY = -10.0f; // Przesunięcie w górę, żeby collider był np. na nogach lub tułowiu
+        // Dodawanie pętli akcji
+        addAnimation("idle", "../assets/models/shopkeeper_idle.glb");
+        playAnimation("idle");
+
+        // Skalowanie naturalne w silniku (przy nieadekwatności eksportów bywa przydatne)
+        setScale(0.04f);
+
+        // WAŻNE: Całe odpychanie modelu względem ścian fizycznych zajmie się już EntityManager
+        // opartym na radiusowej matematyce! Nie musisz mu wręczać starych obiektów RectangleCollider!
         
-        setCollider(std::make_unique<CircleCollider>(this, radius, offsetX, offsetY));
-        
-        // WAŻNE: Od teraz, jeśli chcesz pobrać "prawdziwy" środek bytu (np. żeby wycelować w niego pocisk),
-        // używaj: getCollider()->getCenter().
-        // Metody getX()/getY() zwracają pozycję "zakotwiczenia" entity (zazwyczaj pod nogami/środek sprita),
-        // ale to collider definiuje "bryłę" w którą się trafia.
-        
-        // ------------------------------------------------------------------
-        // FRAKCJA
-        // ------------------------------------------------------------------
-        // Aby system walki wiedział, kogo można atakować, ustaw frakcję.
-        setFaction(Faction::Enemy); // Inne opcje: Player, Neutral, Ally, None
+        // Frakcja (Czyni postać wyłączoną ze szczucia i celowania)
+        setFaction(Faction::None); 
     }
 
-    void MyCustomEntity::update(float dt) {
-        // Wywołaj bazowe update (obsługuje animacje, fizykę ruchu, cooldowny skilli)
+    void MyCustomNPC::update(float dt) {
         Entity::update(dt);
 
-        // Twoja logika
-        _timer += dt;
-        if (_timer > 5.0f) {
-            // Zrób coś co 5 sekund
-            _timer = 0.0f;
-        }
+        // Opcjonalne dodatki
     }
-
-    void MyCustomEntity::render(float offset_x, float offset_y) {
-        // Jeśli chcesz narysować standardową teksturę/model:
-        Entity::render(offset_x, offset_y);
-
-        // Tutaj można dodać np. pasek życia rysowany nad postacią
-    }
-
 }
 ```
 
-## System Fizyki i Colliderów
+## System Podziału Kolizji dla Elementów Entity
+Ponieważ zmodernizowaliśmy układy do spisu naturalnego rzutu bryłowego w grze 2.5D:
+- Odrzucamy twarde fizyczne zderzaki (w starym systemie kwadraty wycelowane w środek ekranu).
+- Od teraz fizyka postaci obmyśla jak wędrować w oparciu o koliste zderzenia między stopami z promieniem szerokości ciał wynoszącym umownie (~0.4 od punktu osi globalnej do granicy). Krawędzie wpadające na siebie obsuwają się z naturalną dynamiką po okręgu, nie spowalniając gry i czyniąc chodzenie jedwabiście gładkim.
+- Wykorzystujemy precyzyjny silnik Mesh Hoveringu w wyliczaniu obrysów trafień, najeżdżania na klikalne postacie czy też podrzucanie informacji dla Broadfazy BoundingBoxowej używanej w skryptach rzutów atakujących pocisków.
 
-### Dlaczego offsety są ważne?
-W grach izometrycznych/top-down, sprite postaci często obejmuje też przestrzeń nad głową. Jeśli ustawisz collider na środku obrazka, będzie on wisiał w powietrzu lub obejmował pustą przestrzeń.
-W konstruktorze collidera (Circle, Rectangle, Cone) ostatnie dwa parametry to `offset_x` i `offset_y` względem pozycji Entity (`_pos`).
+### Dlaczego powinieneś wciąż wiedzieć o klasach dawnych Colliderów?
+Elementy statyczne takie jak ściany ataku, niewidzialne trigger checkpoints przy wejściach do nowego rejonu, potężne pułapki rzutujące po długości lub kule armatnie w silniku bazują na sprawdzonych polach `CircleCollider` by wiedzieć, co obejmują. 
+Nie instaluj ich pod ludzi, uciekaj z nimi pod `AbilityEffect`!
 
-**Przykład:** Postać stoi na ziemi w punkcie (X, Y). Tekstura jest wysoka. Chcemy, aby kolizja (np. z przeszkodami) dotyczyła jej stóp.
+**Przykład:** Gracz nadstąpi na rejon ukrytego `CheckpointTriggera`. 
+Checkpoint (Posiadający prostokąt RectangleCollider o długich krawędziach) poprosi o inspekcję Broadphase czy zderza się naturalnie z aktualnym 3D-obrysem pudła gracza (Bounding Box) wyodrębnionym metodą `_player->getBoundingBox()`.
+
+### Pobieranie pozycji: `getCenter()` czy `getX()`?
+- `getX() / getY()`: Zwraca fizyczny globalny punkt bytu w przestrzeni podłogi (W płaszczyźnie poziomej ziemi, zazwyczaj XZ w renderach 3D). Jest to grunt stopera, przydatny dla pathfindingu AI.
+- `getCenter()`: **Główne Celowanie dla Walki**. Zwraca rzeczywisty ułamek osi położony na poziomie klatki piersiowej. Wykorzystuj ten promień jeśli wystrzeliwujesz Fireballa który ma lecieć wizualnie przed brzuch napastnika, a nie plątać mu się powierzchownie w cholewkach prawego buta!
+
+### Debugowanie hitboksów testowych stref ataku
+Aby spojrzeć na wizualne objęcie stożkowe swoich ataków wręcz z miecza na polu ekranowym (lub na pudełka broadfazy u Twoich potworów z silnika rzutów perspektywy) po prostu wpisz w kod:
 ```cpp
-// Promień 15, przesunięcie Y o 0 (jeśli punkt zaczepienia to stopy) lub dopasowane eksperymentalnie.
-setCollider(std::make_unique<CircleCollider>(this, 15.0f, 0.0f, 0.0f));
-```
-
-### Pobieranie pozycji: `getCollider()->getCenter()` czy `getX()`?
-- `getX() / getY()`: Zwraca surową pozycję entity w świecie. To punkt, w którym rysowana jest tekstura (z uwzględnieniem offsetu rysowania).
-- `getCollider()->getCenter()`: **ZALECANE** do logiki gry. Zwraca rzeczywisty środek bryły kolizyjnej.
-    - Jeśli strzelasz fireballa: celuj w `target->getCollider()->getCenter()`.
-    - Jeśli sprawdzasz odległość AI: sprawdzaj dystans do `center`.
-
-### Typy Colliderów (`Collider.h`)
-1. **CircleCollider**: `(Entity* owner, float radius, float offX, float offY)`
-   - Najlepszy dla postaci i pocisków. Szybki w obliczeniach.
-2. **RectangleCollider**: `(Entity* owner, float w, float h, float offX, float offY)`
-   - Dla skrzyń, ścian, drzwi.
-3. **ConeCollider**: `(Entity* owner, float radius, float angle, float offX, float offY)`
-   - Specjalistyczny, np. do wykrywania trafień obszarowych w stożku przed postacią.
-
-### Debugowanie
-Nie musisz zgadywać offsetów. Włącz tryb debugowania, aby zobaczyć obrysy colliderów (zielone linie).
-Aby włączyć globalne rysowanie colliderów, ustaw statyczną flagę:
-```cpp
-// Np. w Game.cpp lub na przycisk
 Nawia::Entity::Entity::DebugColliders = true;
 ```
 
-## Frakcje (Faction System)
+## Renderowanie na Świecie z Iluzją Głębokości (Y-Sorting)
 
-Każde Entity posiada pole `_faction` (enum `Faction`).
-```cpp
-enum class Faction {
-    Player,
-    Enemy,
-    Neutral,
-    Ally,
-    None
-};
-```
-Ustawienie frakcji (`setFaction(...)`) jest niezbędne, aby:
-1. Pociski wiedziały, kogo ranić (Fireball rzucony przez Enemy nie rani Enemy).
-2. AI wiedziało, kogo gonić.
-3. System targetowania (myszką) wiedział, kogo podświetlić jako wroga.
-
-## System Graficzny: 2D vs 3D
-
-Entity wspiera dwa tryby wyświetlania.
-
-### 1. Tryb 2D (Sprite)
-Domyślny tryb. Wymaga podania `std::shared_ptr<Texture2D>` w konstruktorze. Obiekt będzie rysowany jako sprite w rzucie izometrycznym.
-
-### 2. Tryb 3D (Modele i Animacje)
-Aby używać modelu 3D:
-1. W konstruktorze przekaż teksturę (może być używana jako fallback lub UI), lub `nullptr`.
-2. Załaduj model metodą `loadModel`.
-3. Dodaj animacje metodą `addAnimation`.
-
-```cpp
-// W konstruktorze:
-loadModel("assets/models/character.glb"); // Ładuje model
-addAnimation("idle", "assets/animations/idle.glb");
-addAnimation("run", "assets/animations/run.glb");
-
-// Uruchom animację startową
-playAnimation("idle");
-```
-
-**Ważne o animacjach:**
-- `playAnimation(name, loop, lock_movement)`:
-    - `loop`: czy animacja ma się pętlalć (np. bieg).
-    - `lock_movement`: czy zablokować ruch postaci na czas trwania animacji (np. atak).
-
-## Metody do nadpisania (Override)
-
-| Metoda | Opis | Czy wywoływać `Base::Metoda`? |
-| --- | --- | --- |
-| `update(float dt)` | Główna pętla logiki. | **TAK**, na początku. Obsługuje ruch i animacje. |
-| `render(float ox, float oy)` | Rysowanie na ekranie. | **TAK**, jeśli chcesz narysować bazowy model/teksturę. **NIE**, jeśli chcesz rysować coś zupełnie własnego. |
-| `takeDamage(int dmg)` | Reakcja na obrażenia. | **TAK**, odejmuje HP i sprawdza śmierć. Dodaj tu np. dźwięk oberwania. |
-| `isMouseOver(...)` | Sprawdza czy myszka jest nad obiektem. | Zazwyczaj nie trzeba nadpisywać, bazowa wersja poprawnie używa collidera. |
-
-## Przydatne Metody (API)
-
-- `move(float x, float y)` / `setVelocity(vx, vy)`: Poruszanie postacią. Bazowa klasa używa `_velocity` w `update`.
-- `rotateTowards(x, y)`: Obraca postać (model 3D) w stronę wybranego punktu w świecie.
-- `playAnimation(...)`: Sterowanie animacjami.
-- `addAbility(...)`: Dodawanie umiejętności do listy dostępnych.
-- `die()`: Zabija enta (HP = 0), zazwyczaj wywołuje animację śmierci lub usuwa obiekt.
-
-## Cykl Życia
-1. **Konstruktor**: Inicjalizacja zasobów, collidera, modelu.
-2. **Update**: Co klatkę. Logika, AI, ruch.
-3. **Render**: Co klatkę (po update). Rysowanie.
-4. **Destruktor**: Sprzątanie zasobów.
+Kiedy wrzucisz Twoją postać do aktywnego wektora instancji do Managera silnika i nadejdzie faza rysowania, automatyczny obwód zdeklarowany w plikach rdzenia przejmie weryfikację pozycji postaci z osi pionowej. W procesie zwanym **Y-Sortingiem**, system układa figury stojące naturalnie dalej po linii jako pierwsze, malując modele po kolei aż pod samo czoło ekranu kamery i bohatera. Gwarantuje to stabilne prześwitywanie za wielogłowych potworów zza ich korpusu bez błędów 2D nachodzących obrysów!

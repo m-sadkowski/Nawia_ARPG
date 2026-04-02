@@ -17,8 +17,6 @@ namespace Nawia::Entity {
 		setFaction(Faction::Enemy);
 		loadModel("../assets/models/dummy_idle.glb");
 		
-		// add collider
-		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
 		addAnimation("walk", "../assets/models/dummy_walk.glb");
 		addAnimation("cast_fireball", "../assets/models/dummy_cast_fireball.glb");
 		addAnimation("death", "../assets/models/dummy_death.glb");

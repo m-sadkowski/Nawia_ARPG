@@ -54,20 +54,20 @@ namespace Nawia::Entity {
 		static constexpr float DEVIL_ATTACK_ANIMATION_SPEED = 1.0f;
 		
 		// Combat stats
-		static constexpr float VISION_RANGE = 8.0f;
-		static constexpr float ATTACK_RANGE = 1.2f;
+		static constexpr float VISION_RANGE = 20.0f;
+		static constexpr float ATTACK_RANGE = 2.f;
 		static constexpr float SPEED = 0.5f;
 		static constexpr int ATTACK_DAMAGE = 50;
 		static constexpr float ATTACK_COOLDOWN = 1.5f;
 		
 		// Dash stats
-		static constexpr float DASH_TRIGGER_RANGE = 5.0f;   // Distance at which dash can trigger
-		static constexpr float DASH_SPEED = 6.0f;           // Dash speed
+		static constexpr float DASH_TRIGGER_RANGE = 9.0f;   // Distance at which dash can trigger
+		static constexpr float DASH_SPEED = 8.0f;           // Dash speed
 		static constexpr float DASH_COOLDOWN = 4.0f;        // Seconds between dashes
 		static constexpr float DASH_PREPARE_TIME = 0.5f;    // Telegraph time before dash
 		static constexpr float DASH_ARRIVE_THRESHOLD = 0.3f;// Distance to consider arrived
 		static constexpr int DASH_DAMAGE = 35;              // Damage dealt when dash hits
-		static constexpr float DASH_HIT_RANGE = 1.5f;       // Range to check collision during dash
+		static constexpr float DASH_HIT_RANGE = 3.5f;       // Range to check collision during dash
 		static constexpr float DASH_STUN_DURATION = 2.0f;   // Stun duration after dash ends
 		
 		float _attack_cooldown_timer = 0.0f;

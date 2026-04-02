@@ -63,8 +63,18 @@ namespace Nawia::Core {
 
     void EntityManager::renderEntities(const Camera3D& camera) const
     {
+        std::vector<Entity::Entity*> render_list;
+        render_list.reserve(_active_entities.size());
+
         for (const auto& entity : _active_entities)
+            render_list.push_back(entity.get());
+
+		// Y-sorting
+        std::ranges::sort(render_list, {}, &Entity::Entity::getY);
+
+        for (auto* entity : render_list) {
             entity->render(camera);
+        }
     }
 
     void EntityManager::updateEntities(const float delta_time)
@@ -132,10 +142,19 @@ namespace Nawia::Core {
 
             if (const auto trigger = dynamic_cast<Entity::InteractiveTrigger*>(entity.get())) 
             {
-                if (trigger->getCollider() &&  trigger->getCollider()->checkCollision(_player->getCollider()))
+                if (trigger->getCollider())
                 {
-                    trigger->onTriggerEnter(*_player);
-                    trigger->die();
+                    bool collision = false;
+                    if (_player->getCollider()) {
+                        collision = trigger->getCollider()->checkCollision(_player->getCollider());
+                    } else {
+                        collision = trigger->getCollider()->checkCollision(_player->getBoundingBox());
+                    }
+
+                    if (collision) {
+                        trigger->onTriggerEnter(*_player);
+                        trigger->die();
+                    }
                 }
             }
         }
@@ -153,66 +172,40 @@ namespace Nawia::Core {
                 auto& e2 = _active_entities[j];
                 if (!isCollidablePhysicalEntity(e2)) continue;
 
-                if (e1->getCollider()->checkCollision(e2->getCollider()))
-                    resolveOverlap(e1, e2);
+                resolveOverlap(e1, e2);
             }
         }
     }
 
     bool EntityManager::isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& e) const
     {
-        if (e->isDead() || !e->getCollider()) return false;
+        if (e->isDead()) return false;
 
         const Entity::EntityType type = e->getType();
-
         return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy);
     }
 
     void EntityManager::resolveOverlap(const std::shared_ptr<Entity::Entity>& e1, const std::shared_ptr<Entity::Entity>& e2) const
     {
-        // Only resolve Rectangle vs Rectangle for now
-        if (e1->getCollider()->getType() != Entity::ColliderType::RECTANGLE ||
-            e2->getCollider()->getType() != Entity::ColliderType::RECTANGLE) {
-            return;
-        }
-
-        const auto* r1_col = dynamic_cast<const Entity::RectangleCollider*>(e1->getCollider());
-        const auto* r2_col = dynamic_cast<const Entity::RectangleCollider*>(e2->getCollider());
-
-        const Rectangle r1_rect = r1_col->getRect();
-        const Rectangle r2_rect = r2_col->getRect();
-
-        const Rectangle overlap = GetCollisionRec(r1_rect, r2_rect);
-
-        if (overlap.width <= 0 || overlap.height <= 0) return;
-
-        if (overlap.width < overlap.height)
-        {
-            const float separation = overlap.width * 0.5f;
-            if (r1_rect.x < r2_rect.x) 
-            {
-                e1->setX(e1->getX() - separation);
-                e2->setX(e2->getX() + separation);
-            }
-            else 
-            {
-                e1->setX(e1->getX() + separation);
-                e2->setX(e2->getX() - separation);
-            }
-        }
-        else
-        {
-            const float separation = overlap.height * 0.5f;
-            if (r1_rect.y < r2_rect.y) 
-            {
-                e1->setY(e1->getY() - separation);
-                e2->setY(e2->getY() + separation);
-            }
-            else 
-            {
-                e1->setY(e1->getY() + separation);
-                e2->setY(e2->getY() - separation);
-            }
+        // Simple radial collision for characters instead of checking Collider classes.
+        // This decouples physics from hitboxes and stops players/enemies from walking through each other.
+        const float dx = e2->getX() - e1->getX();
+        const float dy = e2->getY() - e1->getY();
+        const float dist_sq = dx * dx + dy * dy;
+        
+        // Approximate physics radius for characters is 0.4.
+        const float combined_radius = 0.8f; 
+        
+        if (dist_sq < combined_radius * combined_radius && dist_sq > 0.0001f) {
+            float dist = std::sqrt(dist_sq);
+            float overlap = combined_radius - dist;
+            float push_x = (dx / dist) * overlap * 0.5f;
+            float push_y = (dy / dist) * overlap * 0.5f;
+            
+            e1->setX(e1->getX() - push_x);
+            e1->setY(e1->getY() - push_y);
+            e2->setX(e2->getX() + push_x);
+            e2->setY(e2->getY() + push_y);
         }
     }
 

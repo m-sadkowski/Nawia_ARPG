@@ -17,7 +17,6 @@ namespace Nawia::Entity {
         setFaction(Faction::None);
         this->setScale(0.03f);
         loadModel("../assets/models/cat_bounce.glb", false);
-        setCollider(std::make_unique<RectangleCollider>(this, 0.8f, 0.4f, 0.0f, 0.0f));
         playAnimation("default");
 
         _inventory = std::make_unique<Item::Backpack>(_inv_size);

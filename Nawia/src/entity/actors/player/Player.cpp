@@ -26,9 +26,6 @@ namespace Nawia::Entity {
 		playAnimation("default"); // play idle
 		setAnimationSpeed(1.0f);
 
-		// Collider with zero offset (clean 3D coordinates)
-		setCollider(std::make_unique<RectangleCollider>(this, 0.5f, 0.5f, 0.0f, 0.0f));
-
 		// init backpack and eq
 		_backpack = std::make_unique<Item::Backpack>(INIT_BACKPACK_SIZE);
 		_equipment = std::make_unique<Item::Equipment>();

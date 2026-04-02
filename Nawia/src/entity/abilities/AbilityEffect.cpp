@@ -29,11 +29,15 @@ namespace Nawia::Entity {
 	{
 		if (!target) return false;
 		Collider* myCollider = getCollider();
-		Collider* targetCollider = target->getCollider();
 
-		if (myCollider && targetCollider)
+		if (myCollider)
 		{
-			return myCollider->checkCollision(targetCollider);
+			// Broadphase: Test the ability's collider footprint against the target's 3D bounding box
+			if (myCollider->checkCollision(target->getBoundingBox()))
+			{
+				// Precise phase: Test against actual mesh structure (mimicking mouse hover)
+				return myCollider->checkMeshCollision(target.get());
+			}
 		}
 		
 		// Fallback or just return false if no collider

@@ -23,8 +23,10 @@ namespace Nawia::Core {
 		 * @brief Load a 3D map model from a .glb file.
 		 * @param filename Path relative to assets/maps/ (e.g. "demo_map.glb")
 		 * @param scale Optional scaling factor
+		 * @param offset Optional position offset for the model
+		 * @param rotation Optional rotation in degrees (Euler angles: X, Y, Z)
 		 */
-		void loadMap(const std::string& filename, float scale = 1.0f);
+		void loadMap(const std::string& filename, float scale = 1.0f, Vector3 offset = {0.0f, 0.0f, 0.0f}, Vector3 rotation = {0.0f, 0.0f, 0.0f});
 
 		/**
 		 * @brief Generate a placeholder ground plane (colored grid).
@@ -54,7 +56,8 @@ namespace Nawia::Core {
 		bool _is_placeholder = false;
 
 		float _scale = 1.0f;
-		float _y_offset = 0.0f;
+		Vector3 _offset = {0.0f, 0.0f, 0.0f};
+		Vector3 _rotation = {0.0f, 0.0f, 0.0f};
 
 		Vector2 _player_spawn_pos = {0.0f, 0.0f};
 	};

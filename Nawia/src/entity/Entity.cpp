@@ -177,27 +177,7 @@ namespace Nawia::Entity {
 		if (_model_loaded)
 		{
 			const Ray mouse_ray = GetScreenToWorldRay(Vector2{ screen_x, screen_y }, camera);
-			
-			// Build the same transform matrix used by DrawModelEx:
-			// translate * rotate(Y-axis) * scale * model.transform
-			const Vector3 pos3d = getWorldPos3D();
-			const Matrix mat_translate = MatrixTranslate(pos3d.x, pos3d.y, pos3d.z);
-			const float visual_rotation = (_rotation + _model_facing_offset) * DEG2RAD;
-			const Matrix mat_rotate = MatrixRotate({ 0.0f, 1.0f, 0.0f }, visual_rotation);
-			const Matrix mat_scale = MatrixScale(_scale, _scale, _scale);
-			const Matrix world_transform = MatrixMultiply(
-				MatrixMultiply(MatrixMultiply(mat_scale, _model.transform), mat_rotate),
-				mat_translate
-			);
-
-			// Test ray against each mesh's actual triangles
-			for (int i = 0; i < _model.meshCount; i++)
-			{
-				const RayCollision collision = GetRayCollisionMesh(mouse_ray, _model.meshes[i], world_transform);
-				if (collision.hit)
-					return true;
-			}
-			return false;
+			return checkRayHitsMesh(mouse_ray);
 		}
 
 		// Fallback for entities without a 3D model
@@ -206,6 +186,51 @@ namespace Nawia::Entity {
 		const float dx = screen_x - screen_pos.x;
 		const float dy = screen_y - screen_pos.y;
 		return (dx * dx + dy * dy) < (click_radius * click_radius);
+	}
+
+	Matrix Entity::getWorldTransformMatrix() const
+	{
+		const Vector3 pos3d = getWorldPos3D();
+		const Matrix mat_translate = MatrixTranslate(pos3d.x, pos3d.y, pos3d.z);
+		const float visual_rotation = (_rotation + _model_facing_offset) * DEG2RAD;
+		const Matrix mat_rotate = MatrixRotate({ 0.0f, 1.0f, 0.0f }, visual_rotation);
+		const Matrix mat_scale = MatrixScale(_scale, _scale, _scale);
+		return MatrixMultiply(
+			MatrixMultiply(MatrixMultiply(mat_scale, _model.transform), mat_rotate),
+			mat_translate
+		);
+	}
+
+	bool Entity::checkRayHitsMesh(const Ray& ray) const
+	{
+		if (!_model_loaded) return false;
+
+		const Matrix world_transform = getWorldTransformMatrix();
+		for (int i = 0; i < _model.meshCount; i++)
+		{
+			const RayCollision collision = GetRayCollisionMesh(ray, _model.meshes[i], world_transform);
+			if (collision.hit)
+				return true;
+		}
+		return false;
+	}
+
+	RayCollision Entity::getRayMeshCollision(const Ray& ray) const
+	{
+		RayCollision closest = {};
+		closest.hit = false;
+		closest.distance = 1e30f;
+
+		if (!_model_loaded) return closest;
+
+		const Matrix world_transform = getWorldTransformMatrix();
+		for (int i = 0; i < _model.meshCount; i++)
+		{
+			const RayCollision collision = GetRayCollisionMesh(ray, _model.meshes[i], world_transform);
+			if (collision.hit && collision.distance < closest.distance)
+				closest = collision;
+		}
+		return closest;
 	}
 
 	BoundingBox Entity::getBoundingBox() const

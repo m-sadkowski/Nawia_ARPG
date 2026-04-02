@@ -44,10 +44,9 @@ namespace Nawia::Core {
 		const auto sword_slash_icon = _resource_manager.getTexture("../assets/textures/icons/sword_slash_icon.png");
 		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_tex, sword_slash_icon));
 		
-		const auto fireball_tex = _resource_manager.getTexture("../assets/textures/fireball.png");
 		const auto fireball_hit_tex = _resource_manager.getTexture("../assets/textures/fireball_hit.png");
 		const auto fireball_icon = _resource_manager.getTexture("../assets/textures/icons/fireball_icon.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>(fireball_tex, fireball_hit_tex, fireball_icon));
+		_player->addAbility(std::make_shared<Entity::FireballAbility>("../assets/models/fireball.glb", 0.5f, fireball_hit_tex, fireball_icon));
 
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);

@@ -83,6 +83,32 @@ namespace Nawia::Entity {
         }
     }
 
+    bool CircleCollider::checkCollision(const BoundingBox& target_box) const {
+        Rectangle target_rect = { target_box.min.x, target_box.min.z, target_box.max.x - target_box.min.x, target_box.max.z - target_box.min.z };
+        return checkCircleRect(getPosition(), _radius, target_rect);
+    }
+
+    bool CircleCollider::checkMeshCollision(const Entity* target) const {
+        if (!target) return false;
+        
+        Vector3 origin = { getPosition().x, 1.0f, getPosition().y };
+        Vector3 target_pos = { target->getX(), 1.0f, target->getY() };
+        
+        Vector3 dir = Vector3Normalize(Vector3Subtract(target_pos, origin));
+        Ray ray = { origin, dir };
+        
+        RayCollision hit = target->getRayMeshCollision(ray);
+        if (hit.hit && hit.distance <= _radius) {
+            return true;
+        }
+        
+        // Fast fallback if centers are very close (inside)
+        float distSq = Vector2DistanceSqr(getPosition(), {target->getX(), target->getY()});
+        if (distSq < _radius * _radius) return true;
+        
+        return false;
+    }
+
     void CircleCollider::render(const Camera3D& camera) const {
         const Vector2 pos = getPosition();
         // Draw circle on ground plane (Y = 0.01 to avoid z-fighting)
@@ -136,6 +162,33 @@ namespace Nawia::Entity {
          }
     }
 
+    bool RectangleCollider::checkCollision(const BoundingBox& target_box) const {
+        Rectangle target_rect = { target_box.min.x, target_box.min.z, target_box.max.x - target_box.min.x, target_box.max.z - target_box.min.z };
+        return checkRectRect(getRect(), target_rect);
+    }
+
+    bool RectangleCollider::checkMeshCollision(const Entity* target) const {
+        if (!target) return false;
+        
+        Vector3 origin = { getPosition().x, 1.0f, getPosition().y };
+        Vector3 target_pos = { target->getX(), 1.0f, target->getY() };
+        
+        Vector3 dir = Vector3Normalize(Vector3Subtract(target_pos, origin));
+        Ray ray = { origin, dir };
+        
+        RayCollision hit = target->getRayMeshCollision(ray);
+        if (hit.hit) {
+            Rectangle rect = getRect();
+            return CheckCollisionPointRec({hit.point.x, hit.point.z}, rect);
+        }
+        
+        float max_dim = std::fmax(_width, _height);
+        float distSq = Vector2DistanceSqr(getPosition(), {target->getX(), target->getY()});
+        if (distSq < (max_dim/2) * (max_dim/2)) return true;
+        
+        return false;
+    }
+
     void RectangleCollider::render(const Camera3D& camera) const {
         const Vector2 center = getPosition();
         // Draw a wireframe cube on the ground plane to represent the rectangle
@@ -178,6 +231,39 @@ namespace Nawia::Entity {
              }
             default: return false;
          }
+    }
+
+    bool ConeCollider::checkCollision(const BoundingBox& target_box) const {
+        const float rot = _owner->getRotation();
+        Rectangle target_rect = { target_box.min.x, target_box.min.z, target_box.max.x - target_box.min.x, target_box.max.z - target_box.min.z };
+        return checkConeRect(getPosition(), _radius, _angle, rot, target_rect);
+    }
+
+    bool ConeCollider::checkMeshCollision(const Entity* target) const {
+        if (!target) return false;
+        
+        const float rot_deg = _owner->getRotation();
+        const float angle_half = _angle / 2.0f;
+        const int num_rays = 11; // Sweep 11 rays across the cone angle for highly accurate sweeping
+        
+        // Raycast from torso height
+        Vector3 origin = { getPosition().x, 1.0f, getPosition().y };
+        
+        for (int i = 0; i < num_rays; i++) {
+            float fraction = (num_rays == 1) ? 0.5f : (float)i / (num_rays - 1);
+            float current_angle_deg = (rot_deg - angle_half) + fraction * _angle;
+            float rad = current_angle_deg * DEG2RAD;
+            
+            Vector3 dir = { std::cos(rad), 0.0f, std::sin(rad) };
+            Ray ray = { origin, dir };
+            
+            RayCollision hit = target->getRayMeshCollision(ray);
+            if (hit.hit && hit.distance <= _radius) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     void ConeCollider::render(const Camera3D& camera) const {
