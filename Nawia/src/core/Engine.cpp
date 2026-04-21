@@ -135,6 +135,19 @@ namespace Nawia::Core {
             }
 			return;
 		}
+
+		if (_game_state == GameState::GameOver) {
+			const Nawia::UI::MenuAction action = _ui_handler->handleGameOverInput();
+			if (action == Nawia::UI::MenuAction::Respawn) {
+				_player->respawn();
+				_entity_manager->addEntity(_player);
+				_game_state = GameState::Playing;
+			}
+			else if (action == Nawia::UI::MenuAction::Exit) {
+				_game_state = GameState::Menu;
+			}
+			return;
+		}
 		
 		if (_game_state == GameState::SettingsMenu)
 		{
@@ -250,6 +263,11 @@ namespace Nawia::Core {
 		if (!_player || !_entity_manager)
 			return;
 
+		if (_player->isDead()) {
+			_game_state = GameState::GameOver;
+			return;
+		}
+
 		_camera.follow(_player.get());
         if (_ui_handler) _ui_handler->update(delta_time);
         _level_manager->update(this, delta_time);
@@ -299,6 +317,17 @@ namespace Nawia::Core {
 				_ui_handler->renderMainMenu();
 				_ui_handler->renderLevelSelectMenu();
 			}
+		}
+		else if (_game_state == GameState::GameOver)
+		{
+			// Render game world behind the overlay
+			if (getCurrentMap() && _player && _entity_manager) {
+				BeginMode3D(_camera.get());
+				getCurrentMap()->render();
+				_entity_manager->renderEntities(_camera.get());
+				EndMode3D();
+			}
+			if (_ui_handler) _ui_handler->renderGameOverScreen();
 		}
         else
         {

@@ -35,6 +35,7 @@ namespace Nawia::UI {
         None,       ///< No action taken
         Play,       ///< Start/resume game
         Settings,   ///< Open settings menu
+        Respawn,    ///< Respawn at last checkpoint
         Exit        ///< Exit game
     };
 
@@ -57,6 +58,9 @@ namespace Nawia::UI {
         MenuAction handleMenuInput();
         MenuAction handleSettingsInput();
         MenuAction handlePauseMenuInput();  ///< Handle input for ESC pause menu overlay
+        MenuAction handleGameOverInput();
+
+        void renderGameOverScreen() const;
 
         // handle general input, ex open EQ on key
         void handleInput();

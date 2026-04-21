@@ -35,8 +35,10 @@ namespace Nawia::World {
 
 		const auto player = engine->getPlayer();
 		if (player) {
+			player->respawn(); // reset HP, flags, animation
 			player->setX(-4.3f);
 			player->setY(33.0f);
+			player->setRespawnPoint({-4.3f, 33.0f});
 			player->stop();
 		}
 

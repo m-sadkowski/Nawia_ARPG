@@ -534,5 +534,62 @@ namespace Nawia::UI {
         return false;
     }
 
+    void UIHandler::renderGameOverScreen() const
+    {
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float screen_height = static_cast<float>(GetScreenHeight());
+
+        // Dark overlay
+        DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.75f));
+
+        // Title
+        const float title_font_size = Core::GlobalScaling::scaled(65.0f);
+        const float spacing = Core::GlobalScaling::scaled(2.0f);
+        const char* title = "NIE ZYJESZ";
+        Vector2 title_size = MeasureTextEx(_font, title, title_font_size, spacing);
+        DrawTextEx(_font, title, {(screen_width - title_size.x) / 2.0f, screen_height / 4.0f}, title_font_size, spacing, RED);
+
+        // Buttons
+        const float btn_width = Core::GlobalScaling::scaled(250.0f);
+        const float btn_height = Core::GlobalScaling::scaled(50.0f);
+        const float btn_spacing = Core::GlobalScaling::scaled(20.0f);
+        const float start_y = screen_height / 2.0f;
+        const float center_x = (screen_width - btn_width) / 2.0f;
+
+        Rectangle respawn_btn = { center_x, start_y, btn_width, btn_height };
+        Rectangle menu_btn = { center_x, start_y + btn_height + btn_spacing, btn_width, btn_height };
+        const Vector2 mouse_pos = GetMousePosition();
+
+        drawMenuButton(respawn_btn, "ODRODZENIE", CheckCollisionPointRec(mouse_pos, respawn_btn));
+        drawMenuButton(menu_btn, "WROC DO MENU", CheckCollisionPointRec(mouse_pos, menu_btn));
+    }
+
+    MenuAction UIHandler::handleGameOverInput()
+    {
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float screen_height = static_cast<float>(GetScreenHeight());
+
+        const float btn_width = Core::GlobalScaling::scaled(250.0f);
+        const float btn_height = Core::GlobalScaling::scaled(50.0f);
+        const float btn_spacing = Core::GlobalScaling::scaled(20.0f);
+        const float start_y = screen_height / 2.0f;
+        const float center_x = (screen_width - btn_width) / 2.0f;
+
+        Rectangle respawn_btn = { center_x, start_y, btn_width, btn_height };
+        Rectangle menu_btn = { center_x, start_y + btn_height + btn_spacing, btn_width, btn_height };
+        const Vector2 mouse_pos = GetMousePosition();
+
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        {
+            if (CheckCollisionPointRec(mouse_pos, respawn_btn)) {
+                return MenuAction::Respawn;
+            }
+            if (CheckCollisionPointRec(mouse_pos, menu_btn)) {
+                return MenuAction::Exit;
+            }
+        }
+        return MenuAction::None;
+    }
+
 } // namespace Nawia::UI
 

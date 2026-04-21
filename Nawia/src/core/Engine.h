@@ -30,7 +30,8 @@ namespace Nawia::Core {
 			Menu,           ///< Main menu
 			SettingsMenu,   ///< Settings menu overlay
 			LevelSelect,    ///< Level Selection overlay
-			Playing         ///< Gameplay
+			Playing,        ///< Gameplay
+			GameOver        ///< Player death
 		};
 
 		Engine();
