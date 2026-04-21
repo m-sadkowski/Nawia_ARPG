@@ -21,12 +21,18 @@ namespace Nawia::Entity {
 		Core::Engine* getEngine() const { return _engine; }
 
 		void update(float delta_time) override;
+		void takeDamage(int dmg) override;
 		[[nodiscard]] bool isMoving() const { return _is_moving; }
 		[[nodiscard]] bool isKnockedDown() const { return _is_knocked_down; }
+		[[nodiscard]] bool isDying() const { return _is_dying; }
 
 		void moveTo(float x, float y);
 		void stop();
 		void updateMovement(float delta_time);
+
+		void setRespawnPoint(const Vector2& point) { _respawn_point = point; }
+		[[nodiscard]] Vector2 getRespawnPoint() const { return _respawn_point; }
+		void respawn();
 		
 		/**
 		 * @brief Knock the player down (e.g. from Devil dash attack).
@@ -74,9 +80,12 @@ namespace Nawia::Entity {
 		float _target_x, _target_y;
 		bool _is_moving = false;
 		bool _is_knocked_down = false;
+		bool _is_dying = false;
 		enum class KnockdownPhase { None, Knocked, StandingUp };
 		KnockdownPhase _knockdown_phase = KnockdownPhase::None;
 		std::vector<Vector2> _path;
+
+		Vector2 _respawn_point = {0.0f, 0.0f};
 
 		std::unique_ptr<Item::Backpack> _backpack;
 		std::unique_ptr<Item::Equipment> _equipment;
@@ -100,6 +109,7 @@ namespace Nawia::Entity {
 			EntityBuilder<PlayerBuilder>::setPosition(pos);
 			_player_ptr->_target_x = pos.x;
 			_player_ptr->_target_y = pos.y;
+			_player_ptr->_respawn_point = pos;
 			return *this;
 		}
 

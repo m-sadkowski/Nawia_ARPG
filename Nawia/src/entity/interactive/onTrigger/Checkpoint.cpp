@@ -3,6 +3,7 @@
 
 #include "Collider.h"
 #include "InteractiveTrigger.h"
+#include <Player.h>
 
 namespace Nawia::Entity {
 
@@ -17,6 +18,9 @@ namespace Nawia::Entity {
         if (!_activated && other.getFaction() == Faction::Player) {
             std::cout << "Checkpoint '" << _name << "' aktywowany przez " << other.getName() << "!" << std::endl;
             _activated = true;
+            if (auto* player = dynamic_cast<Player*>(&other)) {
+                player->setRespawnPoint(this->getCenter());
+            }
         }
     }
 

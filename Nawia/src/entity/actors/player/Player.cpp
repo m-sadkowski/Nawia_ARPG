@@ -84,6 +84,16 @@ namespace Nawia::Entity {
 	{
 		Entity::update(delta_time);
 		updateAbilities(delta_time);
+
+		// Handle dying state - wait for animation then truly die
+		if (_is_dying)
+		{
+			if (!isAnimationLocked())
+			{
+				_hp = 0; // now truly dead - Engine will switch to GameOver
+			}
+			return;
+		}
 		
 		// Handle knockdown animation sequence
 		if (_is_knocked_down)
@@ -203,6 +213,41 @@ namespace Nawia::Entity {
 		_knockdown_phase = KnockdownPhase::Knocked;
 		setAnimationSpeed(4.0f);
 		playAnimation("knocked", false, true, 0, true);
+	}
+
+	void Player::takeDamage(const int dmg)
+	{
+		if (_is_dying) return;
+
+		if (_hp - dmg <= 0)
+		{
+			_hp = 1; // keep alive for death animation
+			_is_dying = true;
+			stop();
+			setAnimationSpeed(2.0f);
+			playAnimation("knocked", false, true, 0, true);
+		}
+		else
+		{
+			Entity::takeDamage(dmg);
+		}
+	}
+
+	void Player::respawn()
+	{
+		_hp = _max_hp;
+		_is_dying = false;
+		_is_knocked_down = false;
+		_knockdown_phase = KnockdownPhase::None;
+		_is_moving = false;
+		setX(_respawn_point.x);
+		setY(_respawn_point.y);
+		_target_x = _respawn_point.x;
+		_target_y = _respawn_point.y;
+		_path.clear();
+		setFaction(Faction::Player);
+		setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+		playAnimation("default");
 	}
 
 } // namespace Nawia::Entity
