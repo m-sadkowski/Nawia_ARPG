@@ -18,4 +18,16 @@ namespace Nawia::World {
 		loadSpawns(engine);
 	}
 
+	void DemoLevel::changeLocation(Core::Engine* engine, const std::string& location_name) {
+		// Zmiana geometrii mapy
+		if (location_name == "Demo Arena") {
+			_map->loadMap("demo_map/demo.glb", 2.0f);
+		} else if (location_name == "Inferno") {
+			_map->loadMap("demo_map/inferno.glb", 2.0f);
+		}
+
+		// Wywołaj bazową logikę (przebudzenie/zamrożenie encji, teleport gracza)
+		Level::changeLocation(engine, location_name);
+	}
+
 } // namespace Nawia::World

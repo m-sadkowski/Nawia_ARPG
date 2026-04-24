@@ -38,16 +38,18 @@ assets/data/
 Level::onEnter()
   → loadMap()                 // ładuje geometrię 3D
   → loadSpawns(engine)        // ładuje JSON → SpawnManager
-    → SpawnManager::loadFromJson(path, engine, map)
-      → EntityFactory::create() dla KAŻDEJ encji (ciężka praca tu)
-      → encje z trigger_radius > 0 → dodane jako DORMANT (niewidoczne, zamrożone)
-      → encje z trigger_radius == 0 → od razu aktywne
+    → SpawnManager::loadFromJson(path, engine, map, initial_location)
+      → EntityFactory::create() dla KAŻDEJ encji ze WSZYSTKICH lokacji
+      → encje w startowej lokacji z trigger_radius == 0 → od razu aktywne
+      → encje w startowej lokacji z trigger_radius > 0 → dormant (proximity)
+      → encje w INNYCH lokacjach → dormant (aktywowane przy zmianie lokacji)
       → wszystkie dodane do EntityManager
     → ustawia pozycję gracza z "player_spawn"
 
 Level::update() [co klatkę — LEKKIE, zero alokacji]
   → SpawnManager::update(player_pos, current_location)
-    → dla każdego nieaktywnego SpawnPoint w aktualnej lokacji:
+    → filtruje po current_location (ignoruje inne lokacje)
+    → dla każdego nieaktywnego SpawnPoint:
       → sprawdź odległość gracza
       → jeśli w zasięgu → entity->setDormant(false)  ← tylko flip flagi!
 ```
@@ -254,18 +256,29 @@ Wrogowie dostają automatycznie gracza jako cel (`setTarget`).
 
 ## System aktywacji encji (dormant / proximity)
 
-**Wszystkie encje są tworzone przy wejściu na mapę** (zero lagów w runtime).
-Encje z `trigger_radius > 0` startują jako **dormant** (zamrożone + niewidoczne).
+**Wszystkie encje ze wszystkich lokacji** są tworzone przy wejściu na mapę (zero lagów w runtime).
 
-### Natychmiastowe (`trigger_radius: 0`)
+Encja startuje jako **dormant** jeśli:
+1. **Jest w innej lokacji** niż startowa (zawsze dormant, czeka na zmianę lokacji)
+2. **Ma `trigger_radius > 0`** w startowej lokacji (proximity — budzi się na zbliżenie)
+
+Encja jest od razu **aktywna** jeśli:
+- Jest w **startowej lokacji** gracza **I** ma `trigger_radius == 0`
+
+### Natychmiastowe (`trigger_radius: 0`, aktualna lokacja)
 - Skrzynki, NPC, checkpointy, obiekty statyczne
 - Tworzone i **od razu aktywne** przy wejściu do lokacji
 
-### Zbliżeniowe (`trigger_radius > 0`)
+### Zbliżeniowe (`trigger_radius > 0`, aktualna lokacja)
 - Wrogowie
 - Tworzone przy wejściu, ale **dormant** (niewidoczne, bez update/render/kolizji)
 - Aktywowane gdy gracz podejdzie na odległość `trigger_radius`
 - Pozwala na elementy zaskoczenia (zasadzki) bez lagów
+
+### Inna lokacja (dowolny `trigger_radius`)
+- Wszystkie encje dormant
+- Aktywowane dopiero gdy gracz zmieni lokację (teleport, NYI)
+- `SpawnManager::update()` filtruje po `current_location`
 
 ### Co oznacza "dormant"?
 Encja dormant:
@@ -290,17 +303,22 @@ Encja dormant:
 ```
 1. Gracz wybiera level w menu → Engine::handleInput()
 2. LevelManager::loadLevel("Nazwa") → Level::onEnter()
-3. Level ładuje mapę 3D i woła loadSpawns()
-4. SpawnManager::loadFromJson(path, engine, map):
-   → parsuje JSON
+3. Level ładuje startową mapę 3D i woła loadSpawns()
+4. SpawnManager::loadFromJson(path, engine, map, initial_location):
+   → parsuje JSON ze WSZYSTKIMI lokacjami
    → EntityFactory::create() dla KAŻDEJ encji (modele, tekstury, animacje)
-   → trigger_radius > 0 → entity->setDormant(true), dodane do EntityManager
-   → trigger_radius == 0 → od razu aktywne, dodane do EntityManager
-5. Pozycja gracza ustawiana z "player_spawn"
+   → Inne lokacje / trigger_radius > 0 → entity->setDormant(true)
+   → Startowa lokacja i trigger_radius == 0 → od razu aktywne
+   → wszystkie dodane do EntityManager
+5. Pozycja gracza ustawiana z "player_spawn" na startowej lokacji
 6. Co klatkę: Level::update() → SpawnManager::update()
-   → LEKKIE: tylko sprawdzenie odległości
+   → LEKKIE: tylko sprawdzenie odległości dla aktualnej lokacji
    → jeśli gracz w zasięgu → entity->setDormant(false) ← flip flagi
-7. Przy wyjściu: Level::onExit()
+7. Przy wejściu w Teleport: Level::changeLocation()
+   → Level ładuje nową geometrię (jeśli nadpisano)
+   → SpawnManager zamraża starą lokację i budzi nową
+   → Gracz ląduje na nowym player_spawn
+8. Przy wyjściu: Level::onExit()
    → clearNonPlayerEntities()
    → SpawnManager::reset()
 ```

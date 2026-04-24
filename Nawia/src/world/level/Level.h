@@ -141,11 +141,15 @@ namespace Nawia::World {
 		}
 
 		/**
-		 * @brief Sets the active location by index.
-		 * @param index Zero-based index into the getLocations() list.
-		 * @note For future teleport system — not yet called by game logic.
+		 * @brief Change the active location within the level.
+		 * 
+		 * Updates current location index, wakes up immediate entities in the new location,
+		 * and repositions the player. Can be overridden to load new maps.
+		 * 
+		 * @param engine Engine pointer
+		 * @param location_name Target location name
 		 */
-		void setCurrentLocationIndex(size_t index) { _current_location_index = index; }
+		virtual void changeLocation(Core::Engine* engine, const std::string& location_name);
 
 		/** @brief Returns the current location index. */
 		[[nodiscard]] size_t getCurrentLocationIndex() const { return _current_location_index; }

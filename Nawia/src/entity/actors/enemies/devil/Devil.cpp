@@ -56,6 +56,8 @@ namespace Nawia::Entity {
 
 	void Devil::update(const float dt)
 	{
+		if (isDormant()) return;
+
 		if (_attack_cooldown_timer > 0.0f)
 			_attack_cooldown_timer -= dt;
 		if (_dash_cooldown_timer > 0.0f)

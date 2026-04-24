@@ -1,15 +1,16 @@
 {
     "player_spawn": {
-        "Demo Arena": { "x": -4.3, "y": 33.0 }
+        "Demo Arena": { "x": -4.3, "y": 33.0 },
+        "Inferno": { "x": 0.0, "y": -5.0 }
     },
     "entities": [
         {
-            "location": "Demo Arena",
+            "location": "Inferno",
             "type": "devil",
             "name": "Devil",
             "x": 0.0, "y": 12.1,
             "hp": 120,
-            "trigger_radius": 15.0
+            "trigger_radius": 25.0
         },
         {
             "location": "Demo Arena",
@@ -69,6 +70,22 @@
             "type": "checkpoint",
             "name": "Punkt Kontrolny",
             "x": 20.0, "y": 20.0,
+            "trigger_radius": 0
+        },
+        {
+            "location": "Demo Arena",
+            "type": "teleport",
+            "name": "Portal do Inferno",
+            "target_location": "Inferno",
+            "x": -10.0, "y": 30.0,
+            "trigger_radius": 0
+        },
+        {
+            "location": "Inferno",
+            "type": "teleport",
+            "name": "Portal Powrotny",
+            "target_location": "Demo Arena",
+            "x": 0.0, "y": -10.0,
             "trigger_radius": 0
         }
     ]

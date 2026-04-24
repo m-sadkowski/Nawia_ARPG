@@ -160,7 +160,6 @@ namespace Nawia::Core {
 
                     if (collision) {
                         trigger->onTriggerEnter(*_player);
-                        trigger->die();
                     }
                 }
             }

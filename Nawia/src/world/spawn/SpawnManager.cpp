@@ -14,7 +14,8 @@ using json = nlohmann::json;
 
 namespace Nawia::World {
 
-	bool SpawnManager::loadFromJson(const std::string& path, Core::Engine* engine, Core::Map* map) {
+	bool SpawnManager::loadFromJson(const std::string& path, Core::Engine* engine,
+		Core::Map* map, const std::string& initial_location) {
 		std::ifstream file(path);
 		if (!file.is_open()) {
 			Core::Logger::errorLog("SpawnManager: nie mozna otworzyc pliku: " + path);
@@ -86,15 +87,15 @@ namespace Nawia::World {
 				continue;
 			}
 
-			// Start dormant if trigger_radius > 0 (proximity-activated)
-			if (sp.trigger_radius > 0.0f) {
-				entity->setDormant(true);
-				sp.activated = false;
-			} else {
-				// Immediate — entity is visible and active right away
-				entity->setDormant(false);
-				sp.activated = true;
-			}
+			// Determine initial dormant state:
+			// - Entities in a different location → always dormant (activated on location change)
+			// - Entities in current location with trigger_radius > 0 → dormant (proximity)
+			// - Entities in current location with trigger_radius == 0 → active immediately
+			const bool is_current_location = (sp.location == initial_location);
+			const bool should_be_active = is_current_location && (sp.trigger_radius <= 0.0f);
+
+			entity->setDormant(!should_be_active);
+			sp.activated = should_be_active;
 
 			sp.entity = entity;
 			engine->getEntityManager().addEntity(entity);
@@ -137,6 +138,27 @@ namespace Nawia::World {
 
 			Core::Logger::debugLog("SpawnManager: aktywowano " + sp.entity_type + 
 				" w lokacji " + sp.location);
+		}
+	}
+
+	void SpawnManager::updateLocationChange(const std::string& new_location) {
+		for (auto& sp : _spawn_points) {
+			if (!sp.entity) continue;
+
+			if (sp.location == new_location) {
+				// We entered this location. Wake up entities with trigger_radius == 0
+				if (sp.trigger_radius <= 0.0f) {
+					sp.entity->setDormant(false);
+					sp.activated = true;
+				} else {
+					// Wait for proximity
+					sp.activated = false;
+				}
+			} else {
+				// We left this location. Freeze the entity.
+				sp.entity->setDormant(true);
+				sp.activated = false;
+			}
 		}
 	}
 

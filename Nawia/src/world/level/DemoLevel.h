@@ -21,8 +21,10 @@ namespace Nawia::World {
 			return "../assets/data/level_entities/demo_level.json";
 		}
 		[[nodiscard]] std::vector<std::string> getLocations() const override {
-			return {"Demo Arena"};
+			return {"Demo Arena", "Inferno"};
 		}
+
+		void changeLocation(Core::Engine* engine, const std::string& location_name) override;
 	};
 
 } // namespace Nawia::World

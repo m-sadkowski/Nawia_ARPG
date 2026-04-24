@@ -48,6 +48,8 @@ namespace Nawia::Entity {
 
 	void WalkingDead::update(const float dt)
 	{
+		if (isDormant()) return;
+
 		// Update attack cooldown
 		if (_attack_cooldown_timer > 0.0f)
 			_attack_cooldown_timer -= dt;

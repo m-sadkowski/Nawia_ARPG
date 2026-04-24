@@ -14,6 +14,7 @@
 #include <Cat.h>
 #include <Checkpoint.h>
 #include <StaticObject.h>
+#include <Teleport.h>
 
 // Abilities (for enemy setup)
 #include <KnifeThrowAbility.h>
@@ -41,6 +42,7 @@ namespace Nawia::World {
 		if (type == "npc")           return createNPC(data, engine);
 		if (type == "static_object") return createStaticObject(data, engine);
 		if (type == "checkpoint")    return createCheckpoint(data);
+		if (type == "teleport")      return createTeleport(data, engine);
 
 		Core::Logger::errorLog("EntityFactory: nieznany typ encji: " + type);
 		return nullptr;
@@ -238,7 +240,24 @@ namespace Nawia::World {
 		const float y = data.value("y", 0.0f);
 		const std::string name = data.value("name", "Punkt Kontrolny");
 
-		return std::make_shared<Entity::Checkpoint>(name, x, y);
+		auto entity = std::make_shared<Entity::Checkpoint>(name, x, y);
+		return entity;
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createTeleport(
+		const json& data, Core::Engine* engine)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const std::string name = data.value("name", "Teleport");
+		const std::string target_location = data.value("target_location", "");
+
+		if (target_location.empty()) {
+			Core::Logger::errorLog("EntityFactory: Teleport wymaga pola 'target_location'");
+		}
+
+		auto entity = std::make_shared<Entity::Teleport>(name, x, y, engine, target_location);
+		return entity;
 	}
 
 } // namespace Nawia::World

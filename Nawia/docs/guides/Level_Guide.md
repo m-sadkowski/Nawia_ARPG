@@ -81,11 +81,13 @@ _level_manager->registerLevel(std::make_shared<World::NowyLevel>());
 
 ### Krok 4: Plik JSON (`assets/data/level_entities/nowy_level.json`)
 
+Jeden JSON per level. Encje z **różnych lokacji** koegzystują w jednym pliku — pole `"location"` przypisuje je do konkretnej lokacji.
+
 ```json
 {
     "player_spawn": {
         "Lokacja A": { "x": 5.0, "y": 10.0 },
-        "Lokacja B": { "x": 0.0, "y": 0.0 }
+        "Lokacja B": { "x": -2.0, "y": 3.0 }
     },
     "entities": [
         {
@@ -103,22 +105,76 @@ _level_manager->registerLevel(std::make_shared<World::NowyLevel>());
             "x": 3.0, "y": 8.0,
             "loottable": "CHEST_NOOB",
             "trigger_radius": 0
+        },
+        {
+            "location": "Lokacja B",
+            "type": "bandit",
+            "name": "Bandyta z Jaskini",
+            "x": 5.0, "y": 5.0,
+            "hp": 100,
+            "trigger_radius": 10.0
+        },
+        {
+            "location": "Lokacja B",
+            "type": "npc",
+            "npc_class": "cat",
+            "name": "Kot Jaskiniowy",
+            "x": -1.0, "y": 2.0,
+            "loottable": "CAT",
+            "trigger_radius": 0
         }
     ]
 }
 ```
 
-## System Dormant — encje śpią do momentu zbliżenia gracza
+⚠️ **Ważne:** Nazwa w polu `"location"` musi dokładnie odpowiadać stringowi zwracanemu przez `getLocations()` w klasie levelu!
 
-Wszystkie encje są tworzone (modele, tekstury, animacje) **jednorazowo przy wejściu na mapę**. Dzięki temu nie ma lagów w trakcie rozgrywki.
+## Jak działają lokacje?
 
-### Jak to działa?
+Każdy level może mieć **wiele lokacji** (np. "Las", "Mała Jaskinia", "Głęboka Jaskinia"). Lokacje to logiczne strefy w obrębie jednego levelu.
 
-1. **`loadSpawns(engine)`** → `SpawnManager::loadFromJson()` tworzy WSZYSTKIE encje
-2. Encje z `trigger_radius > 0` startują jako **dormant** (zamrożone + niewidoczne)
-3. Encje z `trigger_radius == 0` są od razu aktywne (skrzynki, NPC)
-4. Co klatkę `Level::update()` → `SpawnManager::update()` sprawdza odległość gracza
-5. Gdy gracz wejdzie w zasięg → `entity->setDormant(false)` — encja się budzi
+### Relacja Level → Lokacje → Encje
+
+```
+Mroczny Las (Level)
+ ├── Las (Lokacja)
+ │    ├── Devil (trigger_radius: 15)
+ │    ├── Skrzynia (trigger_radius: 0)
+ │    └── Checkpoint (trigger_radius: 0)
+ ├── Mała Jaskinia (Lokacja)
+ │    ├── Bandit (trigger_radius: 10)
+ │    └── NPC Kot (trigger_radius: 0)
+ └── Głęboka Jaskinia (Lokacja)
+      └── Boss (trigger_radius: 20)
+```
+
+### Przejścia między lokacjami
+
+Gracz startuje w **pierwszej lokacji** z `getLocations()`. Przejście do innej lokacji (teleport, NYI) zmieni `_current_location_index`:
+- Encje z nowej lokacji zostaną aktywowane (wg ich `trigger_radius`)
+- Encje z poprzedniej lokacji pozostaną w swoim stanie
+
+## System Dormant — encje śpią do momentu potrzeby
+
+Wszystkie encje z **wszystkich lokacji** są tworzone (modele, tekstury, animacje) **jednorazowo przy wejściu na mapę**. Dzięki temu nie ma lagów w trakcie rozgrywki.
+
+### Kiedy encja jest dormant?
+
+Encja startuje jako dormant jeśli:
+1. **Jest w innej lokacji** niż ta, w której startuje gracz (zawsze dormant)
+2. **Ma `trigger_radius > 0`** w aktualnej lokacji (proximity — budzi się na zbliżenie)
+
+Encja jest od razu aktywna jeśli:
+- Jest w **aktualnej lokacji** gracza **I** ma `trigger_radius == 0`
+
+### Jak to działa w runtime?
+
+1. **`loadSpawns(engine)`** → `SpawnManager::loadFromJson()` tworzy WSZYSTKIE encje ze WSZYSTKICH lokacji
+2. Encje w startowej lokacji z `trigger_radius == 0` → od razu aktywne
+3. Encje w startowej lokacji z `trigger_radius > 0` → dormant (proximity)
+4. Encje w **innych lokacjach** → dormant (czekają na zmianę lokacji)
+5. Co klatkę `SpawnManager::update()` sprawdza tylko encje z **aktualnej lokacji**
+6. Gdy gracz wejdzie w zasięg → `entity->setDormant(false)` — encja się budzi
 
 ### Co oznacza dormant?
 
@@ -231,6 +287,20 @@ Wrogowie automatycznie dostają gracza jako cel (`setTarget`).
     "type": "checkpoint",
     "name": "Punkt Kontrolny",
     "x": 20.0, "y": 20.0,
+    "trigger_radius": 0
+}
+```
+
+### Teleport: `teleport`
+
+Służy do płynnego przemieszczania gracza pomiędzy lokacjami w tym samym levelu. Dodaje obsługę docelowej lokacji.
+
+```json
+{
+    "type": "teleport",
+    "name": "Portal do Jaskini",
+    "target_location": "Mała Jaskinia",
+    "x": 10.0, "y": 0.0,
     "trigger_radius": 0
 }
 ```

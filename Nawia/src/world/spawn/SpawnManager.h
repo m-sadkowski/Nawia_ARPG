@@ -38,15 +38,19 @@ namespace Nawia::World {
 		 * @brief Load entity definitions from JSON and pre-create all entities.
 		 *
 		 * All entities are created immediately via EntityFactory and added
-		 * to EntityManager as dormant. Entities with `trigger_radius == 0`
-		 * are activated immediately (not dormant).
+		 * to EntityManager. Dormant state is set based on location and trigger_radius:
+		 * - Entities in `initial_location` with `trigger_radius == 0` → active
+		 * - Entities in `initial_location` with `trigger_radius > 0` → dormant (proximity)
+		 * - Entities in other locations → always dormant (activated on location change)
 		 *
-		 * @param path   Path to the level_entities JSON file
-		 * @param engine Engine pointer for EntityFactory + EntityManager
-		 * @param map    Current level's Map (for enemy pathfinding)
+		 * @param path             Path to the level_entities JSON file
+		 * @param engine           Engine pointer for EntityFactory + EntityManager
+		 * @param map              Current level's Map (for enemy pathfinding)
+		 * @param initial_location Name of the location the player starts in
 		 * @return true if file was loaded successfully
 		 */
-		bool loadFromJson(const std::string& path, Core::Engine* engine, Core::Map* map);
+		bool loadFromJson(const std::string& path, Core::Engine* engine, 
+			Core::Map* map, const std::string& initial_location);
 
 		/**
 		 * @brief Check proximity and activate dormant entities.
@@ -55,6 +59,14 @@ namespace Nawia::World {
 		 * No entity creation happens here.
 		 */
 		void update(Vector2 player_pos, const std::string& current_location);
+
+		/**
+		 * @brief Update dormant states when the player changes location.
+		 * 
+		 * Freezes all entities in the old location. Wakes up entities
+		 * in the new location that have trigger_radius == 0.
+		 */
+		void updateLocationChange(const std::string& new_location);
 
 		/**
 		 * @brief Reset all spawn points and release entity references.
