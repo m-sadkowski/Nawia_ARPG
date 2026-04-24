@@ -1,0 +1,43 @@
+{
+  "quests": [
+    {
+      "id": "cat_fish",
+      "name": "Rybka dla Olgi",
+      "description": "Kot Olga potrzebuje rybki. Znajdz ja w skrzyni diabla i zanies do kota.",
+      "prerequisites": [],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "deliver_item",
+          "item_id": 6,
+          "target_npc": "Kot Olga",
+          "count": 1,
+          "description": "Zanies rybe do Kota Olgi"
+        }
+      ],
+      "rewards": {
+        "items": [7],
+        "gold": 50
+      }
+    },
+    {
+      "id": "kill_devil",
+      "name": "Pogromca Diabla",
+      "description": "Pokonaj diabla strzegacego skrzyni z rybka.",
+      "prerequisites": ["cat_fish"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Devil",
+          "count": 1,
+          "description": "Zabij Diabla"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 100
+      }
+    }
+  ]
+}
