@@ -43,7 +43,7 @@ namespace Nawia::UI {
             
             current_y += line_height;
         };
-
+        
         drawStatRow("ZDROWIE", TextFormat("%d / %d", _player->getHP(), stats.max_hp), RED);
         drawStatRow("SILA", TextFormat("%d", stats.damage), ORANGE);
         drawStatRow("PREDKOSC ATAKU", TextFormat("%.2f", stats.attack_speed), YELLOW);

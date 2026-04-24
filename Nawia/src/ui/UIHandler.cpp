@@ -55,7 +55,7 @@ namespace Nawia::UI {
         UnloadFont(_font);
     }
 
-    void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager)
+    void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager)
 	{
         _player = player;
         _entity_manager = entity_manager;
@@ -75,6 +75,9 @@ namespace Nawia::UI {
         _current_container = nullptr;
 
         _stats_ui = std::make_unique<StatsUI>(_player);
+
+        _quest_ui = std::make_unique<QuestUI>();
+        _quest_manager = quest_manager;
 
         _previous_hp = _player->getHP();
     }
@@ -127,6 +130,14 @@ namespace Nawia::UI {
         if (IsKeyPressed(KEY_I) || IsKeyPressed(KEY_TAB)) {
             if (_current_container) closeContainer();
             toggleInventory();
+        }
+
+        if (IsKeyPressed(KEY_P)) {
+            toggleQuestUI();
+        }
+
+        if (_is_quest_ui_open) {
+            _quest_ui->handleInput();
         }
 
         if (_is_inventory_open) {
@@ -185,6 +196,7 @@ namespace Nawia::UI {
 
         renderPlayerHealthBar();
         renderPlayerAbilityBar();
+        renderPlayerExperienceBar();
         renderEnemyHealthBars(camera);
         renderLocationInfo();
 
@@ -242,6 +254,10 @@ namespace Nawia::UI {
             if (_current_container) {
                 _chest_ui->render(*_current_container->getInventory(), _font);
             }
+        }
+
+        if (_is_quest_ui_open) {
+            _quest_ui->render(_font, _quest_manager);
         }
     }
 
@@ -413,6 +429,50 @@ namespace Nawia::UI {
 		}
 	}
 
+    void UIHandler::renderPlayerExperienceBar() const
+    {
+        if (!_player) return;
+
+        // Ability bar metrics to align with it
+        const float ability_icon_size = Core::GlobalScaling::scaled(50.0f);
+        const float ability_spacing = Core::GlobalScaling::scaled(10.0f);
+        const float ability_bar_width = (ability_icon_size * 4) + (ability_spacing * 3);
+        const float ability_bottom_margin = Core::GlobalScaling::scaled(90.0f);
+        
+        // Experience bar metrics
+        const float bar_height = Core::GlobalScaling::scaled(10.0f);
+        const float circle_radius = Core::GlobalScaling::scaled(18.0f);
+        const float spacing = Core::GlobalScaling::scaled(8.0f); // Space between circle and bar
+        
+        const float bar_width = ability_bar_width;
+        
+        const float start_y = static_cast<float>(GetScreenHeight()) - ability_bottom_margin - ability_icon_size - Core::GlobalScaling::scaled(12.0f) - bar_height;
+        const float bar_start_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
+        
+        // Circle for level
+        const float circle_x = bar_start_x - spacing - circle_radius;
+        const float circle_y = start_y + bar_height / 2.0f;
+        
+        int exp_to_next = _player->getExpToNextLvl();
+        if (exp_to_next <= 0) exp_to_next = 1;
+        const float exp_pct = std::clamp(static_cast<float>(_player->getExp()) / static_cast<float>(exp_to_next), 0.0f, 1.0f);
+
+        // Draw HUD background for xp
+        drawBar(bar_start_x, start_y, bar_width, bar_height, exp_pct, PURPLE, DARKGRAY);
+        DrawRectangleLinesEx({ bar_start_x, start_y, bar_width, bar_height }, Core::GlobalScaling::scaled(2.0f), WHITE);
+        
+        // Draw Level Circle
+        DrawCircle(static_cast<int>(circle_x), static_cast<int>(circle_y), circle_radius, DARKGRAY);
+        DrawCircleLines(static_cast<int>(circle_x), static_cast<int>(circle_y), circle_radius, WHITE);
+        
+        // Draw Level Text
+        const auto* text = TextFormat("%d", _player->getLevel());
+        const float font_size = Core::GlobalScaling::scaled(20.0f);
+        const float text_spacing = Core::GlobalScaling::scaled(1.0f);
+        Vector2 text_size = MeasureTextEx(_font, text, font_size, text_spacing);
+        DrawTextEx(_font, text, { circle_x - text_size.x / 2.0f, circle_y - text_size.y / 2.0f }, font_size, text_spacing, WHITE);
+    }
+
     void UIHandler::renderSettingsMenu() const {
         if (_settings_menu) {
             _settings_menu->render(_font);
@@ -531,6 +591,7 @@ namespace Nawia::UI {
         if (_dialogueUI.isOpen()) return true;
         if (_is_inventory_open) return true;
         if (_current_container) return true;
+        if (_is_quest_ui_open) return true;
 
         return false;
     }

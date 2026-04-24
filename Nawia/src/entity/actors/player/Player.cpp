@@ -95,6 +95,7 @@ namespace Nawia::Entity {
 			return;
 		}
 		
+		isLevelUp();
 		// Handle knockdown animation sequence
 		if (_is_knocked_down)
 		{
@@ -213,6 +214,20 @@ namespace Nawia::Entity {
 		_knockdown_phase = KnockdownPhase::Knocked;
 		setAnimationSpeed(4.0f);
 		playAnimation("knocked", false, true, 0, true);
+	}
+	void Player::levelUp() {
+		_level++;
+		_exp = _exp - _expToNextLvl;
+		_expToNextLvl = _expToNextLvl + 1000;
+		_base_stats.max_hp = _base_stats.max_hp + 15;
+		_base_stats.damage = _base_stats.damage + 2;
+		_base_stats.attack_speed = _base_stats.attack_speed + 0.1f;
+		_base_stats.movement_speed = 4.0f;
+		_base_stats.tenacity = _base_stats.tenacity + 0.1f;
+	}
+
+	void Player::isLevelUp() {
+		if (_exp >= _expToNextLvl) levelUp();
 	}
 
 	void Player::takeDamage(const int dmg)
