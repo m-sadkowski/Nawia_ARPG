@@ -8,6 +8,9 @@
 #include <SwordSlashAbility.h>
 #include <DemoLevel.h>
 #include <DevLevel.h>
+#include <MrocznyLasLevel.h>
+#include <StarozytneLochyLevel.h>
+#include <PobojowiskoLevel.h>
 #include <LevelManager.h>
 
 namespace Nawia::Core {
@@ -60,12 +63,16 @@ namespace Nawia::Core {
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
+		_level_manager->registerLevel(std::make_shared<World::MrocznyLasLevel>());
+		_level_manager->registerLevel(std::make_shared<World::StarozytneLochyLevel>());
+		_level_manager->registerLevel(std::make_shared<World::PobojowiskoLevel>());
 		
 		_is_running = true;
 
         // initialize UI
         _ui_handler = std::make_unique<Nawia::UI::UIHandler>();
         _ui_handler->initialize(_player, _entity_manager.get(), _resource_manager);
+        _ui_handler->setLevelManager(_level_manager.get());
 
 		// TEST remove later
 		if (_player) {
@@ -120,7 +127,7 @@ namespace Nawia::Core {
             if (action == Nawia::UI::MenuAction::Play)
             {
                 _previous_state = GameState::Menu;
-                _ui_handler->openLevelSelect(_level_manager->getRegisteredLevels());
+                _ui_handler->openLevelSelect(_level_manager->getRegisteredLevelInfos());
                 _game_state = GameState::LevelSelect;
             }
             else if (action == Nawia::UI::MenuAction::Settings)
@@ -300,23 +307,20 @@ namespace Nawia::Core {
 		BeginDrawing();
 		ClearBackground(Color{30, 30, 35, 255});
 
-        if (_game_state == GameState::Menu)
+
+        if (_game_state == GameState::Menu && _ui_handler)
         {
-            if (_ui_handler) _ui_handler->renderMainMenu();
+            _ui_handler->renderMainMenu();
         }
-        else if (_game_state == GameState::SettingsMenu)
+        else if (_game_state == GameState::SettingsMenu && _ui_handler)
         {
-            if (_ui_handler) {
-                _ui_handler->renderMainMenu();
-                _ui_handler->renderSettingsMenu();
-            }
+            _ui_handler->renderMainMenu();
+            _ui_handler->renderSettingsMenu();
         }
-		else if (_game_state == GameState::LevelSelect)
+		else if (_game_state == GameState::LevelSelect && _ui_handler)
 		{
-			if (_ui_handler) {
-				_ui_handler->renderMainMenu();
-				_ui_handler->renderLevelSelectMenu();
-			}
+			_ui_handler->renderMainMenu();
+			_ui_handler->renderLevelSelectMenu();
 		}
 		else if (_game_state == GameState::GameOver)
 		{
@@ -349,9 +353,8 @@ namespace Nawia::Core {
             if (_ui_handler) _ui_handler->render(_camera);
             
             // Render pause menu overlay if visible
-            if (_show_pause_menu && _ui_handler) {
+            if (_show_pause_menu && _ui_handler)
                 _ui_handler->renderPauseMenu();
-            }
 
 			_level_manager->renderUI(const_cast<Engine*>(this));
         }

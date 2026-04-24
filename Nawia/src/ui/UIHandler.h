@@ -3,6 +3,7 @@
 #include "InventoryUI.h"
 #include "ChestUI.h"
 #include "DialogueUI.h"
+#include <LevelManager.h>
 
 #include <memory>
 #include <vector>
@@ -69,7 +70,7 @@ namespace Nawia::UI {
         void renderPauseMenu() const;
 
         void renderLevelSelectMenu() const;
-        void openLevelSelect(const std::vector<std::string>& levels);
+        void openLevelSelect(const std::vector<World::LevelInfo>& levels);
         void closeLevelSelect();
         std::string handleLevelSelectInput();
         
@@ -84,6 +85,12 @@ namespace Nawia::UI {
         
         /// Close the settings menu (call after settings are applied)
         void closeSettingsMenu();
+
+        /// Set level manager reference for location HUD
+        void setLevelManager(World::LevelManager* level_manager) { _level_manager = level_manager; }
+
+        /// Render current level + location info on HUD
+        void renderLocationInfo() const;
 
         // inventory
         [[nodiscard]] bool isInventoryOpen() const { return _is_inventory_open; }
@@ -110,6 +117,7 @@ namespace Nawia::UI {
 
         std::shared_ptr<Entity::Player> _player;
         Core::EntityManager* _entity_manager;
+        World::LevelManager* _level_manager = nullptr;
         Font _font;
         std::shared_ptr<Texture2D> _main_menu_bg;
         
