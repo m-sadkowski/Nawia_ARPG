@@ -1,0 +1,75 @@
+{
+    "player_spawn": {
+        "Demo Arena": { "x": -4.3, "y": 33.0 }
+    },
+    "entities": [
+        {
+            "location": "Demo Arena",
+            "type": "devil",
+            "name": "Devil",
+            "x": 0.0, "y": 12.1,
+            "hp": 120,
+            "trigger_radius": 15.0
+        },
+        {
+            "location": "Demo Arena",
+            "type": "bandit",
+            "name": "Bandyta",
+            "x": 15.9, "y": 12.6,
+            "hp": 80,
+            "trigger_radius": 15.0,
+            "abilities": ["KnifeThrow"]
+        },
+        {
+            "location": "Demo Arena",
+            "type": "walking_dead",
+            "name": "Walking Dead",
+            "x": 23.36, "y": 20.49,
+            "hp": 80,
+            "trigger_radius": 12.0
+        },
+        {
+            "location": "Demo Arena",
+            "type": "static_object",
+            "name": "Drzewo",
+            "x": 5.0, "y": 5.0,
+            "hp": 9999,
+            "texture": "assets/textures/chest.png",
+            "trigger_radius": 0
+        },
+        {
+            "location": "Demo Arena",
+            "type": "chest",
+            "name": "Stara Skrzynia",
+            "x": -13.44, "y": -21.44,
+            "loottable": "CHEST_NOOB",
+            "trigger_radius": 0
+        },
+        {
+            "location": "Demo Arena",
+            "type": "chest",
+            "name": "Skrzynia Davida",
+            "x": 5.6, "y": 8.57,
+            "items": [6],
+            "locked": true,
+            "key_id": 5,
+            "trigger_radius": 0
+        },
+        {
+            "location": "Demo Arena",
+            "type": "npc",
+            "npc_class": "cat",
+            "name": "Kot Olga",
+            "x": 0.35, "y": -18.23,
+            "loottable": "CAT",
+            "trigger_radius": 0
+        },
+        {
+            "location": "Demo Arena",
+            "type": "checkpoint",
+            "name": "Punkt Kontrolny",
+            "x": 20.0, "y": 20.0,
+            "trigger_radius": 0
+        }
+    ]
+}

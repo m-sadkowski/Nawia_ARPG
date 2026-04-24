@@ -44,6 +44,7 @@ include_directories(
     src/world
     src/world/map
     src/world/level
+    src/world/spawn
     src/ui
     src/ui/hud
     src/ui/inventory

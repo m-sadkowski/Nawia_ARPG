@@ -1,0 +1,8 @@
+{
+    "player_spawn": {
+        "Las": { "x": 0.0, "y": 0.0 },
+        "Mala Jaskinia": { "x": 0.0, "y": 0.0 },
+        "Gleboka Jaskinia": { "x": 0.0, "y": 0.0 }
+    },
+    "entities": []
+}

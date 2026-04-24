@@ -23,6 +23,7 @@ namespace Nawia::World {
 		void renderUI(Core::Engine* engine) override;
 
 		[[nodiscard]] std::string getName() const override { return "DevLevel"; }
+		[[nodiscard]] std::string getSpawnFilePath() const override { return ""; }
 		[[nodiscard]] std::vector<std::string> getLocations() const override {
 			return {"Dev Sandbox"};
 		}

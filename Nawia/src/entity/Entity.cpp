@@ -98,6 +98,8 @@ namespace Nawia::Entity {
 
 	void Entity::update(const float delta_time)
 	{
+		if (_dormant) return;
+
 		_pos.x += _velocity.x * delta_time;
 		_pos.y += _velocity.y * delta_time;
 		
@@ -129,6 +131,8 @@ namespace Nawia::Entity {
 
 	void Entity::render(const Camera3D& camera) 
 	{
+		if (_dormant) return;
+
 		if (_model_loaded)
 		{
 			const Vector3 pos3d = getWorldPos3D();
