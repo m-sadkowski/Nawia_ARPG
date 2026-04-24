@@ -1,5 +1,6 @@
 #include "EntityManager.h"
 #include "Logger.h"
+#include "Engine.h"
 
 #include <AbilityEffect.h>
 #include <EnemyInterface.h>
@@ -94,8 +95,16 @@ namespace Nawia::Core {
             if (const auto spell = dynamic_cast<Entity::AbilityEffect*>(entity.get()))
                 is_expired_spell = spell->isExpired();
 
-            if (entity->isDead() || is_expired_spell)
+            if (entity->isDead() || is_expired_spell) {
+                if (entity->isDead() && entity->getType() == Entity::EntityType::Enemy) {
+                    if (_engine) {
+                        _engine->getQuestManager().notifyKill(entity->getName());
+                    }
+                }
+                
                 it = _active_entities.erase(it);
+            }
+                
             else
                 ++it;
         }

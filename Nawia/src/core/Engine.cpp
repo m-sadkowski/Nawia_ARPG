@@ -58,7 +58,7 @@ namespace Nawia::Core {
 		_controller = std::make_unique<PlayerController>(this, _player);
 
 		// initialize entity manager
-		_entity_manager = std::make_unique<EntityManager>();
+		_entity_manager = std::make_unique<EntityManager>(this);
 		_entity_manager->addEntity(_player);
 		_entity_manager->setPlayer(_player);
 
