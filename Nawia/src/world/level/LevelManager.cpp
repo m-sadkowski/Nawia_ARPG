@@ -11,40 +11,46 @@ namespace Nawia::World {
 
 	void LevelManager::registerLevel(std::shared_ptr<Level> level) {
 		if (level) {
-			_levels[level->getName()] = level;
+			_levels[level->getName()] = std::move(level);
 		}
 	}
 
 	void LevelManager::changeLevel(const std::string& name, Core::Engine* engine) {
 		auto it = _levels.find(name);
-		if (it != _levels.end()) {
-			if (_current_level) {
-				_current_level->onExit(engine);
-			}
-
-			_current_level = it->second;
-			
-			if (_current_level) {
-				_current_level->onEnter(engine);
-			}
-
-			Core::Logger::debugLog("Zmieniono poziom na: " + name);
-		} else {
+		if (it == _levels.end()) {
 			Core::Logger::errorLog("Nie znaleziono poziomu: " + name);
+			return;
 		}
+
+		if (_current_level) {
+			_current_level->onExit(engine);
+		}
+
+		_current_level = it->second;
+		_current_level->onEnter(engine);
+
+		Core::Logger::debugLog("Zmieniono poziom na: " + name);
 	}
 
-	std::vector<std::string> LevelManager::getRegisteredLevels() const {
-		std::vector<std::string> names;
-		names.reserve(_levels.size());
+	std::vector<LevelInfo> LevelManager::getRegisteredLevelInfos() const {
+		std::vector<LevelInfo> infos;
+		infos.reserve(_levels.size());
 		for (const auto& [name, level] : _levels) {
-			names.push_back(name);
+			infos.push_back({name, level->getLocations()});
 		}
-		return names;
+		return infos;
 	}
 
 	Level* LevelManager::getCurrentLevel() const {
 		return _current_level.get();
+	}
+
+	std::string LevelManager::getCurrentLevelName() const {
+		return _current_level ? _current_level->getName() : "";
+	}
+
+	std::string LevelManager::getCurrentLocationName() const {
+		return _current_level ? _current_level->getCurrentLocationName() : "";
 	}
 
 	void LevelManager::handleInput(Core::Engine* engine) {

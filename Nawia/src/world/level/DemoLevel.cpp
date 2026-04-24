@@ -10,14 +10,10 @@
 #include <KnifeThrowAbility.h>
 
 #include <Engine.h>
+#include <Map.h>
 #include <Logger.h>
-#include <MathUtils.h>
 
 namespace Nawia::World {
-
-	DemoLevel::DemoLevel() : _map(nullptr) {}
-
-	DemoLevel::~DemoLevel() {}
 
 	void DemoLevel::onEnter(Core::Engine* engine) {
 		Core::Logger::debugLog("Ladowanie poziomu DemoLevel...");
@@ -96,19 +92,6 @@ namespace Nawia::World {
 
 		auto test_checkpoint = std::make_shared<Entity::Checkpoint>("Punkt Kontrolny", 20.0f, 20.0f);
 		em.addEntity(test_checkpoint);
-	}
-
-	void DemoLevel::onExit(Core::Engine* engine) {
-		if (engine)
-			engine->getEntityManager().clearNonPlayerEntities();
-	}
-
-	Core::Map* DemoLevel::getMap() const {
-		return _map.get();
-	}
-
-	std::string DemoLevel::getName() const {
-		return "DemoLevel";
 	}
 
 } // namespace Nawia::World

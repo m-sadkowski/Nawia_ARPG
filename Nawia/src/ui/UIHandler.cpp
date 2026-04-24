@@ -186,6 +186,7 @@ namespace Nawia::UI {
         renderPlayerHealthBar();
         renderPlayerAbilityBar();
         renderEnemyHealthBars(camera);
+        renderLocationInfo();
 
         // Render damage flash overlay
         if (_damage_flash_timer > 0.0f)
@@ -454,7 +455,7 @@ namespace Nawia::UI {
         }
     }
 
-    void UIHandler::openLevelSelect(const std::vector<std::string>& levels) {
+    void UIHandler::openLevelSelect(const std::vector<World::LevelInfo>& levels) {
         _level_select_menu = std::make_unique<LevelSelectMenu>(levels);
     }
 
@@ -532,6 +533,46 @@ namespace Nawia::UI {
         if (_current_container) return true;
 
         return false;
+    }
+
+    void UIHandler::renderLocationInfo() const {
+        if (!_level_manager) return;
+
+        const std::string level_name = _level_manager->getCurrentLevelName();
+        const std::string location_name = _level_manager->getCurrentLocationName();
+        if (level_name.empty()) return;
+
+        const float font_size_level = Core::GlobalScaling::scaled(20.0f);
+        const float font_size_loc = Core::GlobalScaling::scaled(16.0f);
+        const float spacing = Core::GlobalScaling::scaled(1.0f);
+        const float padding = Core::GlobalScaling::scaled(10.0f);
+        const float margin = Core::GlobalScaling::scaled(40.0f);
+
+        // Measure texts
+        const Vector2 level_size = MeasureTextEx(_font, level_name.c_str(), font_size_level, spacing);
+        const Vector2 loc_size = MeasureTextEx(_font, location_name.c_str(), font_size_loc, spacing);
+
+        const float box_width = std::max(level_size.x, loc_size.x) + padding * 2.0f;
+        const float box_height = level_size.y + loc_size.y + padding * 2.5f;
+        const float box_x = margin;
+        const float box_y = margin;
+
+        // Background box
+        DrawRectangle(static_cast<int>(box_x), static_cast<int>(box_y),
+                      static_cast<int>(box_width), static_cast<int>(box_height),
+                      Fade(BLACK, 0.6f));
+        DrawRectangleLinesEx({box_x, box_y, box_width, box_height},
+                             Core::GlobalScaling::scaled(1.0f), Fade(WHITE, 0.3f));
+
+        // Level name
+        DrawTextEx(_font, level_name.c_str(),
+                   {box_x + padding, box_y + padding},
+                   font_size_level, spacing, WHITE);
+
+        // Location name (below level name, slightly indented)
+        DrawTextEx(_font, location_name.c_str(),
+                   {box_x + padding + Core::GlobalScaling::scaled(5.0f), box_y + padding + level_size.y + Core::GlobalScaling::scaled(4.0f)},
+                   font_size_loc, spacing, Fade(WHITE, 0.7f));
     }
 
     void UIHandler::renderGameOverScreen() const

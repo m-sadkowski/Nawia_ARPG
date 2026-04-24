@@ -13,10 +13,6 @@ using json = nlohmann::json;
 
 namespace Nawia::World {
 
-	DevLevel::DevLevel() : _map(nullptr), _is_typing(false), _saved_iso_pos({0,0}) {}
-
-	DevLevel::~DevLevel() {}
-
 	void DevLevel::onEnter(Core::Engine* engine) {
 		Core::Logger::debugLog("Ladowanie poziomu DevLevel...");
 
@@ -25,11 +21,6 @@ namespace Nawia::World {
 
 		auto& em = engine->getEntityManager();
 		em.clearNonPlayerEntities();
-	}
-
-	void DevLevel::onExit(Core::Engine* engine) {
-		if (engine)
-			engine->getEntityManager().clearNonPlayerEntities();
 	}
 
 	void DevLevel::handleInput(Core::Engine* engine) {
@@ -130,10 +121,6 @@ namespace Nawia::World {
 		if (out.is_open()) {
 			out << objects_data.dump(4);
 		}
-	}
-
-	Core::Map* DevLevel::getMap() const {
-		return _map.get();
 	}
 
 } // namespace Nawia::World
