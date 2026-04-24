@@ -30,7 +30,6 @@ namespace Nawia::Entity {
         void setDialogue(const Game::DialogueTree& dialogue) { _dialogueTree = dialogue; }
         
 
-
         using InteractiveClickable::canInteract;
         bool canInteract() const override {
             if (_quest_completed) return false;

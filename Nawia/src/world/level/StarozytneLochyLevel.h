@@ -13,12 +13,16 @@ namespace Nawia::World {
 	 *  - Arena (combat arena — boss/wave area)
 	 *
 	 * Currently uses a placeholder map (demo_map/inferno.glb).
+	 * Spawn definitions in assets/data/spawns/starozytne_lochy.json.
 	 */
 	class StarozytneLochyLevel : public Level {
 	public:
 		void onEnter(Core::Engine* engine) override;
 
 		[[nodiscard]] std::string getName() const override { return "Starozytne Lochy"; }
+		[[nodiscard]] std::string getSpawnFilePath() const override {
+			return "../assets/data/level_entities/starozytne_lochy.json";
+		}
 		[[nodiscard]] std::vector<std::string> getLocations() const override {
 			return {"Lochy", "Arena"};
 		}

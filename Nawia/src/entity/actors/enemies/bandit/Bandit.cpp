@@ -46,6 +46,8 @@ namespace Nawia::Entity {
 
 	void Bandit::update(const float dt)
 	{
+		if (isDormant()) return;
+
 		if (_knife_cooldown_timer > 0.0f)
 			_knife_cooldown_timer -= dt;
 

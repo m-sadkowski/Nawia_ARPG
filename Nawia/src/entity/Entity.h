@@ -240,6 +240,21 @@ namespace Nawia::Entity {
 		EntityType getType() const { return _type; }
 		void setType(EntityType type) { _type = type; }
 
+
+		// ═══════════════════════════════════════════════════════════════════════
+		// DORMANT SYSTEM
+		// ═══════════════════════════════════════════════════════════════════════
+
+		/**
+		 * @brief Set dormant state. Dormant entities are invisible, frozen,
+		 *        and excluded from collisions/interactions.
+		 *
+		 * Used by SpawnManager to pre-load entities at level start and
+		 * activate them when the player approaches (proximity trigger).
+		 */
+		void setDormant(bool dormant) { _dormant = dormant; }
+		[[nodiscard]] bool isDormant() const { return _dormant; }
+
 	protected:
 		template <typename T> friend class EntityBuilder;
 		Entity() = default;
@@ -272,6 +287,7 @@ namespace Nawia::Entity {
 		bool _anim_looping = true;
 		bool _anim_locked = false;
 		bool _hovered = false;
+		bool _dormant = false;  ///< When true, entity is invisible and frozen
 
 		Faction _faction = Faction::None;
 

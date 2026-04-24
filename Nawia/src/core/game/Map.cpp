@@ -29,6 +29,11 @@ Map::~Map()
 
 void Map::loadMap(const std::string& filename, const float scale, const Vector3 offset, const Vector3 rotation) 
 {
+	if (_model_loaded) {
+		UnloadModel(_model);
+		_model_loaded = false;
+	}
+
 	const std::string filepath = "../assets/maps/" + filename;
 	_scale = scale;
 	_offset = offset;

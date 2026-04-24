@@ -1,0 +1,7 @@
+{
+    "player_spawn": {
+        "Lochy": { "x": 0.0, "y": 0.0 },
+        "Arena": { "x": 0.0, "y": 0.0 }
+    },
+    "entities": []
+}

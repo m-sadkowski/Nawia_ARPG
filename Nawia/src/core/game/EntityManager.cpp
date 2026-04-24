@@ -39,6 +39,7 @@ namespace Nawia::Core {
     {
         // Iterate backwards to click the "top-most" entity first
         for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) {
+            if ((*it)->isDormant()) continue;
             if ((*it)->isMouseOver(screen_x, screen_y, camera))
                 return *it;
         }
@@ -54,6 +55,7 @@ namespace Nawia::Core {
         // 2. Find the top-most entity under the cursor
         for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) 
         {
+            if ((*it)->isDormant()) continue;
             if ((*it)->isMouseOver(screen_x, screen_y, camera)) {
                 (*it)->setHovered(true);
                 return;
@@ -67,7 +69,10 @@ namespace Nawia::Core {
         render_list.reserve(_active_entities.size());
 
         for (const auto& entity : _active_entities)
-            render_list.push_back(entity.get());
+        {
+            if (!entity->isDormant())
+                render_list.push_back(entity.get());
+        }
 
 		// Y-sorting
         std::ranges::sort(render_list, {}, &Entity::Entity::getY);
@@ -110,6 +115,7 @@ namespace Nawia::Core {
         for (auto& entity1 : _active_entities)
         {
             if (entity1->getType() != Entity::EntityType::Projectile) continue;
+            if (entity1->isDormant()) continue;
 
             auto ability = std::static_pointer_cast<Entity::AbilityEffect>(entity1);
             if (ability->isExpired()) continue;
@@ -117,6 +123,7 @@ namespace Nawia::Core {
             for (auto& entity2 : _active_entities)
             {
                 if (entity1 == entity2) continue;
+                if (entity2->isDormant()) continue;
 
                 Entity::EntityType targetType = entity2->getType();
 
@@ -153,7 +160,6 @@ namespace Nawia::Core {
 
                     if (collision) {
                         trigger->onTriggerEnter(*_player);
-                        trigger->die();
                     }
                 }
             }
@@ -180,6 +186,7 @@ namespace Nawia::Core {
     bool EntityManager::isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& e) const
     {
         if (e->isDead()) return false;
+        if (e->isDormant()) return false;
 
         const Entity::EntityType type = e->getType();
         return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy);
