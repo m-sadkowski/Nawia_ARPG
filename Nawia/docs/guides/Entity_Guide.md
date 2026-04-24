@@ -76,3 +76,26 @@ Nawia::Entity::Entity::DebugColliders = true;
 ## Renderowanie na Świecie z Iluzją Głębokości (Y-Sorting)
 
 Kiedy wrzucisz Twoją postać do aktywnego wektora instancji do Managera silnika i nadejdzie faza rysowania, automatyczny obwód zdeklarowany w plikach rdzenia przejmie weryfikację pozycji postaci z osi pionowej. W procesie zwanym **Y-Sortingiem**, system układa figury stojące naturalnie dalej po linii jako pierwsze, malując modele po kolei aż pod samo czoło ekranu kamery i bohatera. Gwarantuje to stabilne prześwitywanie za wielogłowych potworów zza ich korpusu bez błędów 2D nachodzących obrysów!
+
+## System Dormant — zamrożone encje
+
+Każda `Entity` posiada flagę `_dormant`. Encja w stanie dormant jest **niewidoczna, zamrożona i wyłączona z wszelkich interakcji**:
+
+- `update()` — natychmiast wraca (brak AI, brak ruchu, brak animacji)
+- `render()` — natychmiast wraca (niewidoczna)
+- `EntityManager` — pomija dormant w: kolizjach, hover, click detection, render liście
+
+### Jak używać?
+
+```cpp
+entity->setDormant(true);   // zamroź i ukryj
+entity->setDormant(false);  // obudź i pokaż
+entity->isDormant();        // sprawdź stan
+```
+
+### Kiedy to jest używane?
+
+System `SpawnManager` pre-tworzy wszystkie encje przy wejściu na mapę. Encje z `trigger_radius > 0` startują jako dormant i budzą się dopiero gdy gracz się zbliży. Dzięki temu nie ma lagów w trakcie rozgrywki — ciężkie ładowanie modeli 3D odbywa się raz, na loading screenie.
+
+Szczegóły w `Level_Guide.md`.
+

@@ -111,3 +111,22 @@ Twój wróg zostanie automatycznie oddalony z rejonu kolizji od każdego innego 
 Używaj `loadModel` i `playAnimation`. 
 - Pamiętaj o ustawieniu flagi `loop = false` dla animacji jednorazowych (atak, śmierć).
 - Użyj `lock_movement = true` dla ataków, żeby postać nie "ślizgała się" podczas odgrywania ataku wręcz.
+
+## Umieszczanie wrogów na mapie (JSON)
+
+Wrogowie nie są już tworzeni ręcznie w konstruktorze levelu. Zamiast tego definiujesz ich w pliku JSON `assets/data/level_entities/<nazwa_levelu>.json`:
+
+```json
+{
+    "location": "Demo Arena",
+    "type": "devil",
+    "name": "Demon Strażnik",
+    "x": 10.0, "y": 15.0,
+    "hp": 200,
+    "trigger_radius": 15.0
+}
+```
+
+Wróg startuje jako **dormant** (niewidoczny, zamrożony) i budzi się gdy gracz podejdzie na odległość `trigger_radius`. Aby dodać nowy typ wroga, zarejestruj go w `EntityFactory::create()`.
+
+Szczegóły w `Level_Guide.md`.

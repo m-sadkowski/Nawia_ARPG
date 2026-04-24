@@ -5,7 +5,7 @@
 2. [Tworzenie nowego levelu](#tworzenie-nowego-levelu)
 3. [Plik JSON level_entities](#plik-json-level_entities)
 4. [Typy encji w JSON](#typy-encji-w-json)
-5. [System spawnowania (proximity)](#system-spawnowania-proximity)
+5. [System aktywacji encji (dormant / proximity)](#system-aktywacji-encji-dormant--proximity)
 6. [Jak to działa w runtime](#jak-to-działa-w-runtime)
 7. [Stan aktualny — NPC, Questy, Dialogi](#stan-aktualny--npc-questy-dialogi)
 8. [Plan na przyszłość](#plan-na-przyszłość)
@@ -19,7 +19,7 @@ Engine
  └── LevelManager
       └── Level (baza abstrakcyjna)
            ├── _map (Map — geometria 3D)
-           ├── _spawn_manager (SpawnManager — ładuje/spawnuje encje z JSON)
+           ├── _spawn_manager (SpawnManager — pre-tworzy i aktywuje encje z JSON)
            └── getLocations() → lista nazw lokacji w obrębie levelu
 
 assets/data/
@@ -149,7 +149,7 @@ Każdy level ma swój plik JSON. Struktura:
 | Klucz | Opis |
 |---|---|
 | `player_spawn` | Obiekt: pozycja gracza per lokacja. Klucz = nazwa lokacji z `getLocations()`. |
-| `entities` | Tablica obiektów — encje do zespawnowania. |
+| `entities` | Tablica obiektów — encje do stworzenia (pre-loaded przy wejściu na mapę). |
 
 ### Wspólne pola encji
 
@@ -159,7 +159,7 @@ Każdy level ma swój plik JSON. Struktura:
 | `type` | string | (wymagane) | Typ encji: `devil`, `bandit`, `walking_dead`, `chest`, `npc`, `static_object`, `checkpoint` |
 | `name` | string | zależy od typu | Wyświetlana nazwa |
 | `x`, `y` | float | 0.0 | Pozycja w świecie (XZ) |
-| `trigger_radius` | float | 0.0 | 0 = spawn natychmiast; >0 = spawn gdy gracz podejdzie na tę odległość |
+| `trigger_radius` | float | 0.0 | 0 = aktywna od razu; >0 = dormant, aktywowana gdy gracz podejdzie na tę odległość |
 | `spawn_radius` | float | 0.0 | Losowy offset od pozycji (tworzy naturalną wariację) |
 | `respawnable` | bool | false | Czy encja może się odrodzić po śmierci |
 | `respawn_cooldown` | float | 0.0 | Czas (sekundy) do odrodzenia |
@@ -422,10 +422,13 @@ generyczną klasę `NPC` z konfiguracją z JSON:
 
 | Plik | Rola |
 |---|---|
+| `src/entity/Entity.h/.cpp` | Klasa bazowa — flaga `_dormant`, guard w `update()` i `render()` |
+| `src/Core/game/EntityManager.cpp` | Skip dormant encji w: render, kolizjach, hover, click |
 | `src/world/level/Level.h` | Baza abstrakcyjna — SpawnManager, loadSpawns(), update() |
 | `src/world/level/Level.cpp` | Domyślne implementacje: update(), onExit(), loadSpawns() |
-| `src/world/spawn/SpawnManager.h/.cpp` | Ładuje JSON, sprawdza proximity, spawnuje |
-| `src/world/spawn/SpawnPoint.h` | Struct z danymi jednego spawn pointa |
+| `src/world/spawn/SpawnManager.h/.cpp` | Pre-tworzy encje z JSON, aktywuje na proximity |
+| `src/world/spawn/SpawnPoint.h` | Struct z danymi jednego spawn pointa + referencja do encji |
 | `src/world/spawn/EntityFactory.h/.cpp` | Tworzy encje z JSON po typie |
 | `src/world/level/LevelManager.h/.cpp` | Rejestr leveli, przełączanie |
 | `src/Core/Engine.cpp` | Rejestracja leveli, główna pętla |
+| `src/Core/game/DialogueManager.h/.cpp` | Tworzenie dialogów NPC (hardkodowane, do przeniesienia do JSON) |
