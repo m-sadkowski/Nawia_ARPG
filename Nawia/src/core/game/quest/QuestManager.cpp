@@ -83,6 +83,7 @@ namespace Nawia::Game {
 					}
 				}
 				quest.reward.gold = rj.value("gold", 0);
+				quest.reward.exp = rj.value("exp", 0);
 			}
 
 			// Initial state
@@ -131,6 +132,15 @@ namespace Nawia::Game {
 				// Gold
 				if (quest->reward.gold > 0) {
 					player->addGold(quest->reward.gold);
+					std::cout << player->getGold();
+					std::cout << std::endl;
+				}
+
+				// Exp
+				if (quest->reward.exp > 0) {
+					player->addExp(quest->reward.exp);
+					std::cout << player->getExp();
+					std::cout << std::endl;
 				}
 
 				// Items
@@ -141,9 +151,11 @@ namespace Nawia::Game {
 				}
 
 				// Notification
-				engine->getUIHandler().showNotification(
-					"Quest ukonczony: " + quest->name, 4.0f
-				);
+				std::string notif = "Quest ukonczony: " + quest->name;
+				if (quest->reward.exp > 0) {
+					notif += " (+" + std::to_string(quest->reward.exp) + " XP)";
+				}
+				engine->getUIHandler().showNotification(notif, 4.0f);
 			}
 		}
 	}
@@ -161,6 +173,7 @@ namespace Nawia::Game {
 	std::vector<Quest*> QuestManager::getActiveQuests() {
 		std::vector<Quest*> result;
 		for (auto& [id, quest] : _quests) {
+			std::cout << "sprawdzamy czy quset jest aktywny?";
 			if (quest.isActive()) result.push_back(&quest);
 		}
 		return result;

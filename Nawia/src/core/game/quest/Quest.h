@@ -43,6 +43,7 @@ namespace Nawia::Game {
 	struct QuestReward {
 		std::vector<int> item_ids;
 		int gold = 0;
+		int exp = 0;
 	};
 
 	class Quest {

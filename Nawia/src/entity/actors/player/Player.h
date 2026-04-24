@@ -59,6 +59,7 @@ namespace Nawia::Entity {
 		[[nodiscard]] int getLevel() const { return _level; }
 		void setLevel(int level) { _level = level; }
 		[[nodiscard]] int getExp() const { return _exp;  }
+		void addExp(const int amount) { _exp += amount; }
 		[[nodiscard]] int getExpToNextLvl() const { return _expToNextLvl; }
 		
 		void levelUp();

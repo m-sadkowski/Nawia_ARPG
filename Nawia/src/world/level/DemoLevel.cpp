@@ -94,6 +94,8 @@ namespace Nawia::World {
 
 		auto test_checkpoint = std::make_shared<Entity::Checkpoint>("Punkt Kontrolny", 20.0f, 20.0f);
 		em.addEntity(test_checkpoint);
+		engine->getQuestManager().startQuest("cat_fish");
+		engine->getQuestManager().startQuest("kill_devil");
 	}
 
 	void DemoLevel::onExit(Core::Engine* engine) {

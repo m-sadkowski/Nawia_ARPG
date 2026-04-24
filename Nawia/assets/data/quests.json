@@ -16,15 +16,16 @@
         }
       ],
       "rewards": {
-        "items": [7],
-        "gold": 50
+        "items": [ 7 ],
+        "gold": 50,
+        "exp": 250
       }
     },
     {
       "id": "kill_devil",
       "name": "Pogromca Diabla",
       "description": "Pokonaj diabla strzegacego skrzyni z rybka.",
-      "prerequisites": ["cat_fish"],
+      "prerequisites": [],
       "auto_start": true,
       "objectives": [
         {
@@ -36,7 +37,8 @@
       ],
       "rewards": {
         "items": [],
-        "gold": 100
+        "gold": 100,
+        "exp": 1100
       }
     }
   ]
