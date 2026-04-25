@@ -28,13 +28,14 @@ namespace Nawia::Entity {
 	public:
 		void update(float dt) override;
 		void takeDamage(int dmg) override;
+
 		
 
 	private:
 		Bandit();
 		friend class BanditBuilder;
 
-		enum class State { Idle, Chasing, Casting, GettingHit, Dying };
+		enum class State { Idle, Chasing, Casting, GettingHit };
 		State _state = State::Idle;
 		State _state_before_hit = State::Idle;
 
@@ -58,7 +59,7 @@ namespace Nawia::Entity {
 		void handleChasingState(float dt);
 		void handleCastingState(float dt);
 		void handleGettingHitState(float dt);
-		void handleDyingState(float dt);
+
 		
 
 	};

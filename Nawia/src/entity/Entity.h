@@ -130,6 +130,13 @@ namespace Nawia::Entity {
 		[[nodiscard]] float getScale() const { return _scale; }
 		void setHovered(const bool hovered) { _hovered = hovered; }
 
+		// Movement control
+		virtual void moveTo(float x, float y);
+		virtual void updateMovement(float dt);
+
+		void setMovementSpeed(float speed) { _movement_speed = speed; }
+		[[nodiscard]] float getMovementSpeed() const { return _movement_speed; }
+
 		// ═══════════════════════════════════════════════════════════════════════
 		// HEALTH & DAMAGE
 		// ═══════════════════════════════════════════════════════════════════════
@@ -144,6 +151,8 @@ namespace Nawia::Entity {
 		void die();
 		
 		[[nodiscard]] bool isDead() const { return _hp <= 0; }
+		[[nodiscard]] bool isDying() const { return _is_dying; }
+		[[nodiscard]] bool isMoving() const { return _is_moving; }
 		[[nodiscard]] int getHP() const { return _hp; }
 		[[nodiscard]] int getMaxHP() const { return _max_hp; }
 		[[nodiscard]] std::string getName() const { return _name; }
@@ -237,6 +246,16 @@ namespace Nawia::Entity {
 		[[nodiscard]] Faction getFaction() const { return _faction; }
 		void setFaction(Faction faction) { _faction = faction; }
 
+		// ═══════════════════════════════════════════════════════════════════════
+		// TARGET TRACKING
+		// ═══════════════════════════════════════════════════════════════════════
+
+		virtual void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
+		[[nodiscard]] float getDistanceToTarget() const;
+		[[nodiscard]] Vector2 getTargetPosition() const;
+		[[nodiscard]] bool hasValidTarget() const;
+		void chaseTarget(float dt, float path_recalc_interval = 0.5f);
+
 
 		EntityType getType() const { return _type; }
 		void setType(EntityType type) { _type = type; }
@@ -289,6 +308,18 @@ namespace Nawia::Entity {
 		bool _anim_locked = false;
 		bool _hovered = false;
 		bool _dormant = false;  ///< When true, entity is invisible and frozen
+		
+		bool _is_dying = false;
+		std::string _death_anim_name = "death";
+
+		// Movement state
+		bool _is_moving = false;
+		float _movement_speed = 2.0f;
+		float _target_x = 0.0f, _target_y = 0.0f;
+
+		// Target tracking
+		std::weak_ptr<Entity> _target;
+		float _path_recalc_timer = 0.0f;
 
 		Faction _faction = Faction::None;
 

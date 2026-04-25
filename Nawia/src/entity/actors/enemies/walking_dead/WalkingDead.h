@@ -41,7 +41,7 @@ namespace Nawia::Entity {
 		WalkingDead();
 		friend class WalkingDeadBuilder;
 
-		enum class State { Idle, Chasing, Attacking, Screaming, GettingHit, Dying };
+		enum class State { Idle, Chasing, Attacking, Screaming, GettingHit };
 		State _state = State::Idle;
 		State _state_before_hit = State::Idle;  // State to return to after get_hit animation
 
@@ -68,7 +68,7 @@ namespace Nawia::Entity {
 		void handleAttackingState(float dt);
 		void handleScreamingState(float dt);
 		void handleGettingHitState(float dt);
-		void handleDyingState(float dt);
+
 		
 
 	};

@@ -35,14 +35,13 @@ namespace Nawia::Entity {
 		Devil(float x, float y, Core::Map* map);
 
 		void update(float dt) override;
-		void takeDamage(int dmg) override;
-		
+
 
 	private:
 		Devil();
 		friend class DevilBuilder;
 
-		enum class State { Idle, Chasing, PreparingDash, Dashing, Recovering, Attacking, Dying };
+		enum class State { Idle, Chasing, PreparingDash, Dashing, Recovering, Attacking };
 		State _state = State::Idle;
 
 
@@ -86,10 +85,7 @@ namespace Nawia::Entity {
 		void handleRecoveringState(float dt);
 		void handleAttackingState(float dt);
 
-		void handleDyingState(float dt);
-		
 
-	};
 
 	class DevilBuilder : public EnemyBuilder<DevilBuilder> {
 	public:

@@ -29,35 +29,7 @@ namespace Nawia::Entity {
 			_type = EntityType::Enemy;
 		}
 
-		// Movement control (straight-line)
-		void moveTo(float x, float y);
-		void updateMovement(float dt);
 
-		void setMovementSpeed(float speed) { _movement_speed = speed; }
-		[[nodiscard]] float getMovementSpeed() const { return _movement_speed; }
-
-		// Target tracking helpers
-		[[nodiscard]] float getDistanceToTarget() const;
-		[[nodiscard]] Vector2 getTargetPosition() const;
-		[[nodiscard]] bool hasValidTarget() const;
-		
-		/**
-		 * @brief Standard chase behavior — straight-line movement to target.
-		 */
-		void chaseTarget(float dt, float path_recalc_interval = DEFAULT_PATH_RECALC_INTERVAL);
-
-		// Constants
-		static constexpr float DEFAULT_PATH_RECALC_INTERVAL = 0.5f;
-
-		// Target tracking
-		std::weak_ptr<Entity> _target;
-		float _path_recalc_timer = 0.0f;
-		
-		// Movement state
-		bool _is_moving = false;
-		float _movement_speed = 2.0f;
-		
-		float _target_x = 0.0f, _target_y = 0.0f;
 
 		Core::Map* _map = nullptr;
 	};

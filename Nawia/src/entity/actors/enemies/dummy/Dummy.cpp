@@ -34,28 +34,11 @@ namespace Nawia::Entity {
 		pickNewTarget();
 	}
 
-	void Dummy::takeDamage(const int dmg)
-	{
-		if (_is_dying) return;
-
-		if (_hp - dmg <= 0)
-		{
-			_hp = 1; // keep alive for animation
-			_is_dying = true;
-			playAnimation("death", false, true); // true = lock movement
-			setFaction(Faction::None); // prevent further targeting
-		}
-		else
-		{
-			Entity::takeDamage(dmg);
-		}
-	}
-
 	void Dummy::update(const float dt)
 	{
-		if (_is_dying)
+		if (isDying())
 		{
-			handleDyingState(dt);
+			Entity::update(dt);
 			return;
 		}
 
@@ -68,14 +51,7 @@ namespace Nawia::Entity {
 		handleActiveState(dt);
 	}
 
-	void Dummy::handleDyingState(const float dt)
-	{
-		Entity::update(dt); // update animation
-		if (!isAnimationLocked()) // animation finished (reverted to default/idle)
-		{
-			_hp = 0; // now truly die
-		}
-	}
+
 
 	void Dummy::handleCastingState(const float dt)
 	{

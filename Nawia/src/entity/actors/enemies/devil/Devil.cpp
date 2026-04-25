@@ -36,26 +36,14 @@ namespace Nawia::Entity {
 		setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, 0.0f, 0.0f));
 	}
 
-	void Devil::takeDamage(const int dmg)
-	{
-		if (_state == State::Dying) return;
-
-		if (_hp - dmg <= 0)
-		{
-			_hp = 1;
-			_state = State::Dying;
-			setAnimationSpeed(DEVIL_DEAD_ANIMATION_SPEED);
-			playAnimation("death", false, true, 0, true);
-			setFaction(Faction::None);
-		}
-		else
-		{
-			Entity::takeDamage(dmg);
-		}
-	}
-
 	void Devil::update(const float dt)
 	{
+		if (isDying())
+		{
+			Entity::update(dt);
+			return;
+		}
+
 		if (isDormant()) return;
 
 		if (_attack_cooldown_timer > 0.0f)
@@ -82,10 +70,6 @@ namespace Nawia::Entity {
 			break;
 		case State::Attacking:
 			handleAttackingState(dt);
-			break;
-
-		case State::Dying:
-			handleDyingState(dt);
 			break;
 		}
 	}
@@ -297,14 +281,4 @@ namespace Nawia::Entity {
 
 
 
-	void Devil::handleDyingState(const float dt)
-	{
-		Entity::update(dt);
-		
-		if (!isAnimationLocked())
-		{
-			_hp = 0;
-		}
-	}
 
-} // namespace Nawia::Entity
