@@ -1,4 +1,4 @@
-#include "EnemyInterface.h"
+#include "AllyInterface.h"
 #include "Map.h"
 #include "Collider.h"
 
@@ -7,9 +7,7 @@
 
 namespace Nawia::Entity {
 
-
-
-	void EnemyInterface::moveTo(const float x, const float y)
+	void AllyInterface::moveTo(const float x, const float y)
 	{
 		_target_x = x;
 		_target_y = y;
@@ -23,7 +21,7 @@ namespace Nawia::Entity {
 			_is_moving = false;
 	}
 
-	void EnemyInterface::updateMovement(const float dt)
+	void AllyInterface::updateMovement(const float dt)
 	{
 		if (!_is_moving) return;
 
@@ -54,7 +52,7 @@ namespace Nawia::Entity {
 	// Target Tracking Helpers
 	// =============================================================================
 
-	float EnemyInterface::getDistanceToTarget() const
+	float AllyInterface::getDistanceToTarget() const
 	{
 		const auto target = _target.lock();
 		if (!target) return std::numeric_limits<float>::max();
@@ -65,7 +63,7 @@ namespace Nawia::Entity {
 		return Vector2Distance(my_pos, target_pos);
 	}
 
-	Vector2 EnemyInterface::getTargetPosition() const
+	Vector2 AllyInterface::getTargetPosition() const
 	{
 		const auto target = _target.lock();
 		if (!target) return _pos;
@@ -73,13 +71,13 @@ namespace Nawia::Entity {
 		return target->getCenter();
 	}
 
-	bool EnemyInterface::hasValidTarget() const
+	bool AllyInterface::hasValidTarget() const
 	{
 		const auto target = _target.lock();
 		return target && !target->isDead();
 	}
 
-	void EnemyInterface::chaseTarget(const float dt, const float path_recalc_interval)
+	void AllyInterface::chaseTarget(const float dt, const float path_recalc_interval)
 	{
 		if (!hasValidTarget()) return;
 		

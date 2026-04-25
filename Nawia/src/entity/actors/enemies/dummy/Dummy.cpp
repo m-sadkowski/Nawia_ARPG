@@ -11,8 +11,17 @@
 namespace Nawia::Entity {
 
 	Dummy::Dummy(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
-		: EnemyInterface("Dummy", x, y, tex, max_hp, map), _stay_timer(0.0f), _fireball_cooldown_timer(0.0f)
+		: _stay_timer(0.0f), _fireball_cooldown_timer(0.0f)
 	{
+		setName("Dummy");
+		setX(x);
+		setY(y);
+		_texture = tex;
+		setMaxHp(max_hp);
+		_map = map;
+		_target_x = x;
+		_target_y = y;
+
 		this->setScale(0.03f);
 		setFaction(Faction::Enemy);
 		loadModel("../assets/models/dummy_idle.glb");

@@ -25,8 +25,10 @@ include_directories(
     src/entity/actors/player
     src/entity/actors/enemies/dummy
     src/entity/actors/enemies/walking_dead
-     src/entity/actors/enemies/devil
-      src/entity/actors/enemies/bandit
+    src/entity/actors/enemies/devil
+    src/entity/actors/enemies/bandit
+    src/entity/actors/allies
+    src/entity/actors/allies/friend
     src/entity/components
     src/entity/systems
     src/entity/effects

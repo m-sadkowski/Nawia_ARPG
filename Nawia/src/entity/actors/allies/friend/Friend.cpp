@@ -1,0 +1,2 @@
+#include "Friend.h"
+

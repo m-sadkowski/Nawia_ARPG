@@ -11,25 +11,22 @@ namespace Nawia::Core {
 namespace Nawia::Entity {
 
 	/**
-	 * @class EnemyInterface
-	 * @brief Base class for all enemy entities.
+	 * @class AllyInterface
+	 * @brief Base class for all ally entities.
 	 * 
 	 * Extends Entity with target tracking and movement.
-	 * Movement is straight-line (pathfinding disabled for now).
 	 */
-	class EnemyInterface : public Entity {
+	class AllyInterface : public Entity {
 	public:
-
-
 		void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
 
 	protected:
-		template <typename T> friend class EnemyBuilder;
-		EnemyInterface() {
-			_type = EntityType::Enemy;
+		template <typename T> friend class AllyBuilder;
+		AllyInterface() {
+			_type = EntityType::Ally;
 		}
 
-		// Movement control (straight-line)
+		// Movement control
 		void moveTo(float x, float y);
 		void updateMovement(float dt);
 
@@ -41,9 +38,6 @@ namespace Nawia::Entity {
 		[[nodiscard]] Vector2 getTargetPosition() const;
 		[[nodiscard]] bool hasValidTarget() const;
 		
-		/**
-		 * @brief Standard chase behavior — straight-line movement to target.
-		 */
 		void chaseTarget(float dt, float path_recalc_interval = DEFAULT_PATH_RECALC_INTERVAL);
 
 		// Constants
@@ -63,19 +57,19 @@ namespace Nawia::Entity {
 	};
 
 	template <typename Derived>
-	class EnemyBuilder : public EntityBuilder<Derived> {
+	class AllyBuilder : public EntityBuilder<Derived> {
 	public:
-		EnemyBuilder() = default;
+		AllyBuilder() = default;
 
 		Derived& setMap(Core::Map* map) {
-			auto enemy_ptr = static_cast<EnemyInterface*>(this->_entity);
-			enemy_ptr->_map = map;
+			auto ally_ptr = static_cast<AllyInterface*>(this->_entity);
+			ally_ptr->_map = map;
 			return this->self();
 		}
 
 		Derived& setTarget(const std::shared_ptr<Entity>& target) {
-			auto enemy_ptr = static_cast<EnemyInterface*>(this->_entity);
-			enemy_ptr->_target = target;
+			auto ally_ptr = static_cast<AllyInterface*>(this->_entity);
+			ally_ptr->_target = target;
 			return this->self();
 		}
 	};
