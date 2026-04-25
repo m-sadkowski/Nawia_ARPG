@@ -1,10 +1,53 @@
 {
   "quests": [
     {
-      "id": "cat_fish",
-      "name": "Rybka dla Olgi",
-      "description": "Kot Olga potrzebuje rybki. Znajdz ja w skrzyni diabla i zanies do kota.",
+      "id": "talk_to_cat",
+      "name": "Spotkanie z Olga",
+      "description": "Idz pogadac z Kotem Olga. Moze potrzebuje pomocy?",
+      "level_name": "DemoLevel",
       "prerequisites": [],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Kot Olga",
+          "count": 1,
+          "description": "Porozmawiaj z Kotem Olga"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 50
+      }
+    },
+    {
+      "id": "get_fish",
+      "name": "Rybka ze skrzyni",
+      "description": "Olga potrzebuje rybki. Znajdz ja w skrzyni diabla.",
+      "level_name": "DemoLevel",
+      "prerequisites": ["talk_to_cat"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "collect_item",
+          "item_id": 6,
+          "count": 1,
+          "description": "Wez rybe ze skrzyni"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 100
+      }
+    },
+    {
+      "id": "deliver_fish",
+      "name": "Rybka dla Olgi",
+      "description": "Zanies rybe do Kota Olgi.",
+      "level_name": "DemoLevel",
+      "prerequisites": ["get_fish"],
       "auto_start": true,
       "objectives": [
         {
@@ -12,7 +55,7 @@
           "item_id": 6,
           "target_npc": "Kot Olga",
           "count": 1,
-          "description": "Zanies rybe do Kota Olgi"
+          "description": "Daj rybe Kotu Olga"
         }
       ],
       "rewards": {
@@ -25,6 +68,7 @@
       "id": "kill_devil",
       "name": "Pogromca Diabla",
       "description": "Pokonaj diabla strzegacego skrzyni z rybka.",
+      "level_name": "DemoLevel",
       "prerequisites": [],
       "auto_start": true,
       "objectives": [

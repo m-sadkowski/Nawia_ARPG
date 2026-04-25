@@ -50,6 +50,7 @@ namespace Nawia::Game {
 			quest.id = qj.value("id", "");
 			quest.name = qj.value("name", "");
 			quest.description = qj.value("description", "");
+			quest.level_name = qj.value("level_name", "");
 			quest.auto_start = qj.value("auto_start", false);
 			quest.required_level = qj.value("required_level", 1);
 
@@ -86,8 +87,12 @@ namespace Nawia::Game {
 				quest.reward.exp = rj.value("exp", 0);
 			}
 
-			// Initial state
-			quest.state = quest.prerequisites.empty() ? QuestState::Available : QuestState::Locked;
+			// Initial state: quests with level_name start Locked (unlocked on level enter)
+			if (!quest.level_name.empty() || !quest.prerequisites.empty()) {
+				quest.state = QuestState::Locked;
+			} else {
+				quest.state = QuestState::Available;
+			}
 
 			if (!quest.id.empty()) {
 				_quests[quest.id] = quest;
@@ -103,8 +108,44 @@ namespace Nawia::Game {
 	void QuestManager::resetAll() {
 		for (auto& [id, quest] : _quests) {
 			quest.reset();
-			quest.state = quest.prerequisites.empty() ? QuestState::Available : QuestState::Locked;
+			if (!quest.level_name.empty() || !quest.prerequisites.empty()) {
+				quest.state = QuestState::Locked;
+			} else {
+				quest.state = QuestState::Available;
+			}
 		}
+	}
+
+	void QuestManager::setCurrentLevel(const std::string& level_name) {
+		_current_level = level_name;
+		Core::Logger::debugLog("QuestManager: Current level set to '" + level_name + "'");
+
+		// Immediately unlock and auto-start quests for this level
+		for (auto& [id, quest] : _quests) {
+			if (!isQuestForCurrentLevel(quest)) continue;
+
+			// Unlock locked quests whose prerequisites are met
+			if (quest.isLocked() && quest.prerequisites.empty()) {
+				quest.state = QuestState::Available;
+				Core::Logger::debugLog("QuestManager: Quest '" + id + "' unlocked for level '" + level_name + "'");
+
+				if (quest.auto_start) {
+					quest.start();
+					Core::Logger::debugLog("QuestManager: Auto-started quest '" + id + "'");
+				}
+			}
+			// Also auto-start any already-available quests
+			else if (quest.isAvailable() && quest.auto_start) {
+				quest.start();
+				Core::Logger::debugLog("QuestManager: Auto-started quest '" + id + "'");
+			}
+		}
+	}
+
+	bool QuestManager::isQuestForCurrentLevel(const Quest& quest) const {
+		// Empty level_name = global quest (available on all levels)
+		if (quest.level_name.empty()) return true;
+		return quest.level_name == _current_level;
 	}
 
 	bool QuestManager::startQuest(const std::string& id) {
@@ -173,8 +214,7 @@ namespace Nawia::Game {
 	std::vector<Quest*> QuestManager::getActiveQuests() {
 		std::vector<Quest*> result;
 		for (auto& [id, quest] : _quests) {
-			std::cout << "sprawdzamy czy quset jest aktywny?";
-			if (quest.isActive()) result.push_back(&quest);
+			if (quest.isActive() && isQuestForCurrentLevel(quest)) result.push_back(&quest);
 		}
 		return result;
 	}
@@ -182,7 +222,7 @@ namespace Nawia::Game {
 	std::vector<Quest*> QuestManager::getAvailableQuests() {
 		std::vector<Quest*> result;
 		for (auto& [id, quest] : _quests) {
-			if (quest.isAvailable()) result.push_back(&quest);
+			if (quest.isAvailable() && isQuestForCurrentLevel(quest)) result.push_back(&quest);
 		}
 		return result;
 	}
@@ -190,7 +230,17 @@ namespace Nawia::Game {
 	std::vector<Quest*> QuestManager::getCompletedQuests() {
 		std::vector<Quest*> result;
 		for (auto& [id, quest] : _quests) {
-			if (quest.isCompleted()) result.push_back(&quest);
+			if (quest.isCompleted() && isQuestForCurrentLevel(quest)) result.push_back(&quest);
+		}
+		return result;
+	}
+
+	std::vector<Quest*> QuestManager::getQuestsForLevel(const std::string& level_name) {
+		std::vector<Quest*> result;
+		for (auto& [id, quest] : _quests) {
+			if (quest.level_name.empty() || quest.level_name == level_name) {
+				result.push_back(&quest);
+			}
 		}
 		return result;
 	}
@@ -272,6 +322,9 @@ namespace Nawia::Game {
 
 	void QuestManager::update(Core::Engine* engine) {
 		for (auto& [id, quest] : _quests) {
+			// Only process quests for the current level (or global quests)
+			if (!isQuestForCurrentLevel(quest)) continue;
+
 			// Unlock locked quests whose prerequisites are now met
 			if (quest.isLocked() && arePrerequisitesMet(quest, engine)) {
 				quest.state = QuestState::Available;

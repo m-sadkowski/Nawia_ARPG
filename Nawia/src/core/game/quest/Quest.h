@@ -51,6 +51,7 @@ namespace Nawia::Game {
 		std::string id;
 		std::string name;
 		std::string description;
+		std::string level_name;	///< Level this quest belongs to (empty = global/all levels)
 		QuestState state = QuestState::Locked;
 		bool auto_start = false;
 		int required_level = 1;

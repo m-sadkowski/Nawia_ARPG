@@ -33,10 +33,16 @@ namespace Nawia::Game {
 		[[nodiscard]] Quest* getQuest(const std::string& id);
 		[[nodiscard]] const Quest* getQuest(const std::string& id) const;
 
-		/// Get quests filtered by state
+		/// Set the current level name (called on level change)
+		void setCurrentLevel(const std::string& level_name);
+
+		/// Get quests filtered by state (only for current level)
 		[[nodiscard]] std::vector<Quest*> getActiveQuests();
 		[[nodiscard]] std::vector<Quest*> getAvailableQuests();
 		[[nodiscard]] std::vector<Quest*> getCompletedQuests();
+
+		/// Get all quests assigned to a specific level
+		[[nodiscard]] std::vector<Quest*> getQuestsForLevel(const std::string& level_name);
 
 		// --- Notification methods (call these when game events happen) ---
 		void notifyKill(const std::string& enemy_name);
@@ -52,7 +58,11 @@ namespace Nawia::Game {
 		/// Check if all prerequisites of a quest are completed
 		[[nodiscard]] bool arePrerequisitesMet(const Quest& quest, Core::Engine* engine) const;
 
+		/// Check if a quest belongs to the current level (or is global)
+		[[nodiscard]] bool isQuestForCurrentLevel(const Quest& quest) const;
+
 		std::map<std::string, Quest> _quests;
+		std::string _current_level;
 	};
 
 } // namespace Nawia::Game

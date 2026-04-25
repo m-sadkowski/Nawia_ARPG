@@ -13,6 +13,7 @@
 #include <Camera.h>
 #include <Collider.h>
 #include <ResourceManager.h>
+#include <QuestManager.h>
 
 #include <algorithm>
 #include <iostream>
@@ -163,6 +164,11 @@ namespace Nawia::UI {
                     if (item) {
                         if (_player->getBackpack().addItem(item)) {
                             chestInv.removeItem(chestSlot);
+
+                            // Notify QuestManager about item collection
+                            if (_quest_manager) {
+                                _quest_manager->notifyItemCollected(item->getId());
+                            }
                         }
                     }
                 }

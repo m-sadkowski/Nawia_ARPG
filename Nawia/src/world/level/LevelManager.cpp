@@ -29,6 +29,11 @@ namespace Nawia::World {
 		_current_level = it->second;
 		_current_level->onEnter(engine);
 
+		// Notify QuestManager about the current level
+		if (engine) {
+			engine->getQuestManager().setCurrentLevel(_current_level->getName());
+		}
+
 		Core::Logger::debugLog("Zmieniono poziom na: " + name);
 	}
 
