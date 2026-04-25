@@ -26,6 +26,11 @@ namespace Nawia::Game {
     class QuestManager;
 }
 
+namespace Nawia::World {
+    class LevelManager;
+    struct LevelInfo;
+}
+
 namespace Nawia::UI {
 
     class StatsUI;

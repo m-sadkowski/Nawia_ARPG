@@ -17,14 +17,15 @@ namespace Nawia::Entity {
     }
 
     void Teleport::onTriggerEnter(Entity& other) {
+        if (isDormant()) return;
+
         if (other.getFaction() == Faction::Player) {
             Core::Logger::debugLog("Teleporting player to: " + _target_location);
             
             if (_engine) {
                 auto* current_level = _engine->getLevelManager().getCurrentLevel();
-                if (current_level) {
+                if (current_level)
                     current_level->changeLocation(_engine, _target_location);
-                }
             }
         }
     }
