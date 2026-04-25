@@ -12,6 +12,10 @@
 namespace Nawia::Entity {
 
 	bool Entity::DebugColliders = true; // enable debug hitbox drawing
+	
+	Entity::Entity() 
+		: _pos{0.0f, 0.0f}, _velocity{0.0f, 0.0f}, _scale(1.0f), 
+		  _hp(1), _max_hp(1), _type(EntityType::None), _faction(Faction::None) {}
 
 	Entity::Entity(const std::string& name, const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
 		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
@@ -104,9 +108,7 @@ namespace Nawia::Entity {
 		{
 			updateAnimation(delta_time);
 			if (!isAnimationLocked())
-			{
 				_hp = 0;
-			}
 			return; // Do not update position or other logic while dying
 		}
 
@@ -125,9 +127,8 @@ namespace Nawia::Entity {
 			if (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
 			{
 				if (_anim_looping) {
-					while (_anim_frame_counter >= _animations[_current_anim_index].frameCount) {
+					while (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
 						_anim_frame_counter -= _animations[_current_anim_index].frameCount;
-					}
 				}
 				else {
 					_anim_frame_counter = 0;
@@ -150,10 +151,8 @@ namespace Nawia::Entity {
 			DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, WHITE);
 
 			if (_hovered)
-			{
 				// Draw the model again with a dark tint overlay for hover effect
 				DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, Fade(BLACK, 0.2f));
-			}
 		}
 
 		if (DebugColliders) {
@@ -192,6 +191,12 @@ namespace Nawia::Entity {
 	{
 		_hp = 0;
 		Core::Logger::debugLog("Entity " + getName() + " killed!");
+	}
+
+	void Entity::setMaxHp(const int max_hp)
+	{
+		_max_hp = max_hp;
+		_hp = max_hp;
 	}
 
 	bool Entity::isMouseOver(const float screen_x, const float screen_y, const Camera3D& camera) const 

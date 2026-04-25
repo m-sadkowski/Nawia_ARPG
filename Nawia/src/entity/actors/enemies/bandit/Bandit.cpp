@@ -20,8 +20,6 @@ namespace Nawia::Entity {
 		addAnimation("get_hit", "../assets/models/bandit_hit.glb");
 	}
 
-
-
 	void Bandit::takeDamage(const int dmg)
 	{
 		Entity::takeDamage(dmg);
@@ -247,4 +245,4 @@ namespace Nawia::Entity {
 		}
 	}
 
-
+} // namespace Nawia::Entity

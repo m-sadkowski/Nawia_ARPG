@@ -11,7 +11,6 @@ namespace Nawia::Entity {
 		Dummy(float x, float y, const std::shared_ptr<Texture2D>& tex, int max_hp, Core::Map* map);
 
 		void update(float dt) override;
-		void takeDamage(int dmg) override;
 
 	private:
 		float _stay_timer;

@@ -29,7 +29,10 @@ namespace Nawia::Entity {
 			_type = EntityType::Enemy;
 		}
 
-
+		EnemyInterface(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& texture, int max_hp, Core::Map* map)
+			: Entity(name, x, y, texture, max_hp), _map(map) {
+			_type = EntityType::Enemy;
+		}
 
 		Core::Map* _map = nullptr;
 	};

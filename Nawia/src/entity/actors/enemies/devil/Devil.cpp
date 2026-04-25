@@ -278,6 +278,7 @@ namespace Nawia::Entity {
 			playAnimation("walk");
 		}
 	}
+} // namespace Nawia::Entity
 
 
 

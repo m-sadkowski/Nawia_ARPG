@@ -254,11 +254,13 @@ namespace Nawia::Entity {
 		[[nodiscard]] float getDistanceToTarget() const;
 		[[nodiscard]] Vector2 getTargetPosition() const;
 		[[nodiscard]] bool hasValidTarget() const;
-		void chaseTarget(float dt, float path_recalc_interval = 0.5f);
+		static constexpr float DEFAULT_PATH_RECALC_INTERVAL = 0.5f;
+		void chaseTarget(float dt, float path_recalc_interval = DEFAULT_PATH_RECALC_INTERVAL);
 
 
 		EntityType getType() const { return _type; }
 		void setType(EntityType type) { _type = type; }
+		void setMaxHp(int max_hp);
 
 
 		// ═══════════════════════════════════════════════════════════════════════
@@ -277,7 +279,7 @@ namespace Nawia::Entity {
 
 	protected:
 		template <typename T> friend class EntityBuilder;
-		Entity() = default;
+		Entity();
 
 		Vector2 _pos = {0.0f, 0.0f};
 		Vector2 _velocity = {0.0f, 0.0f};
