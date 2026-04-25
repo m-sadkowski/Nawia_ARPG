@@ -3,7 +3,7 @@
 #include "InventoryUI.h"
 #include "ChestUI.h"
 #include "DialogueUI.h"
-#include "quest/QuestUI.h"
+#include "QuestUI.h"
 
 #include <memory>
 #include <vector>
