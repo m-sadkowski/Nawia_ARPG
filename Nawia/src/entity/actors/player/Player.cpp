@@ -162,6 +162,7 @@ namespace Nawia::Entity {
 
 		_max_hp = _current_stats.max_hp;
 		_hp = std::min(_hp, _max_hp);
+		_movement_speed = _current_stats.movement_speed;
 	}
 
 	void Player::knockDown(const int damage)

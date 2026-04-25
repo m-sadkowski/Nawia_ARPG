@@ -347,6 +347,16 @@ namespace Nawia::Entity {
 			return self();
 		}
 
+		Derived& setMovementSpeed(float speed) {
+			this->_entity->_movement_speed = speed;
+			return this->self();
+		}
+
+		Derived& setRotation(float rotation) {
+			_entity->_rotation = rotation;
+			return self();
+		}
+
 		Derived& setPosition(const Vector2 pos) {
 			_entity->_pos = pos;
 			return self();

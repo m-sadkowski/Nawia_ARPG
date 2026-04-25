@@ -18,6 +18,7 @@ namespace Nawia::Entity {
 		addAnimation("run", "../assets/models/devil_run.glb");
 		addAnimation("attack", "../assets/models/devil_attack.glb");
 		addAnimation("death", "../assets/models/devil_dead.glb");
+		setMovementSpeed(SPEED);
 	}
 
 	Devil::Devil(const float x, const float y, Core::Map* map)
@@ -34,6 +35,7 @@ namespace Nawia::Entity {
 		addAnimation("death", "../assets/models/devil_dead.glb");
 
 		setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, 0.0f, 0.0f));
+		setMovementSpeed(SPEED);
 	}
 
 	void Devil::update(const float dt)
