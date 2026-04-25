@@ -84,6 +84,9 @@ namespace Nawia::Core {
 				_player->stop();
 				_engine->getUIHandler().openDialogue(npc->getDialogueTree());
 
+				// Notify QuestManager about talking to this NPC
+				_engine->getQuestManager().notifyNPCTalked(npc->getName());
+
 				_target_interactable = nullptr;
 				return true;
 			}

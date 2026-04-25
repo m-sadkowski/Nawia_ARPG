@@ -61,7 +61,15 @@ namespace Nawia::Entity {
 
 		void recalculateStats();
 		[[nodiscard]] const Stats& getStats() const { return _current_stats; }
-
+		
+		[[nodiscard]] int getLevel() const { return _level; }
+		void setLevel(int level) { _level = level; }
+		[[nodiscard]] int getExp() const { return _exp;  }
+		void addExp(const int amount) { _exp += amount; }
+		[[nodiscard]] int getExpToNextLvl() const { return _expToNextLvl; }
+		
+		void levelUp();
+		void isLevelUp();
 
 		//Constant values for animation
 		
@@ -94,6 +102,9 @@ namespace Nawia::Entity {
 		Stats _current_stats;
 
 		int _gold = 0;
+		int _level = 1;
+		int _exp = 0;
+		int _expToNextLvl=100;
 	};
 
 	class PlayerBuilder : public EntityBuilder<PlayerBuilder> {
@@ -131,5 +142,7 @@ namespace Nawia::Entity {
 	private:
 		std::unique_ptr<Player> _player_ptr;
 	};
+
+	
 
 } // namespace Nawia::Entity

@@ -8,9 +8,11 @@
 
 namespace Nawia::Core {
 
+	class Engine;
+
 	class EntityManager {
 	public:
-		EntityManager() = default;
+		EntityManager(Engine* engine) : _engine(engine) {}
 		~EntityManager() = default;
 
 		/// Get all active entities (for rendering health bars, etc.)
@@ -42,7 +44,7 @@ namespace Nawia::Core {
 		
 
 	private:
-
+		Engine* _engine = nullptr;
 		std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
 		std::shared_ptr<Entity::Entity> _player;
 

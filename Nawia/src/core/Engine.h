@@ -12,6 +12,7 @@
 #include <ItemDatabase.h>
 #include <Loottable.h>
 #include <DialogueManager.h>
+#include <QuestManager.h>
 
 #include <raylib.h>
 
@@ -58,6 +59,7 @@ namespace Nawia::Core {
 		std::shared_ptr<Entity::Player> getPlayer() const { return _player; }
 		const GameCamera& getCamera() const { return _camera; }
 		World::LevelManager& getLevelManager() const { return *_level_manager; }
+		Game::QuestManager& getQuestManager() { return _quest_manager; }
 	private:
 		void update(float delta_time);
 		void render() const;
@@ -82,6 +84,7 @@ namespace Nawia::Core {
 		Item::ItemDatabase _item_database;
 		Item::Loottable _loottable;
 		Game::DialogueManager _dialogue_manager;
+		Game::QuestManager _quest_manager;
 	};
 
 } // namespace Nawia::Core

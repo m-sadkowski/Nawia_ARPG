@@ -50,6 +50,8 @@ include_directories(
     src/ui/inventory
     src/ui/menu
     src/ui/dialogue
+    src/ui/quest
+    src/core/game/quest
     src/item
     src/item/inventory
     src/item/types

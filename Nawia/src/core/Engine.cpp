@@ -38,6 +38,9 @@ namespace Nawia::Core {
 		// init loottables
 		_loottable.loadLootTables("../assets/data/loottables.json", _item_database);
 
+		// init quest system
+		_quest_manager.loadFromJson("../assets/data/quests.json");
+
 		// initialize player
 		Vector2 player_spawn_pos = {0.0f, 0.0f};
 		_player = Entity::PlayerBuilder(this).setPosition(player_spawn_pos).build();
@@ -55,7 +58,7 @@ namespace Nawia::Core {
 		_controller = std::make_unique<PlayerController>(this, _player);
 
 		// initialize entity manager
-		_entity_manager = std::make_unique<EntityManager>();
+		_entity_manager = std::make_unique<EntityManager>(this);
 		_entity_manager->addEntity(_player);
 		_entity_manager->setPlayer(_player);
 
@@ -71,7 +74,7 @@ namespace Nawia::Core {
 
         // initialize UI
         _ui_handler = std::make_unique<Nawia::UI::UIHandler>();
-        _ui_handler->initialize(_player, _entity_manager.get(), _resource_manager);
+        _ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager);
         _ui_handler->setLevelManager(_level_manager.get());
 
 		// TEST remove later
@@ -282,6 +285,9 @@ namespace Nawia::Core {
 
 		_entity_manager->updateEntities(delta_time);
 		_entity_manager->handleEntitiesCollisions();
+
+		// Update quest states (unlock chains, auto-complete)
+		_quest_manager.update(this);
 
 		// collects new entities spawned by existing ones (like projectiles)
 		std::vector<std::shared_ptr<Entity::Entity>> new_spawns;

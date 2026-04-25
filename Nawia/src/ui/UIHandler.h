@@ -3,7 +3,7 @@
 #include "InventoryUI.h"
 #include "ChestUI.h"
 #include "DialogueUI.h"
-#include <LevelManager.h>
+#include "QuestUI.h"
 
 #include <memory>
 #include <vector>
@@ -20,6 +20,15 @@ namespace Nawia::Core {
     struct GameCamera;
     class Settings;
     class ResourceManager;
+}
+
+namespace Nawia::Game {
+    class QuestManager;
+}
+
+namespace Nawia::World {
+    class LevelManager;
+    struct LevelInfo;
 }
 
 namespace Nawia::UI {
@@ -49,7 +58,7 @@ namespace Nawia::UI {
         UIHandler();
         ~UIHandler();
 
-        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager);
+        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager, Game::QuestManager* quest_manager);
         
         void update(float dt);
         void render(const Core::GameCamera& camera);
@@ -96,6 +105,9 @@ namespace Nawia::UI {
         [[nodiscard]] bool isInventoryOpen() const { return _is_inventory_open; }
         void toggleInventory() { _is_inventory_open = !_is_inventory_open; }
 
+        [[nodiscard]] bool isQuestUIOpen() const { return _is_quest_ui_open; }
+        void toggleQuestUI() { _is_quest_ui_open = !_is_quest_ui_open; }
+
         // chest
         void openContainer(Entity::InteractiveClickable* container);
         void closeContainer();
@@ -110,6 +122,7 @@ namespace Nawia::UI {
     private:
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
+        void renderPlayerExperienceBar() const;
         void renderEnemyHealthBars(const Core::GameCamera& camera) const;
         
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;
@@ -126,6 +139,11 @@ namespace Nawia::UI {
 
         std::unique_ptr<InventoryUI> _inventory_ui;
         bool _is_inventory_open = false;
+
+        std::unique_ptr<QuestUI> _quest_ui;
+        bool _is_quest_ui_open = false;
+        
+        Game::QuestManager* _quest_manager = nullptr;
 
         std::unique_ptr<ChestUI> _chest_ui;
         Entity::InteractiveClickable* _current_container = nullptr;

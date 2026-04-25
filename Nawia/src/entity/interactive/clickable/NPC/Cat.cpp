@@ -69,6 +69,9 @@ namespace Nawia::Entity {
                     this->addItem(sword);
 
                  _quest_completed = true;
+
+                 // Notify QuestManager about the delivery
+                 player->getEngine()->getQuestManager().notifyItemDelivered(6, getName());
                  
                   player->getEngine()->getDialogueManager().createCatQuestCompletedDialogue(player->getEngine(), this);
                  

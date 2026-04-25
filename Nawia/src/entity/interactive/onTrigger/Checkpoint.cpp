@@ -4,6 +4,7 @@
 #include "Collider.h"
 #include "InteractiveTrigger.h"
 #include <Player.h>
+#include <Engine.h>
 
 namespace Nawia::Entity {
 
@@ -20,6 +21,11 @@ namespace Nawia::Entity {
             _activated = true;
             if (auto* player = dynamic_cast<Player*>(&other)) {
                 player->setRespawnPoint(this->getCenter());
+
+                // Notify QuestManager about checkpoint reached
+                if (player->getEngine()) {
+                    player->getEngine()->getQuestManager().notifyCheckpointReached(getName());
+                }
             }
         }
     }
