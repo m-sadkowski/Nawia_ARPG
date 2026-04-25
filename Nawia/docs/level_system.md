@@ -327,18 +327,14 @@ Encja dormant:
 
 ## Stan aktualny — NPC, Questy, Dialogi
 
-### ⚠️ Aktualnie hardkodowane w C++:
+### ⚠️ Częściowo przeniesione do zewnątrz / w trakcie zmian:
 
-1. **Dialogi** — `DialogueManager::createCatDialogue()` buduje `DialogueTree` 
-   z C++ lambdami (np. `openContainer`, `closeDialogue`). Nie da się ich 
-   przenieść 1:1 do JSON, bo `DialogueOption::action` to `std::function<void()>`.
+1. **Dialogi** — `DialogueManager::createCatDialogue()` wciąż buduje `DialogueTree` 
+   z C++ lambdami (np. `openContainer`, `closeDialogue`). Wymagają ustrukturyzowania w `dialogues.json`.
 
-2. **Logika questów** — wbudowana w `Cat::onInteract()`:
-   - Sprawdza czy gracz ma rybę (item ID 6)
-   - Jeśli tak → zabiera rybę, daje Koci Miecz (ID 7), zmienia dialog
-   - Ustawia `_quest_completed = true`
+2. **System Questów (Wielki Krok Naprzód)** — od strony strukturalnej questy są w `quests.json` i wykorzystują Data-Driven Design! Eventy rozwijające je (jak zagadanie, odebranie przedmiotu, wejście w strefę) spłaszczono wewnątrz powiadomień `QuestManager::notify...()`. (W C++ hardkodowane są jeszcze konkretne nagrody dla niektórych NPC — m.in `Cat::onInteract()` wciąż dodatkowo bezpośrednio manipuluje ekwipunkiem NPC oprócz uruchamiania powiadomień. Tę małą część również będzie trzeba delegować w całości na `quests.json`).
 
-3. **Klasy NPC** — jedyna klasa to `Cat`. Nowe NPC wymagają nowych klas C++.
+3. **Klasy NPC** — jedyna unikalna klasa to `Cat`. Nowe NPC wciąż wymagają nowych klas C++.
 
 ### Co jest w JSON:
 
@@ -380,27 +376,9 @@ Z JSONa ładowane jest **tylko położenie i podstawowa konfiguracja** NPC:
 - `DialogueManager::loadDialogues()` ładuje raz przy starcie
 - `DialogueManager::getDialogue(id, engine, npc)` zwraca gotowy `DialogueTree`
 
-### 2. Questy w JSON (`quests.json`)
+### 2. Pełne wdrożenie nagród z Questów w `quests.json` i generyczny odbiór
 
-```json
-{
-    "quests": [
-        {
-            "id": "cat_fish_quest",
-            "name": "Ryba Kota Olgi",
-            "required_item_id": 6,
-            "reward_item_id": 7,
-            "dialogue_before": "cat_greeting",
-            "dialogue_after": "cat_quest_done",
-            "on_complete_notification": "Zadanie ukonczone!"
-        }
-    ]
-}
-```
-
-- `QuestManager` ładuje z JSON i sprawdza warunki deklaratywnie
-- NPC przechowuje `quest_id` (string) → deleguje logikę do `QuestManager`
-- Eliminuje hardkodowaną logikę z `Cat::onInteract()`
+Obecnie eventy `notifyNPCTalked()`, `notifyItemDelivered()`, `notifyKil()` itp. prężnie zasilają system zadań. Chociaż JSON definiuje już systematycznie nagrody jak XP czy przedmioty (np. `rewards: { exp: 50 }`), należy upewnić się, że `Cat::onInteract()` i podobne instrukcje z klas fizycznych oddadzą odpowiedzialność wydawania Katan i zamykania wątków pod same nagrody zdefiniowane w Questach i `DialogueManager`.
 
 ### 3. NPC z quest/dialogue binding w level_entities
 

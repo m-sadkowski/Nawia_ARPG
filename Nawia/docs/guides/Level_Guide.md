@@ -265,7 +265,9 @@ Wrogowie automatycznie dostają gracza jako cel (`setTarget`).
 | `npc_class` | string | Klasa NPC: aktualnie `"cat"` |
 | `loottable` | string | Tabela łupów (opcjonalne) |
 
-⚠️ **Dialogi i questy NPC są aktualnie hardkodowane w C++** (`DialogueManager.cpp`, `Cat.cpp`). W przyszłości zostaną przeniesione do JSONa z systemem `dialogues.json` + `quests.json`.
+⚠️ **System Questów działa obecnie w oparciu o dane (*Data-Driven*) z pliku `quests.json` i automatyczne zdarzenia.** 
+Questy odblokowują się automatycznie przy wybranym poziomie/działaniu, a `QuestManager` używa wywołań w kodzie (tzw. event hooks np. `notifyNPCTalked`, `notifyItemDelivered`, `notifyItemCollected`, `notifyKill`), aby reagować na postępy gracza. 
+*(Uwaga: Dialogi pozostają wciąż tymczasowo hardkodowane w `DialogueManager.cpp`, jednak wyzwalanie questów z nimi połączonych działa automatycznie przez NPC name).*
 
 ### Obiekt statyczny: `static_object`
 
