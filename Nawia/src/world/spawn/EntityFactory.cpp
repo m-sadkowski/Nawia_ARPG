@@ -4,10 +4,11 @@
 #include <Map.h>
 #include <Logger.h>
 
-// Enemies
+// Enemies / allies
 #include <Devil.h>
 #include <Bandit.h>
 #include <WalkingDead.h>
+#include <Friend.h>
 
 // Interactive
 #include <Chest.h>
@@ -16,8 +17,9 @@
 #include <StaticObject.h>
 #include <Teleport.h>
 
-// Abilities (for enemy setup)
+// Abilities
 #include <KnifeThrowAbility.h>
+#include <SwordSlashAbility.h>
 
 // Items / Loot
 #include <ItemDatabase.h>
@@ -38,6 +40,7 @@ namespace Nawia::World {
 		if (type == "devil")         return createDevil(data, engine, map);
 		if (type == "bandit")        return createBandit(data, engine, map);
 		if (type == "walking_dead")  return createWalkingDead(data, engine, map);
+		if (type == "friend")        return createFriend(data, engine, map);
 		if (type == "chest")         return createChest(data, engine);
 		if (type == "npc")           return createNPC(data, engine);
 		if (type == "static_object") return createStaticObject(data, engine);
@@ -47,10 +50,6 @@ namespace Nawia::World {
 		Core::Logger::errorLog("EntityFactory: nieznany typ encji: " + type);
 		return nullptr;
 	}
-
-	// ═══════════════════════════════════════════════════════════════════════
-	// ENEMIES
-	// ═══════════════════════════════════════════════════════════════════════
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createDevil(
 		const json& data, Core::Engine* engine, Core::Map* map)
@@ -91,7 +90,6 @@ namespace Nawia::World {
 			.setTarget(player)
 			.build();
 
-		// Add abilities from JSON
 		if (data.contains("abilities")) {
 			for (const auto& ability_name : data["abilities"]) {
 				const std::string ab = ability_name.get<std::string>();
@@ -126,9 +124,27 @@ namespace Nawia::World {
 		return wd;
 	}
 
-	// ═══════════════════════════════════════════════════════════════════════
-	// INTERACTIVE ENTITIES
-	// ═══════════════════════════════════════════════════════════════════════
+	std::shared_ptr<Entity::Entity> EntityFactory::createFriend(
+		const json& data, Core::Engine* engine, Core::Map* map)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const int hp = data.value("hp", 100);
+		const std::string name = data.value("name", "Friend");
+
+		auto friend_entity = Entity::FriendBuilder()
+			.setName(name)
+			.setPosition({x, y})
+			.setMap(map)
+			.setMaxHp(hp)
+			.build();
+
+		auto& rm = engine->getResourceManager();
+		const auto sword_slash_icon = rm.getTexture("../assets/textures/icons/sword_slash_icon.png");
+		friend_entity->addAbility(std::make_shared<Entity::SwordSlashAbility>(nullptr, sword_slash_icon));
+
+		return friend_entity;
+	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createChest(
 		const json& data, Core::Engine* engine)
@@ -142,21 +158,18 @@ namespace Nawia::World {
 
 		auto chest = std::make_shared<Entity::Chest>(name, x, y, tex);
 
-		// Fill from loottable
 		if (data.contains("loottable")) {
 			const std::string lt_name = data["loottable"].get<std::string>();
 			auto& loottable = engine->getLoottable();
 
-			// Map string to enum
 			Item::LOOTTABLE_TYPE lt_type = Item::LOOTTABLE_TYPE::CHEST_NOOB;
-			if (lt_name == "CHEST_NOOB")     lt_type = Item::LOOTTABLE_TYPE::CHEST_NOOB;
+			if (lt_name == "CHEST_NOOB")      lt_type = Item::LOOTTABLE_TYPE::CHEST_NOOB;
 			else if (lt_name == "CHEST_BAD")  lt_type = Item::LOOTTABLE_TYPE::CHEST_BAD;
 			else if (lt_name == "CAT")        lt_type = Item::LOOTTABLE_TYPE::CAT;
 
 			chest->initializeInventory(loottable, lt_type);
 		}
 
-		// Add specific items by ID
 		if (data.contains("items")) {
 			auto& itemDB = engine->getItemDatabase();
 			for (const auto& item_id : data["items"]) {
@@ -166,7 +179,6 @@ namespace Nawia::World {
 			}
 		}
 
-		// Lock
 		if (data.value("locked", false)) {
 			const int key_id = data.value("key_id", -1);
 			chest->setLocked(true, key_id);
@@ -189,16 +201,14 @@ namespace Nawia::World {
 		if (npc_class == "cat") {
 			auto cat = std::make_shared<Entity::Cat>(name, x, y, tex);
 
-			// Hardcoded dialogue (to be replaced by data-driven system in the future)
 			engine->getDialogueManager().createCatDialogue(engine, cat.get());
 
-			// Inventory from loottable
 			if (data.contains("loottable")) {
 				const std::string lt_name = data["loottable"].get<std::string>();
 				auto& loottable = engine->getLoottable();
 
 				Item::LOOTTABLE_TYPE lt_type = Item::LOOTTABLE_TYPE::CAT;
-				if (lt_name == "CHEST_NOOB")     lt_type = Item::LOOTTABLE_TYPE::CHEST_NOOB;
+				if (lt_name == "CHEST_NOOB")      lt_type = Item::LOOTTABLE_TYPE::CHEST_NOOB;
 				else if (lt_name == "CHEST_BAD")  lt_type = Item::LOOTTABLE_TYPE::CHEST_BAD;
 				else if (lt_name == "CAT")        lt_type = Item::LOOTTABLE_TYPE::CAT;
 
@@ -240,8 +250,7 @@ namespace Nawia::World {
 		const float y = data.value("y", 0.0f);
 		const std::string name = data.value("name", "Punkt Kontrolny");
 
-		auto entity = std::make_shared<Entity::Checkpoint>(name, x, y);
-		return entity;
+		return std::make_shared<Entity::Checkpoint>(name, x, y);
 	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createTeleport(
@@ -256,8 +265,7 @@ namespace Nawia::World {
 			Core::Logger::errorLog("EntityFactory: Teleport wymaga pola 'target_location'");
 		}
 
-		auto entity = std::make_shared<Entity::Teleport>(name, x, y, engine, target_location);
-		return entity;
+		return std::make_shared<Entity::Teleport>(name, x, y, engine, target_location);
 	}
 
 } // namespace Nawia::World

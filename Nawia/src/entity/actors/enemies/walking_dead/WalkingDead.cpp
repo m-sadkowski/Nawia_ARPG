@@ -22,32 +22,28 @@ namespace Nawia::Entity {
 
 	void WalkingDead::takeDamage(const int dmg)
 	{
-		if (_state == State::Dying) return;
+		Entity::takeDamage(dmg);
+		if (isDying()) return;
 
-		if (_hp - dmg <= 0)
-		{
-			_hp = 1; // Keep alive for death animation
-			_state = State::Dying;
-			playAnimation("death", false, true, 0, true);
-			setFaction(Faction::None); // Prevent further targeting
-		}
-		else
-		{
-			Entity::takeDamage(dmg);
-			
-			// Save current state (only if not already in GettingHit)
-			if (_state != State::GettingHit)
-				_state_before_hit = _state;
-			
-			// Always restart get_hit animation
-			_state = State::GettingHit;
-			playAnimation("get_hit", false, true, 10, true);  // force=true restartuje animację
-			setVelocity(0, 0);
-		}
+		// When hit, stagger the zombie, interrupting its current action
+		if (_state != State::GettingHit)
+			_state_before_hit = _state;
+		
+		_state = State::GettingHit;
+		playAnimation("get_hit", false, true, 10, true);
+		
+		// Stop movement while staggering
+		setVelocity(0, 0);
 	}
 
 	void WalkingDead::update(const float dt)
 	{
+		if (isDying())
+		{
+			Entity::update(dt);
+			return;
+		}
+
 		if (isDormant()) return;
 
 		// Update attack cooldown
@@ -70,9 +66,6 @@ namespace Nawia::Entity {
 			break;
 		case State::GettingHit:
 			handleGettingHitState(dt);
-			break;
-		case State::Dying:
-			handleDyingState(dt);
 			break;
 		}
 	}
@@ -234,16 +227,6 @@ namespace Nawia::Entity {
 				playAnimation("idle");
 				break;
 			}
-		}
-	}
-
-	void WalkingDead::handleDyingState(const float dt)
-	{
-		Entity::update(dt);
-		
-		if (!isAnimationLocked())
-		{
-			_hp = 0; // Now truly dead
 		}
 	}
 

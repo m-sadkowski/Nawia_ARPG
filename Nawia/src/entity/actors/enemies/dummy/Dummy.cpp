@@ -11,8 +11,17 @@
 namespace Nawia::Entity {
 
 	Dummy::Dummy(const float x, const float y, const std::shared_ptr<Texture2D>& tex, const int max_hp, Core::Map* map)
-		: EnemyInterface("Dummy", x, y, tex, max_hp, map), _stay_timer(0.0f), _fireball_cooldown_timer(0.0f)
+		: _stay_timer(0.0f), _fireball_cooldown_timer(0.0f)
 	{
+		setName("Dummy");
+		setX(x);
+		setY(y);
+		_texture = tex;
+		setMaxHp(max_hp);
+		_map = map;
+		_target_x = x;
+		_target_y = y;
+
 		this->setScale(0.03f);
 		setFaction(Faction::Enemy);
 		loadModel("../assets/models/dummy_idle.glb");
@@ -25,28 +34,11 @@ namespace Nawia::Entity {
 		pickNewTarget();
 	}
 
-	void Dummy::takeDamage(const int dmg)
-	{
-		if (_is_dying) return;
-
-		if (_hp - dmg <= 0)
-		{
-			_hp = 1; // keep alive for animation
-			_is_dying = true;
-			playAnimation("death", false, true); // true = lock movement
-			setFaction(Faction::None); // prevent further targeting
-		}
-		else
-		{
-			Entity::takeDamage(dmg);
-		}
-	}
-
 	void Dummy::update(const float dt)
 	{
-		if (_is_dying)
+		if (isDying())
 		{
-			handleDyingState(dt);
+			Entity::update(dt);
 			return;
 		}
 
@@ -59,14 +51,7 @@ namespace Nawia::Entity {
 		handleActiveState(dt);
 	}
 
-	void Dummy::handleDyingState(const float dt)
-	{
-		Entity::update(dt); // update animation
-		if (!isAnimationLocked()) // animation finished (reverted to default/idle)
-		{
-			_hp = 0; // now truly die
-		}
-	}
+
 
 	void Dummy::handleCastingState(const float dt)
 	{

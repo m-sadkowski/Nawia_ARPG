@@ -35,17 +35,13 @@ namespace Nawia::Entity {
 		Devil(float x, float y, Core::Map* map);
 
 		void update(float dt) override;
-		void takeDamage(int dmg) override;
-		
 
 	private:
 		Devil();
 		friend class DevilBuilder;
 
-		enum class State { Idle, Chasing, PreparingDash, Dashing, Recovering, Attacking, Dying };
+		enum class State { Idle, Chasing, PreparingDash, Dashing, Recovering, Attacking };
 		State _state = State::Idle;
-
-
 
 		//Animation speed set
 		static constexpr float DEVIL_DASH_ANIMATION_SPEED = 3.0f;
@@ -77,7 +73,6 @@ namespace Nawia::Entity {
 		bool _dash_hit_target = false;      // Did we already hit during this dash?
 		float _stun_timer = 0.0f;           // Recovery/stun timer after dash
 	
-	
 		// State handlers
 		void handleIdleState(float dt);
 		void handleChasingState(float dt);
@@ -85,12 +80,8 @@ namespace Nawia::Entity {
 		void handleDashingState(float dt);
 		void handleRecoveringState(float dt);
 		void handleAttackingState(float dt);
-
-		void handleDyingState(float dt);
-		
-
 	};
-
+	
 	class DevilBuilder : public EnemyBuilder<DevilBuilder> {
 	public:
 		DevilBuilder() {

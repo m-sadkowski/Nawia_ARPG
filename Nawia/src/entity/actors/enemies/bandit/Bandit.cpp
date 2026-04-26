@@ -22,30 +22,26 @@ namespace Nawia::Entity {
 
 	void Bandit::takeDamage(const int dmg)
 	{
-		if (_state == State::Dying) return;
-
-		if (_hp - dmg <= 0)
-		{
-			_hp = 1;
-			_state = State::Dying;
-			playAnimation("death", false, true, 0, true);
-			setFaction(Faction::None);
-		}
-		else
-		{
-			Entity::takeDamage(dmg);
-			
-			if (_state != State::GettingHit)
-				_state_before_hit = _state;
-			
-			_state = State::GettingHit;
-			playAnimation("get_hit", false, true, 10, true);
-			setVelocity(0, 0);
-		}
+		Entity::takeDamage(dmg);
+		
+		if (isDying()) return;
+		
+		if (_state != State::GettingHit)
+			_state_before_hit = _state;
+		
+		_state = State::GettingHit;
+		playAnimation("get_hit", false, true, 10, true);
+		setVelocity(0, 0);
 	}
 
 	void Bandit::update(const float dt)
 	{
+		if (isDying())
+		{
+			Entity::update(dt);
+			return;
+		}
+
 		if (isDormant()) return;
 
 		if (_knife_cooldown_timer > 0.0f)
@@ -64,9 +60,6 @@ namespace Nawia::Entity {
 			break;
 		case State::GettingHit:
 			handleGettingHitState(dt);
-			break;
-		case State::Dying:
-			handleDyingState(dt);
 			break;
 		}
 	}
@@ -249,16 +242,6 @@ namespace Nawia::Entity {
 				playAnimation("idle");
 				break;
 			}
-		}
-	}
-
-	void Bandit::handleDyingState(const float dt)
-	{
-		Entity::update(dt);
-		
-		if (!isAnimationLocked())
-		{
-			_hp = 0;
 		}
 	}
 

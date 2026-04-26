@@ -25,6 +25,7 @@ namespace Nawia::Entity {
 		addAnimation("stand_up", "../assets/models/player_stand_up.glb");
 		playAnimation("default"); // play idle
 		setAnimationSpeed(1.0f);
+		_death_anim_name = "knocked";
 
 		// init backpack and eq
 		_backpack = std::make_unique<Item::Backpack>(INIT_BACKPACK_SIZE);
@@ -41,31 +42,23 @@ namespace Nawia::Entity {
 
 	void Player::moveTo(const float x, const float y)
 	{
-		_target_x = x;
-		_target_y = y;
+		Entity::moveTo(x, y);
 
-		const float dx = _target_x - getX();
-		const float dy = _target_y - getY();
-		
-		if (dx * dx + dy * dy > 0.001f) 
+		if (_is_moving) 
 		{
-			_is_moving = true;
+			if (!isAnimationLocked())
+			{
+				setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
+				playAnimation("walk");
+			}
 		} 
 		else 
 		{
-			_is_moving = false;
 			if (!isAnimationLocked())
 			{
 				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 				playAnimation("default");
 			}
-			return;
-		}
-
-		if (_is_moving && !isAnimationLocked()) 
-		{
-			setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
-			playAnimation("walk");
 		}
 	}
 
@@ -83,17 +76,10 @@ namespace Nawia::Entity {
 	void Player::update(const float delta_time)
 	{
 		Entity::update(delta_time);
-		updateAbilities(delta_time);
+		
+		if (isDying()) return;
 
-		// Handle dying state - wait for animation then truly die
-		if (_is_dying)
-		{
-			if (!isAnimationLocked())
-			{
-				_hp = 0; // now truly dead - Engine will switch to GameOver
-			}
-			return;
-		}
+		updateAbilities(delta_time);
 		
 		isLevelUp();
 		// Handle knockdown animation sequence
@@ -131,32 +117,11 @@ namespace Nawia::Entity {
 			playAnimation("walk");
 		}
 
-		// Calculate direction to target (straight-line movement)
-		const float dx = _target_x - getX();
-		const float dy = _target_y - getY();
-		const float distance = std::sqrt(dx * dx + dy * dy);
+		Entity::updateMovement(delta_time);
 
-		// Rotate towards target
-		if (distance > 0.001f)
-			rotateTowards(_target_x, _target_y);
-
-		// Apply velocity
-		const float speed = _current_stats.movement_speed;
-		const float move_dist = speed * delta_time;
-
-		if (move_dist >= distance) 
+		if (!_is_moving && !isAnimationLocked()) 
 		{
-			// Snap to target
-			_pos.x = _target_x;
-			_pos.y = _target_y;
-			_is_moving = false;
-			if (!isAnimationLocked()) playAnimation("default");
-		} 
-		else 
-		{
-			// Move normally
-			_pos.x += (dx / distance) * move_dist;
-			_pos.y += (dy / distance) * move_dist;
+			playAnimation("default");
 		}
 	}
 
@@ -197,6 +162,7 @@ namespace Nawia::Entity {
 
 		_max_hp = _current_stats.max_hp;
 		_hp = std::min(_hp, _max_hp);
+		_movement_speed = _current_stats.movement_speed;
 	}
 
 	void Player::knockDown(const int damage)
@@ -232,19 +198,13 @@ namespace Nawia::Entity {
 
 	void Player::takeDamage(const int dmg)
 	{
-		if (_is_dying) return;
+		const bool was_dying = isDying();
+		Entity::takeDamage(dmg);
 
-		if (_hp - dmg <= 0)
+		if (!was_dying && isDying())
 		{
-			_hp = 1; // keep alive for death animation
-			_is_dying = true;
 			stop();
 			setAnimationSpeed(2.0f);
-			playAnimation("knocked", false, true, 0, true);
-		}
-		else
-		{
-			Entity::takeDamage(dmg);
 		}
 	}
 

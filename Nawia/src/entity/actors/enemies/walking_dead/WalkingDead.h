@@ -36,17 +36,14 @@ namespace Nawia::Entity {
 		void update(float dt) override;
 		void takeDamage(int dmg) override;
 		
-
 	private:
 		WalkingDead();
 		friend class WalkingDeadBuilder;
 
-		enum class State { Idle, Chasing, Attacking, Screaming, GettingHit, Dying };
+		enum class State { Idle, Chasing, Attacking, Screaming, GettingHit };
 		State _state = State::Idle;
 		State _state_before_hit = State::Idle;  // State to return to after get_hit animation
 
-
-		
 		// Combat stats
 		static constexpr float VISION_RANGE = 10.0f;
 		static constexpr float CLOSE_RANGE = VISION_RANGE / 2;    // Distance at which zombie starts running
@@ -68,9 +65,6 @@ namespace Nawia::Entity {
 		void handleAttackingState(float dt);
 		void handleScreamingState(float dt);
 		void handleGettingHitState(float dt);
-		void handleDyingState(float dt);
-		
-
 	};
 
 	class WalkingDeadBuilder : public EnemyBuilder<WalkingDeadBuilder> {

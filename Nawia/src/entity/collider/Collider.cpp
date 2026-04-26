@@ -244,22 +244,29 @@ namespace Nawia::Entity {
         
         const float rot_deg = _owner->getRotation();
         const float angle_half = _angle / 2.0f;
-        const int num_rays = 11; // Sweep 11 rays across the cone angle for highly accurate sweeping
+        const int num_rays_h = 11; // Sweep 11 rays across the cone angle for highly accurate sweeping
+        const int num_rays_v = 15; // Sweep 15 heights to catch enemies of different heights
         
-        // Raycast from torso height
-        Vector3 origin = { getPosition().x, 1.0f, getPosition().y };
+        const float min_h = 0.1f;
+        const float max_h = 2.0f;
         
-        for (int i = 0; i < num_rays; i++) {
-            float fraction = (num_rays == 1) ? 0.5f : (float)i / (num_rays - 1);
-            float current_angle_deg = (rot_deg - angle_half) + fraction * _angle;
-            float rad = current_angle_deg * DEG2RAD;
+        for (int j = 0; j < num_rays_v; j++) {
+            float fraction_v = (num_rays_v == 1) ? 0.5f : (float)j / (num_rays_v - 1);
+            float height = min_h + (max_h - min_h) * fraction_v;
+            Vector3 origin = { getPosition().x, height, getPosition().y };
             
-            Vector3 dir = { std::cos(rad), 0.0f, std::sin(rad) };
-            Ray ray = { origin, dir };
-            
-            RayCollision hit = target->getRayMeshCollision(ray);
-            if (hit.hit && hit.distance <= _radius) {
-                return true;
+            for (int i = 0; i < num_rays_h; i++) {
+                float fraction_h = (num_rays_h == 1) ? 0.5f : (float)i / (num_rays_h - 1);
+                float current_angle_deg = (rot_deg - angle_half) + fraction_h * _angle;
+                float rad = current_angle_deg * DEG2RAD;
+                
+                Vector3 dir = { std::cos(rad), 0.0f, std::sin(rad) };
+                Ray ray = { origin, dir };
+                
+                RayCollision hit = target->getRayMeshCollision(ray);
+                if (hit.hit && hit.distance <= _radius) {
+                    return true;
+                }
             }
         }
         
@@ -292,6 +299,31 @@ namespace Nawia::Entity {
         DrawLine3D(tip_3d, end_left_3d, GREEN);
         DrawLine3D(tip_3d, end_right_3d, GREEN);
         DrawLine3D(end_left_3d, end_right_3d, GREEN);
+
+        // Render rays at multiple heights for visual volume
+        const int num_rays_h = 11;
+        const int num_rays_v = 15;
+        const float min_h = 0.1f;
+        const float max_h = 2.0f;
+
+        for (int j = 0; j < num_rays_v; j++) {
+            float fraction_v = (num_rays_v == 1) ? 0.5f : (float)j / (num_rays_v - 1);
+            float height = min_h + (max_h - min_h) * fraction_v;
+            Vector3 origin = { tip_world.x, height, tip_world.y };
+
+            for (int i = 0; i < num_rays_h; i++) {
+                float fraction_h = (num_rays_h == 1) ? 0.5f : (float)i / (num_rays_h - 1);
+                float current_angle_deg = (rot_deg - angle_half) + fraction_h * _angle;
+                float rad = current_angle_deg * DEG2RAD;
+
+                Vector3 end = {
+                    origin.x + std::cos(rad) * _radius,
+                    height,
+                    origin.z + std::sin(rad) * _radius
+                };
+                DrawLine3D(origin, end, ColorAlpha(GREEN, 0.3f));
+            }
+        }
 
         // debug center line
         const float rad_center = rot_deg * DEG2RAD;

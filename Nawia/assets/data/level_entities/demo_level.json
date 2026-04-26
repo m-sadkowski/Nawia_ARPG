@@ -31,6 +31,14 @@
         },
         {
             "location": "Demo Arena",
+            "type": "friend",
+            "name": "Friend",
+            "x": 9.0, "y": 24.0,
+            "hp": 100,
+            "trigger_radius": 0
+        },
+        {
+            "location": "Demo Arena",
             "type": "static_object",
             "name": "Drzewo",
             "x": 5.0, "y": 5.0,

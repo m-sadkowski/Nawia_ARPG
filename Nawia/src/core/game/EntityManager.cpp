@@ -9,7 +9,8 @@
 
 #include <raylib.h>
 #include <cmath>
-#include <algorithm> 
+#include <algorithm>
+#include <limits>
 
 namespace Nawia::Core {
 
@@ -85,6 +86,8 @@ namespace Nawia::Core {
 
     void EntityManager::updateEntities(const float delta_time)
     {
+        refreshCombatTargets();
+
         for (auto it = _active_entities.begin(); it != _active_entities.end();)
         {
             const auto& entity = *it;
@@ -108,6 +111,62 @@ namespace Nawia::Core {
             else
                 ++it;
         }
+    }
+
+    void EntityManager::refreshCombatTargets()
+    {
+        for (const auto& entity : _active_entities)
+        {
+            if (!entity || entity->isDead() || entity->isDying() || entity->isDormant())
+                continue;
+
+            const Entity::EntityType type = entity->getType();
+            if (type != Entity::EntityType::Enemy && type != Entity::EntityType::Ally)
+                continue;
+
+            entity->setTarget(findClosestCombatTarget(entity));
+        }
+    }
+
+    std::shared_ptr<Entity::Entity> EntityManager::findClosestCombatTarget(const std::shared_ptr<Entity::Entity>& seeker) const
+    {
+        if (!seeker) return nullptr;
+
+        const Entity::EntityType seeker_type = seeker->getType();
+        float best_distance_sq = std::numeric_limits<float>::max();
+        std::shared_ptr<Entity::Entity> best_target = nullptr;
+
+        for (const auto& candidate : _active_entities)
+        {
+            if (!candidate || candidate == seeker)
+                continue;
+
+            if (candidate->isDead() || candidate->isDying() || candidate->isDormant())
+                continue;
+
+            const Entity::EntityType candidate_type = candidate->getType();
+            bool is_valid_target = false;
+
+            if (seeker_type == Entity::EntityType::Enemy)
+                is_valid_target = candidate_type == Entity::EntityType::Player || candidate_type == Entity::EntityType::Ally;
+            else if (seeker_type == Entity::EntityType::Ally)
+                is_valid_target = candidate_type == Entity::EntityType::Enemy;
+
+            if (!is_valid_target)
+                continue;
+
+            const float dx = seeker->getCenter().x - candidate->getCenter().x;
+            const float dy = seeker->getCenter().y - candidate->getCenter().y;
+            const float distance_sq = dx * dx + dy * dy;
+
+            if (distance_sq < best_distance_sq)
+            {
+                best_distance_sq = distance_sq;
+                best_target = candidate;
+            }
+        }
+
+        return best_target;
     }
 
     // --- Collision System ---
@@ -198,7 +257,7 @@ namespace Nawia::Core {
         if (e->isDormant()) return false;
 
         const Entity::EntityType type = e->getType();
-        return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy);
+        return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy || type == Entity::EntityType::Ally);
     }
 
     void EntityManager::resolveOverlap(const std::shared_ptr<Entity::Entity>& e1, const std::shared_ptr<Entity::Entity>& e2) const

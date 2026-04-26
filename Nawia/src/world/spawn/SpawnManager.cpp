@@ -146,18 +146,19 @@ namespace Nawia::World {
 			if (!sp.entity) continue;
 
 			if (sp.location == new_location) {
-				// We entered this location. Wake up entities with trigger_radius == 0
-				if (sp.trigger_radius <= 0.0f) {
+				// We entered this location. Wake up immediate spawns and entities
+				// that had already been activated before leaving this location.
+				if (sp.trigger_radius <= 0.0f || sp.activated) {
 					sp.entity->setDormant(false);
 					sp.activated = true;
 				} else {
-					// Wait for proximity
-					sp.activated = false;
+					// Never activated before: stay dormant until proximity wake-up.
+					sp.entity->setDormant(true);
 				}
 			} else {
-				// We left this location. Freeze the entity.
+				// We left this location. Freeze the entity but remember whether it
+				// had already been activated, so it can restore that state on return.
 				sp.entity->setDormant(true);
-				sp.activated = false;
 			}
 		}
 	}

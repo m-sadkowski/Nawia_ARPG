@@ -22,13 +22,11 @@ namespace Nawia::Entity {
 
 		void update(float delta_time) override;
 		void takeDamage(int dmg) override;
-		[[nodiscard]] bool isMoving() const { return _is_moving; }
 		[[nodiscard]] bool isKnockedDown() const { return _is_knocked_down; }
-		[[nodiscard]] bool isDying() const { return _is_dying; }
 
-		void moveTo(float x, float y);
+		void moveTo(float x, float y) override;
 		void stop();
-		void updateMovement(float delta_time);
+		void updateMovement(float delta_time) override;
 
 		void setRespawnPoint(const Vector2& point) { _respawn_point = point; }
 		[[nodiscard]] Vector2 getRespawnPoint() const { return _respawn_point; }
@@ -85,10 +83,7 @@ namespace Nawia::Entity {
 		Core::Engine* _engine;
 		
 		static constexpr int INIT_BACKPACK_SIZE = 20;
-		float _target_x, _target_y;
-		bool _is_moving = false;
 		bool _is_knocked_down = false;
-		bool _is_dying = false;
 		enum class KnockdownPhase { None, Knocked, StandingUp };
 		KnockdownPhase _knockdown_phase = KnockdownPhase::None;
 		std::vector<Vector2> _path;

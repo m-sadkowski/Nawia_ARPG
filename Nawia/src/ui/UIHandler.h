@@ -123,7 +123,7 @@ namespace Nawia::UI {
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
         void renderPlayerExperienceBar() const;
-        void renderEnemyHealthBars(const Core::GameCamera& camera) const;
+        void renderCombatEntityHealthBars(const Core::GameCamera& camera) const;
         
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;
         void drawMenuButton(const Rectangle& rect, const char* text, bool is_hovered) const;

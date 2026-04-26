@@ -12,6 +12,10 @@
 namespace Nawia::Entity {
 
 	bool Entity::DebugColliders = true; // enable debug hitbox drawing
+	
+	Entity::Entity() 
+		: _pos{0.0f, 0.0f}, _velocity{0.0f, 0.0f}, _scale(1.0f), 
+		  _hp(1), _max_hp(1), _type(EntityType::None), _faction(Faction::None) {}
 
 	Entity::Entity(const std::string& name, const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
 		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
@@ -100,6 +104,14 @@ namespace Nawia::Entity {
 	{
 		if (_dormant) return;
 
+		if (_is_dying)
+		{
+			updateAnimation(delta_time);
+			if (!isAnimationLocked())
+				_hp = 0;
+			return; // Do not update position or other logic while dying
+		}
+
 		_pos.x += _velocity.x * delta_time;
 		_pos.y += _velocity.y * delta_time;
 		
@@ -115,9 +127,8 @@ namespace Nawia::Entity {
 			if (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
 			{
 				if (_anim_looping) {
-					while (_anim_frame_counter >= _animations[_current_anim_index].frameCount) {
+					while (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
 						_anim_frame_counter -= _animations[_current_anim_index].frameCount;
-					}
 				}
 				else {
 					_anim_frame_counter = 0;
@@ -140,10 +151,8 @@ namespace Nawia::Entity {
 			DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, WHITE);
 
 			if (_hovered)
-			{
 				// Draw the model again with a dark tint overlay for hover effect
 				DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, Fade(BLACK, 0.2f));
-			}
 		}
 
 		if (DebugColliders) {
@@ -161,12 +170,20 @@ namespace Nawia::Entity {
 
 	void Entity::takeDamage(const int dmg) 
 	{
+		if (_is_dying) return;
+
 		Core::Logger::debugLog("Entity " + getName() + " taking damage: " + std::to_string(dmg) + ". Current HP: " + std::to_string(_hp));
-		_hp -= dmg;
-		if (_hp < 0) 
+		if (_hp - dmg <= 0) 
 		{
-			_hp = 0;
-			Core::Logger::debugLog("Entity died!");
+			_hp = 1; // keep alive for death animation
+			_is_dying = true;
+			playAnimation(_death_anim_name, false, true, 0, true);
+			setFaction(Faction::None);
+			Core::Logger::debugLog("Entity " + getName() + " started dying sequence.");
+		}
+		else
+		{
+			_hp -= dmg;
 		}
 	}
 
@@ -174,6 +191,12 @@ namespace Nawia::Entity {
 	{
 		_hp = 0;
 		Core::Logger::debugLog("Entity " + getName() + " killed!");
+	}
+
+	void Entity::setMaxHp(const int max_hp)
+	{
+		_max_hp = max_hp;
+		_hp = max_hp;
 	}
 
 	bool Entity::isMouseOver(const float screen_x, const float screen_y, const Camera3D& camera) const 
@@ -375,6 +398,88 @@ namespace Nawia::Entity {
 			const float angle = std::atan2(dy, dx) * 180.0f / PI;
 			setRotation(-angle);
 		}
+	}
+
+	void Entity::moveTo(const float x, const float y)
+	{
+		_target_x = x;
+		_target_y = y;
+
+		const float dx = _target_x - getX();
+		const float dy = _target_y - getY();
+		
+		if (dx * dx + dy * dy > 0.001f)
+			_is_moving = true;
+		else
+			_is_moving = false;
+	}
+
+	void Entity::updateMovement(const float dt)
+	{
+		if (!_is_moving) return;
+
+		const float dx = _target_x - getX();
+		const float dy = _target_y - getY();
+		const float distance = std::sqrt(dx * dx + dy * dy);
+
+		if (distance > 0.001f)
+			rotateTowards(_target_x, _target_y);
+
+		const float speed = _movement_speed;
+		const float move_dist = speed * dt;
+
+		if (move_dist >= distance) 
+		{
+			_pos.x = _target_x;
+			_pos.y = _target_y;
+			_is_moving = false;
+		} 
+		else 
+		{
+			_pos.x += (dx / distance) * move_dist;
+			_pos.y += (dy / distance) * move_dist;
+		}
+	}
+
+	float Entity::getDistanceToTarget() const
+	{
+		const auto target = _target.lock();
+		if (!target) return std::numeric_limits<float>::max();
+		
+		const Vector2 my_pos = getCenter();
+		const Vector2 target_pos = target->getCenter();
+		
+		return Vector2Distance(my_pos, target_pos);
+	}
+
+	Vector2 Entity::getTargetPosition() const
+	{
+		const auto target = _target.lock();
+		if (!target) return _pos;
+		
+		return target->getCenter();
+	}
+
+	bool Entity::hasValidTarget() const
+	{
+		const auto target = _target.lock();
+		return target && !target->isDead();
+	}
+
+	void Entity::chaseTarget(const float dt, const float path_recalc_interval)
+	{
+		if (!hasValidTarget()) return;
+		
+		_path_recalc_timer -= dt;
+		
+		if (_path_recalc_timer <= 0.0f || !_is_moving)
+		{
+			const Vector2 target_pos = getTargetPosition();
+			moveTo(target_pos.x, target_pos.y);
+			_path_recalc_timer = path_recalc_interval;
+		}
+		
+		updateMovement(dt);
 	}
 
 } // namespace Nawia::Entity
