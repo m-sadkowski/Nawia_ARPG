@@ -28,6 +28,7 @@ namespace Nawia::Core {
 		void updateEntities(float delta_time);
 		void renderEntities(const Camera3D& camera) const;
 		void handleEntitiesCollisions() const;
+		void refreshCombatTargets();
 
 		// Input 
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, const Camera3D& camera) const;
@@ -41,6 +42,7 @@ namespace Nawia::Core {
 		// For overlap
 		[[nodiscard]] bool isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& e) const;
 		void resolveOverlap(const std::shared_ptr<Entity::Entity>& e1, const std::shared_ptr<Entity::Entity>& e2) const;
+		[[nodiscard]] std::shared_ptr<Entity::Entity> findClosestCombatTarget(const std::shared_ptr<Entity::Entity>& seeker) const;
 		
 
 	private:

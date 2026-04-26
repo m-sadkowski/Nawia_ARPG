@@ -52,6 +52,7 @@ namespace Nawia::World {
 		static std::shared_ptr<Entity::Entity> createDevil(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
 		static std::shared_ptr<Entity::Entity> createBandit(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
 		static std::shared_ptr<Entity::Entity> createWalkingDead(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
+		static std::shared_ptr<Entity::Entity> createFriend(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
 		static std::shared_ptr<Entity::Entity> createChest(const nlohmann::json& data, Core::Engine* engine);
 		static std::shared_ptr<Entity::Entity> createNPC(const nlohmann::json& data, Core::Engine* engine);
 		static std::shared_ptr<Entity::Entity> createStaticObject(const nlohmann::json& data, Core::Engine* engine);

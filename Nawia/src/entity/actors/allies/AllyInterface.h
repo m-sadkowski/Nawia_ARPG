@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AllyBrain.h"
 #include "Entity.h"
 
 #include <memory>
@@ -19,6 +20,8 @@ namespace Nawia::Entity {
 	class AllyInterface : public Entity {
 	public:
 		void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
+		void setBrain(const std::shared_ptr<AllyBrain>& brain) { _brain = brain; }
+		[[nodiscard]] std::shared_ptr<AllyBrain> getBrain() const { return _brain; }
 
 	protected:
 		template <typename T> friend class AllyBuilder;
@@ -32,6 +35,7 @@ namespace Nawia::Entity {
 		}
 
 		Core::Map* _map = nullptr;
+		std::shared_ptr<AllyBrain> _brain = nullptr;
 	};
 
 	template <typename Derived>
@@ -48,6 +52,12 @@ namespace Nawia::Entity {
 		Derived& setTarget(const std::shared_ptr<Entity>& target) {
 			auto ally_ptr = static_cast<AllyInterface*>(this->_entity);
 			ally_ptr->_target = target;
+			return this->self();
+		}
+
+		Derived& setBrain(const std::shared_ptr<AllyBrain>& brain) {
+			auto ally_ptr = static_cast<AllyInterface*>(this->_entity);
+			ally_ptr->_brain = brain;
 			return this->self();
 		}
 	};

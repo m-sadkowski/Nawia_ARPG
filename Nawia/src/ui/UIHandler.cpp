@@ -203,7 +203,7 @@ namespace Nawia::UI {
         renderPlayerHealthBar();
         renderPlayerAbilityBar();
         renderPlayerExperienceBar();
-        renderEnemyHealthBars(camera);
+        renderCombatEntityHealthBars(camera);
         renderLocationInfo();
 
         // Render damage flash overlay
@@ -349,13 +349,13 @@ namespace Nawia::UI {
         DrawTextEx(_font, text, { screen_x + (bar_width - text_size.x) / 2.0f, screen_y + (bar_height - text_size.y) / 2.0f }, font_size, text_spacing, WHITE);
     }
 
-    void UIHandler::renderEnemyHealthBars(const Core::GameCamera& camera) const 
+    void UIHandler::renderCombatEntityHealthBars(const Core::GameCamera& camera) const 
 	{
         if (!_entity_manager) return;
 
         for (const auto& entity : _entity_manager->getEntities())
         {
-            if (entity->getFaction() == Entity::Faction::Enemy && 
+            if ((entity->getFaction() == Entity::Faction::Enemy || entity->getFaction() == Entity::Faction::Ally) &&
                 entity->getHP() < entity->getMaxHP() && 
                 entity->getHP() > 0) 
             {
