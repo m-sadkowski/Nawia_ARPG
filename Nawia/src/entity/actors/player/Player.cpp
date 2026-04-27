@@ -181,6 +181,7 @@ namespace Nawia::Entity {
 		setAnimationSpeed(4.0f);
 		playAnimation("knocked", false, true, 0, true);
 	}
+
 	void Player::levelUp() {
 		_level++;
 		_exp = _exp - _expToNextLvl;
@@ -190,6 +191,7 @@ namespace Nawia::Entity {
 		_base_stats.attack_speed = _base_stats.attack_speed + 0.1f;
 		_base_stats.movement_speed = 4.0f;
 		_base_stats.tenacity = _base_stats.tenacity + 0.1f;
+		recalculateStats();
 	}
 
 	void Player::isLevelUp() {
