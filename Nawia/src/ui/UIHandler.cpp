@@ -173,26 +173,43 @@ namespace Nawia::UI {
         const float screen_w = static_cast<float>(GetScreenWidth());
         const float screen_h = static_cast<float>(GetScreenHeight());
         const float fs = Core::GlobalScaling::scaled(FONT_SIZE_SUBTITLE);
-        const char* names[] = { "Krzysztof", "Marcin", "Szymon", "Wojciech" };
+        const char* names[] = { "Michal Sadkowski", "Michal Matysiak", "Dawid Wesolowski", "Ostap Lozovyy" };
         float cy = screen_h * 0.35f;
         for (const auto* n : names) {
             Vector2 sz = MeasureTextEx(_font, n, fs, 2.0f);
             DrawTextEx(_font, n, {(screen_w - sz.x) / 2.0f, cy}, fs, 2.0f, WHITE);
-            cy += fs + Core::GlobalScaling::scaled(30.0f);
+            cy += fs + Core::GlobalScaling::scaled(20.0f);
         }
-        renderVerticalMenu("AUTORZY", { {"POWROT", MenuAction::None} }, true);
+        
+        // Manual button for authors to keep it at the same height as Level Select
+        const float btn_w = Core::GlobalScaling::scaled(220.0f);
+        const float btn_h = Core::GlobalScaling::scaled(60.0f);
+        const float btn_y = screen_h - Core::GlobalScaling::scaled(140.0f);
+        const Rectangle back_rect = { (screen_w - btn_w) / 2.0f, btn_y, btn_w, btn_h };
+        drawMenuButton(back_rect, "POWROT", CheckCollisionPointRec(GetMousePosition(), back_rect) ? 1.0f : 0.0f);
     }
 
     MenuAction UIHandler::handleMenuInput() {
-        bool is_centered = _is_authors_open;
-        int count = is_centered ? 1 : 4;
-        auto rects = getVerticalMenuLayout(count, is_centered);
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            Vector2 m = GetMousePosition();
-            for (size_t i = 0; i < rects.size(); ++i) {
-                if (CheckCollisionPointRec(m, rects[i])) {
-                    if (_is_authors_open) { _is_authors_open = false; return MenuAction::None; }
-                    return (i == 0) ? MenuAction::Play : (i == 1) ? MenuAction::Settings : (i == 2) ? MenuAction::Authors : MenuAction::Exit;
+        bool is_authors = _is_authors_open;
+        if (is_authors) {
+            const float screen_w = static_cast<float>(GetScreenWidth());
+            const float screen_h = static_cast<float>(GetScreenHeight());
+            const float btn_w = Core::GlobalScaling::scaled(220.0f);
+            const float btn_h = Core::GlobalScaling::scaled(60.0f);
+            const float btn_y = screen_h - Core::GlobalScaling::scaled(140.0f);
+            const Rectangle back_rect = { (screen_w - btn_w) / 2.0f, btn_y, btn_w, btn_h };
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(GetMousePosition(), back_rect)) {
+                _is_authors_open = false;
+                return MenuAction::None;
+            }
+        } else {
+            auto rects = getVerticalMenuLayout(4, false);
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                Vector2 m = GetMousePosition();
+                for (size_t i = 0; i < rects.size(); ++i) {
+                    if (CheckCollisionPointRec(m, rects[i])) {
+                        return (i == 0) ? MenuAction::Play : (i == 1) ? MenuAction::Settings : (i == 2) ? MenuAction::Authors : MenuAction::Exit;
+                    }
                 }
             }
         }
@@ -341,7 +358,7 @@ namespace Nawia::UI {
     void UIHandler::renderLevelSelectMenu() const { if (_level_select_menu) { drawSharedMenuBackground(); _level_select_menu->render(*this); } }
     void UIHandler::openLevelSelect(const std::vector<World::LevelInfo>& l) { _level_select_menu = std::make_unique<LevelSelectMenu>(l); }
     void UIHandler::closeLevelSelect() { _level_select_menu.reset(); }
-    std::string UIHandler::handleLevelSelectInput() { if (_level_select_menu) return _level_select_menu->handleInput(); return ""; }
+    std::string UIHandler::handleLevelSelectInput() { if (IsKeyPressed(KEY_ESCAPE)) return "BACK"; if (_level_select_menu) return _level_select_menu->handleInput(); return ""; }
     void UIHandler::openContainer(Entity::InteractiveClickable* c) { _current_container = c; _is_inventory_open = true; }
     void UIHandler::closeContainer() { _current_container = nullptr; }
     bool UIHandler::isInputBlocked() const { return _dialogueUI.isOpen() || _is_inventory_open || _current_container || _is_quest_ui_open; }

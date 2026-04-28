@@ -5,6 +5,8 @@
 
 #include <raylib.h>
 #include <functional>
+#include <string>
+#include <vector>
 
 namespace Nawia::UI {
 
@@ -14,53 +16,35 @@ namespace Nawia::UI {
  * @class SettingsMenu
  * @brief UI component for game settings (resolution, fullscreen, etc.)
  * 
- * Renders a settings panel with selectable options and handles user input.
- * Uses GlobalScaling for proper sizing at any resolution.
+ * Renders a premium settings panel with categories and modern sliders/selectors.
  */
 class SettingsMenu {
 public:
-    /// Callback type for when settings are applied
-    using ApplyCallback = std::function<void(const Core::Settings&)>;
-    
-    /**
-     * @brief Construct settings menu with current settings.
-     * @param current_settings Reference to current game settings
-     */
+    enum class Category { Graphics, Audio, Controls };
+
     explicit SettingsMenu(const Core::Settings& current_settings);
     
-    /**
-     * @brief Render the settings menu.
-     */
     void render(const UIHandler& ui) const;
-    
-    /**
-     * @brief Handle input and return action.
-     * @return true if user clicked "Back" (close menu)
-     */
     bool handleInput();
     
-    /**
-     * @brief Check if settings were applied.
-     * @return true if Apply was clicked this frame
-     */
     [[nodiscard]] bool wasApplied() const { return _applied; }
-    
-    /**
-     * @brief Get the modified settings.
-     * @return Current settings state (may differ from original if user made changes)
-     */
     [[nodiscard]] const Core::Settings& getSettings() const { return _settings; }
     
 private:
     Core::Settings _settings;
     int _selected_resolution_index;
+    Category _current_category = Category::Graphics;
     bool _applied = false;
-    mutable bool _dragging_slider = false;  ///< Track if slider is being dragged
+    mutable bool _dragging_slider = false;
+
+    // Helpers for modern UI
+    void drawSidebar(float x, float y, float width, float height, const UIHandler& ui) const;
+    void drawSettingsContent(float x, float y, float width, float height, const UIHandler& ui) const;
     
-    void drawResolutionSelector(float x, float y, float width, const Font& font) const;
-    void drawFullscreenCheckbox(float x, float y, const Font& font) const;
-    void drawScaleSlider(float x, float y, float width, const Font& font) const;
-    void drawButton(const Rectangle& rect, const char* text, bool is_hovered, const Font& font) const;
+    // Modern controls
+    void drawSelector(float x, float y, float width, const char* label, const std::string& value, const UIHandler& ui, int* change_out) const;
+    void drawToggle(float x, float y, float width, const char* label, bool enabled, const UIHandler& ui) const;
+    void drawSlider(float x, float y, float width, const char* label, float value, float min, float max, const UIHandler& ui) const;
 };
 
 } // namespace Nawia::UI

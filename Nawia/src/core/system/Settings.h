@@ -24,6 +24,12 @@ struct Resolution {
 };
 
 /**
+ * @enum TextureQuality
+ * @brief Represents texture quality levels.
+ */
+enum class TextureQuality { Low, Medium, High };
+
+/**
  * @class Settings
  * @brief Game settings manager with JSON persistence.
  * 
@@ -48,6 +54,9 @@ public:
     
     /// UI scale factor (user-controlled)
     float ui_scale = 1.0f;
+    
+    /// Texture quality level
+    TextureQuality texture_quality = TextureQuality::Medium;
     
     /// UI scale limits
     static constexpr float UI_SCALE_MIN = 1.0f;
@@ -91,6 +100,18 @@ public:
      * @param index Index in the available resolutions list
      */
     void setResolutionByIndex(int index);
+
+    /**
+     * @brief Get texture quality as a Polish string.
+     */
+    [[nodiscard]] std::string getTextureQualityString() const {
+        switch (texture_quality) {
+            case TextureQuality::Low: return "Niska";
+            case TextureQuality::Medium: return "Srednia";
+            case TextureQuality::High: return "Wysoka";
+            default: return "Nieznana";
+        }
+    }
 };
 
 } // namespace Nawia::Core
