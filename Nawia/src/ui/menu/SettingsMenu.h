@@ -8,6 +8,8 @@
 
 namespace Nawia::UI {
 
+    class UIHandler;
+
 /**
  * @class SettingsMenu
  * @brief UI component for game settings (resolution, fullscreen, etc.)
@@ -29,7 +31,7 @@ public:
     /**
      * @brief Render the settings menu.
      */
-    void render(const Font& font) const;
+    void render(const UIHandler& ui) const;
     
     /**
      * @brief Handle input and return action.

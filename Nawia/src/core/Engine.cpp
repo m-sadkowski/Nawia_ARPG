@@ -139,6 +139,10 @@ namespace Nawia::Core {
                 _ui_handler->openSettings(_settings);
                 _game_state = GameState::SettingsMenu;
             }
+            else if (action == Nawia::UI::MenuAction::Authors)
+            {
+                _ui_handler->openAuthors();
+            }
             else if (action == Nawia::UI::MenuAction::Exit)
             {
                 _is_running = false;

@@ -1,6 +1,6 @@
 #include "UIHandler.h"
-#include "SettingsMenu.h"
-#include "LevelSelectMenu.h"
+#include "menu/SettingsMenu.h"
+#include "menu/LevelSelectMenu.h"
 #include "StatsUI.h"
 
 #include <Player.h>
@@ -14,6 +14,7 @@
 #include <Collider.h>
 #include <ResourceManager.h>
 #include <QuestManager.h>
+#include <LevelManager.h>
 
 #include <algorithm>
 #include <cmath>
@@ -22,802 +23,326 @@
 namespace Nawia::UI {
 
     namespace {
-        struct MenuLayout 
-    	{
-            Rectangle play_btn;
-            Rectangle settings_btn;
-            Rectangle exit_btn;
-        };
+        // Layout constants
+        constexpr float MENU_SIDE_X_PCT = 0.10f;
+        constexpr float MENU_START_Y_PCT = 0.42f;
+        constexpr float BUTTON_WIDTH = 340.0f;
+        constexpr float BUTTON_HEIGHT = 70.0f;
+        constexpr float BUTTON_SPACING = 18.0f;
 
-        MenuLayout getMenuLayout(const float screen_width, const float screen_height) 
+        std::vector<Rectangle> getVerticalMenuLayout(int count, bool centered = false) 
     	{
-            const float btn_width = Core::GlobalScaling::scaled(200.0f);
-            const float btn_height = Core::GlobalScaling::scaled(50.0f);
-            const float spacing = Core::GlobalScaling::scaled(20.0f);
+            const float screen_w = static_cast<float>(GetScreenWidth());
+            const float screen_h = static_cast<float>(GetScreenHeight());
+            const float b_w = Core::GlobalScaling::scaled(BUTTON_WIDTH);
+            const float b_h = Core::GlobalScaling::scaled(BUTTON_HEIGHT);
+            const float spacing = Core::GlobalScaling::scaled(BUTTON_SPACING);
             
-            const float start_y = screen_height / 2.0f;
-            const float center_x = (screen_width - btn_width) / 2.0f;
+            std::vector<Rectangle> rects;
+            float start_x = centered ? (screen_w - b_w) / 2.0f : screen_w * MENU_SIDE_X_PCT;
+            float start_y = centered ? (screen_h - (count * b_h + (count - 1) * spacing)) / 2.0f + Core::GlobalScaling::scaled(40.0f) : screen_h * MENU_START_Y_PCT;
 
-            return {
-                { center_x, start_y, btn_width, btn_height },
-                { center_x, start_y + btn_height + spacing, btn_width, btn_height },
-                { center_x, start_y + 2 * (btn_height + spacing), btn_width, btn_height }
-            };
-        }
-
-        // Health bar is positioned above the entity in screen space
-        // We use a fixed pixel offset above the projected screen position
-        constexpr float HEALTH_BAR_Y_OFFSET = 60.0f;
-
-        float fract(const float value)
-        {
-            return value - std::floor(value);
-        }
-
-        float hash01(const float seed)
-        {
-            return fract(std::sin(seed * 127.1f) * 43758.5453f);
-        }
-
-        Color withAlpha(const Color color, const float alpha)
-        {
-            return {
-                color.r,
-                color.g,
-                color.b,
-                static_cast<unsigned char>(std::clamp(alpha, 0.0f, 1.0f) * 255.0f)
-            };
-        }
-
-        void drawAnimatedMenuBackground(const Texture2D& texture, const float screen_width, const float screen_height)
-        {
-            const float time = static_cast<float>(GetTime());
-            const float texture_aspect = static_cast<float>(texture.width) / static_cast<float>(texture.height);
-            const float screen_aspect = screen_width / screen_height;
-
-            float source_width = static_cast<float>(texture.width);
-            float source_height = static_cast<float>(texture.height);
-
-            if (texture_aspect > screen_aspect) {
-                source_width = source_height * screen_aspect;
-            } else {
-                source_height = source_width / screen_aspect;
+            for (int i = 0; i < count; ++i) {
+                rects.push_back({ start_x, start_y + i * (b_h + spacing), b_w, b_h });
             }
-
-            const float zoom = 0.11f + 0.02f * std::sin(time * 0.23f);
-            source_width *= (1.0f - zoom);
-            source_height *= (1.0f - zoom);
-
-            const float max_offset_x = std::max(0.0f, (static_cast<float>(texture.width) - source_width) * 0.5f);
-            const float max_offset_y = std::max(0.0f, (static_cast<float>(texture.height) - source_height) * 0.5f);
-
-            const float offset_x = max_offset_x * std::sin(time * 0.12f + 0.8f);
-            const float offset_y = max_offset_y * std::cos(time * 0.09f - 0.35f);
-
-            const Rectangle source = {
-                (static_cast<float>(texture.width) - source_width) * 0.5f + offset_x,
-                (static_cast<float>(texture.height) - source_height) * 0.5f + offset_y,
-                source_width,
-                source_height
-            };
-
-            DrawTexturePro(texture, source, { 0, 0, screen_width, screen_height }, { 0, 0 }, 0.0f, WHITE);
-
-            DrawRectangleGradientV(
-                0,
-                0,
-                static_cast<int>(screen_width),
-                static_cast<int>(screen_height),
-                withAlpha({ 30, 14, 10, 255 }, 0.10f),
-                withAlpha({ 5, 5, 8, 255 }, 0.48f)
-            );
+            return rects;
         }
 
-        void drawSmokeLayer(const float screen_width, const float screen_height, const float time)
-        {
+        float fract(float v) { return v - std::floor(v); }
+        float hash01(float s) { return fract(std::sin(s * 127.1f) * 43758.5453f); }
+        Color withAlpha(Color c, float a) { return { c.r, c.g, c.b, static_cast<unsigned char>(std::clamp(a, 0.0f, 1.0f) * 255.0f) }; }
+        Color LerpColor(Color c1, Color c2, float t) {
+            return {
+                static_cast<unsigned char>(c1.r + (c2.r - c1.r) * t),
+                static_cast<unsigned char>(c1.g + (c2.g - c1.g) * t),
+                static_cast<unsigned char>(c1.b + (c2.b - c1.b) * t),
+                static_cast<unsigned char>(c1.a + (c2.a - c1.a) * t)
+            };
+        }
+
+        void drawSmokeLayer(float w, float h, float t) {
             for (int i = 0; i < 26; ++i) {
-                const float seed = static_cast<float>(i) * 11.73f + 3.1f;
-                const float travel = fract(hash01(seed) + time * (0.012f + hash01(seed + 2.0f) * 0.016f));
-                const float sway = std::sin(time * (0.22f + hash01(seed + 4.0f) * 0.18f) + seed);
-                const float x = screen_width * (0.05f + hash01(seed + 1.0f) * 0.90f) + sway * screen_width * 0.06f;
-                const float y = screen_height * (1.12f - travel * 1.24f);
-                const float radius = Core::GlobalScaling::scaled(110.0f + hash01(seed + 5.0f) * 150.0f);
-                const float alpha = (0.35f + (1.0f - travel) * 0.65f) * (0.035f + hash01(seed + 6.0f) * 0.07f);
-
-                DrawCircleGradient(
-                    static_cast<int>(x),
-                    static_cast<int>(y),
-                    radius,
-                    withAlpha(LIGHTGRAY, alpha),
-                    withAlpha(DARKGRAY, 0.0f)
-                );
+                float s = static_cast<float>(i) * 11.73f + 3.1f;
+                float travel = fract(hash01(s) + t * (0.012f + hash01(s + 2.0f) * 0.016f));
+                float x = w * (0.05f + hash01(s + 1.0f) * 0.90f) + std::sin(t * (0.22f + hash01(s + 4.0f) * 0.18f) + s) * w * 0.06f;
+                float y = h * (1.12f - travel * 1.24f);
+                float radius = Core::GlobalScaling::scaled(110.0f + hash01(s + 5.0f) * 150.0f);
+                float alpha = (0.35f + (1.0f - travel) * 0.65f) * (0.035f + hash01(s + 6.0f) * 0.07f);
+                DrawCircleGradient(static_cast<int>(x), static_cast<int>(y), radius, withAlpha(LIGHTGRAY, alpha), withAlpha(DARKGRAY, 0.0f));
             }
         }
 
-        void drawFireParticles(const float screen_width, const float screen_height, const float time)
-        {
+        void drawFireParticles(float w, float h, float t) {
             for (int i = 0; i < 96; ++i) {
-                const float seed = static_cast<float>(i) * 17.13f + 8.0f;
-                const float cycle = fract(hash01(seed) + time * (0.10f + hash01(seed + 1.0f) * 0.22f));
-                const float rise = 1.0f - cycle;
-                const float base_x = screen_width * (0.03f + hash01(seed + 2.0f) * 0.94f);
-                const float drift = std::sin(time * (1.0f + hash01(seed + 3.0f) * 1.5f) + seed) * screen_width * (0.01f + hash01(seed + 9.0f) * 0.02f);
-                const float x = base_x + drift;
-                const float y = screen_height * (1.04f - rise * 1.18f);
-                const float size_class = hash01(seed + 7.0f);
-                const float radius = Core::GlobalScaling::scaled(1.5f + size_class * size_class * 12.0f) * (0.45f + rise * 0.95f);
-                const float alpha = (0.10f + rise * 0.50f) * (0.55f + hash01(seed + 6.0f) * 0.45f);
-                const Color inner = withAlpha({ 255, 233, 168, 255 }, alpha);
-                const Color outer = withAlpha({ 255, 96, 24, 255 }, alpha * 0.35f);
-
-                DrawCircleGradient(static_cast<int>(x), static_cast<int>(y), radius, inner, outer);
+                float s = static_cast<float>(i) * 17.13f + 8.0f;
+                float cycle = fract(hash01(s) + t * (0.10f + hash01(s + 1.0f) * 0.22f));
+                float rise = 1.0f - cycle;
+                float x = w * (0.03f + hash01(s + 2.0f) * 0.94f) + std::sin(t * (1.0f + hash01(s + 3.0f) * 1.5f) + s) * w * (0.01f + hash01(s + 9.0f) * 0.02f);
+                float y = h * (1.04f - rise * 1.18f);
+                float radius = Core::GlobalScaling::scaled(1.5f + hash01(s + 7.0f) * hash01(s + 7.0f) * 12.0f) * (0.45f + rise * 0.95f);
+                float alpha = (0.10f + rise * 0.50f) * (0.55f + hash01(s + 6.0f) * 0.45f);
+                DrawCircleGradient(static_cast<int>(x), static_cast<int>(y), radius, withAlpha(Color{ 255, 233, 168, 255 }, alpha), withAlpha(Color{ 255, 96, 24, 255 }, alpha * 0.35f));
             }
         }
     }
 
     UIHandler::UIHandler() : _player(nullptr), _entity_manager(nullptr) {}
+    UIHandler::~UIHandler() { UnloadFont(_font); }
 
-    UIHandler::~UIHandler() 
-	{
-        UnloadFont(_font);
-    }
-
-    void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager)
-	{
+    void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager) {
         _player = player;
         _entity_manager = entity_manager;
-        // Load font at high resolution for quality scaling
-        const int font_size = Core::GlobalScaling::scaledInt(300);
-        _font = LoadFontEx("../assets/fonts/slavic_font.ttf", font_size, nullptr, 0);
+        _font = LoadFontEx("../assets/fonts/slavic_font.ttf", Core::GlobalScaling::scaledInt(300), nullptr, 0);
         GenTextureMipmaps(&_font.texture);
         SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
 
         _main_menu_bg = resource_manager.getTexture("../assets/textures/main_menu.png");
+        _menu_btn_idle = resource_manager.getTexture("../assets/textures/ui/menu_btn_idle.png");
+        _menu_btn_hover = resource_manager.getTexture("../assets/textures/ui/menu_btn_hover.png");
 
         _inventory_ui = std::make_unique<InventoryUI>();
         _inventory_ui->loadResources(resource_manager);
-
-        // chest
         _chest_ui = std::make_unique<ChestUI>();
-        _current_container = nullptr;
-
         _stats_ui = std::make_unique<StatsUI>(_player);
-
         _quest_ui = std::make_unique<QuestUI>();
         _quest_manager = quest_manager;
-
         _previous_hp = _player->getHP();
     }
 
-    void UIHandler::update(const float dt)
-	{
-        // Damage Flash Logic
-        if (_player)
-        {
-            int current_hp = _player->getHP();
-            if (current_hp < _previous_hp)
-            {
-                // Player took damage, trigger flash
-                std:: cout << "Player took damage" << std::endl;
-                _damage_flash_timer = 0.3f; // Flash lasts 0.5 seconds
-            }
-            _previous_hp = current_hp;
+    void UIHandler::updateHoverTimers(float dt, const std::vector<Rectangle>& rects) {
+        if (_hover_timers.size() != rects.size()) _hover_timers.assign(rects.size(), 0.0f);
+        Vector2 mouse = GetMousePosition();
+        for (size_t i = 0; i < rects.size(); ++i) {
+            if (CheckCollisionPointRec(mouse, rects[i])) _hover_timers[i] = std::min(1.0f, _hover_timers[i] + dt * 6.0f);
+            else _hover_timers[i] = std::max(0.0f, _hover_timers[i] - dt * 4.0f);
         }
+    }
 
-        if (_damage_flash_timer > 0.0f)
-        {
-            _damage_flash_timer -= dt;
-            if (_damage_flash_timer < 0.0f) _damage_flash_timer = 0.0f;
+    void UIHandler::update(float dt) {
+        if (_player) {
+            if (_player->getHP() < _previous_hp) _damage_flash_timer = 0.3f;
+            _previous_hp = _player->getHP();
         }
+        if (_damage_flash_timer > 0.0f) _damage_flash_timer = std::max(0.0f, _damage_flash_timer - dt);
 
-        // Update notifications
-        for (auto it = _notifications.begin(); it != _notifications.end();) 
-        {
+        // Determine which menu is active to update its hover timers
+        if (_is_authors_open) updateHoverTimers(dt, getVerticalMenuLayout(1, true));
+        else if (_settings_menu) {} // SettingsMenu handles its own hover for now
+        else if (_level_select_menu) {}
+        else updateHoverTimers(dt, getVerticalMenuLayout(4));
+
+        for (auto it = _notifications.begin(); it != _notifications.end();) {
             it->timer -= dt;
-            if (it->timer <= 0.0f)
-                it = _notifications.erase(it);
-            else
-                ++it;
+            if (it->timer <= 0.0f) it = _notifications.erase(it); else ++it;
         }
     }
 
-    void UIHandler::showNotification(const std::string& text, const float duration) 
-	{
-        _notifications.push_back({ text, duration, duration });
+    void UIHandler::renderVerticalMenu(const char* title, const std::vector<MenuButtonDef>& buttons, bool centered) const {
+        const float screen_w = static_cast<float>(GetScreenWidth());
+        const float screen_h = static_cast<float>(GetScreenHeight());
+        const float spacing = Core::GlobalScaling::scaled(2.0f);
+        
+        // Title
+        const float title_fs = Core::GlobalScaling::scaled(centered ? FONT_SIZE_TITLE : 140.0f);
+        Vector2 title_size = MeasureTextEx(_font, title, title_fs, spacing);
+        Vector2 title_pos = centered ? Vector2{(screen_w - title_size.x) / 2.0f, Core::GlobalScaling::scaled(80.0f)} 
+                                     : Vector2{screen_w * MENU_SIDE_X_PCT, screen_h * 0.22f + std::sin(static_cast<float>(GetTime()) * 0.8f) * Core::GlobalScaling::scaled(4.0f)};
+        
+        if (!centered) { // Special main menu title style
+            DrawTextEx(_font, title, { title_pos.x + 6, title_pos.y + 6 }, title_fs, spacing, withAlpha(BLACK, 0.8f));
+            DrawTextEx(_font, title, title_pos, title_fs, spacing, WHITE);
+        } else {
+            DrawTextEx(_font, title, title_pos, title_fs, spacing, Color{ 255, 200, 100, 255 });
+        }
+
+        auto rects = getVerticalMenuLayout(static_cast<int>(buttons.size()), centered);
+        for (size_t i = 0; i < buttons.size(); ++i) {
+            float hover = (i < _hover_timers.size()) ? _hover_timers[i] : 0.0f;
+            drawMenuButton(rects[i], buttons[i].label, hover);
+        }
     }
 
-    void UIHandler::handleInput() 
-	{
-        if (_dialogueUI.isOpen()) {
-            _dialogueUI.handleInput();
-            return;
-        }
+    void UIHandler::renderMainMenu() const {
+        if (_is_authors_open) { renderAuthorsMenu(); return; }
+        drawSharedMenuBackground();
+        renderVerticalMenu("Nawia", { {"GRAJ", MenuAction::Play}, {"USTAWIENIA", MenuAction::Settings}, {"AUTORZY", MenuAction::Authors}, {"WYJDZ", MenuAction::Exit} });
+    }
 
-        // Future UI input logic (handled by handleMenuInput for menu state)
-        if (IsKeyPressed(KEY_I) || IsKeyPressed(KEY_TAB)) {
-            if (_current_container) closeContainer();
-            toggleInventory();
+    void UIHandler::renderAuthorsMenu() const {
+        drawSharedMenuBackground();
+        const float screen_w = static_cast<float>(GetScreenWidth());
+        const float screen_h = static_cast<float>(GetScreenHeight());
+        const float fs = Core::GlobalScaling::scaled(FONT_SIZE_SUBTITLE);
+        const char* names[] = { "Krzysztof", "Marcin", "Szymon", "Wojciech" };
+        float cy = screen_h * 0.35f;
+        for (const auto* n : names) {
+            Vector2 sz = MeasureTextEx(_font, n, fs, 2.0f);
+            DrawTextEx(_font, n, {(screen_w - sz.x) / 2.0f, cy}, fs, 2.0f, WHITE);
+            cy += fs + Core::GlobalScaling::scaled(30.0f);
         }
+        renderVerticalMenu("AUTORZY", { {"POWROT", MenuAction::None} }, true);
+    }
 
-        if (IsKeyPressed(KEY_P)) {
-            toggleQuestUI();
+    MenuAction UIHandler::handleMenuInput() {
+        bool is_centered = _is_authors_open;
+        int count = is_centered ? 1 : 4;
+        auto rects = getVerticalMenuLayout(count, is_centered);
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            Vector2 m = GetMousePosition();
+            for (size_t i = 0; i < rects.size(); ++i) {
+                if (CheckCollisionPointRec(m, rects[i])) {
+                    if (_is_authors_open) { _is_authors_open = false; return MenuAction::None; }
+                    return (i == 0) ? MenuAction::Play : (i == 1) ? MenuAction::Settings : (i == 2) ? MenuAction::Authors : MenuAction::Exit;
+                }
+            }
         }
+        if (IsKeyPressed(KEY_ESCAPE) && _is_authors_open) _is_authors_open = false;
+        return MenuAction::None;
+    }
 
-        if (_is_quest_ui_open) {
-            _quest_ui->handleInput();
+    void UIHandler::drawMenuButton(const Rectangle& rect, const char* text, float hover) const {
+        DrawRectangleRec(rect, withAlpha({ 40, 40, 50, 255 }, 0.45f + hover * 0.35f));
+        DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), LerpColor(withAlpha(WHITE, 0.35f), withAlpha(Color{ 255, 200, 100, 255 }, 0.9f), hover));
+        if (hover > 0.01f) DrawRectangleGradientV(rect.x, rect.y, rect.width, rect.height, withAlpha(WHITE, 0.06f * hover), withAlpha(WHITE, 0.0f));
+        float fs = Core::GlobalScaling::scaled(FONT_SIZE_BUTTON);
+        Vector2 sz = MeasureTextEx(_font, text, fs, 2.0f);
+        Vector2 pos = { rect.x + (rect.width - sz.x) / 2.0f + hover * Core::GlobalScaling::scaled(12.0f), rect.y + (rect.height - sz.y) / 2.0f };
+        DrawTextEx(_font, text, { pos.x + 2, pos.y + 2 }, fs, 2.0f, withAlpha(BLACK, 0.5f));
+        DrawTextEx(_font, text, pos, fs, 2.0f, LerpColor(withAlpha(WHITE, 0.95f), { 255, 225, 120, 255 }, hover));
+    }
+
+    void UIHandler::drawSharedMenuBackground() const {
+        float w = GetScreenWidth(), h = GetScreenHeight(), t = GetTime();
+        if (_main_menu_bg) {
+            float ta = static_cast<float>(_main_menu_bg->width) / _main_menu_bg->height, sa = w / h, sw = _main_menu_bg->width, sh = _main_menu_bg->height;
+            if (ta > sa) sw = sh * sa; else sh = sw / sa;
+            float z = 0.11f + 0.02f * std::sin(t * 0.23f); sw *= (1.0f - z); sh *= (1.0f - z);
+            float ox = std::max(0.0f, (_main_menu_bg->width - sw) * 0.5f) * std::sin(t * 0.12f + 0.8f);
+            float oy = std::max(0.0f, (_main_menu_bg->height - sh) * 0.5f) * std::cos(t * 0.09f - 0.35f);
+            DrawTexturePro(*_main_menu_bg, { (_main_menu_bg->width - sw) * 0.5f + ox, (_main_menu_bg->height - sh) * 0.5f + oy, sw, sh }, { 0, 0, w, h }, { 0, 0 }, 0.0f, WHITE);
+        } else DrawRectangle(0, 0, w, h, Fade(BLACK, 0.8f));
+        DrawRectangleGradientV(0, 0, w, h, withAlpha({ 30, 14, 10, 255 }, 0.10f), withAlpha({ 5, 5, 8, 255 }, 0.48f));
+        drawSmokeLayer(w, h, t); drawFireParticles(w, h, t);
+        DrawRectangleGradientV(0, 0, w, h, withAlpha(Color{ 255, 170, 100, 255 }, 0.02f), withAlpha(Color{ 0, 0, 0, 255 }, 0.12f));
+    }
+
+    void UIHandler::render(const Core::GameCamera& camera) {
+        if (!_player || !_entity_manager) return;
+        renderPlayerHealthBar(); renderPlayerAbilityBar(); renderPlayerExperienceBar();
+        renderCombatEntityHealthBars(camera); renderLocationInfo();
+        if (_damage_flash_timer > 0.0f) DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(RED, (_damage_flash_timer / 0.3f) * 0.4f));
+        float ny = 10.0f;
+        for (const auto& n : _notifications) {
+            Vector2 sz = MeasureTextEx(_font, n.text.c_str(), Core::GlobalScaling::scaled(24.0f), 1.0f);
+            float x = GetScreenWidth() - sz.x - 20.0f;
+            DrawRectangle(x - 5, ny - 5, sz.x + 10, sz.y + 10, Fade(BLACK, 0.7f));
+            DrawRectangleLines(x - 5, ny - 5, sz.x + 10, sz.y + 10, WHITE);
+            DrawTextEx(_font, n.text.c_str(), { x, ny }, Core::GlobalScaling::scaled(24.0f), 1.0f, WHITE);
+            ny += sz.y + 20.0f;
         }
-
+        _dialogueUI.render(_font);
         if (_is_inventory_open) {
-            int _backpack_slot = _inventory_ui->handleInput();
-            if (_backpack_slot != -1) {
-                _player->equipItemFromBackpack(_backpack_slot);
-                return;
-            }
+            _inventory_ui->render(_font, *_player);
+            if (_stats_ui) _stats_ui->render(20.0f, GetScreenHeight() - Core::GlobalScaling::scaled(260.0f), _font);
+            if (_current_container) _chest_ui->render(*_current_container->getInventory(), _font);
+        }
+        if (_is_quest_ui_open) _quest_ui->render(_font, _quest_manager);
+    }
 
-            auto _eq_slot = _inventory_ui->getClickedEquipmentSlot();
-            if (_eq_slot != Item::EquipmentSlot::None) {
-                _player->unequipItem(_eq_slot);
-            }
+    void UIHandler::renderPauseMenu() const {
+        drawSharedMenuBackground(); // Shared background even for pause if we want it unified
+        renderVerticalMenu("PAUZA", { {"KONTYNUUJ", MenuAction::Play}, {"USTAWIENIA", MenuAction::Settings}, {"MENU GLOWNE", MenuAction::Exit} }, true);
+    }
 
-            // chest handler
+    MenuAction UIHandler::handlePauseMenuInput() {
+        auto rects = getVerticalMenuLayout(3, true);
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            Vector2 m = GetMousePosition();
+            if (CheckCollisionPointRec(m, rects[0])) return MenuAction::Play;
+            if (CheckCollisionPointRec(m, rects[1])) return MenuAction::Settings;
+            if (CheckCollisionPointRec(m, rects[2])) return MenuAction::Exit;
+        }
+        return MenuAction::None;
+    }
+
+    void UIHandler::renderGameOverScreen() const {
+        drawSharedMenuBackground();
+        renderVerticalMenu("NIE ZYJESZ", { {"ODRODZENIE", MenuAction::Respawn}, {"MENU GLOWNE", MenuAction::Exit} }, true);
+    }
+
+    MenuAction UIHandler::handleGameOverInput() {
+        auto rects = getVerticalMenuLayout(2, true);
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            Vector2 m = GetMousePosition();
+            if (CheckCollisionPointRec(m, rects[0])) return MenuAction::Respawn;
+            if (CheckCollisionPointRec(m, rects[1])) return MenuAction::Exit;
+        }
+        return MenuAction::None;
+    }
+
+    // Remaining basic helpers
+    void UIHandler::drawBar(float x, float y, float w, float h, float p, Color fg, Color bg) const { DrawRectangle(x, y, w, h, bg); DrawRectangle(x, y, w * p, h, fg); }
+    void UIHandler::showNotification(const std::string& t, float d) { _notifications.push_back({ t, d, d }); }
+    void UIHandler::handleInput() {
+        if (_dialogueUI.isOpen()) { _dialogueUI.handleInput(); return; }
+        if (IsKeyPressed(KEY_I) || IsKeyPressed(KEY_TAB)) { if (_current_container) closeContainer(); toggleInventory(); }
+        if (IsKeyPressed(KEY_P)) toggleQuestUI();
+        if (_is_quest_ui_open) _quest_ui->handleInput();
+        if (_is_inventory_open) {
+            int bs = _inventory_ui->handleInput(); if (bs != -1) { _player->equipItemFromBackpack(bs); return; }
+            auto es = _inventory_ui->getClickedEquipmentSlot(); if (es != Item::EquipmentSlot::None) _player->unequipItem(es);
             if (_current_container) {
-                int chestSlot = _chest_ui->handleInput();
-
-                if (chestSlot != -1) {
-                    auto& chestInv = *_current_container->getInventory();
-                    auto item = chestInv.getItem(chestSlot);
-
-                    if (item) {
-                        if (_player->getBackpack().addItem(item)) {
-                            chestInv.removeItem(chestSlot);
-
-                            // Notify QuestManager about item collection
-                            if (_quest_manager) {
-                                _quest_manager->notifyItemCollected(item->getId());
-                            }
-                        }
-                    }
+                int cs = _chest_ui->handleInput(); if (cs != -1) { auto& ci = *_current_container->getInventory(); auto item = ci.getItem(cs);
+                    if (item && _player->getBackpack().addItem(item)) { ci.removeItem(cs); if (_quest_manager) _quest_manager->notifyItemCollected(item->getId()); }
                 }
             }
         }
     }
-
-    MenuAction UIHandler::handleMenuInput() 
-	{
-        const float screen_width = static_cast<float>(GetScreenWidth());
-        const float screen_height = static_cast<float>(GetScreenHeight());
-        const auto layout = getMenuLayout(screen_width, screen_height);
-        const Vector2 mouse_pos = GetMousePosition();
-
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) 
-        {
-            if (CheckCollisionPointRec(mouse_pos, layout.play_btn))
-                return MenuAction::Play;
-            if (CheckCollisionPointRec(mouse_pos, layout.settings_btn))
-                return MenuAction::Settings;
-            if (CheckCollisionPointRec(mouse_pos, layout.exit_btn))
-                return MenuAction::Exit;
-        }
-
-        return MenuAction::None;
+    void UIHandler::renderPlayerHealthBar() const {
+        float w = Core::GlobalScaling::scaled(300.0f), h = Core::GlobalScaling::scaled(25.0f), x = (GetScreenWidth() - w) / 2.0f, y = GetScreenHeight() - Core::GlobalScaling::scaled(75.0f);
+        drawBar(x, y, w, h, std::clamp(static_cast<float>(_player->getHP()) / _player->getMaxHP(), 0.0f, 1.0f), RED, DARKGRAY);
+        DrawRectangleLinesEx({ x, y, w, h }, 2.0f, WHITE);
+        const char* t = TextFormat("%d / %d", _player->getHP(), _player->getMaxHP()); Vector2 sz = MeasureTextEx(_font, t, 20.0f, 1.0f);
+        DrawTextEx(_font, t, { x + (w - sz.x) / 2.0f, y + (h - sz.y) / 2.0f }, 20.0f, 1.0f, WHITE);
     }
-
-    void UIHandler::render(const Core::GameCamera& camera) 
-	{
-        if (!_player || !_entity_manager) return;
-
-        renderPlayerHealthBar();
-        renderPlayerAbilityBar();
-        renderPlayerExperienceBar();
-        renderCombatEntityHealthBars(camera);
-        renderLocationInfo();
-
-        // Render damage flash overlay
-        if (_damage_flash_timer > 0.0f)
-        {
-            const float screen_width = static_cast<float>(GetScreenWidth());
-            const float screen_height = static_cast<float>(GetScreenHeight());
-            
-            // Alpha fades out as timer decreases relative to max duration (0.5f)
-            // Max alpha around 0.4 (semi-transparent red)
-            float alpha = (_damage_flash_timer / 0.5f) * 0.4f;
-            
-            DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(RED, alpha));
-        }
-
-        // Render Notifications
-
-        // Render Notifications
-        float notif_y = 10.0f;
-        const float screen_width = static_cast<float>(GetScreenWidth());
-        for (const auto& notif : _notifications) 
-        {
-            const float font_size = Core::GlobalScaling::scaled(24.0f);
-            const float spacing = Core::GlobalScaling::scaled(1.0f);
-            const Vector2 text_size = MeasureTextEx(_font, notif.text.c_str(), font_size, spacing);
-            
-            const float x = screen_width - text_size.x - 20.0f;
-            
-            // Background
-            DrawRectangle(x - 5, notif_y - 5, text_size.x + 10, text_size.y + 10, Fade(BLACK, 0.7f));
-            DrawRectangleLines(x - 5, notif_y - 5, text_size.x + 10, text_size.y + 10, WHITE);
-            
-            DrawTextEx(_font, notif.text.c_str(), { x, notif_y }, font_size, spacing, WHITE);
-            
-            notif_y += text_size.y + 20.0f;
-        }
-
-        _dialogueUI.render(_font);
-
-        if (_is_inventory_open) {
-            _inventory_ui->render(_font, *_player);
-
-             if (_stats_ui) {
-                 const float margin = Core::GlobalScaling::scaled(20.0f);
-                 // StatsUI height is now scaled(240.0f) inside the class, so we calculate position assuming that
-                 const float ui_height = Core::GlobalScaling::scaled(240.0f); 
-                 
-                 const float stats_x = margin;
-                 const float stats_y = static_cast<float>(GetScreenHeight()) - ui_height - margin;
-                 
-                 _stats_ui->render(stats_x, stats_y, _font);
-            }
-
-            if (_current_container) {
-                _chest_ui->render(*_current_container->getInventory(), _font);
-            }
-        }
-
-        if (_is_quest_ui_open) {
-            _quest_ui->render(_font, _quest_manager);
+    void UIHandler::renderCombatEntityHealthBars(const Core::GameCamera& camera) const {
+        for (const auto& e : _entity_manager->getEntities()) if (!e->isDormant() && (e->getFaction() == Entity::Faction::Enemy || e->getFaction() == Entity::Faction::Ally) && e->getHP() < e->getMaxHP() && e->getHP() > 0) {
+            Vector2 sp = e->getScreenPosition(camera.get()); float w = 40.0f, h = 6.0f, x = sp.x - w / 2.0f, y = sp.y - 60.0f * Core::GlobalScaling::getScale();
+            drawBar(x, y, w, h, std::clamp(static_cast<float>(e->getHP()) / e->getMaxHP(), 0.0f, 1.0f), RED, DARKGRAY); DrawRectangleLinesEx({ x, y, w, h }, 1.0f, BLACK);
         }
     }
-
-    void UIHandler::renderMainMenu() const 
-	{
-        const float screen_width = static_cast<float>(GetScreenWidth());
-        const float screen_height = static_cast<float>(GetScreenHeight());
-        const float time = static_cast<float>(GetTime());
-
-        // Draw Background
-        if (_main_menu_bg) {
-            drawAnimatedMenuBackground(*_main_menu_bg, screen_width, screen_height);
-        } else {
-            DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.8f));
-        }
-
-        drawSmokeLayer(screen_width, screen_height, time);
-        drawFireParticles(screen_width, screen_height, time);
-        DrawRectangleGradientV(
-            0,
-            0,
-            static_cast<int>(screen_width),
-            static_cast<int>(screen_height),
-            withAlpha({ 255, 170, 100, 255 }, 0.02f),
-            withAlpha({ 0, 0, 0, 255 }, 0.12f)
-        );
-
-        // Draw Title
-        const auto* title_text = "Nawia";
-        const float title_font_size = Core::GlobalScaling::scaled(100.0f);
-        const float spacing = Core::GlobalScaling::scaled(2.0f);
-        Vector2 title_size = MeasureTextEx(_font, title_text, title_font_size, spacing);
-        
-        Vector2 title_pos = {
-            (screen_width - title_size.x) / 2.0f,
-            screen_height / 3.0f + std::sin(time * 0.8f) * Core::GlobalScaling::scaled(4.0f)
-        };
-        
-        // shadow
-        const float shadow_offset = Core::GlobalScaling::scaled(4.0f);
-        DrawTextEx(_font, title_text, { title_pos.x + shadow_offset, title_pos.y + shadow_offset }, title_font_size, spacing, withAlpha(BLACK, 0.9f));
-        DrawTextEx(_font, title_text, { title_pos.x, title_pos.y + Core::GlobalScaling::scaled(2.0f) }, title_font_size, spacing, withAlpha({ 255, 140, 70, 255 }, 0.35f));
-        // text
-        DrawTextEx(_font, title_text, title_pos, title_font_size, spacing, WHITE);
-
-        // Draw Buttons
-        const auto layout = getMenuLayout(screen_width, screen_height);
-        const Vector2 mouse_pos = GetMousePosition();
-
-        drawMenuButton(layout.play_btn, "GRAJ", CheckCollisionPointRec(mouse_pos, layout.play_btn));
-        drawMenuButton(layout.settings_btn, "USTAWIENIA", CheckCollisionPointRec(mouse_pos, layout.settings_btn));
-        drawMenuButton(layout.exit_btn, "WYJDZ", CheckCollisionPointRec(mouse_pos, layout.exit_btn));
-    }
-
-    void UIHandler::drawMenuButton(const Rectangle& rect, const char* text, const bool is_hovered) const
-    {
-        DrawRectangleRec(rect, is_hovered ? Fade(WHITE, 0.4f) : Fade(WHITE, 0.15f));
-        DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), WHITE);
-        
-        const float font_size = Core::GlobalScaling::scaled(20.0f);
-        const float spacing = Core::GlobalScaling::scaled(1.0f);
-        Vector2 text_size = MeasureTextEx(_font, text, font_size, spacing);
-        
-        Vector2 text_pos = { 
-            rect.x + (rect.width - text_size.x) / 2.0f, 
-            rect.y + (rect.height - text_size.y) / 2.0f 
-        };
-        
-        DrawTextEx(_font, text, text_pos, font_size, spacing, WHITE);
-    }
-
-    void UIHandler::renderPlayerHealthBar() const 
-	{
-        if (!_player) return;
-
-        // Configuration for Player Health Bar (scaled)
-        const float bar_width = Core::GlobalScaling::scaled(300.0f);
-        const float bar_height = Core::GlobalScaling::scaled(25.0f);
-        const float bottom_margin = Core::GlobalScaling::scaled(50.0f);
-
-        const float screen_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
-        const float screen_y = static_cast<float>(GetScreenHeight()) - bottom_margin - bar_height;
-
-        const float hp_pct = std::clamp(static_cast<float>(_player->getHP()) / static_cast<float>(_player->getMaxHP()), 0.0f, 1.0f);
-
-        // Draw Player Bar
-        drawBar(screen_x, screen_y, bar_width, bar_height, hp_pct, RED, DARKGRAY);
-        
-        // Draw Border
-        DrawRectangleLinesEx({ screen_x, screen_y, bar_width, bar_height }, Core::GlobalScaling::scaled(2.0f), WHITE);
-        
-        const float font_size = Core::GlobalScaling::scaled(20.0f);
-        const float text_spacing = Core::GlobalScaling::scaled(1.0f);
-        const auto* text = TextFormat("%d / %d", _player->getHP(), _player->getMaxHP());
-        Vector2 text_size = MeasureTextEx(_font, text, font_size, text_spacing);
-        DrawTextEx(_font, text, { screen_x + (bar_width - text_size.x) / 2.0f, screen_y + (bar_height - text_size.y) / 2.0f }, font_size, text_spacing, WHITE);
-    }
-
-    void UIHandler::renderCombatEntityHealthBars(const Core::GameCamera& camera) const 
-	{
-        if (!_entity_manager) return;
-
-        for (const auto& entity : _entity_manager->getEntities())
-        {
-            if (!entity->isDormant() &&
-                (entity->getFaction() == Entity::Faction::Enemy || entity->getFaction() == Entity::Faction::Ally) &&
-                entity->getHP() < entity->getMaxHP() && 
-                entity->getHP() > 0) 
-            {
-                // Project entity world position to screen
-                const Vector2 screen_pos = entity->getScreenPosition(camera.get());
-                
-                // Bar Config (scaled)
-                const float bar_width = Core::GlobalScaling::scaled(40.0f);
-                const float bar_height = Core::GlobalScaling::scaled(6.0f);
-                
-                const float bar_x = screen_pos.x - bar_width / 2.0f;
-                const float bar_y = screen_pos.y - HEALTH_BAR_Y_OFFSET * Core::GlobalScaling::getScale();
-                
-                const float hp_pct = std::clamp(static_cast<float>(entity->getHP()) / static_cast<float>(entity->getMaxHP()), 0.0f, 1.0f);
-                
-                drawBar(bar_x, bar_y, bar_width, bar_height, hp_pct, RED, DARKGRAY);
-                DrawRectangleLinesEx({ bar_x, bar_y, bar_width, bar_height }, Core::GlobalScaling::scaled(1.0f), BLACK);
+    void UIHandler::renderPlayerAbilityBar() const {
+        const auto& ab = _player->getAbilities(); float is = 50.0f, sp = 10.0f, w = (is * 4) + (sp * 3), sx = (GetScreenWidth() - w) / 2.0f, sy = GetScreenHeight() - 140.0f;
+        for (int i = 0; i < 4; ++i) { float x = sx + (is + sp) * i; Rectangle r = { x, sy, is, is }; DrawRectangleRec(r, Fade(BLACK, 0.5f)); DrawRectangleLinesEx(r, 2.0f, DARKGRAY);
+            if (i >= ab.size()) continue; auto& a = ab[i]; if (auto ic = a->getIcon()) DrawTexturePro(*ic, { 0, 0, (float)ic->width, (float)ic->height }, r, { 0, 0 }, 0.0f, WHITE);
+            if (!a->isReady()) { float cr = a->getCooldownTimer() / a->getStats().cooldown; DrawRectangle(x, sy, is, is * cr, Fade(GRAY, 0.8f));
+                const char* t = TextFormat("%.1f", a->getCooldownTimer()); Vector2 sz = MeasureTextEx(_font, t, 20.0f, 1.0f); DrawTextEx(_font, t, { x + (is - sz.x) / 2.0f, sy + (is - sz.y) / 2.0f }, 20.0f, 1.0f, WHITE);
             }
         }
     }
-
-    void UIHandler::drawBar(const float x, const float y, const float width, const float height, const float percentage, const Color fg_color, const Color bg_color) const 
-	{
-        // Background
-        DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(width), static_cast<int>(height), bg_color);
-        
-        // Foreground
-        DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(width * percentage), static_cast<int>(height), fg_color);
+    void UIHandler::renderPlayerExperienceBar() const {
+        float w = (50.0f * 4) + (10.0f * 3), h = 10.0f, cr = 18.0f, sy = GetScreenHeight() - 152.0f - h, bx = (GetScreenWidth() - w) / 2.0f, cx = bx - 8.0f - cr, cy = sy + h / 2.0f;
+        int exp = _player->getExp(), next = std::max(1, _player->getExpToNextLvl()); drawBar(bx, sy, w, h, std::clamp((float)exp / next, 0.0f, 1.0f), PURPLE, DARKGRAY);
+        DrawRectangleLinesEx({ bx, sy, w, h }, 2.0f, WHITE); DrawCircle(cx, cy, cr, DARKGRAY); DrawCircleLines(cx, cy, cr, WHITE);
+        const char* t = TextFormat("%d", _player->getLevel()); Vector2 sz = MeasureTextEx(_font, t, 20.0f, 1.0f); DrawTextEx(_font, t, { cx - sz.x / 2.0f, cy - sz.y / 2.0f }, 20.0f, 1.0f, WHITE);
     }
-
-	void UIHandler::renderPlayerAbilityBar() const
-	{
-		if (!_player) return;
-
-		const auto& abilities = _player->getAbilities();
-		const float icon_size = Core::GlobalScaling::scaled(50.0f);
-		const float spacing = Core::GlobalScaling::scaled(10.0f);
-		const float bar_width = (icon_size * 4) + (spacing * 3);
-		const float bottom_margin = Core::GlobalScaling::scaled(90.0f); // Positioned above the health bar
-
-		const float start_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
-		const float start_y = static_cast<float>(GetScreenHeight()) - bottom_margin - icon_size;
-        constexpr int slots = 4;
-
-		for (int i = 0; i < slots; ++i)
-		{
-			const float x = start_x + (icon_size + spacing) * i;
-			const Rectangle rect = { x, start_y, icon_size, icon_size };
-
-			// Draw Background/Empty Slot
-			DrawRectangleRec(rect, Fade(BLACK, 0.5f));
-			DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), DARKGRAY);
-
-            if (i >= abilities.size())
-                continue;
-			
-			const auto& ability = abilities[i];
-			if (const auto icon = ability->getIcon())
-				DrawTexturePro(*icon, { 0, 0, static_cast<float>(icon->width), static_cast<float>(icon->height) }, rect, { 0, 0 }, 0.0f, WHITE);
-
-			// Draw Cooldown Overlay
-			if (!ability->isReady())
-			{
-				const float cooldown_ratio = ability->getCooldownTimer() / ability->getStats().cooldown;
-				const float overlay_height = icon_size * cooldown_ratio;
-
-				DrawRectangle(static_cast<int>(x), static_cast<int>(start_y), static_cast<int>(icon_size), static_cast<int>(overlay_height), Fade(GRAY, 0.8f));
-					
-				// Draw Cooldown Text
-				const auto* text = TextFormat("%.1f", ability->getCooldownTimer());
-				const float font_size = Core::GlobalScaling::scaled(20.0f);
-				const float text_spacing = Core::GlobalScaling::scaled(1.0f);
-				const Vector2 text_size = MeasureTextEx(_font, text, font_size, text_spacing);
-				const Vector2 text_pos = { x + (icon_size - text_size.x) / 2.0f, start_y + (icon_size - text_size.y) / 2.0f };
-				DrawTextEx(_font, text, text_pos, font_size, text_spacing, WHITE);
-			}
-		}
-	}
-
-    void UIHandler::renderPlayerExperienceBar() const
-    {
-        if (!_player) return;
-
-        // Ability bar metrics to align with it
-        const float ability_icon_size = Core::GlobalScaling::scaled(50.0f);
-        const float ability_spacing = Core::GlobalScaling::scaled(10.0f);
-        const float ability_bar_width = (ability_icon_size * 4) + (ability_spacing * 3);
-        const float ability_bottom_margin = Core::GlobalScaling::scaled(90.0f);
-        
-        // Experience bar metrics
-        const float bar_height = Core::GlobalScaling::scaled(10.0f);
-        const float circle_radius = Core::GlobalScaling::scaled(18.0f);
-        const float spacing = Core::GlobalScaling::scaled(8.0f); // Space between circle and bar
-        
-        const float bar_width = ability_bar_width;
-        
-        const float start_y = static_cast<float>(GetScreenHeight()) - ability_bottom_margin - ability_icon_size - Core::GlobalScaling::scaled(12.0f) - bar_height;
-        const float bar_start_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
-        
-        // Circle for level
-        const float circle_x = bar_start_x - spacing - circle_radius;
-        const float circle_y = start_y + bar_height / 2.0f;
-        
-        int exp_to_next = _player->getExpToNextLvl();
-        if (exp_to_next <= 0) exp_to_next = 1;
-        const float exp_pct = std::clamp(static_cast<float>(_player->getExp()) / static_cast<float>(exp_to_next), 0.0f, 1.0f);
-
-        // Draw HUD background for xp
-        drawBar(bar_start_x, start_y, bar_width, bar_height, exp_pct, PURPLE, DARKGRAY);
-        DrawRectangleLinesEx({ bar_start_x, start_y, bar_width, bar_height }, Core::GlobalScaling::scaled(2.0f), WHITE);
-        
-        // Draw Level Circle
-        DrawCircle(static_cast<int>(circle_x), static_cast<int>(circle_y), circle_radius, DARKGRAY);
-        DrawCircleLines(static_cast<int>(circle_x), static_cast<int>(circle_y), circle_radius, WHITE);
-        
-        // Draw Level Text
-        const auto* text = TextFormat("%d", _player->getLevel());
-        const float font_size = Core::GlobalScaling::scaled(20.0f);
-        const float text_spacing = Core::GlobalScaling::scaled(1.0f);
-        Vector2 text_size = MeasureTextEx(_font, text, font_size, text_spacing);
-        DrawTextEx(_font, text, { circle_x - text_size.x / 2.0f, circle_y - text_size.y / 2.0f }, font_size, text_spacing, WHITE);
-    }
-
-    void UIHandler::renderSettingsMenu() const {
-        if (_settings_menu) {
-            _settings_menu->render(_font);
-        }
-    }
-
-    MenuAction UIHandler::handleSettingsInput() {
-        if (!_settings_menu) {
-            return MenuAction::None;
-        }
-        
-        if (_settings_menu->handleInput()) {
-            // Back was clicked - close settings and signal to go back
-            _settings_menu.reset();
-            return MenuAction::Play;  // Signal to return to previous state
-        }
-        
-        return MenuAction::None;
-    }
-
-    void UIHandler::openSettings(const Core::Settings& settings) {
-        _settings_menu = std::make_unique<SettingsMenu>(settings);
-    }
-
-    bool UIHandler::wereSettingsApplied() const {
-        return _settings_menu && _settings_menu->wasApplied();
-    }
-
-    const Core::Settings& UIHandler::getAppliedSettings() const {
-        return _settings_menu->getSettings();
-    }
-
-    void UIHandler::closeSettingsMenu() {
-        _settings_menu.reset();
-    }
-
-    void UIHandler::renderLevelSelectMenu() const {
-        if (_level_select_menu) {
-            _level_select_menu->render(_font);
-        }
-    }
-
-    void UIHandler::openLevelSelect(const std::vector<World::LevelInfo>& levels) {
-        _level_select_menu = std::make_unique<LevelSelectMenu>(levels);
-    }
-
-    void UIHandler::closeLevelSelect() {
-        _level_select_menu.reset();
-    }
-
-    std::string UIHandler::handleLevelSelectInput() {
-        if (_level_select_menu) {
-            return _level_select_menu->handleInput();
-        }
-        return "";
-    }
-
-    void UIHandler::renderPauseMenu() const {
-        const float screen_width = static_cast<float>(GetScreenWidth());
-        const float screen_height = static_cast<float>(GetScreenHeight());
-        
-        // Semi-transparent overlay
-        DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.6f));
-        
-        // Title
-        const float title_font_size = Core::GlobalScaling::scaled(40.0f);
-        const float spacing = Core::GlobalScaling::scaled(2.0f);
-        const char* title = "PAUZA";
-        Vector2 title_size = MeasureTextEx(_font, title, title_font_size, spacing);
-        DrawTextEx(
-            _font, 
-            title, 
-            {(screen_width - title_size.x) / 2.0f, screen_height / 4.0f}, 
-            title_font_size, 
-            spacing, 
-            WHITE
-        );
-        
-        // Menu buttons (same layout as main menu)
-        const auto layout = getMenuLayout(screen_width, screen_height);
-        const Vector2 mouse_pos = GetMousePosition();
-        
-        drawMenuButton(layout.play_btn, "KONTYNUUJ", CheckCollisionPointRec(mouse_pos, layout.play_btn));
-        drawMenuButton(layout.settings_btn, "USTAWIENIA", CheckCollisionPointRec(mouse_pos, layout.settings_btn));
-        drawMenuButton(layout.exit_btn, "MENU", CheckCollisionPointRec(mouse_pos, layout.exit_btn));
-    }
-
-    MenuAction UIHandler::handlePauseMenuInput() {
-        const float screen_width = static_cast<float>(GetScreenWidth());
-        const float screen_height = static_cast<float>(GetScreenHeight());
-        const auto layout = getMenuLayout(screen_width, screen_height);
-        const Vector2 mouse_pos = GetMousePosition();
-
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            if (CheckCollisionPointRec(mouse_pos, layout.play_btn))
-                return MenuAction::Play;  // Resume game
-            if (CheckCollisionPointRec(mouse_pos, layout.settings_btn))
-                return MenuAction::Settings;
-            if (CheckCollisionPointRec(mouse_pos, layout.exit_btn))
-                return MenuAction::Exit;  // Quit to main menu
-        }
-
-        return MenuAction::None;
-    }
-
-    void UIHandler::openContainer(Entity::InteractiveClickable* container) {
-        _current_container = container;
-        _is_inventory_open = true;
-    }
-
-    void UIHandler::closeContainer() {
-        _current_container = nullptr;
-    }
-
-    bool UIHandler::isInputBlocked() const {
-        if (_dialogueUI.isOpen()) return true;
-        if (_is_inventory_open) return true;
-        if (_current_container) return true;
-        if (_is_quest_ui_open) return true;
-
-        return false;
-    }
-
     void UIHandler::renderLocationInfo() const {
-        if (!_level_manager) return;
-
-        const std::string level_name = _level_manager->getCurrentLevelName();
-        const std::string location_name = _level_manager->getCurrentLocationName();
-        if (level_name.empty()) return;
-
-        const float font_size_level = Core::GlobalScaling::scaled(20.0f);
-        const float font_size_loc = Core::GlobalScaling::scaled(16.0f);
-        const float spacing = Core::GlobalScaling::scaled(1.0f);
-        const float padding = Core::GlobalScaling::scaled(10.0f);
-        const float margin = Core::GlobalScaling::scaled(40.0f);
-
-        // Measure texts
-        const Vector2 level_size = MeasureTextEx(_font, level_name.c_str(), font_size_level, spacing);
-        const Vector2 loc_size = MeasureTextEx(_font, location_name.c_str(), font_size_loc, spacing);
-
-        const float box_width = std::max(level_size.x, loc_size.x) + padding * 2.0f;
-        const float box_height = level_size.y + loc_size.y + padding * 2.5f;
-        const float box_x = margin;
-        const float box_y = margin;
-
-        // Background box
-        DrawRectangle(static_cast<int>(box_x), static_cast<int>(box_y),
-                      static_cast<int>(box_width), static_cast<int>(box_height),
-                      Fade(BLACK, 0.6f));
-        DrawRectangleLinesEx({box_x, box_y, box_width, box_height},
-                             Core::GlobalScaling::scaled(1.0f), Fade(WHITE, 0.3f));
-
-        // Level name
-        DrawTextEx(_font, level_name.c_str(),
-                   {box_x + padding, box_y + padding},
-                   font_size_level, spacing, WHITE);
-
-        // Location name (below level name, slightly indented)
-        DrawTextEx(_font, location_name.c_str(),
-                   {box_x + padding + Core::GlobalScaling::scaled(5.0f), box_y + padding + level_size.y + Core::GlobalScaling::scaled(4.0f)},
-                   font_size_loc, spacing, Fade(WHITE, 0.7f));
+        if (!_level_manager) return; std::string ln = _level_manager->getCurrentLevelName(), loc = _level_manager->getCurrentLocationName(); if (ln.empty()) return;
+        float fs1 = 20.0f, fs2 = 16.0f, p = 10.0f, m = 40.0f; Vector2 s1 = MeasureTextEx(_font, ln.c_str(), fs1, 1.0f), s2 = MeasureTextEx(_font, loc.c_str(), fs2, 1.0f);
+        float bw = std::max(s1.x, s2.x) + p * 2.0f, bh = s1.y + s2.y + p * 2.5f; DrawRectangle(m, m, bw, bh, Fade(BLACK, 0.6f)); DrawRectangleLinesEx({m, m, bw, bh}, 1.0f, Fade(WHITE, 0.3f));
+        DrawTextEx(_font, ln.c_str(), {m + p, m + p}, fs1, 1.0f, WHITE); DrawTextEx(_font, loc.c_str(), {m + p + 5, m + p + s1.y + 4}, fs2, 1.0f, Fade(WHITE, 0.7f));
     }
-
-    void UIHandler::renderGameOverScreen() const
-    {
-        const float screen_width = static_cast<float>(GetScreenWidth());
-        const float screen_height = static_cast<float>(GetScreenHeight());
-
-        // Dark overlay
-        DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.75f));
-
-        // Title
-        const float title_font_size = Core::GlobalScaling::scaled(65.0f);
-        const float spacing = Core::GlobalScaling::scaled(2.0f);
-        const char* title = "NIE ZYJESZ";
-        Vector2 title_size = MeasureTextEx(_font, title, title_font_size, spacing);
-        DrawTextEx(_font, title, {(screen_width - title_size.x) / 2.0f, screen_height / 4.0f}, title_font_size, spacing, RED);
-
-        // Buttons
-        const float btn_width = Core::GlobalScaling::scaled(250.0f);
-        const float btn_height = Core::GlobalScaling::scaled(50.0f);
-        const float btn_spacing = Core::GlobalScaling::scaled(20.0f);
-        const float start_y = screen_height / 2.0f;
-        const float center_x = (screen_width - btn_width) / 2.0f;
-
-        Rectangle respawn_btn = { center_x, start_y, btn_width, btn_height };
-        Rectangle menu_btn = { center_x, start_y + btn_height + btn_spacing, btn_width, btn_height };
-        const Vector2 mouse_pos = GetMousePosition();
-
-        drawMenuButton(respawn_btn, "ODRODZENIE", CheckCollisionPointRec(mouse_pos, respawn_btn));
-        drawMenuButton(menu_btn, "WROC DO MENU", CheckCollisionPointRec(mouse_pos, menu_btn));
-    }
-
-    MenuAction UIHandler::handleGameOverInput()
-    {
-        const float screen_width = static_cast<float>(GetScreenWidth());
-        const float screen_height = static_cast<float>(GetScreenHeight());
-
-        const float btn_width = Core::GlobalScaling::scaled(250.0f);
-        const float btn_height = Core::GlobalScaling::scaled(50.0f);
-        const float btn_spacing = Core::GlobalScaling::scaled(20.0f);
-        const float start_y = screen_height / 2.0f;
-        const float center_x = (screen_width - btn_width) / 2.0f;
-
-        Rectangle respawn_btn = { center_x, start_y, btn_width, btn_height };
-        Rectangle menu_btn = { center_x, start_y + btn_height + btn_spacing, btn_width, btn_height };
-        const Vector2 mouse_pos = GetMousePosition();
-
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        {
-            if (CheckCollisionPointRec(mouse_pos, respawn_btn)) {
-                return MenuAction::Respawn;
-            }
-            if (CheckCollisionPointRec(mouse_pos, menu_btn)) {
-                return MenuAction::Exit;
-            }
-        }
-        return MenuAction::None;
-    }
-
+    void UIHandler::renderSettingsMenu() const { if (_settings_menu) { drawSharedMenuBackground(); _settings_menu->render(*this); } }
+    MenuAction UIHandler::handleSettingsInput() { if (!_settings_menu) return MenuAction::None; if (_settings_menu->handleInput()) { _settings_menu.reset(); return MenuAction::Play; } return MenuAction::None; }
+    void UIHandler::openSettings(const Core::Settings& s) { _settings_menu = std::make_unique<SettingsMenu>(s); }
+    bool UIHandler::wereSettingsApplied() const { return _settings_menu && _settings_menu->wasApplied(); }
+    const Core::Settings& UIHandler::getAppliedSettings() const { return _settings_menu->getSettings(); }
+    void UIHandler::closeSettingsMenu() { _settings_menu.reset(); }
+    void UIHandler::renderLevelSelectMenu() const { if (_level_select_menu) { drawSharedMenuBackground(); _level_select_menu->render(*this); } }
+    void UIHandler::openLevelSelect(const std::vector<World::LevelInfo>& l) { _level_select_menu = std::make_unique<LevelSelectMenu>(l); }
+    void UIHandler::closeLevelSelect() { _level_select_menu.reset(); }
+    std::string UIHandler::handleLevelSelectInput() { if (_level_select_menu) return _level_select_menu->handleInput(); return ""; }
+    void UIHandler::openContainer(Entity::InteractiveClickable* c) { _current_container = c; _is_inventory_open = true; }
+    void UIHandler::closeContainer() { _current_container = nullptr; }
+    bool UIHandler::isInputBlocked() const { return _dialogueUI.isOpen() || _is_inventory_open || _current_container || _is_quest_ui_open; }
 } // namespace Nawia::UI
-
