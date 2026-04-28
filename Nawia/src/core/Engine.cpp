@@ -74,7 +74,7 @@ namespace Nawia::Core {
 
         // initialize UI
         _ui_handler = std::make_unique<Nawia::UI::UIHandler>();
-        _ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager);
+        _ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
         _ui_handler->setLevelManager(_level_manager.get());
 
 		// TEST remove later
@@ -208,6 +208,7 @@ namespace Nawia::Core {
 			else if (!selected_lvl.empty()) {
 				_ui_handler->closeLevelSelect();
 				_level_manager->changeLevel(selected_lvl, this);
+				_ui_handler->triggerLocationBanner();
 				_game_state = GameState::Playing;
 			}
 			return;
@@ -369,7 +370,6 @@ namespace Nawia::Core {
 			_level_manager->renderUI(const_cast<Engine*>(this));
         }
 
-		DrawFPS(10, 10);
 
 		EndDrawing();
 	}

@@ -16,11 +16,19 @@
 #include <QuestManager.h>
 #include <LevelManager.h>
 
+#include <raymath.h>
 #include <algorithm>
 #include <cmath>
 
 namespace Nawia::UI
 {
+
+    void UIHandler::triggerLocationBanner()
+    {
+        _location_banner_timer = 5.0f;
+        if (_level_manager)
+            _last_location_name = _level_manager->getCurrentLocationName();
+    }
 
     namespace
     {
@@ -43,14 +51,14 @@ namespace Nawia::UI
                 ? (screen_height - total_menu_height) / 2.0f + Core::GlobalScaling::scaled(40.0f) 
                 : screen_height * MENU_START_Y_PCT;
 
-            std::vector<Rectangle> button_rects;
+            std::vector<Rectangle> button_rectangles;
             for (int i = 0; i < button_count; ++i)
             {
                 const float current_y = start_y + i * (scaled_height + scaled_spacing);
-                button_rects.push_back({ start_x, current_y, scaled_width, scaled_height });
+                button_rectangles.push_back({ start_x, current_y, scaled_width, scaled_height });
             }
 
-            return button_rects;
+            return button_rectangles;
         }
 
         void draw_particles_fx(float width, float height, float time)
@@ -91,17 +99,18 @@ namespace Nawia::UI
     UIHandler::UIHandler() : _player(nullptr), _entity_manager(nullptr) {}
     UIHandler::~UIHandler() { UnloadFont(_font); }
 
-    void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager)
+    void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager, const Core::Settings* settings)
     {
         _player = player;
         _entity_manager = entity_manager;
         _quest_manager = quest_manager;
+        _settings = settings;
 
         _font = LoadFontEx("../assets/fonts/slavic_font.ttf", Core::GlobalScaling::scaledInt(300), nullptr, 0);
         GenTextureMipmaps(&_font.texture);
         SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
 
-        _main_menu_bg = resource_manager.getTexture("../assets/textures/main_menu.png");
+        _main_menu_background = resource_manager.getTexture("../assets/textures/main_menu.png");
         
         _inventory_ui = std::make_unique<InventoryUI>();
         _inventory_ui->loadResources(resource_manager);
@@ -111,34 +120,42 @@ namespace Nawia::UI
         _quest_ui = std::make_unique<QuestUI>();
         
         _previous_hp = _player ? _player->getHP() : 0;
+        _visual_hp_percent = 1.0f;
+        _visual_exp_percent = 0.0f;
     }
 
-    void UIHandler::updateHoverTimers(float dt, const std::vector<Rectangle>& button_rects)
+    void UIHandler::updateHoverTimers(float delta_time, const std::vector<Rectangle>& button_rectangles)
     {
-        if (_hover_timers.size() != button_rects.size())
-            _hover_timers.assign(button_rects.size(), 0.0f);
+        if (_hover_timers.size() != button_rectangles.size())
+            _hover_timers.assign(button_rectangles.size(), 0.0f);
         
-        const Vector2 mouse_pos = GetMousePosition();
-        for (size_t i = 0; i < button_rects.size(); ++i)
+        const Vector2 mouse_position = GetMousePosition();
+        for (size_t i = 0; i < button_rectangles.size(); ++i)
         {
-            if (CheckCollisionPointRec(mouse_pos, button_rects[i]))
-                _hover_timers[i] = std::min(1.0f, _hover_timers[i] + dt * 6.0f);
+            if (CheckCollisionPointRec(mouse_position, button_rectangles[i]))
+                _hover_timers[i] = std::min(1.0f, _hover_timers[i] + delta_time * 6.0f);
             else
-                _hover_timers[i] = std::max(0.0f, _hover_timers[i] - dt * 4.0f);
+                _hover_timers[i] = std::max(0.0f, _hover_timers[i] - delta_time * 4.0f);
         }
     }
 
-    void UIHandler::update(float dt)
+    void UIHandler::update(float delta_time)
     {
         if (_player)
         {
+            const float target_hp = std::clamp(static_cast<float>(_player->getHP()) / _player->getMaxHP(), 0.0f, 1.0f);
+            const float target_exp = std::clamp(static_cast<float>(_player->getExp()) / std::max(1, _player->getExpToNextLvl()), 0.0f, 1.0f);
+            
+            _visual_hp_percent = Lerp(_visual_hp_percent, target_hp, delta_time * 5.0f);
+            _visual_exp_percent = Lerp(_visual_exp_percent, target_exp, delta_time * 3.0f);
+            
             if (_player->getHP() < _previous_hp)
                 _damage_flash_timer = 0.3f;
             _previous_hp = _player->getHP();
         }
         
         if (_damage_flash_timer > 0.0f)
-            _damage_flash_timer = std::max(0.0f, _damage_flash_timer - dt);
+            _damage_flash_timer = std::max(0.0f, _damage_flash_timer - delta_time);
 
         if (_is_authors_open)
         {
@@ -148,39 +165,52 @@ namespace Nawia::UI
             const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT);
             const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
             
-            updateHoverTimers(dt, {{ (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height }});
+            updateHoverTimers(delta_time, {{ (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height }});
         }
         else if (!_settings_menu && !_level_select_menu)
-            updateHoverTimers(dt, get_vertical_menu_layout(4));
+            updateHoverTimers(delta_time, get_vertical_menu_layout(4));
 
-        for (auto it = _notifications.begin(); it != _notifications.end();)
+        for (auto iterator = _notifications.begin(); iterator != _notifications.end();)
         {
-            it->timer -= dt;
-            if (it->timer <= 0.0f)
-                it = _notifications.erase(it);
+            iterator->timer -= delta_time;
+            if (iterator->timer <= 0.0f)
+                iterator = _notifications.erase(iterator);
             else
-                ++it;
+                ++iterator;
         }
+        
+        if (_level_manager && _location_banner_timer <= 0.0f)
+        {
+            const std::string& current_location = _level_manager->getCurrentLocationName();
+            if (current_location != _last_location_name && !current_location.empty())
+            {
+                _last_location_name = current_location;
+                triggerLocationBanner();
+            }
+        }
+        
+        if (_location_banner_timer > 0.0f)
+            _location_banner_timer -= delta_time;
     }
 
-    void UIHandler::draw_menu_buttons_stack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rects) const
+    void UIHandler::draw_menu_buttons_stack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rectangles) const
     {
         for (size_t i = 0; i < buttons.size(); ++i)
         {
             const float hover_progress = (i < _hover_timers.size()) ? _hover_timers[i] : 0.0f;
-            drawMenuButton(rects[i], buttons[i].label, hover_progress);
+            drawMenuButton(rectangles[i], buttons[i].label, hover_progress);
         }
     }
 
-    int UIHandler::get_clicked_button_index(const std::vector<Rectangle>& rects) const
+    int UIHandler::get_clicked_button_index(const std::vector<Rectangle>& rectangles) const
     {
         if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             return -1;
             
-        const Vector2 mouse_pos = GetMousePosition();
-        for (size_t i = 0; i < rects.size(); ++i)
+        const Vector2 mouse_position = GetMousePosition();
+        for (size_t i = 0; i < rectangles.size(); ++i)
         {
-            if (CheckCollisionPointRec(mouse_pos, rects[i]))
+            if (CheckCollisionPointRec(mouse_position, rectangles[i]))
                 return static_cast<int>(i);
         }
         return -1;
@@ -197,20 +227,20 @@ namespace Nawia::UI
         
         const float button_width = Core::GlobalScaling::scaled(BUTTON_WIDTH);
         
-        const Vector2 title_pos = centered 
+        const Vector2 title_position = centered 
             ? Vector2{(screen_width - title_size.x) / 2.0f, Core::GlobalScaling::scaled(80.0f)} 
             : Vector2{(screen_width * MENU_SIDE_X_PCT) + (button_width - title_size.x) / 2.0f, screen_height * 0.22f + std::sin(static_cast<float>(GetTime()) * 0.8f) * Core::GlobalScaling::scaled(4.0f)};
             
         if (!centered)
         {
-            DrawTextEx(_font, title, { title_pos.x + 6, title_pos.y + 6 }, title_font_size, font_spacing, withAlpha(BLACK, 0.8f));
-            DrawTextEx(_font, title, title_pos, title_font_size, font_spacing, WHITE);
+            DrawTextEx(_font, title, { title_position.x + 6, title_position.y + 6 }, title_font_size, font_spacing, withAlpha(BLACK, 0.8f));
+            DrawTextEx(_font, title, title_position, title_font_size, font_spacing, WHITE);
         }
         else
-            DrawTextEx(_font, title, title_pos, title_font_size, font_spacing, COLOR_ACCENT);
+            DrawTextEx(_font, title, title_position, title_font_size, font_spacing, COLOR_ACCENT);
 
-        const auto button_rects = get_vertical_menu_layout(static_cast<int>(buttons.size()), centered);
-        draw_menu_buttons_stack(buttons, button_rects);
+        const auto button_rectangles = get_vertical_menu_layout(static_cast<int>(buttons.size()), centered);
+        draw_menu_buttons_stack(buttons, button_rectangles);
     }
 
     void UIHandler::renderMainMenu() const
@@ -264,8 +294,8 @@ namespace Nawia::UI
             const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT);
             const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
             
-            const Rectangle back_rect = { (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height };
-            if (get_clicked_button_index({back_rect}) == 0)
+            const Rectangle back_rectangle = { (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height };
+            if (get_clicked_button_index({back_rectangle}) == 0)
             {
                 _is_authors_open = false;
                 return MenuAction::None;
@@ -273,13 +303,13 @@ namespace Nawia::UI
         }
         else
         {
-            const auto button_rects = get_vertical_menu_layout(4, false);
-            const int clicked_idx = get_clicked_button_index(button_rects);
+            const auto button_rectangles = get_vertical_menu_layout(4, false);
+            const int clicked_index = get_clicked_button_index(button_rectangles);
             
-            if (clicked_idx == 0) return MenuAction::Play;
-            if (clicked_idx == 1) return MenuAction::Settings;
-            if (clicked_idx == 2) return MenuAction::Authors;
-            if (clicked_idx == 3) return MenuAction::Exit;
+            if (clicked_index == 0) return MenuAction::Play;
+            if (clicked_index == 1) return MenuAction::Settings;
+            if (clicked_index == 2) return MenuAction::Authors;
+            if (clicked_index == 3) return MenuAction::Exit;
         }
         
         if (IsKeyPressed(KEY_ESCAPE) && _is_authors_open)
@@ -288,25 +318,25 @@ namespace Nawia::UI
         return MenuAction::None;
     }
 
-    void UIHandler::drawMenuButton(const Rectangle& rect, const char* text, float hover_progress) const
+    void UIHandler::drawMenuButton(const Rectangle& rectangle, const char* text, float hover_progress) const
     {
-        DrawRectangleRec(rect, withAlpha(COLOR_PANEL_BG, 0.45f + hover_progress * 0.35f));
+        DrawRectangleRec(rectangle, withAlpha(COLOR_PANEL_BG, 0.45f + hover_progress * 0.35f));
         
         const Color border_color = LerpColor(withAlpha(WHITE, 0.35f), withAlpha(COLOR_ACCENT, 0.9f), hover_progress);
-        DrawRectangleLinesEx(rect, Core::GlobalScaling::scaled(2.0f), border_color);
+        DrawRectangleLinesEx(rectangle, Core::GlobalScaling::scaled(2.0f), border_color);
         
         if (hover_progress > 0.01f)
-            DrawRectangleGradientV(static_cast<int>(rect.x), static_cast<int>(rect.y), static_cast<int>(rect.width), static_cast<int>(rect.height), withAlpha(WHITE, 0.06f * hover_progress), withAlpha(WHITE, 0.0f));
+            DrawRectangleGradientV(static_cast<int>(rectangle.x), static_cast<int>(rectangle.y), static_cast<int>(rectangle.width), static_cast<int>(rectangle.height), withAlpha(WHITE, 0.06f * hover_progress), withAlpha(WHITE, 0.0f));
         
         const float button_font_size = Core::GlobalScaling::scaled(FONT_SIZE_BUTTON);
         const Vector2 text_size = MeasureTextEx(_font, text, button_font_size, 2.0f);
-        const Vector2 text_pos = { 
-            rect.x + (rect.width - text_size.x) / 2.0f + hover_progress * Core::GlobalScaling::scaled(12.0f), 
-            rect.y + (rect.height - text_size.y) / 2.0f 
+        const Vector2 text_position = { 
+            rectangle.x + (rectangle.width - text_size.x) / 2.0f + hover_progress * Core::GlobalScaling::scaled(12.0f), 
+            rectangle.y + (rectangle.height - text_size.y) / 2.0f 
         };
         
-        DrawTextEx(_font, text, { text_pos.x + 2, text_pos.y + 2 }, button_font_size, 2.0f, withAlpha(BLACK, 0.5f));
-        DrawTextEx(_font, text, text_pos, button_font_size, 2.0f, LerpColor(withAlpha(WHITE, 0.95f), COLOR_GOLDEN_TEXT, hover_progress));
+        DrawTextEx(_font, text, { text_position.x + 2, text_position.y + 2 }, button_font_size, 2.0f, withAlpha(BLACK, 0.5f));
+        DrawTextEx(_font, text, text_position, button_font_size, 2.0f, LerpColor(withAlpha(WHITE, 0.95f), COLOR_GOLDEN_TEXT, hover_progress));
     }
 
     void UIHandler::drawSharedMenuBackground() const
@@ -315,10 +345,10 @@ namespace Nawia::UI
         const float screen_height = static_cast<float>(GetScreenHeight());
         const float current_time = static_cast<float>(GetTime());
         
-        if (_main_menu_bg)
+        if (_main_menu_background)
         {
-            float source_width = static_cast<float>(_main_menu_bg->width);
-            float source_height = static_cast<float>(_main_menu_bg->height);
+            float source_width = static_cast<float>(_main_menu_background->width);
+            float source_height = static_cast<float>(_main_menu_background->height);
             const float screen_aspect_ratio = screen_width / screen_height;
             const float texture_aspect_ratio = source_width / source_height;
             
@@ -331,11 +361,11 @@ namespace Nawia::UI
             source_width *= (1.0f - zoom_factor);
             source_height *= (1.0f - zoom_factor);
             
-            const float offset_x = std::max(0.0f, (_main_menu_bg->width - source_width) * 0.5f) * std::sin(current_time * 0.12f + 0.8f);
-            const float offset_y = std::max(0.0f, (_main_menu_bg->height - source_height) * 0.5f) * std::cos(current_time * 0.09f - 0.35f);
+            const float offset_x = std::max(0.0f, (_main_menu_background->width - source_width) * 0.5f) * std::sin(current_time * 0.12f + 0.8f);
+            const float offset_y = std::max(0.0f, (_main_menu_background->height - source_height) * 0.5f) * std::cos(current_time * 0.09f - 0.35f);
             
-            const Rectangle source_rect = { (_main_menu_bg->width - source_width) * 0.5f + offset_x, (_main_menu_bg->height - source_height) * 0.5f + offset_y, source_width, source_height };
-            DrawTexturePro(*_main_menu_bg, source_rect, { 0, 0, screen_width, screen_height }, { 0, 0 }, 0.0f, WHITE);
+            const Rectangle source_rectangle = { (_main_menu_background->width - source_width) * 0.5f + offset_x, (_main_menu_background->height - source_height) * 0.5f + offset_y, source_width, source_height };
+            DrawTexturePro(*_main_menu_background, source_rectangle, { 0, 0, screen_width, screen_height }, { 0, 0 }, 0.0f, WHITE);
         }
         else
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.8f));
@@ -350,15 +380,22 @@ namespace Nawia::UI
         if (!_player || !_entity_manager)
             return;
             
+        renderPlayerExperienceBar();
         renderPlayerHealthBar();
         renderPlayerAbilityBar();
-        renderPlayerExperienceBar();
         renderCombatEntityHealthBars(camera);
         renderLocationInfo();
         
         if (_damage_flash_timer > 0.0f)
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(RED, (_damage_flash_timer / 0.3f) * 0.4f));
             
+        if (_settings && _settings->show_fps)
+        {
+            const char* fps_text = TextFormat("%d FPS", GetFPS());
+            const float font_size = Core::GlobalScaling::scaled(18.0f);
+            DrawTextEx(_font, fps_text, { 10, 10 }, font_size, 1.0f, WHITE);
+        }
+
         // Notifications
         float current_notify_y = 10.0f;
         for (const auto& notification : _notifications)
@@ -400,11 +437,11 @@ namespace Nawia::UI
 
     MenuAction UIHandler::handlePauseMenuInput()
     {
-        const int clicked_idx = get_clicked_button_index(get_vertical_menu_layout(3, true));
+        const int clicked_index = get_clicked_button_index(get_vertical_menu_layout(3, true));
         
-        if (clicked_idx == 0) return MenuAction::Play;
-        if (clicked_idx == 1) return MenuAction::Settings;
-        if (clicked_idx == 2) return MenuAction::Exit;
+        if (clicked_index == 0) return MenuAction::Play;
+        if (clicked_index == 1) return MenuAction::Settings;
+        if (clicked_index == 2) return MenuAction::Exit;
         
         return MenuAction::None;
     }
@@ -420,18 +457,18 @@ namespace Nawia::UI
 
     MenuAction UIHandler::handleGameOverInput()
     {
-        const int clicked_idx = get_clicked_button_index(get_vertical_menu_layout(2, true));
+        const int clicked_index = get_clicked_button_index(get_vertical_menu_layout(2, true));
         
-        if (clicked_idx == 0) return MenuAction::Respawn;
-        if (clicked_idx == 1) return MenuAction::Exit;
+        if (clicked_index == 0) return MenuAction::Respawn;
+        if (clicked_index == 1) return MenuAction::Exit;
         
         return MenuAction::None;
     }
 
-    void UIHandler::drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const
+    void UIHandler::drawBar(float x, float y, float width, float height, float percentage, Color foreground_color, Color background_color) const
     {
-        DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(width), static_cast<int>(height), bg_color);
-        DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(width * percentage), static_cast<int>(height), fg_color);
+        DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(width), static_cast<int>(height), background_color);
+        DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(width * percentage), static_cast<int>(height), foreground_color);
     }
 
     void UIHandler::showNotification(const std::string& text, float duration)
@@ -465,19 +502,19 @@ namespace Nawia::UI
                 return;
             }
             
-            const auto equip_slot = _inventory_ui->getClickedEquipmentSlot();
-            if (equip_slot != Item::EquipmentSlot::None) _player->unequipItem(equip_slot);
+            const auto equipment_slot = _inventory_ui->getClickedEquipmentSlot();
+            if (equipment_slot != Item::EquipmentSlot::None) _player->unequipItem(equipment_slot);
             
             if (_current_container)
             {
                 const int container_slot = _chest_ui->handleInput();
                 if (container_slot != -1)
                 {
-                    auto& container_inv = *_current_container->getInventory();
-                    const auto item = container_inv.getItem(container_slot);
+                    auto& container_inventory = *_current_container->getInventory();
+                    const auto item = container_inventory.getItem(container_slot);
                     if (item && _player->getBackpack().addItem(item))
                     {
-                        container_inv.removeItem(container_slot);
+                        container_inventory.removeItem(container_slot);
                         if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
                     }
                 }
@@ -492,9 +529,21 @@ namespace Nawia::UI
         const float pos_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
         const float pos_y = static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(HUD_MARGIN_BOTTOM);
         
-        const float hp_percentage = std::clamp(static_cast<float>(_player->getHP()) / _player->getMaxHP(), 0.0f, 1.0f);
-        drawBar(pos_x, pos_y, bar_width, bar_height, hp_percentage, RED, DARKGRAY);
-        DrawRectangleLinesEx({ pos_x, pos_y, bar_width, bar_height }, 2.0f, WHITE);
+        const float target_hp = std::clamp(static_cast<float>(_player->getHP()) / _player->getMaxHP(), 0.0f, 1.0f);
+        
+        // Background
+        DrawRectangleRec({ pos_x - 4, pos_y - 4, bar_width + 8, bar_height + 8 }, withAlpha(BLACK, 0.6f));
+        DrawRectangleRec({ pos_x, pos_y, bar_width, bar_height }, withAlpha(COLOR_PANEL_BG, 0.8f));
+        
+        // Ghost Bar (damage history)
+        if (_visual_hp_percent > target_hp)
+            drawBar(pos_x, pos_y, bar_width, bar_height, _visual_hp_percent, COLOR_HEALTH_GHOST, withAlpha(BLACK, 0.0f));
+        
+        // Actual Health Bar
+        drawBar(pos_x, pos_y, bar_width, bar_height, target_hp, RED, withAlpha(BLACK, 0.0f));
+        
+        // Border
+        DrawRectangleLinesEx({ pos_x, pos_y, bar_width, bar_height }, 2.0f, COLOR_ACCENT);
         
         const char* health_text = TextFormat("%d / %d", _player->getHP(), _player->getMaxHP());
         const Vector2 text_size = MeasureTextEx(_font, health_text, 20.0f, 1.0f);
@@ -507,11 +556,11 @@ namespace Nawia::UI
         {
             if (!entity->isDormant() && (entity->getFaction() == Entity::Faction::Enemy || entity->getFaction() == Entity::Faction::Ally) && entity->getHP() < entity->getMaxHP() && entity->getHP() > 0)
             {
-                const Vector2 screen_pos = entity->getScreenPosition(camera.get());
+                const Vector2 screen_position = entity->getScreenPosition(camera.get());
                 const float bar_width = 40.0f;
                 const float bar_height = 6.0f;
-                const float pos_x = screen_pos.x - bar_width / 2.0f;
-                const float pos_y = screen_pos.y - 60.0f * Core::GlobalScaling::getScale();
+                const float pos_x = screen_position.x - bar_width / 2.0f;
+                const float pos_y = screen_position.y - 60.0f * Core::GlobalScaling::getScale();
                 
                 const float hp_percentage = std::clamp(static_cast<float>(entity->getHP()) / entity->getMaxHP(), 0.0f, 1.0f);
                 drawBar(pos_x, pos_y, bar_width, bar_height, hp_percentage, RED, DARKGRAY);
@@ -532,10 +581,10 @@ namespace Nawia::UI
         for (int i = 0; i < 4; ++i)
         {
             const float pos_x = start_x + (icon_size + icon_spacing) * i;
-            const Rectangle icon_rect = { pos_x, start_y, icon_size, icon_size };
+            const Rectangle icon_rectangle = { pos_x, start_y, icon_size, icon_size };
             
-            DrawRectangleRec(icon_rect, Fade(BLACK, 0.5f));
-            DrawRectangleLinesEx(icon_rect, 2.0f, DARKGRAY);
+            DrawRectangleRec(icon_rectangle, withAlpha(BLACK, 0.5f));
+            DrawRectangleLinesEx(icon_rectangle, 2.0f, DARKGRAY);
             
             if (static_cast<size_t>(i) >= abilities.size())
                 continue;
@@ -543,14 +592,14 @@ namespace Nawia::UI
             const auto& ability = abilities[i];
             if (const auto icon_texture = ability->getIcon())
             {
-                const Rectangle source_rect = { 0, 0, static_cast<float>(icon_texture->width), static_cast<float>(icon_texture->height) };
-                DrawTexturePro(*icon_texture, source_rect, icon_rect, { 0, 0 }, 0.0f, WHITE);
+                const Rectangle source_rectangle = { 0, 0, static_cast<float>(icon_texture->width), static_cast<float>(icon_texture->height) };
+                DrawTexturePro(*icon_texture, source_rectangle, icon_rectangle, { 0, 0 }, 0.0f, WHITE);
             }
             
             if (!ability->isReady())
             {
                 const float cooldown_ratio = ability->getCooldownTimer() / ability->getStats().cooldown;
-                DrawRectangle(static_cast<int>(pos_x), static_cast<int>(start_y), static_cast<int>(icon_size), static_cast<int>(icon_size * cooldown_ratio), Fade(GRAY, 0.8f));
+                DrawRectangle(static_cast<int>(pos_x), static_cast<int>(start_y), static_cast<int>(icon_size), static_cast<int>(icon_size * cooldown_ratio), withAlpha(GRAY, 0.8f));
                 
                 const char* cd_text = TextFormat("%.1f", ability->getCooldownTimer());
                 const Vector2 text_size = MeasureTextEx(_font, cd_text, 20.0f, 1.0f);
@@ -561,47 +610,63 @@ namespace Nawia::UI
 
     void UIHandler::renderPlayerExperienceBar() const
     {
-        const float bar_width = Core::GlobalScaling::scaled(ABILITY_ICON_SIZE * 4 + ABILITY_SPACING * 3);
-        const float bar_height = Core::GlobalScaling::scaled(BAR_EXP_HEIGHT);
-        const float circle_radius = Core::GlobalScaling::scaled(EXP_CIRCLE_RADIUS);
-        const float start_y = static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(152.0f) - bar_height;
-        const float bar_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
-        const float circle_x = bar_x - Core::GlobalScaling::scaled(8.0f) - circle_radius;
-        const float circle_y = start_y + bar_height / 2.0f;
+        const float bar_width = static_cast<float>(GetScreenWidth()) * 0.18f; // Shortened to 18% of screen width
+        const float bar_height = Core::GlobalScaling::scaled(4.0f);
+        const float pos_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
         
-        const float exp_percentage = std::clamp(static_cast<float>(_player->getExp()) / std::max(1, _player->getExpToNextLvl()), 0.0f, 1.0f);
-        drawBar(bar_x, start_y, bar_width, bar_height, exp_percentage, PURPLE, DARKGRAY);
-        DrawRectangleLinesEx({ bar_x, start_y, bar_width, bar_height }, 2.0f, WHITE);
+        // Positioned 15px above Abilities (Abilities start at screen_height - 140)
+        const float pos_y = static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(140.0f) - Core::GlobalScaling::scaled(15.0f) - bar_height;
         
-        DrawCircle(static_cast<int>(circle_x), static_cast<int>(circle_y), circle_radius, DARKGRAY);
-        DrawCircleLines(static_cast<int>(circle_x), static_cast<int>(circle_y), circle_radius, WHITE);
+        // Background
+        DrawRectangleRec({ pos_x, pos_y, bar_width, bar_height }, withAlpha(BLACK, 0.5f));
+        
+        // Visual Bar
+        DrawRectangleRec({ pos_x, pos_y, bar_width * _visual_exp_percent, bar_height }, withAlpha(COLOR_ACCENT, 0.9f));
+        
+        // Level Circle
+        const float circle_radius = Core::GlobalScaling::scaled(EXP_CIRCLE_RADIUS * 0.75f);
+        const float circle_x = pos_x - circle_radius - 8.0f;
+        const float circle_y = pos_y + bar_height / 2.0f;
+        
+        DrawCircle(static_cast<int>(circle_x), static_cast<int>(circle_y), circle_radius, withAlpha(BLACK, 0.8f));
+        DrawCircleLines(static_cast<int>(circle_x), static_cast<int>(circle_y), circle_radius, COLOR_ACCENT);
         
         const char* level_text = TextFormat("%d", _player->getLevel());
-        const Vector2 text_size = MeasureTextEx(_font, level_text, 20.0f, 1.0f);
-        DrawTextEx(_font, level_text, { circle_x - text_size.x / 2.0f, circle_y - text_size.y / 2.0f }, 20.0f, 1.0f, WHITE);
+        const Vector2 text_size = MeasureTextEx(_font, level_text, 14.0f, 1.0f);
+        DrawTextEx(_font, level_text, { circle_x - text_size.x / 2.0f, circle_y - text_size.y / 2.0f }, 14.0f, 1.0f, WHITE);
     }
 
     void UIHandler::renderLocationInfo() const
     {
-        if (!_level_manager || _level_manager->getCurrentLevelName().empty())
+        if (!_level_manager || _level_manager->getCurrentLevelName().empty() || _location_banner_timer <= 0.0f)
             return;
             
-        const float level_font_size = 20.0f;
-        const float location_font_size = 16.0f;
-        const float padding = 10.0f;
-        const float margin = 40.0f;
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float alpha = std::clamp(_location_banner_timer > 4.0f ? (5.0f - _location_banner_timer) : (_location_banner_timer / 1.0f), 0.0f, 1.0f);
         
-        const Vector2 level_size = MeasureTextEx(_font, _level_manager->getCurrentLevelName().c_str(), level_font_size, 1.0f);
-        const Vector2 location_size = MeasureTextEx(_font, _level_manager->getCurrentLocationName().c_str(), location_font_size, 1.0f);
+        const float banner_height = Core::GlobalScaling::scaled(100.0f);
+        const float banner_y = Core::GlobalScaling::scaled(60.0f) * alpha; // Slide in effect
         
-        const float box_width = std::max(level_size.x, location_size.x) + padding * 2.0f;
-        const float box_height = level_size.y + location_size.y + padding * 2.5f;
+        // Cinematic Background
+        DrawRectangleGradientH(0, static_cast<int>(banner_y), static_cast<int>(screen_width / 2), static_cast<int>(banner_height), withAlpha(BLACK, 0.0f), withAlpha(BLACK, 0.7f * alpha));
+        DrawRectangleGradientH(static_cast<int>(screen_width / 2), static_cast<int>(banner_y), static_cast<int>(screen_width / 2), static_cast<int>(banner_height), withAlpha(BLACK, 0.7f * alpha), withAlpha(BLACK, 0.0f));
         
-        DrawRectangle(static_cast<int>(margin), static_cast<int>(margin), static_cast<int>(box_width), static_cast<int>(box_height), Fade(BLACK, 0.6f));
-        DrawRectangleLinesEx({margin, margin, box_width, box_height}, 1.0f, Fade(WHITE, 0.3f));
+        const float level_font_size = Core::GlobalScaling::scaled(32.0f);
+        const float location_font_size = Core::GlobalScaling::scaled(20.0f);
         
-        DrawTextEx(_font, _level_manager->getCurrentLevelName().c_str(), {margin + padding, margin + padding}, level_font_size, 1.0f, WHITE);
-        DrawTextEx(_font, _level_manager->getCurrentLocationName().c_str(), {margin + padding + 5, margin + padding + level_size.y + 4}, location_font_size, 1.0f, Fade(WHITE, 0.7f));
+        const std::string& level_name = _level_manager->getCurrentLevelName();
+        const std::string& location_name = _level_manager->getCurrentLocationName();
+        
+        const Vector2 level_size = MeasureTextEx(_font, level_name.c_str(), level_font_size, 2.0f);
+        const Vector2 location_size = MeasureTextEx(_font, location_name.c_str(), location_font_size, 1.0f);
+        
+        DrawTextEx(_font, level_name.c_str(), { (screen_width - level_size.x) / 2.0f, banner_y + 20.0f }, level_font_size, 2.0f, withAlpha(COLOR_ACCENT, alpha));
+        DrawTextEx(_font, location_name.c_str(), { (screen_width - location_size.x) / 2.0f, banner_y + 20.0f + level_size.y + 4.0f }, location_font_size, 1.0f, withAlpha(WHITE, alpha * 0.8f));
+        
+        // Lines
+        const float line_width = Core::GlobalScaling::scaled(200.0f) * alpha;
+        DrawLineEx({ screen_width / 2.0f - line_width, banner_y }, { screen_width / 2.0f + line_width, banner_y }, 1.0f, withAlpha(COLOR_ACCENT, alpha * 0.5f));
+        DrawLineEx({ screen_width / 2.0f - line_width, banner_y + banner_height }, { screen_width / 2.0f + line_width, banner_y + banner_height }, 1.0f, withAlpha(COLOR_ACCENT, alpha * 0.5f));
     }
 
     void UIHandler::renderSettingsMenu() const { if (_settings_menu) { drawSharedMenuBackground(); _settings_menu->render(*this); } }

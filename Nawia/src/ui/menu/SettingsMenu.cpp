@@ -100,6 +100,9 @@ namespace Nawia::UI
         
         int dummy_texture_change = 0; 
         drawSelector(item_x, current_y, item_width, "Jakosc tekstur", _settings.getTextureQualityString(), ui, &dummy_texture_change);
+        current_y += Core::GlobalScaling::scaled(80.0f);
+
+        drawToggle(item_x, current_y, item_width, "Licznik FPS", _settings.show_fps, ui);
     }
 
     void SettingsMenu::drawSelector(float pos_x, float pos_y, float width, const char* label, const std::string& value, const UIHandler& ui, int* change) const
@@ -254,6 +257,14 @@ namespace Nawia::UI
                         value = 0; 
                     _settings.texture_quality = static_cast<Core::TextureQuality>(value); 
                 }
+            }
+
+            current_y += Core::GlobalScaling::scaled(80.0f);
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            {
+                const float toggle_width = Core::GlobalScaling::scaled(80.0f);
+                if (CheckCollisionPointRec(mouse_pos, { item_x + item_width - toggle_width, current_y, toggle_width, Core::GlobalScaling::scaled(40.0f) }))
+                    _settings.show_fps = !_settings.show_fps;
             }
         }
         

@@ -45,8 +45,11 @@ namespace Nawia::UI {
     inline const Color COLOR_GOLDEN_TEXT = { 255, 225, 120, 255 };     // Bright Gold
     inline const Color COLOR_PANEL_BG = { 40, 40, 50, 255 };           // Dark Slate
     inline const Color COLOR_SLAVIC_ORANGE = { 255, 120, 40, 255 };    // Embers
+    inline const Color COLOR_SLAVIC_BLUE = { 100, 180, 255, 255 };     // Spirit
+    inline const Color COLOR_HEALTH_GHOST = { 255, 255, 255, 180 };    // Ghost Bar
     inline const Color COLOR_BLACK_GLASS = { 0, 0, 0, 128 };           // Glassmorphism
     inline const Color COLOR_WHITE_GLASS = { 255, 255, 255, 25 };      // Hover Glass
+    inline const Color COLOR_PARCHMENT = { 240, 230, 200, 255 };       // Text
 
     // --- HUD & Bars ---
     constexpr float BAR_HEALTH_WIDTH = 300.0f;
@@ -56,6 +59,8 @@ namespace Nawia::UI {
     constexpr float ABILITY_ICON_SIZE = 50.0f;
     constexpr float ABILITY_SPACING = 10.0f;
     constexpr float EXP_CIRCLE_RADIUS = 18.0f;
+    constexpr float DIALOGUE_BOX_HEIGHT = 180.0f;
+    constexpr float DIALOGUE_BOX_MARGIN = 60.0f;
 
     // --- Authors ---
     inline const char* AUTHOR_NAME_1 = "Michal Sadkowski";

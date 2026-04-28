@@ -57,6 +57,9 @@ public:
     
     /// Texture quality level
     TextureQuality texture_quality = TextureQuality::Medium;
+
+    /// Show FPS counter
+    bool show_fps = false;
     
     /// UI scale limits
     static constexpr float UI_SCALE_MIN = 1.0f;

@@ -57,7 +57,7 @@ namespace Nawia::UI {
         UIHandler();
         ~UIHandler();
 
-        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager, Game::QuestManager* quest_manager);
+        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager, Game::QuestManager* quest_manager, const Core::Settings* settings);
         
         void update(float dt);
         void render(const Core::GameCamera& camera);
@@ -108,6 +108,7 @@ namespace Nawia::UI {
         void drawSharedMenuBackground() const;
         void drawMenuButton(const Rectangle& rect, const char* text, float hover_timer) const;
         const Font& getFont() const { return _font; }
+        void triggerLocationBanner();
 
     private:
         void renderPlayerHealthBar() const;
@@ -126,7 +127,7 @@ namespace Nawia::UI {
         Core::EntityManager* _entity_manager;
         World::LevelManager* _level_manager = nullptr;
         Font _font;
-        std::shared_ptr<Texture2D> _main_menu_bg;
+        std::shared_ptr<Texture2D> _main_menu_background;
         std::shared_ptr<Texture2D> _menu_btn_idle;
         std::shared_ptr<Texture2D> _menu_btn_hover;
         std::vector<float> _hover_timers;
@@ -152,6 +153,12 @@ namespace Nawia::UI {
             float duration;
         };
         std::vector<Notification> _notifications;
+        
+        const Core::Settings* _settings = nullptr;
+        float _visual_hp_percent = 1.0f;
+        float _visual_exp_percent = 0.0f;
+        float _location_banner_timer = 0.0f;
+        std::string _last_location_name;
     };
 
 } // namespace Nawia::UI
