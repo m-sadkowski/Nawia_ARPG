@@ -30,6 +30,14 @@ namespace Nawia::UI
             _last_location_name = _level_manager->getCurrentLocationName();
     }
 
+    void UIHandler::onLevelLoaded()
+    {
+        _location_banner_timer = 6.0f; // Increased to 6s
+        if (_level_manager)
+            _last_location_name = _level_manager->getCurrentLocationName();
+        _ignore_next_dt = true;
+    }
+
     namespace
     {
         /**
@@ -179,6 +187,15 @@ namespace Nawia::UI
                 ++iterator;
         }
         
+        // Cap delta_time for UI animations to prevent skipping during frame spikes (loading)
+        float effective_delta_time = (delta_time > 0.1f) ? 0.016f : delta_time;
+        
+        if (_ignore_next_dt)
+        {
+            effective_delta_time = 0.0f;
+            _ignore_next_dt = false;
+        }
+
         if (_level_manager && _location_banner_timer <= 0.0f)
         {
             const std::string& current_location = _level_manager->getCurrentLocationName();
@@ -190,7 +207,7 @@ namespace Nawia::UI
         }
         
         if (_location_banner_timer > 0.0f)
-            _location_banner_timer -= delta_time;
+            _location_banner_timer -= effective_delta_time;
     }
 
     void UIHandler::draw_menu_buttons_stack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rectangles) const
@@ -393,7 +410,9 @@ namespace Nawia::UI
         {
             const char* fps_text = TextFormat("%d FPS", GetFPS());
             const float font_size = Core::GlobalScaling::scaled(18.0f);
-            DrawTextEx(_font, fps_text, { 10, 10 }, font_size, 1.0f, WHITE);
+            const float margin = Core::GlobalScaling::scaled(20.0f);
+            const Vector2 text_size = MeasureTextEx(_font, fps_text, font_size, 1.0f);
+            DrawTextEx(_font, fps_text, { static_cast<float>(GetScreenWidth()) - text_size.x - margin, margin }, font_size, 1.0f, WHITE);
         }
 
         // Notifications
@@ -416,7 +435,7 @@ namespace Nawia::UI
         {
             _inventory_ui->render(_font, *_player);
             if (_stats_ui)
-                _stats_ui->render(20.0f, GetScreenHeight() - Core::GlobalScaling::scaled(260.0f), _font);
+                _stats_ui->render(Core::GlobalScaling::scaled(50.0f), static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(220.0f + 50.0f), _font);
             if (_current_container)
                 _chest_ui->render(*_current_container->getInventory(), _font);
         }

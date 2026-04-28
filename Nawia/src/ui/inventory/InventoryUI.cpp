@@ -23,26 +23,36 @@ namespace Nawia::UI
         const float font_size = Core::GlobalScaling::scaled(FONT_SIZE);
         const float slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
         const float padding = Core::GlobalScaling::scaled(PADDING);
-        const float inv_x = Core::GlobalScaling::scaled(INV_START_X);
-        const float inv_y = Core::GlobalScaling::scaled(INV_START_Y);
+        
+        // Moved window further from corners
+        const float inv_x = Core::GlobalScaling::scaled(50.0f);
+        const float inv_y = Core::GlobalScaling::scaled(50.0f);
+        
         const float inv_width = Core::GlobalScaling::scaled(INV_WIDTH);
         const float inv_height = Core::GlobalScaling::scaled(INV_HEIGHT);
         const float text_x_offset = Core::GlobalScaling::scaled(TEXT_PADDING_LEFT);
-        const float text_y_offset = Core::GlobalScaling::scaled(TEXT_PADDING_TOP);
+        const float text_y_offset = Core::GlobalScaling::scaled(TEXT_PADDING_TOP + 10.0f); // More top padding
         const float equipment_width = Core::GlobalScaling::scaled(EQ_WIDTH);
-        const float equipment_y_start = Core::GlobalScaling::scaled(EQ_START_TOP);
-        const float backpack_y_start = Core::GlobalScaling::scaled(BP_START_TOP);
-        const float gold_y_offset = Core::GlobalScaling::scaled(GOLD_PADDING_BOTTOM);
+        const float equipment_y_start = Core::GlobalScaling::scaled(EQ_START_TOP + 5.0f);
+        const float backpack_y_start = Core::GlobalScaling::scaled(BP_START_TOP + 5.0f);
+        const float gold_y_offset = Core::GlobalScaling::scaled(GOLD_PADDING_BOTTOM + 15.0f); // More bottom padding
 
         // Premium Background
-        DrawRectangleRec({ inv_x, inv_y, inv_width, inv_height }, withAlpha(COLOR_PANEL_BG, 0.95f));
+        DrawRectangleRec({ inv_x, inv_y, inv_width, inv_height }, withAlpha(COLOR_PANEL_BG, 0.98f));
         DrawRectangleLinesEx({ inv_x, inv_y, inv_width, inv_height }, 2.0f, withAlpha(COLOR_ACCENT, 0.8f));
         
         // Header separator
         DrawLineEx({ inv_x + equipment_width, inv_y }, { inv_x + equipment_width, inv_y + inv_height }, 1.0f, withAlpha(COLOR_ACCENT, 0.3f));
 
-        DrawTextEx(font, "EKWIPUNEK", { inv_x + text_x_offset, inv_y + text_y_offset }, font_size, 1.0f, COLOR_ACCENT);
-        DrawTextEx(font, "PLECAK", { inv_x + equipment_width + text_x_offset, inv_y + text_y_offset }, font_size, 1.0f, COLOR_ACCENT);
+        // Centered Titles
+        auto draw_centered_title = [&](const char* text, float start_x, float width)
+        {
+            const Vector2 text_size = MeasureTextEx(font, text, font_size, 1.0f);
+            DrawTextEx(font, text, { start_x + (width - text_size.x) / 2.0f, inv_y + text_y_offset }, font_size, 1.0f, COLOR_ACCENT);
+        };
+
+        draw_centered_title("EKWIPUNEK", inv_x, equipment_width);
+        draw_centered_title("PLECAK", inv_x + equipment_width, inv_width - equipment_width);
 
         const Vector2 mouse_pos = GetMousePosition();
         const float equipment_center_x = inv_x + equipment_width / 2.0f;
@@ -58,7 +68,11 @@ namespace Nawia::UI
         drawSpecificSlot(Item::EquipmentSlot::Ring, equipment_center_x - slot_size * 1.5f - padding, equipment_top_y + (slot_size + padding) * 2.0f, player, mouse_pos);
 
         const auto& backpack_items = player.getBackpack().getItems();
-        const float backpack_x = inv_x + equipment_width + text_x_offset;
+        
+        // Center the backpack grid within its section
+        const float backpack_section_width = inv_width - equipment_width;
+        const float grid_width = (slot_size * 4.0f) + (Core::GlobalScaling::scaled(10.0f) * 3.0f);
+        const float backpack_x = inv_x + equipment_width + (backpack_section_width - grid_width) / 2.0f;
         const float backpack_y = inv_y + backpack_y_start;
 
         std::shared_ptr<Item::Item> item_tooltip = nullptr;
@@ -85,7 +99,8 @@ namespace Nawia::UI
         }
 
         const std::string gold_text = "ZLOTO: " + std::to_string(player.getGold());
-        DrawTextEx(font, gold_text.c_str(), { inv_x + equipment_width + text_x_offset, inv_y + inv_height - gold_y_offset }, font_size, 1.0f, COLOR_ACCENT);
+        const Vector2 gold_size = MeasureTextEx(font, gold_text.c_str(), font_size, 1.0f);
+        DrawTextEx(font, gold_text.c_str(), { inv_x + equipment_width + (backpack_section_width - gold_size.x) / 2.0f, inv_y + inv_height - gold_y_offset }, font_size, 1.0f, COLOR_ACCENT);
     
         if (item_tooltip != nullptr)
             drawTooltip(font, item_tooltip, tooltip_pos.x, tooltip_pos.y);
@@ -158,12 +173,14 @@ namespace Nawia::UI
 
         const Vector2 mouse_pos = GetMousePosition();
         const float slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
-        const float inv_x = Core::GlobalScaling::scaled(INV_START_X);
-        const float inv_y = Core::GlobalScaling::scaled(INV_START_Y);
+        const float inv_x = Core::GlobalScaling::scaled(50.0f); // Match render
+        const float inv_y = Core::GlobalScaling::scaled(50.0f);
+        const float inv_width = Core::GlobalScaling::scaled(INV_WIDTH);
         const float equipment_width = Core::GlobalScaling::scaled(EQ_WIDTH);
-        const float text_padding = Core::GlobalScaling::scaled(TEXT_PADDING_LEFT);
 
-        const float backpack_x = inv_x + equipment_width + text_padding;
+        const float backpack_section_width = inv_width - equipment_width;
+        const float grid_width = (slot_size * 4.0f) + (Core::GlobalScaling::scaled(10.0f) * 3.0f);
+        const float backpack_x = inv_x + equipment_width + (backpack_section_width - grid_width) / 2.0f;
         const float backpack_y = inv_y + Core::GlobalScaling::scaled(BP_START_TOP);
 
         for (int i = 0; i < 20; ++i)
@@ -186,8 +203,8 @@ namespace Nawia::UI
             return Item::EquipmentSlot::None;
 
         const Vector2 mouse_pos = GetMousePosition();
-        const float inv_x = Core::GlobalScaling::scaled(INV_START_X);
-        const float inv_y = Core::GlobalScaling::scaled(INV_START_Y);
+        const float inv_x = Core::GlobalScaling::scaled(50.0f);
+        const float inv_y = Core::GlobalScaling::scaled(50.0f);
         const float slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
         const float padding = Core::GlobalScaling::scaled(PADDING);
 

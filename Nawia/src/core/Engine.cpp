@@ -208,8 +208,8 @@ namespace Nawia::Core {
 			else if (!selected_lvl.empty()) {
 				_ui_handler->closeLevelSelect();
 				_level_manager->changeLevel(selected_lvl, this);
-				_ui_handler->triggerLocationBanner();
 				_game_state = GameState::Playing;
+				_ui_handler->onLevelLoaded();
 			}
 			return;
 		}

@@ -109,6 +109,7 @@ namespace Nawia::UI {
         void drawMenuButton(const Rectangle& rect, const char* text, float hover_timer) const;
         const Font& getFont() const { return _font; }
         void triggerLocationBanner();
+        void onLevelLoaded();
 
     private:
         void renderPlayerHealthBar() const;
@@ -159,6 +160,7 @@ namespace Nawia::UI {
         float _visual_exp_percent = 0.0f;
         float _location_banner_timer = 0.0f;
         std::string _last_location_name;
+        bool _ignore_next_dt = false;
     };
 
 } // namespace Nawia::UI
