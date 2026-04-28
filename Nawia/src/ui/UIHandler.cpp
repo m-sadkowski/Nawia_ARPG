@@ -16,6 +16,7 @@
 #include <QuestManager.h>
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 namespace Nawia::UI {
@@ -47,6 +48,111 @@ namespace Nawia::UI {
         // Health bar is positioned above the entity in screen space
         // We use a fixed pixel offset above the projected screen position
         constexpr float HEALTH_BAR_Y_OFFSET = 60.0f;
+
+        float fract(const float value)
+        {
+            return value - std::floor(value);
+        }
+
+        float hash01(const float seed)
+        {
+            return fract(std::sin(seed * 127.1f) * 43758.5453f);
+        }
+
+        Color withAlpha(const Color color, const float alpha)
+        {
+            return {
+                color.r,
+                color.g,
+                color.b,
+                static_cast<unsigned char>(std::clamp(alpha, 0.0f, 1.0f) * 255.0f)
+            };
+        }
+
+        void drawAnimatedMenuBackground(const Texture2D& texture, const float screen_width, const float screen_height)
+        {
+            const float time = static_cast<float>(GetTime());
+            const float texture_aspect = static_cast<float>(texture.width) / static_cast<float>(texture.height);
+            const float screen_aspect = screen_width / screen_height;
+
+            float source_width = static_cast<float>(texture.width);
+            float source_height = static_cast<float>(texture.height);
+
+            if (texture_aspect > screen_aspect) {
+                source_width = source_height * screen_aspect;
+            } else {
+                source_height = source_width / screen_aspect;
+            }
+
+            const float zoom = 0.11f + 0.02f * std::sin(time * 0.23f);
+            source_width *= (1.0f - zoom);
+            source_height *= (1.0f - zoom);
+
+            const float max_offset_x = std::max(0.0f, (static_cast<float>(texture.width) - source_width) * 0.5f);
+            const float max_offset_y = std::max(0.0f, (static_cast<float>(texture.height) - source_height) * 0.5f);
+
+            const float offset_x = max_offset_x * std::sin(time * 0.12f + 0.8f);
+            const float offset_y = max_offset_y * std::cos(time * 0.09f - 0.35f);
+
+            const Rectangle source = {
+                (static_cast<float>(texture.width) - source_width) * 0.5f + offset_x,
+                (static_cast<float>(texture.height) - source_height) * 0.5f + offset_y,
+                source_width,
+                source_height
+            };
+
+            DrawTexturePro(texture, source, { 0, 0, screen_width, screen_height }, { 0, 0 }, 0.0f, WHITE);
+
+            DrawRectangleGradientV(
+                0,
+                0,
+                static_cast<int>(screen_width),
+                static_cast<int>(screen_height),
+                withAlpha({ 30, 14, 10, 255 }, 0.10f),
+                withAlpha({ 5, 5, 8, 255 }, 0.48f)
+            );
+        }
+
+        void drawSmokeLayer(const float screen_width, const float screen_height, const float time)
+        {
+            for (int i = 0; i < 26; ++i) {
+                const float seed = static_cast<float>(i) * 11.73f + 3.1f;
+                const float travel = fract(hash01(seed) + time * (0.012f + hash01(seed + 2.0f) * 0.016f));
+                const float sway = std::sin(time * (0.22f + hash01(seed + 4.0f) * 0.18f) + seed);
+                const float x = screen_width * (0.05f + hash01(seed + 1.0f) * 0.90f) + sway * screen_width * 0.06f;
+                const float y = screen_height * (1.12f - travel * 1.24f);
+                const float radius = Core::GlobalScaling::scaled(110.0f + hash01(seed + 5.0f) * 150.0f);
+                const float alpha = (0.35f + (1.0f - travel) * 0.65f) * (0.035f + hash01(seed + 6.0f) * 0.07f);
+
+                DrawCircleGradient(
+                    static_cast<int>(x),
+                    static_cast<int>(y),
+                    radius,
+                    withAlpha(LIGHTGRAY, alpha),
+                    withAlpha(DARKGRAY, 0.0f)
+                );
+            }
+        }
+
+        void drawFireParticles(const float screen_width, const float screen_height, const float time)
+        {
+            for (int i = 0; i < 96; ++i) {
+                const float seed = static_cast<float>(i) * 17.13f + 8.0f;
+                const float cycle = fract(hash01(seed) + time * (0.10f + hash01(seed + 1.0f) * 0.22f));
+                const float rise = 1.0f - cycle;
+                const float base_x = screen_width * (0.03f + hash01(seed + 2.0f) * 0.94f);
+                const float drift = std::sin(time * (1.0f + hash01(seed + 3.0f) * 1.5f) + seed) * screen_width * (0.01f + hash01(seed + 9.0f) * 0.02f);
+                const float x = base_x + drift;
+                const float y = screen_height * (1.04f - rise * 1.18f);
+                const float size_class = hash01(seed + 7.0f);
+                const float radius = Core::GlobalScaling::scaled(1.5f + size_class * size_class * 12.0f) * (0.45f + rise * 0.95f);
+                const float alpha = (0.10f + rise * 0.50f) * (0.55f + hash01(seed + 6.0f) * 0.45f);
+                const Color inner = withAlpha({ 255, 233, 168, 255 }, alpha);
+                const Color outer = withAlpha({ 255, 96, 24, 255 }, alpha * 0.35f);
+
+                DrawCircleGradient(static_cast<int>(x), static_cast<int>(y), radius, inner, outer);
+            }
+        }
     }
 
     UIHandler::UIHandler() : _player(nullptr), _entity_manager(nullptr) {}
@@ -271,16 +377,25 @@ namespace Nawia::UI {
 	{
         const float screen_width = static_cast<float>(GetScreenWidth());
         const float screen_height = static_cast<float>(GetScreenHeight());
+        const float time = static_cast<float>(GetTime());
 
         // Draw Background
         if (_main_menu_bg) {
-            DrawTexturePro(*_main_menu_bg, 
-                { 0, 0, static_cast<float>(_main_menu_bg->width), static_cast<float>(_main_menu_bg->height) }, 
-                { 0, 0, screen_width, screen_height }, 
-                { 0, 0 }, 0.0f, WHITE);
+            drawAnimatedMenuBackground(*_main_menu_bg, screen_width, screen_height);
         } else {
             DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.8f));
         }
+
+        drawSmokeLayer(screen_width, screen_height, time);
+        drawFireParticles(screen_width, screen_height, time);
+        DrawRectangleGradientV(
+            0,
+            0,
+            static_cast<int>(screen_width),
+            static_cast<int>(screen_height),
+            withAlpha({ 255, 170, 100, 255 }, 0.02f),
+            withAlpha({ 0, 0, 0, 255 }, 0.12f)
+        );
 
         // Draw Title
         const auto* title_text = "Nawia";
@@ -288,11 +403,15 @@ namespace Nawia::UI {
         const float spacing = Core::GlobalScaling::scaled(2.0f);
         Vector2 title_size = MeasureTextEx(_font, title_text, title_font_size, spacing);
         
-        Vector2 title_pos = { (screen_width - title_size.x) / 2.0f, screen_height / 3.0f };
+        Vector2 title_pos = {
+            (screen_width - title_size.x) / 2.0f,
+            screen_height / 3.0f + std::sin(time * 0.8f) * Core::GlobalScaling::scaled(4.0f)
+        };
         
         // shadow
         const float shadow_offset = Core::GlobalScaling::scaled(4.0f);
-        DrawTextEx(_font, title_text, { title_pos.x + shadow_offset, title_pos.y + shadow_offset }, title_font_size, spacing, BLACK);
+        DrawTextEx(_font, title_text, { title_pos.x + shadow_offset, title_pos.y + shadow_offset }, title_font_size, spacing, withAlpha(BLACK, 0.9f));
+        DrawTextEx(_font, title_text, { title_pos.x, title_pos.y + Core::GlobalScaling::scaled(2.0f) }, title_font_size, spacing, withAlpha({ 255, 140, 70, 255 }, 0.35f));
         // text
         DrawTextEx(_font, title_text, title_pos, title_font_size, spacing, WHITE);
 
