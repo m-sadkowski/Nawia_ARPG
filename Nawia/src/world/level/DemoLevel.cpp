@@ -10,7 +10,7 @@ namespace Nawia::World {
 		Core::Logger::debugLog("Ladowanie poziomu DemoLevel...");
 
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
-		_map->loadMap("demo_map/forest.glb", 1.0f);
+		_map->loadMap("demo_map/demo.glb", 1.8f);
 
 		engine->getEntityManager().clearNonPlayerEntities();
 
@@ -21,7 +21,7 @@ namespace Nawia::World {
 	void DemoLevel::changeLocation(Core::Engine* engine, const std::string& location_name) {
 		// Zmiana geometrii mapy
 		if (location_name == "Demo Arena") {
-			_map->loadMap("demo_map/forest.glb",1.0f);
+			_map->loadMap("demo_map/demo.glb",1.8f);
 		} else if (location_name == "Inferno") {
 			_map->loadMap("demo_map/inferno.glb", 2.0f);
 		}

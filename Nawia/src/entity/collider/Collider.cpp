@@ -244,8 +244,8 @@ namespace Nawia::Entity {
         
         const float rot_deg = _owner->getRotation();
         const float angle_half = _angle / 2.0f;
-        const int num_rays_h = 11; // Sweep 11 rays across the cone angle for highly accurate sweeping
-        const int num_rays_v = 15; // Sweep 15 heights to catch enemies of different heights
+        const int num_rays_h = 10; // Sweep 11 rays across the cone angle for highly accurate sweeping
+        const int num_rays_v = 5; // Sweep 15 heights to catch enemies of different heights
         
         const float min_h = 0.1f;
         const float max_h = 2.0f;
@@ -301,8 +301,8 @@ namespace Nawia::Entity {
         DrawLine3D(end_left_3d, end_right_3d, GREEN);
 
         // Render rays at multiple heights for visual volume
-        const int num_rays_h = 11;
-        const int num_rays_v = 15;
+        const int num_rays_h = 10;
+        const int num_rays_v = 5;
         const float min_h = 0.1f;
         const float max_h = 2.0f;
 
