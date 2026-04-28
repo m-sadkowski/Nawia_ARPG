@@ -1,9 +1,10 @@
 #include "StatsUI.h"
+#include "UIDefines.h"
+#include "UIRenderUtils.h"
+
 #include <Player.h>
 #include <Stats.h>
 #include <GlobalScaling.h>
-#include <UIDefines.h>
-#include <UIRenderUtils.h>
 
 namespace Nawia::UI
 {

@@ -1,6 +1,8 @@
 #include "SettingsMenu.h"
 #include "UIHandler.h"
+
 #include <GlobalScaling.h>
+
 #include <algorithm>
 #include <cmath>
 

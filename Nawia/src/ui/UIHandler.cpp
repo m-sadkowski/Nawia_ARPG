@@ -1,6 +1,6 @@
 #include "UIHandler.h"
-#include "menu/SettingsMenu.h"
-#include "menu/LevelSelectMenu.h"
+#include "SettingsMenu.h"
+#include "LevelSelectMenu.h"
 #include "StatsUI.h"
 
 #include <Player.h>
@@ -205,6 +205,9 @@ namespace Nawia::UI
                 triggerLocationBanner();
             }
         }
+
+        // gui skrzyni na wysokosci gui eq
+        // dialogi padding
         
         if (_location_banner_timer > 0.0f)
             _location_banner_timer -= effective_delta_time;

@@ -1,9 +1,10 @@
 #include "QuestUI.h"
+#include "UIDefines.h"
+#include "UIRenderUtils.h"
+
 #include <QuestManager.h>
 #include <Quest.h>
 #include <GlobalScaling.h>
-#include <UIDefines.h>
-#include <UIRenderUtils.h>
 
 namespace Nawia::UI
 {

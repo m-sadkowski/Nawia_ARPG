@@ -1,7 +1,9 @@
 #include "InventoryUI.h"
+#include "UIDefines.h"
+#include "UIRenderUtils.h"
+
 #include <ResourceManager.h>
-#include <UIDefines.h>
-#include <UIRenderUtils.h>
+
 #include <string>
 
 namespace Nawia::UI

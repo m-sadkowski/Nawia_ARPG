@@ -1,7 +1,8 @@
 #include "DialogueUI.h"
+#include "UIDefines.h"
+#include "UIRenderUtils.h"
+
 #include <GlobalScaling.h>
-#include <UIDefines.h>
-#include <UIRenderUtils.h>
 
 namespace Nawia::UI
 {
