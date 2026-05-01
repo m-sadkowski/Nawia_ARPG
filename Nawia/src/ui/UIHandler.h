@@ -120,6 +120,7 @@ namespace Nawia::UI {
         void updateHoverTimers(float dt, const std::vector<Rectangle>& button_rects);
         void renderAuthorsMenu() const;
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;
+        void drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text) const;
         
         void draw_menu_buttons_stack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rects) const;
         [[nodiscard]] int get_clicked_button_index(const std::vector<Rectangle>& rects) const;

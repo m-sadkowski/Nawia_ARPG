@@ -43,7 +43,7 @@ namespace Nawia::UI
         /**
          * Helper to calculate layout for vertical stacks of buttons.
          */
-        std::vector<Rectangle> get_vertical_menu_layout(int button_count, bool centered = false)
+        std::vector<Rectangle> getVerticalMenuLayout(int button_count, bool centered = false)
         {
             const float screen_width = static_cast<float>(GetScreenWidth());
             const float screen_height = static_cast<float>(GetScreenHeight());
@@ -69,7 +69,7 @@ namespace Nawia::UI
             return button_rectangles;
         }
 
-        void draw_particles_fx(float width, float height, float time)
+        void drawParticlesFx(float width, float height, float time)
         {
             // Smoke Layers
             for (int i = 0; i < SMOKE_LAYER_COUNT; ++i)
@@ -105,6 +105,7 @@ namespace Nawia::UI
     }
 
     UIHandler::UIHandler() : _player(nullptr), _entity_manager(nullptr) {}
+
     UIHandler::~UIHandler() { UnloadFont(_font); }
 
     void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager, const Core::Settings* settings)
@@ -176,7 +177,7 @@ namespace Nawia::UI
             updateHoverTimers(delta_time, {{ (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height }});
         }
         else if (!_settings_menu && !_level_select_menu)
-            updateHoverTimers(delta_time, get_vertical_menu_layout(4));
+            updateHoverTimers(delta_time, getVerticalMenuLayout(4));
 
         for (auto iterator = _notifications.begin(); iterator != _notifications.end();)
         {
@@ -259,7 +260,7 @@ namespace Nawia::UI
         else
             DrawTextEx(_font, title, title_position, title_font_size, font_spacing, COLOR_ACCENT);
 
-        const auto button_rectangles = get_vertical_menu_layout(static_cast<int>(buttons.size()), centered);
+        const auto button_rectangles = getVerticalMenuLayout(static_cast<int>(buttons.size()), centered);
         draw_menu_buttons_stack(buttons, button_rectangles);
     }
 
@@ -323,7 +324,7 @@ namespace Nawia::UI
         }
         else
         {
-            const auto button_rectangles = get_vertical_menu_layout(4, false);
+            const auto button_rectangles = getVerticalMenuLayout(4, false);
             const int clicked_index = get_clicked_button_index(button_rectangles);
             
             if (clicked_index == 0) return MenuAction::Play;
@@ -391,7 +392,7 @@ namespace Nawia::UI
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.8f));
         
         DrawRectangleGradientV(0, 0, GetScreenWidth(), GetScreenHeight(), withAlpha({ 30, 14, 10, 255 }, 0.10f), withAlpha({ 5, 5, 8, 255 }, 0.48f));
-        draw_particles_fx(screen_width, screen_height, current_time);
+        drawParticlesFx(screen_width, screen_height, current_time);
         DrawRectangleGradientV(0, 0, GetScreenWidth(), GetScreenHeight(), withAlpha(COLOR_ACCENT, 0.02f), withAlpha(BLACK, 0.12f));
     }
 
@@ -459,7 +460,7 @@ namespace Nawia::UI
 
     MenuAction UIHandler::handlePauseMenuInput()
     {
-        const int clicked_index = get_clicked_button_index(get_vertical_menu_layout(3, true));
+        const int clicked_index = get_clicked_button_index(getVerticalMenuLayout(3, true));
         
         if (clicked_index == 0) return MenuAction::Play;
         if (clicked_index == 1) return MenuAction::Settings;
@@ -479,7 +480,7 @@ namespace Nawia::UI
 
     MenuAction UIHandler::handleGameOverInput()
     {
-        const int clicked_index = get_clicked_button_index(get_vertical_menu_layout(2, true));
+        const int clicked_index = get_clicked_button_index(getVerticalMenuLayout(2, true));
         
         if (clicked_index == 0) return MenuAction::Respawn;
         if (clicked_index == 1) return MenuAction::Exit;
@@ -544,32 +545,80 @@ namespace Nawia::UI
         }
     }
 
+    void UIHandler::drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text) const
+    {
+        // Outer glow
+        DrawCircleGradient(static_cast<int>(center_x), static_cast<int>(center_y), radius + Core::GlobalScaling::scaled(6.0f), withAlpha(fill_dark, 0.25f * target_percent), withAlpha(BLACK, 0.0f));
+        
+        // Background sphere
+        DrawCircleV({ center_x, center_y }, radius, bg_color);
+        
+        // Ghost fill (damage history)
+        if (ghost_percent > target_percent)
+        {
+            const float ghost_fill_height = radius * 2.0f * ghost_percent;
+            const float ghost_clip_y = static_cast<int>(center_y + radius - ghost_fill_height);
+            BeginScissorMode(static_cast<int>(center_x - radius), static_cast<int>(ghost_clip_y), static_cast<int>(radius * 2.0f), static_cast<int>(ghost_fill_height));
+            DrawCircleV({ center_x, center_y }, radius - 1.0f, withAlpha(COLOR_HEALTH_GHOST, 0.3f));
+            EndScissorMode();
+        }
+        
+        // Fill from bottom using scissor clipping
+        const float fill_height = radius * 2.0f * target_percent;
+        const float clip_y = center_y + radius - fill_height;
+        BeginScissorMode(static_cast<int>(center_x - radius), static_cast<int>(clip_y), static_cast<int>(radius * 2.0f), static_cast<int>(fill_height));
+        DrawCircleGradient(static_cast<int>(center_x), static_cast<int>(center_y), radius - 1.0f, fill_bright, fill_dark);
+        EndScissorMode();
+        
+        // Liquid surface wavering highlight
+        const float surface_y = clip_y;
+        const float wave_offset = std::sin(static_cast<float>(GetTime()) * wave_speed) * Core::GlobalScaling::scaled(1.5f);
+        if (target_percent > 0.02f && target_percent < 0.98f)
+        {
+            // Calculate the width of the circle at the fill line
+            const float dy = (surface_y + wave_offset) - center_y;
+            const float half_width = std::sqrt(std::max(0.0f, radius * radius - dy * dy));
+            DrawLineEx({ center_x - half_width, surface_y + wave_offset }, { center_x + half_width, surface_y + wave_offset }, Core::GlobalScaling::scaled(1.5f), withAlpha(WHITE, 0.25f));
+        }
+        
+        // Glass highlight (top-left crescent)
+        DrawCircleGradient(static_cast<int>(center_x - radius * 0.3f), static_cast<int>(center_y - radius * 0.3f), radius * 0.55f, withAlpha(WHITE, 0.12f), withAlpha(WHITE, 0.0f));
+        
+        // Border ring
+        DrawCircleLinesV({ center_x, center_y }, radius, withAlpha(COLOR_ACCENT, 0.6f));
+        DrawCircleLinesV({ center_x, center_y }, radius + 1.0f, withAlpha(BLACK, 0.4f));
+        
+        // Text
+        const float font_size = Core::GlobalScaling::scaled(18.0f);
+        const Vector2 text_size = MeasureTextEx(_font, text, font_size, 1.0f);
+        DrawTextEx(_font, text, { center_x - text_size.x / 2.0f + 1.0f, center_y - text_size.y / 2.0f + 1.0f }, font_size, 1.0f, withAlpha(BLACK, 0.6f));
+        DrawTextEx(_font, text, { center_x - text_size.x / 2.0f, center_y - text_size.y / 2.0f }, font_size, 1.0f, WHITE);
+    }
+
     void UIHandler::renderPlayerHealthBar() const
     {
-        const float bar_width = Core::GlobalScaling::scaled(BAR_HEALTH_WIDTH);
-        const float bar_height = Core::GlobalScaling::scaled(BAR_HEALTH_HEIGHT);
-        const float pos_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
-        const float pos_y = static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(HUD_MARGIN_BOTTOM);
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float screen_height = static_cast<float>(GetScreenHeight());
+        const float icon_size = Core::GlobalScaling::scaled(ABILITY_ICON_SIZE);
+        const float icon_spacing = Core::GlobalScaling::scaled(ABILITY_SPACING);
+        const float total_ability_width = (icon_size * 4) + (icon_spacing * 3);
+        const float ability_start_x = (screen_width - total_ability_width) / 2.0f;
+        const float ability_center_y = screen_height - Core::GlobalScaling::scaled(140.0f) + icon_size / 2.0f;
+        
+        const float orb_radius = Core::GlobalScaling::scaled(38.0f);
+        const float orb_gap = Core::GlobalScaling::scaled(18.0f);
+        const float orb_center_x = ability_start_x - orb_gap - orb_radius;
+        const float orb_center_y = ability_center_y;
         
         const float target_hp = std::clamp(static_cast<float>(_player->getHP()) / _player->getMaxHP(), 0.0f, 1.0f);
         
-        // Background
-        DrawRectangleRec({ pos_x - 4, pos_y - 4, bar_width + 8, bar_height + 8 }, withAlpha(BLACK, 0.6f));
-        DrawRectangleRec({ pos_x, pos_y, bar_width, bar_height }, withAlpha(COLOR_PANEL_BG, 0.8f));
+        // Orb fill colors
+        const Color orb_fill_dark = { 120, 10, 10, 255 };
+        const Color orb_fill_bright = { 200, 30, 30, 255 };
+        const Color orb_bg = { 20, 12, 12, 240 };
         
-        // Ghost Bar (damage history)
-        if (_visual_hp_percent > target_hp)
-            drawBar(pos_x, pos_y, bar_width, bar_height, _visual_hp_percent, COLOR_HEALTH_GHOST, withAlpha(BLACK, 0.0f));
-        
-        // Actual Health Bar
-        drawBar(pos_x, pos_y, bar_width, bar_height, target_hp, RED, withAlpha(BLACK, 0.0f));
-        
-        // Border
-        DrawRectangleLinesEx({ pos_x, pos_y, bar_width, bar_height }, 2.0f, COLOR_ACCENT);
-        
-        const char* health_text = TextFormat("%d / %d", _player->getHP(), _player->getMaxHP());
-        const Vector2 text_size = MeasureTextEx(_font, health_text, 20.0f, 1.0f);
-        DrawTextEx(_font, health_text, { pos_x + (bar_width - text_size.x) / 2.0f, pos_y + (bar_height - text_size.y) / 2.0f }, 20.0f, 1.0f, WHITE);
+        const char* health_text = TextFormat("%d HP", _player->getHP());
+        drawOrb(orb_center_x, orb_center_y, orb_radius, target_hp, _visual_hp_percent, 2.5f, orb_fill_bright, orb_fill_dark, orb_bg, health_text);
     }
 
     void UIHandler::renderCombatEntityHealthBars(const Core::GameCamera& camera) const
@@ -632,30 +681,26 @@ namespace Nawia::UI
 
     void UIHandler::renderPlayerExperienceBar() const
     {
-        const float bar_width = static_cast<float>(GetScreenWidth()) * 0.18f; // Shortened to 18% of screen width
-        const float bar_height = Core::GlobalScaling::scaled(4.0f);
-        const float pos_x = (static_cast<float>(GetScreenWidth()) - bar_width) / 2.0f;
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float screen_height = static_cast<float>(GetScreenHeight());
+        const float icon_size = Core::GlobalScaling::scaled(ABILITY_ICON_SIZE);
+        const float icon_spacing = Core::GlobalScaling::scaled(ABILITY_SPACING);
+        const float total_ability_width = (icon_size * 4) + (icon_spacing * 3);
+        const float ability_end_x = (screen_width + total_ability_width) / 2.0f;
+        const float ability_center_y = screen_height - Core::GlobalScaling::scaled(140.0f) + icon_size / 2.0f;
         
-        // Positioned 15px above Abilities (Abilities start at screen_height - 140)
-        const float pos_y = static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(140.0f) - Core::GlobalScaling::scaled(15.0f) - bar_height;
+        const float orb_radius = Core::GlobalScaling::scaled(38.0f);
+        const float orb_gap = Core::GlobalScaling::scaled(18.0f);
+        const float orb_center_x = ability_end_x + orb_gap + orb_radius;
+        const float orb_center_y = ability_center_y;
         
-        // Background
-        DrawRectangleRec({ pos_x, pos_y, bar_width, bar_height }, withAlpha(BLACK, 0.5f));
+        // Orb fill colors  
+        const Color orb_fill_dark = { 15, 40, 120, 255 };
+        const Color orb_fill_bright = { 50, 100, 220, 255 };
+        const Color orb_bg = { 10, 12, 25, 240 };
         
-        // Visual Bar
-        DrawRectangleRec({ pos_x, pos_y, bar_width * _visual_exp_percent, bar_height }, withAlpha(COLOR_ACCENT, 0.9f));
-        
-        // Level Circle
-        const float circle_radius = Core::GlobalScaling::scaled(EXP_CIRCLE_RADIUS * 0.75f);
-        const float circle_x = pos_x - circle_radius - 8.0f;
-        const float circle_y = pos_y + bar_height / 2.0f;
-        
-        DrawCircle(static_cast<int>(circle_x), static_cast<int>(circle_y), circle_radius, withAlpha(BLACK, 0.8f));
-        DrawCircleLines(static_cast<int>(circle_x), static_cast<int>(circle_y), circle_radius, COLOR_ACCENT);
-        
-        const char* level_text = TextFormat("%d", _player->getLevel());
-        const Vector2 text_size = MeasureTextEx(_font, level_text, 14.0f, 1.0f);
-        DrawTextEx(_font, level_text, { circle_x - text_size.x / 2.0f, circle_y - text_size.y / 2.0f }, 14.0f, 1.0f, WHITE);
+        const char* level_text = TextFormat("%d LVL", _player->getLevel());
+        drawOrb(orb_center_x, orb_center_y, orb_radius, _visual_exp_percent, 0.0f, 2.0f, orb_fill_bright, orb_fill_dark, orb_bg, level_text);
     }
 
     void UIHandler::renderLocationInfo() const
