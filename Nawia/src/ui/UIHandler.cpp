@@ -610,14 +610,15 @@ namespace Nawia::UI
         const float orb_center_x = ability_start_x - orb_gap - orb_radius;
         const float orb_center_y = ability_center_y;
         
-        const float target_hp = std::clamp(static_cast<float>(_player->getHP()) / _player->getMaxHP(), 0.0f, 1.0f);
+        const int display_hp = _player->isDying() ? 0 : _player->getHP();
+        const float target_hp = std::clamp(static_cast<float>(display_hp) / _player->getMaxHP(), 0.0f, 1.0f);
         
         // Orb fill colors
         const Color orb_fill_dark = { 120, 10, 10, 255 };
         const Color orb_fill_bright = { 200, 30, 30, 255 };
         const Color orb_bg = { 20, 12, 12, 240 };
         
-        const char* health_text = TextFormat("%d HP", _player->getHP());
+        const char* health_text = TextFormat("%d HP", display_hp);
         drawOrb(orb_center_x, orb_center_y, orb_radius, target_hp, _visual_hp_percent, 2.5f, orb_fill_bright, orb_fill_dark, orb_bg, health_text);
     }
 
