@@ -74,7 +74,7 @@ namespace Nawia::Core {
 
         // initialize UI
         _ui_handler = std::make_unique<Nawia::UI::UIHandler>();
-        _ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager);
+        _ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
         _ui_handler->setLevelManager(_level_manager.get());
 
 		// TEST remove later
@@ -138,6 +138,10 @@ namespace Nawia::Core {
                 _previous_state = GameState::Menu;
                 _ui_handler->openSettings(_settings);
                 _game_state = GameState::SettingsMenu;
+            }
+            else if (action == Nawia::UI::MenuAction::Authors)
+            {
+                _ui_handler->openAuthors();
             }
             else if (action == Nawia::UI::MenuAction::Exit)
             {
@@ -205,6 +209,7 @@ namespace Nawia::Core {
 				_ui_handler->closeLevelSelect();
 				_level_manager->changeLevel(selected_lvl, this);
 				_game_state = GameState::Playing;
+				_ui_handler->onLevelLoaded();
 			}
 			return;
 		}
@@ -212,6 +217,9 @@ namespace Nawia::Core {
 		// Playing state - handle ESC for pause menu toggle
 		if (IsKeyPressed(KEY_ESCAPE)) 
 		{
+            if (_ui_handler && _ui_handler->closeOpenWindows()) {
+                return;
+            }
 		    _show_pause_menu = !_show_pause_menu;
 		    return;
 		}
@@ -365,7 +373,6 @@ namespace Nawia::Core {
 			_level_manager->renderUI(const_cast<Engine*>(this));
         }
 
-		DrawFPS(10, 10);
 
 		EndDrawing();
 	}

@@ -8,11 +8,13 @@
 
 namespace Nawia::UI {
 
+    class UIHandler;
+
     class LevelSelectMenu {
     public:
         explicit LevelSelectMenu(const std::vector<World::LevelInfo>& levels);
         
-        void render(const Font& font) const;
+        void render(const UIHandler& ui) const;
         std::string handleInput();
 
         [[nodiscard]] bool wasLevelSelected() const { return _level_selected; }
