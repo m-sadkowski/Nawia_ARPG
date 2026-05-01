@@ -18,6 +18,9 @@ namespace Nawia::UI {
         InventoryUI();
         ~InventoryUI() = default;
 
+        static constexpr float INV_WIDTH = 500.0f;
+        static constexpr float INV_HEIGHT = 400.0f;
+
         void loadResources(Core::ResourceManager& resourceManager);
 
         void render(const Font& font, const Entity::Player& player) const;
@@ -38,8 +41,6 @@ namespace Nawia::UI {
 
         static constexpr float INV_START_X = 20.0f;
         static constexpr float INV_START_Y = 20.0f;
-        static constexpr float INV_WIDTH = 500.0f;
-        static constexpr float INV_HEIGHT = 400.0f;
         static constexpr float TEXT_PADDING_LEFT = 20.0f;
         static constexpr float TEXT_PADDING_TOP = 10.0f;
         static constexpr float EQ_WIDTH = 220.0f;

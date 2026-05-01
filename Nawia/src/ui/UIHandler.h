@@ -104,6 +104,8 @@ namespace Nawia::UI {
 
         void showNotification(const std::string& text, float duration = 2.0f);
         [[nodiscard]] bool isInputBlocked() const;
+        [[nodiscard]] bool isMouseOverUI() const;
+        bool closeOpenWindows();
 
         void drawSharedMenuBackground() const;
         void drawMenuButton(const Rectangle& rect, const char* text, float hover_timer) const;

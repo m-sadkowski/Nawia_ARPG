@@ -217,6 +217,9 @@ namespace Nawia::Core {
 		// Playing state - handle ESC for pause menu toggle
 		if (IsKeyPressed(KEY_ESCAPE)) 
 		{
+            if (_ui_handler && _ui_handler->closeOpenWindows()) {
+                return;
+            }
 		    _show_pause_menu = !_show_pause_menu;
 		    return;
 		}

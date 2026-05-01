@@ -17,8 +17,8 @@ namespace Nawia::UI
         const float menu_height = Core::GlobalScaling::scaled(MENU_HEIGHT);
         const float screen_width = static_cast<float>(GetScreenWidth());
         const float screen_height = static_cast<float>(GetScreenHeight());
-        const float start_x = (screen_width - menu_width) / 2.0f;
-        const float start_y = (screen_height - menu_height) / 2.0f;
+        const float start_x = screen_width - menu_width - Core::GlobalScaling::scaled(50.0f);
+        const float start_y = Core::GlobalScaling::scaled(50.0f);
 
         const float padding = Core::GlobalScaling::scaled(25.0f); // Increased base padding
         const float tab_height = Core::GlobalScaling::scaled(40.0f);
@@ -72,8 +72,8 @@ namespace Nawia::UI
         const float screen_width = static_cast<float>(GetScreenWidth());
         const float screen_height = static_cast<float>(GetScreenHeight());
         
-        const float start_x = (screen_width - menu_width) / 2.0f;
-        const float start_y = (screen_height - menu_height) / 2.0f;
+        const float start_x = screen_width - menu_width - Core::GlobalScaling::scaled(50.0f);
+        const float start_y = Core::GlobalScaling::scaled(50.0f);
 
         // AAA Premium Background
         DrawRectangleRec({ start_x, start_y, menu_width, menu_height }, withAlpha(COLOR_PANEL_BG, 0.98f));

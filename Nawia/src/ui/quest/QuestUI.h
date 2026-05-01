@@ -21,6 +21,9 @@ namespace Nawia::UI {
         QuestUI();
         ~QuestUI() = default;
 
+        static constexpr float MENU_WIDTH = 700.0f;
+        static constexpr float MENU_HEIGHT = 500.0f;
+
         void render(const Font& font, Game::QuestManager* quest_manager) const;
         void handleInput();
 
@@ -35,8 +38,6 @@ namespace Nawia::UI {
         
         static constexpr float FONT_SIZE = 20.0f;
         static constexpr float PADDING = 10.0f;
-        static constexpr float MENU_WIDTH = 700.0f;
-        static constexpr float MENU_HEIGHT = 500.0f;
         
         void drawQuestList(const Font& font, const std::vector<Game::Quest*>& quests, float start_x, float start_y, float width, float height) const;
         void drawQuestDetails(const Font& font, Game::Quest* quest, float start_x, float start_y, float width, float height) const;
