@@ -17,6 +17,7 @@ namespace Nawia::Core
 	struct GameCamera
 	{
 		Camera3D cam3d = {};
+		float zoom = 1.0f;
 
 		GameCamera()
 		{
@@ -25,6 +26,17 @@ namespace Nawia::Core
 			cam3d.up = Vector3{ 0.0f, 1.0f, 0.0f };
 			cam3d.fovy = CAMERA_FOV;
 			cam3d.projection = CAMERA_PERSPECTIVE;
+		}
+
+		void handleInput()
+		{
+			float wheel = GetMouseWheelMove();
+			if (wheel != 0.0f)
+			{
+				zoom -= wheel * 0.1f;
+				if (zoom < 0.3f) zoom = 0.3f;
+				if (zoom > 2.0f) zoom = 2.0f;
+			}
 		}
 
 		void follow(const Entity::Entity* target)
@@ -36,9 +48,9 @@ namespace Nawia::Core
 
 			cam3d.target = Vector3{ world_x, 0.0f, world_z };
 			cam3d.position = Vector3{
-				world_x - CAMERA_DISTANCE * 0.7f,
-				CAMERA_HEIGHT,
-				world_z + CAMERA_DISTANCE * 0.7f
+				world_x - (CAMERA_DISTANCE * 0.7f) * zoom,
+				CAMERA_HEIGHT * zoom,
+				world_z + (CAMERA_DISTANCE * 0.7f) * zoom
 			};
 		}
 

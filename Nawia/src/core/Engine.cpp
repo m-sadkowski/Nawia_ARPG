@@ -251,6 +251,9 @@ namespace Nawia::Core {
 		// handle ui in-game input
 		_ui_handler->handleInput();
 
+		// handle camera zoom
+		_camera.handleInput();
+
 		// transform mouse location to world position using ray-cast
 		const Vector2 mouse_pos = GetMousePosition();
 		const Vector2 mouse_world_pos = screenToWorld(_camera.get(), mouse_pos.x, mouse_pos.y);
