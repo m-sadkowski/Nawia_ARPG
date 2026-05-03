@@ -43,14 +43,15 @@ namespace Nawia::Core
 		{
 			if (!target) return;
 
-			const float world_x = target->getX();
-			const float world_z = target->getY(); // Entity Y maps to world Z
+			// Follow 3D position (including altitude)
+			Vector3 targetPos = target->getWorldPos3D();
+			targetPos.y += 1.2f; // Offset to look at chest area for better centering
 
-			cam3d.target = Vector3{ world_x, 0.0f, world_z };
+			cam3d.target = targetPos;
 			cam3d.position = Vector3{
-				world_x - (CAMERA_DISTANCE * 0.7f),
-				CAMERA_HEIGHT,
-				world_z + (CAMERA_DISTANCE * 0.7f)
+				targetPos.x - (CAMERA_DISTANCE * 0.7f),
+				targetPos.y + CAMERA_HEIGHT,
+				targetPos.z + (CAMERA_DISTANCE * 0.7f)
 			};
 			cam3d.fovy = CAMERA_FOV * zoom;
 		}

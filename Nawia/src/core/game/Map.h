@@ -1,6 +1,8 @@
 #pragma once
 #include "ResourceManager.h"
 
+#include <NavMesh.h>
+
 #include <raylib.h>
 #include <string>
 #include <vector>
@@ -39,15 +41,19 @@ namespace Nawia::Core {
 		 * Must be called between BeginMode3D/EndMode3D.
 		 */
 		void render() const;
+		
+		/** @brief Raycast against the map geometry. */
+		[[nodiscard]] RayCollision getRayCollision(Ray ray) const;
 
 		/// @brief Always returns true (walkability disabled for now)
 		[[nodiscard]] bool isWalkable(float world_x, float world_z) const;
 
 		/// @brief Returns empty path (pathfinding disabled for now)
-		[[nodiscard]] std::vector<Vector2> findPath(Vector2 start, Vector2 end) const;
+		[[nodiscard]] std::vector<Vector2> findPath(Vector3 start, Vector3 end) const;
 
 		[[nodiscard]] Vector2 getPlayerSpawnPos() const { return _player_spawn_pos; }
 		Model& getModel() { return _model; }
+		const World::NavMesh& getNavMesh() const { return _navmesh; }
 
 	private:
 		ResourceManager& _resource_manager;
@@ -61,6 +67,9 @@ namespace Nawia::Core {
 		Vector3 _rotation = {0.0f, 0.0f, 0.0f};
 
 		Vector2 _player_spawn_pos = {0.0f, 0.0f};
+		
+		World::NavMesh _navmesh;
+		std::vector<BoundingBox> _mesh_bboxes;
 	};
 
 } // namespace Nawia::Core

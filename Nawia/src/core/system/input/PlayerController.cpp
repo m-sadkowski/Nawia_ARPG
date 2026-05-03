@@ -13,20 +13,20 @@ namespace Nawia::Core {
 
 	PlayerController::PlayerController(Engine* engine, std::shared_ptr<Entity::Player> player) : _engine(engine), _player(std::move(player)) {}
 
-	void PlayerController::handleInput(const float mouse_world_x, const float mouse_world_y, const float screen_x, const float screen_y) 
+	void PlayerController::handleInput(Vector3 mouse_world_pos, const float screen_x, const float screen_y)
 	{
 		if (!_player) return;
 
-		_last_mouse_x = mouse_world_x;
-		_last_mouse_y = mouse_world_y;
+		_last_mouse_x = mouse_world_pos.x;
+		_last_mouse_y = mouse_world_pos.z;
 
 		if (_engine->getUIHandler().isInputBlocked()) {
 			_player->stop();
 			return;
 		}
 
-		handleMouseInput(mouse_world_x, mouse_world_y, screen_x, screen_y);
-		handleKeyboardInput(mouse_world_x, mouse_world_y, screen_x, screen_y);
+		handleMouseInput(mouse_world_pos, screen_x, screen_y);
+		handleKeyboardInput(mouse_world_pos, screen_x, screen_y);
 	}
 
 	
@@ -34,7 +34,6 @@ namespace Nawia::Core {
 	{
 		processPendingAction();  
 
-		
 		if (processInteraction())
 			return;
 
@@ -45,6 +44,7 @@ namespace Nawia::Core {
 
 		processAutoAttack();
 
+		updatePathMovement();
 		updateRotation();
 	}
 
@@ -122,7 +122,7 @@ namespace Nawia::Core {
 	}
 
 	
-	void PlayerController::handleMouseInput(const float mouse_world_x, const float mouse_world_y, const float screen_x, const float screen_y)
+	void PlayerController::handleMouseInput(Vector3 mouse_world_pos, const float screen_x, const float screen_y)
 	{
 		if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) return;
 
@@ -154,12 +154,13 @@ namespace Nawia::Core {
 
 		
 		_target_interactable = nullptr;
-		handleGroundClick(mouse_world_x, mouse_world_y);
+		handleGroundClick(mouse_world_pos);
 	}
-	void PlayerController::handleKeyboardInput(const float mouse_world_x, const float mouse_world_y, const float screen_x, const float screen_y)
+	void PlayerController::handleKeyboardInput(Vector3 mouse_world_pos, const float screen_x, const float screen_y)
 	{
-		int ability_index = -1;
+		if (_engine->getUIHandler().isInputBlocked()) return;
 
+		int ability_index = -1;
 		if (IsKeyPressed(KEY_Q)) ability_index = 0;
 		if (IsKeyPressed(KEY_W)) ability_index = 1;
 		if (IsKeyPressed(KEY_E)) ability_index = 2;
@@ -167,10 +168,10 @@ namespace Nawia::Core {
 
 		if (ability_index == -1) return;
 
-		if (const bool is_locked = _player->isAnimationLocked())
-			queueAbility(ability_index, mouse_world_x, mouse_world_y, screen_x, screen_y);
+		if (_player->isAnimationLocked())
+			queueAbility(ability_index, mouse_world_pos.x, mouse_world_pos.z, screen_x, screen_y);
 		else
-			castAbility(ability_index, mouse_world_x, mouse_world_y, screen_x, screen_y);
+			castAbility(ability_index, mouse_world_pos.x, mouse_world_pos.z, screen_x, screen_y);
 	}
 
 	void PlayerController::processPendingAction()
@@ -234,17 +235,56 @@ namespace Nawia::Core {
 		return true;
 	}
 
-	void PlayerController::handleGroundClick(const float x, const float y)
+	void PlayerController::handleGroundClick(Vector3 pos) 
 	{
+		float target_x = pos.x;
+		float target_y = pos.z;
+
+		if (_engine && _engine->getCurrentMap()) {
+			Vector3 snapped = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(pos);
+			target_x = snapped.x;
+			target_y = snapped.z;
+		}
+
 		if (_player->isAnimationLocked())
 		{
-			_pending_action = { PendingAction::Type::Move, x, y, -1,  std::weak_ptr<Entity::Entity>() };
+			_pending_action = { PendingAction::Type::Move, target_x, target_y, -1,  std::weak_ptr<Entity::Entity>() };
 		}
 		else
 		{
-			Logger::debugLog("PlayerController::handleGroundClick -> x=" + std::to_string(x) + " y=" + std::to_string(y));
+			// Logger::debugLog("PlayerController::handleGroundClick -> x=" + std::to_string(target_x) + " y=" + std::to_string(target_y));
 			_target_enemy = nullptr;
-			_player->moveTo(x, y);
+			
+			if (_engine && _engine->getCurrentMap()) {
+				Vector3 startPos = _player->getWorldPos3D();
+				Vector3 endPos = { target_x, startPos.y, target_y };
+				_current_path = _engine->getCurrentMap()->findPath(startPos, endPos);
+				Logger::debugLog("PlayerController::handleGroundClick - findPath returned " + std::to_string(_current_path.size()) + " points");
+				
+				if (!_current_path.empty()) {
+					// Remove the first point if it's too close to current position
+					Vector2 first_pt = _current_path.front();
+					float dx = first_pt.x - _player->getCenter().x;
+					float dy = first_pt.y - _player->getCenter().y;
+					if (dx*dx + dy*dy < 0.1f) {
+						_current_path.erase(_current_path.begin());
+					}
+					
+					if (!_current_path.empty()) {
+						Logger::debugLog("PlayerController::handleGroundClick - Moving to path front");
+						_player->moveTo(_current_path.front().x, _current_path.front().y);
+					} else {
+						Logger::debugLog("PlayerController::handleGroundClick - Path empty after removing start point");
+					}
+				} else {
+					// Fallback if no path is found
+					Logger::debugLog("PlayerController::handleGroundClick - No path found, IGNORING click to prevent mountain climbing");
+					_player->moveTo(_player->getX(), _player->getY()); // Stop moving
+				}
+			} else {
+				_player->moveTo(target_x, target_y);
+			}
+
 			_pending_action = {}; // clear pending on new valid action
 		}
 	}
@@ -305,13 +345,36 @@ namespace Nawia::Core {
 	{
 		_target_enemy = nullptr; // default clear
 		
-		if (const auto target = _pending_action.target.lock() )
+		if (const auto target = _pending_action.target.lock() ) {
 			// if we queued a move on an enemy, set as target
-			if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
+			if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target)) {
 				_target_enemy = enemy;
-		else
+			}
+		}
+		else {
 			// ground move
-			_player->moveTo(_pending_action.x, _pending_action.y);
+			if (_engine && _engine->getCurrentMap()) {
+				Vector3 startPos = _player->getWorldPos3D();
+				Vector3 endPos = { _pending_action.x, startPos.y, _pending_action.y };
+				_current_path = _engine->getCurrentMap()->findPath(startPos, endPos);
+				if (!_current_path.empty()) {
+					// Remove the first point if it's too close
+					Vector2 first_pt = _current_path.front();
+					float dx = first_pt.x - _player->getCenter().x;
+					float dy = first_pt.y - _player->getCenter().y;
+					if (dx*dx + dy*dy < 0.1f) {
+						_current_path.erase(_current_path.begin());
+					}
+					if (!_current_path.empty()) {
+						_player->moveTo(_current_path.front().x, _current_path.front().y);
+					}
+				} else {
+					_player->moveTo(_player->getX(), _player->getY()); // Stop moving if no path
+				}
+			} else {
+				_player->moveTo(_pending_action.x, _pending_action.y);
+			}
+		}
 	}
 
 	void PlayerController::processPendingAbility() const
@@ -352,6 +415,21 @@ namespace Nawia::Core {
 	}
 
 	
+
+	void PlayerController::updatePathMovement() 
+	{
+		// If player arrived at the current target point and we have more points
+		if (!_player->isMoving() && !_current_path.empty()) {
+			_current_path.erase(_current_path.begin()); // Pop the point we just arrived at
+			
+			if (!_current_path.empty()) {
+				_player->moveTo(_current_path.front().x, _current_path.front().y);
+			}
+		} else if (!_current_path.empty() && _target_enemy) {
+			// If we acquired a target enemy, discard the path
+			_current_path.clear();
+		}
+	}
 
 	void PlayerController::updateRotation() const
 	{

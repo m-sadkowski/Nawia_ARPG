@@ -260,7 +260,21 @@ namespace Nawia::Core {
 
 		// transform mouse location to world position using ray-cast
 		const Vector2 mouse_pos = GetMousePosition();
-		const Vector2 mouse_world_pos = screenToWorld(_camera.get(), mouse_pos.x, mouse_pos.y);
+		Vector3 mouse_3d_pos;
+
+		if (getCurrentMap()) {
+			Ray ray = GetMouseRay(mouse_pos, _camera.get());
+			RayCollision collision = getCurrentMap()->getRayCollision(ray);
+			if (collision.hit) {
+				mouse_3d_pos = collision.point;
+			} else {
+				Vector2 fallback = screenToWorld(_camera.get(), mouse_pos.x, mouse_pos.y);
+				mouse_3d_pos = { fallback.x, 0.0f, fallback.y };
+			}
+		} else {
+			Vector2 fallback = screenToWorld(_camera.get(), mouse_pos.x, mouse_pos.y);
+			mouse_3d_pos = { fallback.x, 0.0f, fallback.y };
+		}
 
 		_entity_manager->updateHoverState(mouse_pos.x, mouse_pos.y, _camera.get());
 
@@ -274,7 +288,7 @@ namespace Nawia::Core {
 		if (!_controller)
 			return;
 
-		_controller->handleInput(mouse_world_pos.x, mouse_world_pos.y, mouse_pos.x, mouse_pos.y);
+		_controller->handleInput(mouse_3d_pos, mouse_pos.x, mouse_pos.y);
 	}
 
 	void Engine::update(const float delta_time) 

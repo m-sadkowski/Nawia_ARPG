@@ -93,6 +93,13 @@ namespace Nawia::Core {
             const auto& entity = *it;
             entity->update(delta_time);
 
+            // Ground snapping using NavMesh
+            if (_engine && _engine->getCurrentMap()) {
+                Vector3 current_pos = { entity->getX(), entity->getAltitude(), entity->getY() };
+                Vector3 snapped = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(current_pos);
+                entity->setAltitude(snapped.y);
+            }
+
             // Check if it's an expired spell
             bool is_expired_spell = false;
             if (const auto spell = dynamic_cast<Entity::AbilityEffect*>(entity.get()))

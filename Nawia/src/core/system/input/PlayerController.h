@@ -14,7 +14,7 @@ namespace Nawia::Core {
 	public:
 		PlayerController(Engine *engine, std::shared_ptr<Entity::Player> player);
 
-		void handleInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
+		void handleInput(Vector3 mouse_world_pos, float screen_x, float screen_y);
 		void update(float dt);
 		
 	private:
@@ -24,20 +24,23 @@ namespace Nawia::Core {
 		std::shared_ptr<Entity::Interactable> _target_interactable;
 		void useAbility(int index, float target_x, float target_y) const;
 
-		void handleMouseInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
-		void handleKeyboardInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
+		void handleMouseInput(Vector3 mouse_world_pos, float screen_x, float screen_y);
+		void handleKeyboardInput(Vector3 mouse_world_pos, float screen_x, float screen_y);
 		void processPendingAction();
 		void processAutoAttack();
 		bool processInteraction();
 		void updateRotation() const;
 
 		bool trySelectEnemy(float screen_x, float screen_y);
-		void handleGroundClick(float x, float y);
+		void handleGroundClick(Vector3 pos);
 		void queueAbility(int index, float x, float y, float screen_x, float screen_y);
 		void castAbility(int index, float x, float y, float screen_x, float screen_y);
 		void processPendingMove();
 		void processPendingAbility() const;
 		void updateCombatMovement(float dist_sq, float attack_range) const;
+		void updatePathMovement();
+
+		std::vector<Vector2> _current_path;
 
 		struct PendingAction 
 		{

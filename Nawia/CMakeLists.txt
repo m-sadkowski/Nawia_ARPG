@@ -59,6 +59,8 @@ include_directories(
     src/item/types
     src/item/utils
     external/json
+    ${recastnavigation_SOURCE_DIR}/Recast/Include
+    ${recastnavigation_SOURCE_DIR}/Detour/Include
 )
 
 include(FetchContent)
@@ -77,10 +79,21 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tinyxml2)
 
+# Recast Navigation
+FetchContent_Declare(
+    recastnavigation
+    GIT_REPOSITORY https://github.com/recastnavigation/recastnavigation.git
+    GIT_TAG main
+)
+# Recast builds tests by default, disable them to speed up build
+set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "" FORCE)
+set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(recastnavigation)
+
 add_executable(Nawia ${SOURCES})
 
 # Link libraries
-target_link_libraries(Nawia PRIVATE raylib tinyxml2)
+target_link_libraries(Nawia PRIVATE raylib tinyxml2 Recast Detour)
 
 # Copy assets to build directory
 add_custom_command(TARGET Nawia POST_BUILD

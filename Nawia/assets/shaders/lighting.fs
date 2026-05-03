@@ -35,6 +35,12 @@ void main()
 {
     // Texel color fetching from texture sampler
     vec4 texelColor = texture(texture0, fragTexCoord);
+    
+    // Discard transparent pixels so they don't write to the depth buffer
+    if (texelColor.a < 0.1) {
+        discard;
+    }
+
     vec3 lightDot = vec3(0.0);
     
     vec3 normal = fragNormal;
