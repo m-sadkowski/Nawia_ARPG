@@ -294,6 +294,10 @@ namespace Nawia::Entity {
 		int _hp = 1;
 		int _max_hp = 1;
 
+	public:
+		Model& getModel() { return _model; }
+	protected:
+
 		// 3D Model & Animation Data
 		Model _model;
 		std::vector<ModelAnimation> _animations;

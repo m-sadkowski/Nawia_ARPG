@@ -17,7 +17,9 @@ namespace Nawia::World {
 		Core::Logger::debugLog("Ladowanie poziomu DevLevel...");
 
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
-		_map->loadMap("demo_map/inferno.glb", 1.f, {0.0f, -20.0f, 0.0f}, {0, 180, 00});
+		_map->loadMap("forest.glb", 2.f, { 0.0f, 0.0f, 0.0f }, { 0, 0, 0 });
+		
+		engine->getLightingSystem().loadLightingFromJson("../assets/maps/forest_lighting.json");
 
 		auto& em = engine->getEntityManager();
 		em.clearNonPlayerEntities();
@@ -53,6 +55,28 @@ namespace Nawia::World {
 			}
 		} 
 		else {
+			// Lighting controls
+			auto& lighting = engine->getLightingSystem();
+			if (!lighting.getLights().empty()) {
+				auto& light = lighting.getLights()[0]; // directional light
+				bool changed = false;
+				if (IsKeyDown(KEY_UP)) { light.position.z -= 1.0f; changed = true; }
+				if (IsKeyDown(KEY_DOWN)) { light.position.z += 1.0f; changed = true; }
+				if (IsKeyDown(KEY_LEFT)) { light.position.x -= 1.0f; changed = true; }
+				if (IsKeyDown(KEY_RIGHT)) { light.position.x += 1.0f; changed = true; }
+				if (IsKeyDown(KEY_PAGE_UP)) { light.position.y += 1.0f; changed = true; }
+				if (IsKeyDown(KEY_PAGE_DOWN)) { light.position.y -= 1.0f; changed = true; }
+				
+				if (changed) {
+					lighting.updateLightValues(0);
+				}
+
+				if (IsKeyPressed(KEY_S)) {
+					lighting.saveLightingToJson("../assets/maps/forest_lighting.json");
+					Core::Logger::debugLog("Zapisano ustawienia oswietlenia");
+				}
+			}
+
 			if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
 				Vector2 mouse_pos = GetMousePosition();
 				
@@ -68,6 +92,16 @@ namespace Nawia::World {
 	void DevLevel::update(Core::Engine* engine, float dt) {}
 
 	void DevLevel::renderUI(Core::Engine* engine) {
+		auto& lighting = engine->getLightingSystem();
+		if (!lighting.getLights().empty()) {
+			auto& light = lighting.getLights()[0];
+			std::string light_info = "Light Pos: (" + std::to_string(light.position.x) + ", " + 
+									 std::to_string(light.position.y) + ", " + std::to_string(light.position.z) + ")";
+			DrawText(light_info.c_str(), 10, 50, 20, RAYWHITE);
+			DrawText("Use Arrows + PgUp/PgDown to adjust lighting", 10, 80, 20, RAYWHITE);
+			DrawText("Press 'S' to save lighting settings", 10, 110, 20, GREEN);
+		}
+
 		if (_is_typing) {
 			int screen_w = GetScreenWidth();
 			int screen_h = GetScreenHeight();

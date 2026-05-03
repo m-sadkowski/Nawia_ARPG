@@ -48,10 +48,11 @@ namespace Nawia::Core
 
 			cam3d.target = Vector3{ world_x, 0.0f, world_z };
 			cam3d.position = Vector3{
-				world_x - (CAMERA_DISTANCE * 0.7f) * zoom,
-				CAMERA_HEIGHT * zoom,
-				world_z + (CAMERA_DISTANCE * 0.7f) * zoom
+				world_x - (CAMERA_DISTANCE * 0.7f),
+				CAMERA_HEIGHT,
+				world_z + (CAMERA_DISTANCE * 0.7f)
 			};
+			cam3d.fovy = CAMERA_FOV * zoom;
 		}
 
 		/// Get the underlying Camera3D for Raylib calls

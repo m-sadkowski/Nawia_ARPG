@@ -22,6 +22,10 @@ namespace Nawia::Core {
 		SetExitKey(0);  // Disable ESC = close window (we handle ESC manually)
 		SetTargetFPS(0);
 		
+		_lighting_system.initialize();
+		_lighting_system.addLight(System::Renderer::LightingSystem::LIGHT_DIRECTIONAL, {-50.0f, 50.0f, -50.0f}, {0.0f, 0.0f, 0.0f}, WHITE);
+		_lighting_system.addLight(System::Renderer::LightingSystem::LIGHT_POINT, { 0.0f, 5.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, ORANGE);
+
 		// Load settings from file (if exists)
 		if (_settings.load()) {
 		    // Apply saved resolution
@@ -290,6 +294,7 @@ namespace Nawia::Core {
 		}
 
 		_camera.follow(_player.get());
+		_lighting_system.update(_camera.get());
         if (_ui_handler) _ui_handler->update(delta_time);
         _level_manager->update(this, delta_time);
 		_controller->update(delta_time);
@@ -344,6 +349,12 @@ namespace Nawia::Core {
 			// Render game world behind the overlay
 			if (getCurrentMap() && _player && _entity_manager) {
 				BeginMode3D(_camera.get());
+
+				_lighting_system.applyToModel(getCurrentMap()->getModel());
+				for (const auto& entity : _entity_manager->getEntities()) {
+					_lighting_system.applyToModel(entity->getModel());
+				}
+
 				getCurrentMap()->render();
 				_entity_manager->renderEntities(_camera.get());
 				EndMode3D();
@@ -360,6 +371,11 @@ namespace Nawia::Core {
 
 		    /* RENDER 3D SCENE */
 		    BeginMode3D(_camera.get());
+
+			_lighting_system.applyToModel(getCurrentMap()->getModel());
+			for (const auto& entity : _entity_manager->getEntities()) {
+				_lighting_system.applyToModel(entity->getModel());
+			}
 
 		    getCurrentMap()->render();
 		    _entity_manager->renderEntities(_camera.get());

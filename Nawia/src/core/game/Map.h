@@ -47,6 +47,7 @@ namespace Nawia::Core {
 		[[nodiscard]] std::vector<Vector2> findPath(Vector2 start, Vector2 end) const;
 
 		[[nodiscard]] Vector2 getPlayerSpawnPos() const { return _player_spawn_pos; }
+		Model& getModel() { return _model; }
 
 	private:
 		ResourceManager& _resource_manager;
