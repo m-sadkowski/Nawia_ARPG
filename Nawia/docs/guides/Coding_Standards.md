@@ -16,11 +16,13 @@ Ten dokument opisuje zasady obowiązujące w kodzie Nawia. Traktuj go jako punkt
 
 Kolejność include'ów:
 
-1. W pliku `.cpp` najpierw własny nagłówek z tego samego folderu, np. `#include "Bandit.h"`.
-2. Nagłówki z tego samego folderu w cudzysłowie.
-3. Nasze nagłówki z innych folderów w nawiasach ostrych, np. `#include <ActorInterface.h>`.
-4. Zewnętrzne biblioteki w nawiasach ostrych, np. `#include <raylib.h>`, `#include <raymath.h>`.
-5. Biblioteka standardowa C++, np. `#include <memory>`, `#include <vector>`.
+1. W pliku `.cpp` najpierw własny nagłówek implementowanej klasy w cudzysłowie, np. `#include "Bandit.h"`.
+2. Pozostałe nagłówki projektu w nawiasach ostrych, np. `#include <AllyInterface.h>`, `#include <Map.h>`.
+3. Zewnętrzne biblioteki w nawiasach ostrych, np. `#include <raylib.h>`, `#include <raymath.h>`.
+4. Biblioteka standardowa C++ w nawiasach ostrych, np. `#include <memory>`, `#include <vector>`.
+
+W nagłówkach `.h` wszystkie include'y zapisujemy w nawiasach ostrych, bo nie istnieje tam osobny
+include własnego nagłówka implementacji.
 
 W każdej grupie sortuj alfabetycznie. Między grupami zostaw pustą linię.
 

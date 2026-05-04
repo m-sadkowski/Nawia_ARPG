@@ -1,6 +1,6 @@
 #pragma once
-#include "AbilityEffect.h"
-#include "AbilityStats.h"
+#include <AbilityEffect.h>
+#include <AbilityStats.h>
 
 #include <raylib.h>
 #include <functional>
@@ -14,85 +14,58 @@ namespace Nawia::Entity
 	
 	/**
 	 * @enum AbilityTargetType
-	 * @brief Defines how an ability targets its effects.
+	 * @brief Określa sposób wybierania celu przez umiejętność.
 	 */
 	enum class AbilityTargetType {
-		POINT, ///< Casted at a location (e.g., Fireball, Blink)
-		UNIT,  ///< Casted on a specific target entity
-		SELF   ///< Casted on the caster (e.g., heal, shield)
+		POINT, ///< Celowanie w punkt świata, np. fireball.
+		UNIT,  ///< Celowanie w konkretną encję.
+	SELF   ///< Celowanie w źródło użycia, np. leczenie albo tarcza.
 	};
 
 	/**
 	 * @class Ability
-	 * @brief Base class for all abilities (skills) in the game.
-	 * 
-	 * An Ability is a logical object (not an Entity) that belongs to an Entity (the caster).
-	 * Its main purpose is to create effects (projectiles, AoE, etc.) when used.
-	 * 
-	 * ## Creating a New Ability
-	 * 
-	 * 1. Create a class inheriting from `Ability`
-	 * 2. Implement the `cast(target_x, target_y)` method to spawn your effect
-	 * 3. The base class handles cooldowns automatically
-	 * 
-	 * ## Example
-	 * 
-	 * ```cpp
-	 * class FireballAbility : public Ability {
-	 * public:
-	 *     FireballAbility(const std::shared_ptr<Texture2D>& proj_tex, const std::shared_ptr<Texture2D>& icon)
-	 *         : Ability("Fireball", getStatsFromJson("fireball"), AbilityTargetType::POINT, icon),
-	 *           _projectile_tex(proj_tex) {}
-	 * 
-	 *     std::unique_ptr<Entity> cast(float target_x, float target_y) override {
-	 *         Vector2 start = _caster->getCollider()->getCenter();
-	 *         auto projectile = std::make_unique<Projectile>(start.x, start.y, target_x, target_y, _projectile_tex, _stats);
-	 *         projectile->setFaction(_caster->getFaction());
-	 *         return projectile;
-	 *     }
-	 * private:
-	 *     std::shared_ptr<Texture2D> _projectile_tex;
-	 * };
-	 * ```
-	 * 
-	 * @see AbilityEffect for creating visual effects spawned by abilities
-	 * @see AbilityStats for configuration of damage, cooldown, range, etc.
+	 * @brief Bazowa klasa wszystkich umiejętności w grze.
+	 *
+	 * Umiejętność jest obiektem logicznym przypiętym do źródła użycia. Nie renderuje
+	 * się sama, tylko tworzy efekty, pociski albo inne encje po użyciu.
+	 *
+	 * @see AbilityEffect Efekty tworzone przez umiejętności.
+	 * @see AbilityStats Konfiguracja obrażeń, czasu odnowienia i zasięgu.
 	 */
 	class Ability {
 	public:
 		/**
-		 * @brief Construct a new Ability.
-		 * @param name Display name of the ability
-		 * @param stats Ability configuration (damage, cooldown, range, etc.)
-		 * @param target_type How the ability targets (POINT, UNIT, SELF)
-		 * @param icon_texture UI icon texture
+		 * @brief Tworzy umiejętność z nazwą, statystykami i ikoną.
+		 * @param name Nazwa umiejętności.
+	 * @param stats Konfiguracja obrażeń, czasu odnowienia i zasięgu.
+		 * @param target_type Sposób wybierania celu.
+		 * @param icon_texture Ikona pokazywana w UI.
 		 */
 		Ability(std::string name, const AbilityStats& stats, AbilityTargetType target_type, const std::shared_ptr<Texture2D>& icon_texture);
 
 		virtual ~Ability() = default;
 
 		/**
-		 * @brief Update ability state (cooldowns, etc.)
-		 * @param dt Delta time in seconds
+	 * @brief Aktualizuje stan umiejętności, głównie czas odnowienia.
+		 * @param dt Czas od poprzedniej klatki w sekundach.
 		 */
 		virtual void update(float dt);
 
 		/**
-		 * @brief Check if ability is ready to use (off cooldown).
-		 * @return true if ready, false if on cooldown
+		 * @brief Sprawdza, czy umiejętność jest gotowa do użycia.
+	 * @return `true`, jeśli czas odnowienia dobiegł końca.
 		 */
 		[[nodiscard]] bool isReady() const;
 		
 		/**
-		 * @brief Cast the ability at a target location.
-		 * 
-		 * Override this method to define what happens when the ability is used.
-		 * Return a new Entity (projectile, effect) to spawn it in the world,
-		 * or nullptr if the ability has an instant effect with no visual entity.
-		 * 
-		 * @param target_x World X coordinate of target
-		 * @param target_y World Y coordinate of target
-		 * @return Spawned entity, or nullptr for instant effects
+		 * @brief Używa umiejętności we wskazanym punkcie świata.
+		 *
+	 * Implementacje zwracają encję do utworzenia albo `nullptr`, jeśli efekt
+		 * jest natychmiastowy lub opóźniony.
+		 *
+		 * @param target_x Współrzędna X celu.
+		 * @param target_y Współrzędna Y celu, mapowana na Z świata 3D.
+	 * @return Encja do utworzenia albo `nullptr`.
 		 */
 		virtual std::unique_ptr<Entity> cast(float target_x, float target_y) = 0;
 		
@@ -114,9 +87,9 @@ namespace Nawia::Entity
 		AbilityStats _stats;
 		float _cooldown_timer;
 		AbilityTargetType _target_type;
-		Entity* _caster;  ///< Entity that owns this ability
+	Entity* _caster;  ///< Encja posiadająca tę umiejętność.
 
-		/// Start the cooldown timer (call after successful cast)
+	/// Uruchamia czas odnowienia po udanym użyciu.
 		void startCooldown() { _cooldown_timer = _stats.cooldown; }
 	};
 

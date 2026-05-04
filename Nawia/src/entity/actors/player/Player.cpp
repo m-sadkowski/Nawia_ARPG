@@ -1,11 +1,11 @@
 #include "Player.h"
-#include "Collider.h"
+#include <Collider.h>
 
-#include <Map.h>
 #include <Constants.h>
-#include <MathUtils.h>
 #include <Engine.h>
 #include <Logger.h>
+#include <Map.h>
+#include <MathUtils.h>
 
 #include <cmath>
 
@@ -23,11 +23,11 @@ namespace Nawia::Entity {
 		addAnimation("attack", "../assets/models/player_auto_attack.glb");
 		addAnimation("knocked", "../assets/models/player_knocked.glb");
 		addAnimation("stand_up", "../assets/models/player_stand_up.glb");
-		playAnimation("default"); // play idle
+		playAnimation("default"); // Startowa animacja bezczynności.
 		setAnimationSpeed(1.0f);
 		_death_anim_name = "knocked";
 
-		// init backpack and eq
+		// Inicjalizacja plecaka i ekwipunku.
 		_backpack = std::make_unique<Item::Backpack>(INIT_BACKPACK_SIZE);
 		_equipment = std::make_unique<Item::Equipment>();
 
@@ -82,7 +82,7 @@ namespace Nawia::Entity {
 		updateAbilities(delta_time);
 		
 		isLevelUp();
-		// Handle knockdown animation sequence
+		// Obsługa sekwencji powalenia.
 		if (_is_knocked_down)
 		{
 			if (!isAnimationLocked())
@@ -100,7 +100,7 @@ namespace Nawia::Entity {
 					playAnimation("default");
 				}
 			}
-			return; // Don't process movement while knocked
+			return; // Podczas powalenia nie przetwarzamy ruchu.
 		}
 		
 		updateMovement(delta_time);
@@ -184,8 +184,8 @@ namespace Nawia::Entity {
 
 	void Player::levelUp() {
 		_level++;
-		_exp = _exp - _expToNextLvl;
-		_expToNextLvl = _expToNextLvl + 1000;
+    _exp = _exp - _exp_to_next_lvl;
+    _exp_to_next_lvl = _exp_to_next_lvl + 1000;
 		_base_stats.max_hp = _base_stats.max_hp + 15;
 		_base_stats.damage = _base_stats.damage + 2;
 		_base_stats.attack_speed = _base_stats.attack_speed + 0.1f;
@@ -195,7 +195,7 @@ namespace Nawia::Entity {
 	}
 
 	void Player::isLevelUp() {
-		if (_exp >= _expToNextLvl) levelUp();
+    if (_exp >= _exp_to_next_lvl) levelUp();
 	}
 
 	void Player::takeDamage(const int dmg)

@@ -12,7 +12,7 @@ namespace Nawia::Entity {
 	 * @class AllyInterface
 	 * @brief Baza dla wszystkich sojuszników.
 	 *
-	 * Klasa dodaje obsługę opcjonalnego braina. Mapę i targetowanie bierze ze
+	 * Klasa dodaje obsługę opcjonalnego obiektu decyzyjnego. Mapę i wybieranie celu bierze ze
 	 * wspólnego `ActorInterface`, tak samo jak klasy wrogów.
 	 */
 	class AllyInterface : public ActorInterface {

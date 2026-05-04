@@ -1,5 +1,5 @@
 #include "AbilityEffect.h"
-#include "Collider.h"
+#include <Collider.h>
 
 #include <algorithm>
 
@@ -32,15 +32,15 @@ namespace Nawia::Entity {
 
 		if (myCollider)
 		{
-			// Broadphase: Test the ability's collider footprint against the target's 3D bounding box
+		// Szybki test wstępny: kolider efektu kontra pudełko ograniczające celu.
 			if (myCollider->checkCollision(target->getBoundingBox()))
 			{
-				// Precise phase: Test against actual mesh structure (mimicking mouse hover)
+				// Faza dokładna: test z siatką modelu, podobny do hovera myszą.
 				return myCollider->checkMeshCollision(target.get());
 			}
 		}
 		
-		// Fallback or just return false if no collider
+		// Bez kolidera efekt nie ma geometrii trafienia.
 		return false;
 	}
 
@@ -51,7 +51,7 @@ namespace Nawia::Entity {
 
 	bool AbilityEffect::hasHit(const std::shared_ptr<Entity>& target) const 
 	{
-		// checks if target exists in the hit list, safely handling expired pointers
+		// Sprawdzamy listę trafionych, bezpiecznie obsługując wygasłe weak_ptr.
 		return std::any_of(_hit_entities.begin(), _hit_entities.end(), [&target](const auto& weak_ref) 
 			{
 				return weak_ref.lock() == target;

@@ -1,5 +1,5 @@
 #pragma once
-#include "InteractiveTrigger.h"
+#include <InteractiveTrigger.h>
 
 #include <string>
 
@@ -9,7 +9,7 @@ namespace Nawia::Entity {
 
     /**
      * @class Teleport
-     * @brief Trigger area that teleports the player to another location within the level.
+     * @brief Trigger przenoszący gracza do innej lokacji w obrębie poziomu.
      */
     class Teleport : public InteractiveTrigger {
     public:

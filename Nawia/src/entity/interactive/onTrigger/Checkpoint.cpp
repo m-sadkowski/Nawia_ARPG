@@ -1,10 +1,10 @@
 #include "Checkpoint.h"
-#include <iostream>
 
-#include "Collider.h"
-#include "InteractiveTrigger.h"
-#include <Player.h>
+#include <Collider.h>
 #include <Engine.h>
+#include <Player.h>
+
+#include <iostream>
 
 namespace Nawia::Entity {
 
@@ -22,7 +22,7 @@ namespace Nawia::Entity {
             if (auto* player = dynamic_cast<Player*>(&other)) {
                 player->setRespawnPoint(this->getCenter());
 
-                // Notify QuestManager about checkpoint reached
+                // Informujemy QuestManager o dotarciu do checkpointu.
                 if (player->getEngine()) {
                     player->getEngine()->getQuestManager().notifyCheckpointReached(getName());
                 }
@@ -35,11 +35,11 @@ namespace Nawia::Entity {
     }
 
     void Checkpoint::render(const Camera3D& camera) {
-        // Checkpoint is invisible to the player - visible only in debug mode
+		// Checkpoint jest niewidoczny dla gracza, widoczny tylko w trybie diagnostycznym.
         if (DebugColliders && _collider) {
             auto* rect_collider = dynamic_cast<RectangleCollider*>(_collider.get());
             if (rect_collider) {
-                // Draw 3D debug box at collider position
+		// Rysujemy diagnostyczne pudełko 3D w pozycji kolidera.
                 Vector2 center = rect_collider->getPosition();
                 float w = rect_collider->getWidth();
                 float h = rect_collider->getHeight();
@@ -49,7 +49,7 @@ namespace Nawia::Entity {
                 DrawCubeWires(Vector3{center.x, 0.1f, center.y}, w, 0.2f, h, GREEN);
                 
                 if (_activated) {
-                    // Draw "SAVED" text above the checkpoint in screen space
+                    // Tekst "SAVED" pojawia się nad checkpointem w przestrzeni ekranu.
                     Vector2 screen_pos = GetWorldToScreen(Vector3{center.x, 0.5f, center.y}, camera);
                     DrawText("SAVED", (int)(screen_pos.x - 15), (int)(screen_pos.y - 10), 10, GREEN);
                 }

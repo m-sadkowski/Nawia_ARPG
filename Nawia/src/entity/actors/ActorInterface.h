@@ -27,7 +27,7 @@ namespace Nawia::Entity {
 		void setTarget(const std::shared_ptr<Entity>& target) override { Entity::setTarget(target); }
 
 		/**
-		 * @brief Podpina mapę używaną przez ruch, pathfinding i walidację pozycji.
+	 * @brief Podpina mapę używaną przez ruch, wyznaczanie ścieżki i walidację pozycji.
 		 * @param map Mapa aktywnego poziomu; może być pusta dla prostych aktorów.
 		 */
 		void setMap(Core::Map* map) { _map = map; }

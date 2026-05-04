@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Ability.h"
+#include <Ability.h>
 
 #include <raylib.h>
 #include <memory>
@@ -10,9 +10,9 @@ namespace Nawia::Entity {
 
 	/**
 	 * @class KnifeThrowAbility
-	 * @brief Ranged knife throwing ability for Bandit enemies.
-	 * 
-	 * Creates a 3D knife projectile that travels toward the target.
+	 * @brief Dystansowa umiejętność rzutu nożem dla bandyty.
+	 *
+	 * Tworzy pocisk 3D lecący w stronę wskazanego celu.
 	 */
 	class KnifeThrowAbility : public Ability {
 	public:

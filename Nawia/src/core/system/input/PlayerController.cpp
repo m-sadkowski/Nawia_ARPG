@@ -1,11 +1,12 @@
 
 #include "PlayerController.h"
-#include "Engine.h"
-#include "Logger.h"
-#include "UIHandler.h"
 
+#include <Ability.h>
+#include <Engine.h>
 #include <EnemyInterface.h>
 #include <InteractiveTrigger.h>
+#include <Logger.h>
+#include <UIHandler.h>
 
 #include <string>
 
@@ -84,7 +85,7 @@ namespace Nawia::Core {
 				_player->stop();
 				_engine->getUIHandler().openDialogue(npc->getDialogueTree());
 
-				// Notify QuestManager about talking to this NPC
+					// Informujemy QuestManager o rozmowie z tym NPC.
 				_engine->getQuestManager().notifyNPCTalked(npc->getName());
 
 				_target_interactable = nullptr;
@@ -110,7 +111,7 @@ namespace Nawia::Core {
 		if (!spell || !spell->isReady())
 			return;
 
-		// stop movement and rotate towards target before casting
+				// Zatrzymujemy ruch i obracamy gracza w stronę celu przed rzutem.
 		_player->stop();
 		_player->rotateTowards(target_x, target_y);
 
@@ -219,9 +220,9 @@ namespace Nawia::Core {
 		const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(entity);
 		if (!enemy) return false;
 
-		// check target validity: alive and belongs to an enemy faction
+		// Sprawdzamy poprawność celu: żyje i należy do wrogiej frakcji.
 		if (enemy->isDead() || enemy->getFaction() == Entity::Faction::None)
-			return false; // treat as ground click
+			return false; // Traktujemy to jak kliknięcie w ziemię.
 
 		if (_player->isAnimationLocked())
 		{
@@ -230,7 +231,7 @@ namespace Nawia::Core {
 		else
 		{
 			_target_enemy = enemy;
-			_pending_action = {}; // clear pending on new valid action
+		_pending_action = {}; // Czyścimy oczekującą akcję po nowej poprawnej akcji.
 		}
 		return true;
 	}
@@ -258,14 +259,14 @@ namespace Nawia::Core {
 	{
 		_pending_action = { PendingAction::Type::Ability, x, y, 0.0f, index, std::weak_ptr<Entity::Entity>() };
 		
-		// try to find target for Unit-target abilities even when queuing
+		// Próbujemy znaleźć cel dla umiejętności jednostkowych także przy kolejkowaniu.
 		if (const auto ability = _player->getAbility(index))
 		{
 			if (ability->getTargetType() == Entity::AbilityTargetType::UNIT)
 			{
 				if (const auto target = _engine->getEntityAt(screen_x, screen_y))
 				{
-					// if invalid target, allow standard valid target check (or just ignore specific unit lock)
+			// Przy niepoprawnym celu wracamy do standardowego sprawdzania akcji.
 					if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
 					{
 						if (!enemy->isDead() && enemy->getFaction() != Entity::Faction::None)
@@ -284,13 +285,13 @@ namespace Nawia::Core {
 	{
 		if (const auto ability = _player->getAbility(index)) 
 		{
-			_pending_action = {}; // clear pending on new valid action
+				_pending_action = {}; // Czyścimy oczekującą akcję po nowej poprawnej akcji.
 			switch (ability->getTargetType()) 
 			{
 				case Entity::AbilityTargetType::UNIT:
 					if (const auto target = _engine->getEntityAt(screen_x, screen_y))
 						if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
-							// only cast if valid target
+			// Rzucamy tylko przy poprawnym celu.
 							if (!enemy->isDead() && enemy->getFaction() != Entity::Faction::None)
 								useAbility(index, enemy->getCenter().x, enemy->getCenter().y);
 				break;
@@ -308,10 +309,10 @@ namespace Nawia::Core {
 
 	void PlayerController::processPendingMove()
 	{
-		_target_enemy = nullptr; // default clear
+		_target_enemy = nullptr; // Domyślnie czyścimy cel.
 		
 		if (const auto target = _pending_action.target.lock() ) {
-			// if we queued a move on an enemy, set as target
+		// Jeśli zakolejkowano ruch na wroga, ustawiamy go jako cel.
 			if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target)) {
 				_target_enemy = enemy;
 			}
@@ -340,24 +341,24 @@ namespace Nawia::Core {
 
 	void PlayerController::updateCombatMovement(const float dist_sq, const float attack_range) const
 	{
-		// defines a small buffer zone to prevent the character from jittering at the edge of attack range
+		// Mała strefa bufora zapobiega drganiu postaci na krawędzi zasięgu ataku.
 		constexpr float hysteresis = 0.5f;
 		constexpr int auto_attack_index = 0;
 
-		// use half of attack range so player approaches closer before attacking (prevents missing moving targets)
+		// Używamy połowy zasięgu, żeby gracz podszedł bliżej i nie pudłował w ruchomy cel.
 		const float hit_range = (attack_range * 0.5f) + hysteresis;
 
 		if (dist_sq > hit_range * hit_range) 
 		{
-			// moveTo already corrects for offset, so we pass the exact target point we want to reach (or get close to)
-			// passing center ensures we move towards the center of the enemy
+		// moveTo samo koryguje offset, więc przekazujemy dokładny punkt dojścia.
+		// Środek celu prowadzi gracza w stronę środka wroga.
 			_player->moveTo(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		} 
 		else 
 		{
-			// In range (or within hysteresis buffer)
+		// W zasięgu albo w buforze histerezy.
 			_player->rotateTowards(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
-			_player->stop(); // Stop moving cleanly
+			_player->stop(); // Czysto zatrzymujemy ruch.
 			useAbility(auto_attack_index, _target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		}
 	}
@@ -366,15 +367,15 @@ namespace Nawia::Core {
 
 	void PlayerController::updatePathMovement() 
 	{
-		// If player arrived at the current target point and we have more points
+		// Jeśli gracz dotarł do bieżącego punktu i ścieżka ma kolejne punkty.
 		if (!_player->isMoving() && !_current_path.empty()) {
-			_current_path.erase(_current_path.begin()); // Pop the point we just arrived at
+			_current_path.erase(_current_path.begin()); // Usuwamy punkt, do którego właśnie dotarliśmy.
 			
 			if (!_current_path.empty()) {
 				_player->moveTo(_current_path.front().x, _current_path.front().y);
 			}
 		} else if (!_current_path.empty() && _target_enemy) {
-			// If we acquired a target enemy, discard the path
+		// Po przejęciu celu wroga porzucamy bieżącą ścieżkę.
 			_current_path.clear();
 		}
 	}

@@ -69,10 +69,10 @@ namespace Nawia::Entity {
 		
 		if (!isAnimationLocked())
 		{
-			// cast animation finished
+			// Animacja rzutu dobiegła końca.
 			if (const auto fireball = getAbility(0))
 			{
-				// use saved target or current position if lost
+				// Używamy zapamiętanego celu, a jeśli nadal istnieje, odświeżamy pozycję.
 				float tx = _target_x;
 				float ty = _target_y;
 				
@@ -94,7 +94,7 @@ namespace Nawia::Entity {
 
 	void Dummy::handleActiveState(const float dt)
 	{
-		// updates the base enemy logic including animations and state management
+		// Bazowa logika wroga aktualizuje animacje i stan encji.
 		EnemyInterface::update(dt);
 		updateAbilities(dt);
 
@@ -103,23 +103,23 @@ namespace Nawia::Entity {
 
 		if (auto target = _target.lock(); target && !target->isDead())
 		{
-			// attempts to cast the first available ability if conditions are met
+			// Próba użycia pierwszej umiejętności, jeśli spełniono warunki.
 			if (const auto fireball = getAbility(0))
 			{
 				if (_fireball_cooldown_timer <= 0.0f && fireball->isReady())
 				{
-					// start Casting Sequence
+					// Start sekwencji rzutu.
 					_is_casting = true;
 					playAnimation("cast_fireball", false, true);
 					
-					// update target position for the cast
+					// Aktualizacja pozycji celu dla rzutu.
 					_target_x = target->getCenter().x;
 					_target_y = target->getCenter().y;
 
 					rotateTowards(_target_x, _target_y);
 
-					// we do not spawn yet; waiting for animation to finish
-					return; // Stop moving immediately
+					// Efekt zostanie utworzony dopiero po zakończeniu animacji.
+					return; // Natychmiast zatrzymujemy dalszy ruch.
 				}
 			}
 		}
@@ -137,9 +137,9 @@ namespace Nawia::Entity {
 				_pos.x = _target_x;
 				_pos.y = _target_y;
 				_is_moving = false;
-				_stay_timer = (rand() % 300) / 100.0f + 1.0f; // 1-4s rest
+				_stay_timer = (rand() % 300) / 100.0f + 1.0f; // Odpoczynek 1-4 s.
 
-				playAnimation("default"); // idle animation
+				playAnimation("default"); // Animacja bezczynności.
 			}
 			else
 			{
@@ -157,7 +157,7 @@ namespace Nawia::Entity {
 
 	void Dummy::pickNewTarget()
 	{
-		// try 10 times to find valid spot
+		// Próbujemy kilka razy znaleźć poprawny punkt patrolu.
 		for (int i = 0; i < 10; ++i)
 		{
 			const float angle = static_cast<float>((rand() % 360) / 180.0f * PI);
@@ -172,7 +172,7 @@ namespace Nawia::Entity {
 				_target_y = ty;
 				_is_moving = true;
 
-				playAnimation("walk"); // walk animation
+				playAnimation("walk"); // Animacja chodzenia.
 
 				rotateTowards(_target_x, _target_y);
 
@@ -180,7 +180,7 @@ namespace Nawia::Entity {
 			}
 		}
 
-		// if fail, stay
+		// Jeśli nie znaleziono punktu, zostajemy w miejscu.
 		_stay_timer = 1.0f;
 		playAnimation("default");
 	}

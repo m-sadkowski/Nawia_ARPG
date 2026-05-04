@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Ability.h"
-#include "Entity.h"
+#include <Entity.h>
 
 #include <string>
 

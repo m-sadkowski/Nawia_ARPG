@@ -35,8 +35,8 @@ namespace Nawia::Entity {
     }
 
     void ProjectileHitEffect::render(const Camera3D& camera) {
-        // TODO: Render hit effect as billboard or 3D particle
-        // For now, this is a visual-only effect that will expire on its own
+		// DO ZROBIENIA: renderować trafienie jako płaski sprite albo cząsteczkę 3D.
+        // Na razie to efekt wizualny, który sam wygasa po czasie.
     }
 
 } // namespace Nawia::Entity

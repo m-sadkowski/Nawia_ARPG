@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Entity.h"
-#include "AbilityStats.h"
+#include <Entity.h>
+#include <AbilityStats.h>
 
 #include <vector>
 
@@ -9,66 +9,33 @@ namespace Nawia::Entity {
 
 	/**
 	 * @class AbilityEffect
-	 * @brief Visual effect entity spawned by abilities (projectiles, explosions, AoE zones).
-	 * 
-	 * AbilityEffect extends Entity with ability-specific features:
-	 * - Built-in lifetime management (expires after `duration`)
-	 * - Collision handling for combat (damage on hit)
-	 * - Hit tracking to prevent multiple hits on the same target
-	 * 
-	 * ## Creating a New Effect
-	 * 
-	 * 1. Create a class inheriting from `AbilityEffect`
-	 * 2. Override `update()` for movement/behavior (call base method!)
-	 * 3. Override `onCollision()` to define hit effects
-	 * 
-	 * ## Example: Fireball Projectile
-	 * 
-	 * ```cpp
-	 * class FireballEffect : public AbilityEffect {
-	 * public:
-	 *     FireballEffect(float x, float y, const std::shared_ptr<Texture2D>& tex, 
-	 *                    const AbilityStats& stats, float target_x, float target_y)
-	 *         : AbilityEffect("Fireball", x, y, tex, stats)
-	 *     {
-	 *         float angle = atan2(target_y - y, target_x - x);
-	 *         setVelocity(cos(angle) * stats.projectile_speed, sin(angle) * stats.projectile_speed);
-	 *         setCollider(std::make_unique<CircleCollider>(this, stats.hitbox_radius, 0.0f, 0.0f));
-	 *     }
-	 * 
-	 *     void onCollision(const std::shared_ptr<Entity>& target) override {
-	 *         if (hasHit(target)) return;
-	 *         target->takeDamage(_stats.damage);
-	 *         addHit(target);
-	 *         die(); // Destroy on hit
-	 *     }
-	 * };
-	 * ```
-	 * 
-	 * @see Ability for the ability that spawns effects
+	 * @brief Encja efektu tworzona przez umiejętność.
+	 *
+	 * Efekt dodaje do `Entity` czas życia, obsługę kolizji bojowych oraz listę
+	 * trafionych celów, żeby ten sam efekt nie zadawał obrażeń wielokrotnie.
+	 *
+	 * @see Ability Umiejętność tworząca efekt.
 	 */
 	class AbilityEffect : public Entity {
 	public:
 		/**
-		 * @brief Construct a new AbilityEffect.
-		 * @param name Effect name
-		 * @param x Starting world X position
-		 * @param y Starting world Y position
-		 * @param tex Texture for the effect
-		 * @param stats Ability stats (damage, duration, hitbox, etc.)
+		 * @brief Tworzy efekt umiejętności w podanym punkcie świata.
+		 * @param name Nazwa efektu.
+		 * @param x Początkowa pozycja X.
+		 * @param y Początkowa pozycja Y, mapowana na Z świata 3D.
+		 * @param tex Tekstura efektu.
+		 * @param stats Statystyki obrażeń, czasu życia i hitboxa.
 		 */
 		AbilityEffect(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats);
 
 		/**
-		 * @brief Update effect state.
-		 * Base implementation handles movement and lifetime.
-		 * Override for custom behavior, but always call base method.
+		 * @brief Aktualizuje ruch i czas życia efektu.
 		 */
 		void update(float dt) override;
 		
 		/**
-		 * @brief Check if effect has expired (lifetime elapsed).
-		 * @return true if effect should be removed
+		 * @brief Sprawdza, czy efekt przekroczył swój czas życia.
+		 * @return `true`, jeśli efekt powinien zostać usunięty.
 		 */
 		[[nodiscard]] bool isExpired() const;
 		
@@ -76,33 +43,30 @@ namespace Nawia::Entity {
 		[[nodiscard]] const AbilityStats& getStats() const { return _stats; }
 
 		/**
-		 * @brief Check collision with a target entity.
-		 * Default implementation uses colliders and faction filtering.
-		 * @param target Entity to check collision with
-		 * @return true if collision detected
+		 * @brief Sprawdza kolizję efektu z celem.
+		 * @param target Encja sprawdzana pod kątem trafienia.
+		 * @return `true`, jeśli wykryto kolizję.
 		 */
 		[[nodiscard]] virtual bool checkCollision(const std::shared_ptr<Entity>& target) const;
 		
 		/**
-		 * @brief Called when collision is detected.
-		 * Override to implement damage, effects, or destruction.
-		 * @param target Entity that was hit
+		 * @brief Wywoływane po wykryciu trafienia.
+		 * @param target Encja trafiona przez efekt.
 		 */
 		virtual void onCollision(const std::shared_ptr<Entity>& target);
 		
 		/**
-		 * @brief Check if target was already hit by this effect.
-		 * Use to prevent multiple hits per target.
+		 * @brief Sprawdza, czy cel został już trafiony przez ten efekt.
 		 */
 		[[nodiscard]] bool hasHit(const std::shared_ptr<Entity>& target) const;
 		
-		/// Record a target as having been hit
+		/// Zapisuje cel jako już trafiony.
 		void addHit(const std::shared_ptr<Entity>& target);
 
 	protected:
 		AbilityStats _stats;
-		float _timer;  ///< Lifetime counter
-		std::vector<std::weak_ptr<Entity>> _hit_entities;  ///< Entities already hit
+		float _timer;  ///< Licznik czasu życia efektu.
+		std::vector<std::weak_ptr<Entity>> _hit_entities;  ///< Encje już trafione przez efekt.
 	};
 
 } // namespace Nawia::Entity

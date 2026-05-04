@@ -1,8 +1,8 @@
 #include "Engine.h"
-#include "GlobalScaling.h"
-#include "Logger.h"
-#include "MathUtils.h"
-#include "PlayerController.h"
+#include <GlobalScaling.h>
+#include <Logger.h>
+#include <MathUtils.h>
+#include <PlayerController.h>
 
 #include <FireballAbility.h>
 #include <SwordSlashAbility.h>
@@ -316,15 +316,15 @@ namespace Nawia::Core {
 		_entity_manager->updateEntities(delta_time);
 		_entity_manager->handleEntitiesCollisions();
 
-		// Update quest states (unlock chains, auto-complete)
+		// Aktualizacja questów: odblokowania łańcuchów i auto-complete.
 		_quest_manager.update(this);
 
-		// collects new entities spawned by existing ones (like projectiles)
+		// Zbieramy encje utworzone przez istniejące obiekty, np. pociski.
 		std::vector<std::shared_ptr<Entity::Entity>> new_spawns;
 		const auto& entities = _entity_manager->getEntities(); 
 		for (const auto& entity : entities)
 		{
-			const auto spawns = entity->getPendingSpawns();
+			const auto& spawns = entity->getPendingSpawns();
 			if (!spawns.empty())
 			{
 				new_spawns.insert(new_spawns.end(), spawns.begin(), spawns.end());

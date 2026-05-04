@@ -8,7 +8,7 @@ namespace Nawia::Entity {
 	 * @class EnemyInterface
 	 * @brief Baza dla wszystkich wrogów.
 	 *
-	 * Klasa ustawia typ encji na `Enemy`; mapę i targetowanie dziedziczy po
+	 * Klasa ustawia typ encji na `Enemy`; mapę i wybieranie celu dziedziczy po
 	 * `ActorInterface`, żeby nie duplikować tego samego kodu w ally i enemy.
 	 */
 	class EnemyInterface : public ActorInterface {

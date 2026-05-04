@@ -1,7 +1,7 @@
 #include "SwordSlashEffect.h"
-#include "EnemyInterface.h"
-#include "Collider.h"
-#include "Player.h"
+#include <EnemyInterface.h>
+#include <Collider.h>
+#include <Player.h>
 
 #include <Logger.h>
 
@@ -24,8 +24,8 @@ namespace Nawia::Entity {
 
 	void SwordSlashEffect::render(const Camera3D& camera)
 	{
-		// For now, just render debug collider in 3D (the 2D slash texture is legacy)
-		// TODO: Add 3D slash visual effect
+		// Na razie renderujemy tylko diagnostyczny kolider; tekstura 2D jest starym wariantem.
+		// DO ZROBIENIA: dodać trójwymiarowy efekt wizualny cięcia.
 		if (DebugColliders && _collider) {
 			_collider->render(camera);
 		}

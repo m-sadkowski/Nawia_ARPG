@@ -1,11 +1,11 @@
 #include "Projectile.h"
-#include "Collider.h"
-#include "EnemyInterface.h"
-#include "ProjectileHitEffect.h"
-#include "Player.h"
+#include <Collider.h>
+#include <EnemyInterface.h>
+#include <ProjectileHitEffect.h>
+#include <Player.h>
 
-#include <Logger.h>
 #include <Constants.h>
+#include <Logger.h>
 #include <MathUtils.h>
 
 #include <cmath>
@@ -26,16 +26,16 @@ namespace Nawia::Entity {
 		_vel_x = (dx / length) * _speed;
 		_vel_y = (dy / length) * _speed;
 
-		// calculate visual rotation in world space
+		// Wyliczenie wizualnej rotacji w przestrzeni świata.
 		const float angle = std::atan2(dy, dx) * 180.0f / PI;
 		setRotation(-angle);
 		setModelFacingOffset(facing_offset);
 
-		// Load the 3D model for this projectile
+		// Ładowanie modelu 3D pocisku.
 		loadModel(model_path);
 		setScale(model_scale);
 
-		// Set fly height to roughly torso level
+		// Pocisk leci mniej więcej na wysokości tułowia.
 		_fly_height = 1.0f;
 	}
 
@@ -52,24 +52,23 @@ namespace Nawia::Entity {
 		if (target.get() == _caster)
 			return false;
 
-		// check faction
+		// Pociski ignorują cele z tej samej frakcji.
 		if (_caster && _caster->getFaction() == target->getFaction())
 			return false;
 		
 		if (target->isDead())
 			return false;
 
-		// ensures projectiles ignore collisions with other spell effects
+		// Pociski ignorują inne efekty umiejętności.
 		if (std::dynamic_pointer_cast<AbilityEffect>(target))
 			return false;
 
-		// === 3D Bounding Box Collision ===
-		// For projectiles, a bounding box check against the target's bounding box
-		// provides reliable collision volume, especially for differently sized models.
+		// Kolizja 3D przez pudełko ograniczające daje stabilny wolumen trafienia
+		// dla modeli o różnych rozmiarach.
 		const Vector3 proj_pos = getWorldPos3D();
 		const float hit_radius = _stats.hitbox_radius > 0.0f ? _stats.hitbox_radius : 1.5f;
 
-		// Create a bounding box representing the projectile's hit volume
+		// Pudełko reprezentujące wolumen trafienia pocisku.
 		BoundingBox proj_box = {
 			{ proj_pos.x - hit_radius, proj_pos.y - hit_radius, proj_pos.z - hit_radius },
 			{ proj_pos.x + hit_radius, proj_pos.y + hit_radius, proj_pos.z + hit_radius }
@@ -105,7 +104,7 @@ namespace Nawia::Entity {
 		
 		target->takeDamage(final_damage);
 
-		// spawn explosion effect
+		// Utworzenie efektu trafienia.
 		if (_caster && _hit_texture) {
 			_caster->addPendingSpawn(std::make_unique<ProjectileHitEffect>(_pos.x, _pos.y, _hit_texture));
 		}

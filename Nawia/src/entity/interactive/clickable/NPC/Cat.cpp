@@ -1,108 +1,109 @@
 #include "Cat.h"
-#include "InteractiveClickable.h"
-#include "Player.h"
-#include "Collider.h"
 
-#include <Logger.h>
+#include <Backpack.h>
+#include <Collider.h>
 #include <Engine.h>
-
-#include <iostream>
+#include <Loottable.h>
+#include <Player.h>
 
 namespace Nawia::Entity {
 
-    Cat::Cat(const std::string& name, const float x, const float y, const std::shared_ptr<Texture2D>& texture)
-        : InteractiveClickable(name, x, y, texture, 1) // 1 HP
-    {
-        _type = EntityType::NPCStatic;
-        setFaction(Faction::None);
-        this->setScale(0.03f);
-        loadModel("../assets/models/cat_bounce.glb", false);
-        playAnimation("default");
+	namespace {
+		constexpr int REQUIRED_FISH_ID = 6;
+		constexpr int CAT_SWORD_ID = 7;
+	}
 
-        _inventory = std::make_unique<Item::Backpack>(_inv_size);
-    }
-
-    void Cat::initializeInventory(Item::Loottable& lootable, const Item::LOOTTABLE_TYPE lootable_type) const 
+	Cat::Cat(const std::string& name, const float x, const float y, const std::shared_ptr<Texture2D>& texture)
+		: InteractiveClickable(name, x, y, texture, 1) // NPC ma techniczne 1 HP.
 	{
-        const auto& drops = lootable.getLootTable(lootable_type);
+		_type = EntityType::NPCStatic;
+		setFaction(Faction::None);
+		setScale(0.03f);
+		loadModel("../assets/models/cat_bounce.glb", false);
+		playAnimation("default");
 
-        for (const auto& entry : drops) 
-        {
-            if (!entry._item) continue;
+		_inventory = std::make_unique<Item::Backpack>(INVENTORY_SIZE);
+	}
 
-            const float roll = static_cast<float>(GetRandomValue(0, 10000)) / 100.0f;
+	Cat::~Cat() = default;
 
-            if (roll <= entry._chance) {
-                const std::shared_ptr<Item::Item> unique_item = entry._item->clone();
+	void Cat::initializeInventory(Item::Loottable& lootable, const Item::LOOTTABLE_TYPE lootable_type) const {
+		const auto& drops = lootable.getLootTable(lootable_type);
 
-                addItem(unique_item);
-            }
-        }
-    } 
+		for (const auto& entry : drops) {
+			if (!entry._item)
+				continue;
 
-    void Cat::onInteract(Entity& instigator) 
-	{
-        if (_quest_completed) return;
+			const float roll = static_cast<float>(GetRandomValue(0, 10000)) / 100.0f;
 
-        if (auto* player = dynamic_cast<Player*>(&instigator))
-        {
-             // Check for Fish (ID 6)
-             int fish_index = -1;
-             auto& backpack = player->getBackpack();
-             const auto& items = backpack.getItems();
-             for(int i = 0; i < items.size(); ++i) 
-             {
-                 if (items[i] && items[i]->getId() == 6) 
-                 {
-                     fish_index = i;
-                     break;
-                 }
-             }
+			if (roll <= entry._chance) {
+				const std::shared_ptr<Item::Item> unique_item = entry._item->clone();
+				addItem(unique_item);
+			}
+		}
+	}
 
-             if (fish_index != -1)
-             {
-                 // Remove fish
-                 backpack.removeItem(fish_index);
-                 
-                 // Give Cat Sword (ID 7)
-                 if (const auto sword = player->getEngine()->getItemDatabase().createItem(7))
-                    this->addItem(sword);
+	void Cat::onInteract(Entity& instigator) {
+		if (_quest_completed)
+			return;
 
-                 _quest_completed = true;
+		if (auto* player = dynamic_cast<Player*>(&instigator)) {
+			// Szukamy ryby wymaganej do zakończenia questu.
+			int fish_index = -1;
+			auto& backpack = player->getBackpack();
+			const auto& items = backpack.getItems();
 
-                 // Notify QuestManager about the delivery
-                 player->getEngine()->getQuestManager().notifyItemDelivered(6, getName());
-                 
-                  player->getEngine()->getDialogueManager().createCatQuestCompletedDialogue(player->getEngine(), this);
-                 
-                 if (player) 
-                 {
-                    player->getEngine()->getUIHandler().showNotification("Zadanie ukonczone! Otrzymano Miecz Kota.", 4.0f);
-                 }
+			for (int i = 0; i < static_cast<int>(items.size()); ++i) {
+				if (items[i] && items[i]->getId() == REQUIRED_FISH_ID) {
+					fish_index = i;
+					break;
+				}
+			}
 
-                 return;
-             }
-        }
+			if (fish_index != -1) {
+				// Usuwamy rybę i dodajemy nagrodę do ekwipunku kota.
+				backpack.removeItem(fish_index);
 
-        if (_isOpen)
-            return;
+				if (const auto sword = player->getEngine()->getItemDatabase().createItem(CAT_SWORD_ID))
+					addItem(sword);
 
-        _isOpen = true;
-    }
+				_quest_completed = true;
 
-    void Cat::update(const float delta_time) 
-	{
-        Entity::update(delta_time);
-    }
+				// Informujemy system questów o dostarczeniu przedmiotu.
+				player->getEngine()->getQuestManager().notifyItemDelivered(REQUIRED_FISH_ID, getName());
+				player->getEngine()->getDialogueManager().createCatQuestCompletedDialogue(player->getEngine(), this);
+				player->getEngine()->getUIHandler().showNotification(
+					"Zadanie ukonczone! Otrzymano Miecz Kota.",
+					4.0f);
 
-    void Cat::render(const Camera3D& camera)
-	{
-        Entity::render(camera);
-    }
+				return;
+			}
+		}
 
-    float Cat::getInteractionRange()
-    {
-        return 2.5f * 2.5f;
-    }
+		if (_is_open)
+			return;
+
+		_is_open = true;
+	}
+
+	void Cat::update(const float delta_time) {
+		Entity::update(delta_time);
+	}
+
+	void Cat::render(const Camera3D& camera) {
+		Entity::render(camera);
+	}
+
+	float Cat::getInteractionRange() {
+		return 2.5f * 2.5f;
+	}
+
+	Item::Backpack* Cat::getInventory() {
+		return _inventory.get();
+	}
+
+	void Cat::addItem(const std::shared_ptr<Item::Item>& item) const {
+		_inventory->addItem(item);
+	}
 
 } // namespace Nawia::Entity

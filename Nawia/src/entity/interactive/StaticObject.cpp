@@ -1,5 +1,5 @@
 #include "StaticObject.h"
-#include "Collider.h"
+#include <Collider.h>
 
 namespace Nawia::Entity {
 

@@ -26,14 +26,14 @@ namespace Nawia::Entity {
 		Entity::takeDamage(dmg);
 		if (isDying()) return;
 
-		// When hit, stagger the zombie, interrupting its current action
+		// Trafienie przerywa bieżącą akcję i odpala krótkie zachwianie.
 		if (_state != State::GettingHit)
 			_state_before_hit = _state;
 		
 		_state = State::GettingHit;
 		playAnimation("get_hit", false, true, 10, true);
 		
-		// Stop movement while staggering
+		// Podczas zachwiania zatrzymujemy ruch.
 		setVelocity(0, 0);
 	}
 
@@ -47,7 +47,7 @@ namespace Nawia::Entity {
 
 		if (isDormant()) return;
 
-		// Update attack cooldown
+		// Aktualizacja czasu odnowienia ataku.
 		if (_attack_cooldown_timer > 0.0f)
 			_attack_cooldown_timer -= dt;
 
@@ -75,7 +75,7 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		// Try to find player target
+		// Próba wykrycia celu.
 		if (auto target = _target.lock())
 		{
 			const float dist = getDistanceToTarget();
@@ -89,7 +89,7 @@ namespace Nawia::Entity {
 
 	void WalkingDead::handleChasingState(const float dt)
 	{
-		Entity::update(dt);  // Base update for animations
+		Entity::update(dt);  // Bazowa aktualizacja animacji.
 
 		auto target = _target.lock();
 		if (!target || target->isDead())
@@ -103,7 +103,7 @@ namespace Nawia::Entity {
 
 		const float dist = getDistanceToTarget();
 
-		// Check if player escaped vision range
+		// Sprawdzenie, czy cel uciekł poza zasięg widzenia.
 		if (dist > VISION_RANGE * 1.5f)
 		{
 			_state = State::Screaming;
@@ -113,7 +113,7 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		// Check if in attack range
+		// Sprawdzenie, czy cel jest w zasięgu ataku.
 		if (dist <= ATTACK_RANGE && _attack_cooldown_timer <= 0.0f)
 		{
 			_state = State::Attacking;
@@ -123,7 +123,7 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		// Determine speed based on distance
+		// Prędkość zależy od dystansu do celu.
 		const bool should_run = dist <= CLOSE_RANGE;
 		if (should_run != _is_running)
 		{
@@ -134,13 +134,13 @@ namespace Nawia::Entity {
 		const float current_speed = _is_running ? RUN_SPEED : SPEED;
 		setMovementSpeed(current_speed);
 		
-		// Get target position
+		// Pozycja celu używana przez ruch.
 		const Vector2 target_pos = target->getCenter();
 		
-		// If close enough, use direct movement with validation
+		// Z bliska używamy prostego ruchu bez przeliczania ścieżki.
 		if (dist <= DIRECT_MOVE_DISTANCE)
 		{
-			_is_moving = false;  // Stop pathfinding movement
+			_is_moving = false;  // Zatrzymujemy ruch po wyznaczonej ścieżce.
 			const Vector2 my_pos = getCenter();
 			const Vector2 dir = Vector2Normalize(Vector2Subtract(target_pos, my_pos));
 			
@@ -151,7 +151,7 @@ namespace Nawia::Entity {
 		}
 		else
 		{
-			// Use A* pathfinding when farther away
+			// Dalej od celu wracamy do wyznaczania ścieżki.
 			_path_recalc_timer -= dt;
 			
 			if (_path_recalc_timer <= 0.0f || !_is_moving)
@@ -170,7 +170,7 @@ namespace Nawia::Entity {
 
 		if (!isAnimationLocked())
 		{
-			// Attack animation finished - deal damage
+			// Po zakończeniu animacji ataku zadajemy obrażenia.
 			if (const auto target = _target.lock())
 			{
 				if (getDistanceToTarget() <= ATTACK_RANGE * 1.5f)
@@ -191,7 +191,7 @@ namespace Nawia::Entity {
 		
 		if (!isAnimationLocked())
 		{
-			// Scream animation finished - return to idle
+			// Po zakończeniu krzyku wracamy do bezczynności.
 			_state = State::Idle;
 			playAnimation("idle");
 			_is_running = false;
@@ -204,10 +204,10 @@ namespace Nawia::Entity {
 		
 		if (!isAnimationLocked())
 		{
-			// Get_hit animation finished - return to previous state
+			// Po animacji trafienia wracamy do poprzedniego stanu.
 			_state = _state_before_hit;
 			
-			// Resume appropriate animation based on state
+			// Przywracamy animację pasującą do stanu.
 			switch (_state)
 			{
 			case State::Idle:
@@ -217,7 +217,7 @@ namespace Nawia::Entity {
 				playAnimation(_is_running ? "run" : "walk");
 				break;
 			case State::Attacking:
-				// If we were attacking, go back to chasing
+				// Przerwany atak wraca do pościgu.
 				_state = State::Chasing;
 				playAnimation(_is_running ? "run" : "walk");
 				break;

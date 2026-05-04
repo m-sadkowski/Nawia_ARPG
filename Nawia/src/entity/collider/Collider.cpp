@@ -1,5 +1,5 @@
 #include "Collider.h"
-#include "Entity.h"
+#include <Entity.h>
 
 #include <MathUtils.h>
 
@@ -9,22 +9,22 @@
 
 namespace Nawia::Entity {
 
-    // check collision between two circles
+    // Kolizja dwóch okręgów.
     bool checkCircleCircle(const Vector2 pos_1, const float r_1, const Vector2 pos_2, const float r_2) {
         return CheckCollisionCircles(pos_1, r_1, pos_2, r_2);
     }
 
-    // check collision between circle and rectangle
+    // Kolizja okręgu z prostokątem.
     bool checkCircleRect(const Vector2 circle_pos, const float radius, const Rectangle rect) {
         return CheckCollisionCircleRec(circle_pos, radius, rect);
     }
 
-    // check collision between two rectangles
+    // Kolizja dwóch prostokątów.
     bool checkRectRect(const Rectangle rect_1, const Rectangle rect_2) {
         return CheckCollisionRecs(rect_1, rect_2);
     }
 
-    // check collision between cone and circle
+    // Kolizja stożka z okręgiem.
     bool checkConeCircle(const Vector2 cone_pos, const float cone_radius, const float cone_angle, const float cone_rotation, const Vector2 circle_pos, const float circle_radius) {
         const float dist_sq = Vector2DistanceSqr(cone_pos, circle_pos);
         const float max_dist = cone_radius + circle_radius;
@@ -42,7 +42,7 @@ namespace Nawia::Entity {
         return std::abs(angle_diff) <= cone_angle / 2.0f;
     }
 
-    // check collision between cone and rectangle
+    // Kolizja stożka z prostokątem.
     bool checkConeRect(const Vector2 cone_pos, const float cone_radius, const float cone_angle, const float cone_rotation, const Rectangle rect) {
         const float rect_radius = std::sqrt(rect.width * rect.width + rect.height * rect.height) / 2.0f;
         const Vector2 rect_center = { rect.x + rect.width / 2.0f, rect.y + rect.height / 2.0f };
@@ -57,7 +57,7 @@ namespace Nawia::Entity {
     }
 
     // =========================================================================
-    // CircleCollider
+    // CircleCollider.
     // =========================================================================
 
     bool CircleCollider::checkCollision(const Collider* other) const {
@@ -102,7 +102,7 @@ namespace Nawia::Entity {
             return true;
         }
         
-        // Fast fallback if centers are very close (inside)
+		// Szybka ścieżka awaryjna, gdy środki są bardzo blisko siebie.
         float distSq = Vector2DistanceSqr(getPosition(), {target->getX(), target->getY()});
         if (distSq < _radius * _radius) return true;
         
@@ -111,7 +111,7 @@ namespace Nawia::Entity {
 
     void CircleCollider::render(const Camera3D& camera) const {
         const Vector2 pos = getPosition();
-        // Draw circle on ground plane (Y = 0.01 to avoid z-fighting)
+        // Rysujemy okrąg lekko nad ziemią, żeby uniknąć z-fightingu.
         DrawCircle3D(
             Vector3{ pos.x, 0.01f, pos.y },
             _radius,
@@ -121,7 +121,7 @@ namespace Nawia::Entity {
     }
 
     bool CircleCollider::checkPoint(float screen_x, float screen_y, const Camera3D& camera) const {
-        // Convert screen click to world position on ground plane
+        // Zamiana kliknięcia ekranowego na pozycję świata na płaszczyźnie ziemi.
         const Vector2 world_click = Core::screenToWorld(camera, screen_x, screen_y);
         const Vector2 center = getPosition();
         const float dx = world_click.x - center.x;
@@ -130,7 +130,7 @@ namespace Nawia::Entity {
     }
 
     // =========================================================================
-    // RectangleCollider
+    // RectangleCollider.
     // =========================================================================
 
     Rectangle RectangleCollider::getRect() const {
@@ -191,13 +191,13 @@ namespace Nawia::Entity {
 
     void RectangleCollider::render(const Camera3D& camera) const {
         const Vector2 center = getPosition();
-        // Draw a wireframe cube on the ground plane to represent the rectangle
+		// Szkieletowy sześcian reprezentuje prostokąt kolidera na ziemi.
         DrawCubeWires(
             Vector3{ center.x, 0.5f, center.y },
             _width, 1.0f, _height,
             BLUE
         );
-        // Center mark
+		// Znacznik środka kolidera.
         DrawSphere(Vector3{ center.x, 0.01f, center.y }, 0.05f, RED);
     }
 
@@ -208,7 +208,7 @@ namespace Nawia::Entity {
     }
 
     // =========================================================================
-    // ConeCollider
+    // ConeCollider.
     // =========================================================================
 
     bool ConeCollider::checkCollision(const Collider* other) const {
@@ -244,8 +244,8 @@ namespace Nawia::Entity {
         
         const float rot_deg = _owner->getRotation();
         const float angle_half = _angle / 2.0f;
-        const int num_rays_h = 10; // Sweep 11 rays across the cone angle for highly accurate sweeping
-        const int num_rays_v = 5; // Sweep 15 heights to catch enemies of different heights
+        const int num_rays_h = 10; // Wachlarz promieni w poziomie zwiększa dokładność stożka.
+        const int num_rays_v = 5; // Kilka wysokości pozwala łapać cele o różnym wzroście.
         
         const float min_h = 0.1f;
         const float max_h = 2.0f;
@@ -300,7 +300,7 @@ namespace Nawia::Entity {
         DrawLine3D(tip_3d, end_right_3d, GREEN);
         DrawLine3D(end_left_3d, end_right_3d, GREEN);
 
-        // Render rays at multiple heights for visual volume
+        // Promienie na wielu wysokościach pokazują wizualny wolumen stożka.
         const int num_rays_h = 10;
         const int num_rays_v = 5;
         const float min_h = 0.1f;
@@ -325,7 +325,7 @@ namespace Nawia::Entity {
             }
         }
 
-        // debug center line
+        // Debugowa linia środka stożka.
         const float rad_center = rot_deg * DEG2RAD;
         const Vector3 end_center_3d = {
             tip_world.x + cos(rad_center) * _radius,

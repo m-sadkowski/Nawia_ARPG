@@ -4,11 +4,13 @@
 #include <Logger.h>
 
 #include <json.hpp>
+
 #include <fstream>
+#include <iostream>
 
 namespace Nawia::Game {
 
-	// ─── JSON Loading ─────────────────────────────────────
+	// Ładowanie JSON.
 
 	static ObjectiveType parseObjectiveType(const std::string& type_str) {
 		if (type_str == "kill")				return ObjectiveType::Kill;
@@ -54,14 +56,14 @@ namespace Nawia::Game {
 			quest.auto_start = qj.value("auto_start", false);
 			quest.required_level = qj.value("required_level", 1);
 
-			// Prerequisites
+		// Wymagania wstępne.
 			if (qj.contains("prerequisites")) {
 				for (const auto& pre : qj["prerequisites"]) {
 					quest.prerequisites.push_back(pre.get<std::string>());
 				}
 			}
 
-			// Objectives
+		// Cele.
 			if (qj.contains("objectives")) {
 				for (const auto& oj : qj["objectives"]) {
 					QuestObjective obj;
@@ -75,7 +77,7 @@ namespace Nawia::Game {
 				}
 			}
 
-			// Rewards
+		// Nagrody.
 			if (qj.contains("rewards")) {
 				const auto& rj = qj["rewards"];
 				if (rj.contains("items")) {
@@ -87,7 +89,7 @@ namespace Nawia::Game {
 				quest.reward.exp = rj.value("exp", 0);
 			}
 
-			// Initial state: quests with level_name start Locked (unlocked on level enter)
+		// Stan początkowy: questy z level_name startują jako zablokowane i odblokują się po wejściu do poziomu.
 			if (!quest.level_name.empty() || !quest.prerequisites.empty()) {
 				quest.state = QuestState::Locked;
 			} else {
@@ -103,7 +105,7 @@ namespace Nawia::Game {
 		Core::Logger::debugLog("QuestManager: Loaded " + std::to_string(_quests.size()) + " quests.");
 	}
 
-	// ─── Quest State Management ───────────────────────────
+	// Zarządzanie stanem questów.
 
 	void QuestManager::resetAll() {
 		for (auto& [id, quest] : _quests) {
@@ -120,11 +122,11 @@ namespace Nawia::Game {
 		_current_level = level_name;
 		Core::Logger::debugLog("QuestManager: Current level set to '" + level_name + "'");
 
-		// Immediately unlock and auto-start quests for this level
+		// Natychmiast odblokowujemy i automatycznie startujemy questy dla tego poziomu.
 		for (auto& [id, quest] : _quests) {
 			if (!isQuestForCurrentLevel(quest)) continue;
 
-			// Unlock locked quests whose prerequisites are met
+		// Odblokowujemy zablokowane questy, których wymagania wstępne są spełnione.
 			if (quest.isLocked() && quest.prerequisites.empty()) {
 				quest.state = QuestState::Available;
 				Core::Logger::debugLog("QuestManager: Quest '" + id + "' unlocked for level '" + level_name + "'");
@@ -134,7 +136,7 @@ namespace Nawia::Game {
 					Core::Logger::debugLog("QuestManager: Auto-started quest '" + id + "'");
 				}
 			}
-			// Also auto-start any already-available quests
+		// Automatycznie startujemy również questy już dostępne.
 			else if (quest.isAvailable() && quest.auto_start) {
 				quest.start();
 				Core::Logger::debugLog("QuestManager: Auto-started quest '" + id + "'");
@@ -143,7 +145,7 @@ namespace Nawia::Game {
 	}
 
 	bool QuestManager::isQuestForCurrentLevel(const Quest& quest) const {
-		// Empty level_name = global quest (available on all levels)
+			// Puste level_name oznacza quest globalny, dostępny na wszystkich poziomach.
 		if (quest.level_name.empty()) return true;
 		return quest.level_name == _current_level;
 	}
@@ -166,32 +168,32 @@ namespace Nawia::Game {
 		quest->complete();
 		Core::Logger::debugLog("QuestManager: Completed quest '" + id + "'");
 
-		// Give rewards
+		// Przyznajemy nagrody.
 		if (engine) {
 			auto player = engine->getPlayer();
 			if (player) {
-				// Gold
+				// Złoto.
 				if (quest->reward.gold > 0) {
 					player->addGold(quest->reward.gold);
 					std::cout << player->getGold();
 					std::cout << std::endl;
 				}
 
-				// Exp
+				// Doświadczenie.
 				if (quest->reward.exp > 0) {
 					player->addExp(quest->reward.exp);
 					std::cout << player->getExp();
 					std::cout << std::endl;
 				}
 
-				// Items
+				// Przedmioty.
 				for (const int item_id : quest->reward.item_ids) {
 					if (auto item = engine->getItemDatabase().createItem(item_id)) {
 						player->getBackpack().addItem(item);
 					}
 				}
 
-				// Notification
+				// Powiadomienie.
 				std::string notif = "Quest ukonczony: " + quest->name;
 				if (quest->reward.exp > 0) {
 					notif += " (+" + std::to_string(quest->reward.exp) + " XP)";
@@ -245,7 +247,7 @@ namespace Nawia::Game {
 		return result;
 	}
 
-	// ─── Notification System ──────────────────────────────
+	// System powiadomień.
 
 	void QuestManager::notifyKill(const std::string& enemy_name) {
 		for (auto& [id, quest] : _quests) {
@@ -303,7 +305,7 @@ namespace Nawia::Game {
 		}
 	}
 
-	// ─── Update Loop ──────────────────────────────────────
+	// Pętla aktualizacji.
 
 	bool QuestManager::arePrerequisitesMet(const Quest& quest, Core::Engine* engine) const {
 		for (const auto& pre_id : quest.prerequisites) {
@@ -322,10 +324,10 @@ namespace Nawia::Game {
 
 	void QuestManager::update(Core::Engine* engine) {
 		for (auto& [id, quest] : _quests) {
-			// Only process quests for the current level (or global quests)
+			// Przetwarzamy tylko questy z bieżącego poziomu albo questy globalne.
 			if (!isQuestForCurrentLevel(quest)) continue;
 
-			// Unlock locked quests whose prerequisites are now met
+			// Odblokowujemy questy, których wymagania są już spełnione.
 			if (quest.isLocked() && arePrerequisitesMet(quest, engine)) {
 				quest.state = QuestState::Available;
 				Core::Logger::debugLog("QuestManager: Quest '" + id + "' is now available.");
@@ -334,14 +336,14 @@ namespace Nawia::Game {
 					engine->getUIHandler().showNotification("Nowy quest dostepny: " + quest.name, 3.0f);
 				}
 
-				// Auto-start if flagged
+			// Automatyczny start, jeśli quest ma taką flagę.
 				if (quest.auto_start) {
 					quest.start();
 					Core::Logger::debugLog("QuestManager: Auto-started quest '" + id + "'");
 				}
 			}
 
-			// Auto-complete active quests with all objectives done
+			// Automatycznie kończymy aktywne questy ze zrealizowanymi celami.
 			if (quest.isActive() && quest.areAllObjectivesComplete()) {
 				completeQuest(id, engine);
 			}

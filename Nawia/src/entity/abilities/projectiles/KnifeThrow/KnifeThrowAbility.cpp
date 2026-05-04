@@ -1,5 +1,5 @@
 #include "KnifeThrowAbility.h"
-#include "Projectile.h"
+#include <Projectile.h>
 
 namespace Nawia::Entity {
 

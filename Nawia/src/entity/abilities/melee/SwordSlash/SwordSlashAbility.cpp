@@ -1,11 +1,9 @@
 #include "SwordSlashAbility.h"
-#include "SwordSlashEffect.h"
-#include "Entity.h"
-#include "Player.h"
+#include <SwordSlashEffect.h>
+#include <Entity.h>
+#include <Player.h>
 
 #include <MathUtils.h>
-
-#include <iostream>
 
 namespace Nawia::Entity {
 
@@ -16,12 +14,10 @@ namespace Nawia::Entity {
 	{
 		if (!isReady()) return nullptr;
 
-		// Force rotation to target immediately
+		// Od razu obracamy źródło użycia w stronę celu.
 		_caster->rotateTowardsCenter(target_x, target_y);
 
-
-
-		// Check if _caster is a instance of player in case of setting speed of animation
+		// Gracz skaluje prędkość animacji ataku statystyką attack_speed.
 		Player* player = dynamic_cast<Player*>(_caster);
 
 		if (player != nullptr) {
@@ -40,22 +36,22 @@ namespace Nawia::Entity {
 		
 		_caster->playAnimation("attack", false, true);
 
-		// store target data and activate delayed spawn
+		// Zapisujemy cel i aktywujemy opóźnione utworzenie efektu.
 		_is_active = true;
 		_has_spawned = false;
 		_active_time = 0.0f;
 		_target_x = target_x;
 		_target_y = target_y;
 
-		// Calculate dynamic spawn delay based on animation duration
-		// Assuming 60 FPS update rate for animations as per Entity::updateAnimation
+		// Opóźnienie utworzenia efektu liczymy na podstawie długości animacji.
+		// Entity aktualizuje animacje z bazowym tempem 60 FPS.
 		const int frames = _caster->getAnimationFrameCount("attack");
 		const float duration = (frames > 0) ? (frames / 60.0f) : 1.0f; 
 		
-		// Trigger hit at 60% of the animation (impact point)
+		// Trafienie pojawia się w okolicy punktu impaktu animacji.
 		_spawn_delay = duration * 0.6f;
 
-		// return nullptr because we aren't spawning the effect YET
+		// Efekt pojawi się później w aktualizacji, więc teraz nic nie zwracamy.
 		return nullptr;
 	}
 
@@ -67,7 +63,7 @@ namespace Nawia::Entity {
 		{
 			_active_time += dt;
 
-			// Spawn point: Calculated dynamic delay OR when animation ends (fallback)
+		// Utworzenie następuje po opóźnieniu albo awaryjnie po odblokowaniu animacji.
 			bool should_spawn = !_has_spawned && (_active_time >= _spawn_delay || !_caster->isAnimationLocked());
 
 			if (should_spawn)
@@ -76,8 +72,7 @@ namespace Nawia::Entity {
 
 				const Vector2 caster_center = _caster->getCenter();
 
-				// This ensures that if the player rotated during the cast time (via PlayerController aiming), 
-				// the slash goes where the player is looking, not where the mouse WAS.
+			// Jeśli źródło użycia obróciło się w trakcie rzutu, cięcie idzie w aktualnym kierunku patrzenia.
 				const float angle = _caster->getRotation();
 				const float spawn_x = caster_center.x;
 				const float spawn_y = caster_center.y;
@@ -86,7 +81,7 @@ namespace Nawia::Entity {
 				_caster->addPendingSpawn(slash);
 			}
 
-			// End ability state when animation is unlocked
+			// Kończymy stan ability, gdy animacja przestaje blokować ruch.
 			if (!_caster->isAnimationLocked())
 			{
 				_is_active = false;

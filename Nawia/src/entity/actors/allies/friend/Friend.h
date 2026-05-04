@@ -25,6 +25,7 @@ namespace Nawia::Entity {
 		static constexpr float ATTACK_RANGE_MULTIPLIER = 0.5f;
 		static constexpr float SPEED = 3.5f;
 
+		/** @brief Obsługuje tymczasową, zaszytą w klasie logikę walki. */
 		void updateHardcodedBehavior(float dt);
 	};
 
@@ -34,11 +35,13 @@ namespace Nawia::Entity {
 	 */
 	class FriendBuilder : public AllyBuilder<FriendBuilder> {
 	public:
+		/** @brief Tworzy roboczą instancję sojusznika. */
 		FriendBuilder() {
 			_friend_ptr = std::unique_ptr<Friend>(new Friend());
 			this->_entity = _friend_ptr.get();
 		}
 
+		/** @brief Oddaje gotową instancję sojusznika. */
 		std::unique_ptr<Friend> build() {
 			return std::move(_friend_ptr);
 		}

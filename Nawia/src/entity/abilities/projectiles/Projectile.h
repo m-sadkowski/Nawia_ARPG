@@ -1,7 +1,7 @@
 #pragma once
 
-#include "AbilityEffect.h"
-#include "AbilityStats.h"
+#include <AbilityEffect.h>
+#include <AbilityStats.h>
 
 #include <string>
 
@@ -10,17 +10,17 @@ namespace Nawia::Entity {
 	class Projectile : public AbilityEffect {
 	public:
 		/**
-		 * @brief Construct a 3D model-based projectile.
-		 * @param name Display name
-		 * @param x Start X (world)
-		 * @param y Start Y (maps to world Z)
-		 * @param target_x Target X
-		 * @param target_y Target Y (world Z)
-		 * @param model_path Path to the .glb model file
-		 * @param model_scale Scale for the projectile model
-		 * @param stats Ability stats (speed, damage, hitbox_radius, etc.)
-		 * @param caster The entity that fired this projectile
-		 * @param hit_tex Optional texture for hit effect
+		 * @brief Tworzy pocisk oparty o model 3D.
+		 * @param name Nazwa pocisku.
+		 * @param x Startowa pozycja X.
+		 * @param y Startowa pozycja Y, mapowana na Z świata.
+		 * @param target_x Pozycja X celu.
+		 * @param target_y Pozycja Y celu, mapowana na Z świata.
+		 * @param model_path Ścieżka do modelu `.glb`.
+		 * @param model_scale Skala modelu pocisku.
+		 * @param stats Statystyki prędkości, obrażeń i hitboxa.
+ * @param caster Encja, która wystrzeliła pocisk.
+		 * @param hit_tex Opcjonalna tekstura efektu trafienia.
 		 */
 		Projectile(const std::string& name, float x, float y, float target_x, float target_y,
 			const std::string& model_path, float model_scale,
@@ -33,13 +33,13 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool checkCollision(const std::shared_ptr<Entity>& target) const override;
 		void onCollision(const std::shared_ptr<Entity>& target) override;
 
-		/** @brief Override to fly at a height above ground instead of Y=0. */
+		/** @brief Ustawia lot nad ziemią zamiast na poziomie Y=0. */
 		[[nodiscard]] Vector3 getWorldPos3D() const override { return { _pos.x, _fly_height, _pos.y }; }
 
 	private:
 		float _speed;
 		float _vel_x, _vel_y;
-		float _fly_height = 1.0f;  ///< Y height above ground (torso level)
+		float _fly_height = 1.0f;  ///< Wysokość lotu nad ziemią, mniej więcej poziom tułowia.
 		std::shared_ptr<Texture2D> _hit_texture;
 		Entity* _caster;
 	};
