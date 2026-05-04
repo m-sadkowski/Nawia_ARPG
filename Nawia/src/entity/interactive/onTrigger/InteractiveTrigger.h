@@ -1,7 +1,7 @@
 #pragma once
-
 #include <Entity.h>
 #include <Interactable.h>
+#include <Collider.h>
 
 namespace Nawia::Entity {
 
@@ -17,6 +17,7 @@ namespace Nawia::Entity {
 		 * @brief Triggery nie obsługują bezpośredniego kliknięcia.
 		 */
 		void onInteract(Entity& instigator) override {}
+		float getInteractionRange() override { return 1.0f; }
 	};
 
 } // namespace Nawia::Entity

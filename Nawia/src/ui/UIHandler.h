@@ -27,6 +27,7 @@ namespace Nawia::Core {
 
 namespace Nawia::Game {
     class QuestManager;
+    class BossManager;
 }
 
 namespace Nawia::World {
@@ -61,7 +62,7 @@ namespace Nawia::UI {
         void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager, const Core::Settings* settings);
         
         void update(float dt);
-        void render(const Core::GameCamera& camera);
+        void render(const Core::GameCamera& camera, const Nawia::Game::BossManager* boss_manager = nullptr);
         void renderMainMenu() const;
         void renderSettingsMenu() const;
         
@@ -122,6 +123,7 @@ namespace Nawia::UI {
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
         void renderPlayerExperienceBar() const;
+        void renderBossHealthBar(const Nawia::Game::BossManager* boss_manager) const;
         void renderCombatEntityHealthBars(const Core::GameCamera& camera) const;
         void renderVerticalMenu(const char* title, const std::vector<MenuButtonDef>& buttons, bool centered = false) const;
         void updateHoverTimers(float dt, const std::vector<Rectangle>& button_rects);

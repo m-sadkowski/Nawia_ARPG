@@ -18,6 +18,7 @@
 #include <Checkpoint.h>
 #include <StaticObject.h>
 #include <Teleport.h>
+#include <BossArenaTrigger.h>
 
 // Abilities
 #include <KnifeThrowAbility.h>
@@ -48,6 +49,7 @@ namespace Nawia::World {
 		if (type == "static_object") return createStaticObject(data, engine);
 		if (type == "checkpoint")    return createCheckpoint(data);
 		if (type == "teleport")      return createTeleport(data, engine);
+		if (type == "boss_trigger")  return createBossTrigger(data);
 
 		Core::Logger::errorLog("EntityFactory: nieznany typ encji: " + type);
 		return nullptr;
@@ -281,6 +283,17 @@ namespace Nawia::World {
 		}
 
 		return std::make_shared<Entity::Teleport>(name, x, y, engine, target_location);
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createBossTrigger(const json& data)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const float width = data.value("width", 5.0f);
+		const float height = data.value("height", 5.0f);
+		const std::string boss_id = data.value("boss_id", "");
+
+		return std::make_shared<Entity::BossArenaTrigger>(boss_id, x, y, width, height);
 	}
 
 } // namespace Nawia::World

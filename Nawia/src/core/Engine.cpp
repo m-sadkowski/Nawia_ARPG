@@ -46,6 +46,9 @@ namespace Nawia::Core {
 
 		// init quest system
 		_quest_manager.loadFromJson("assets/data/quests.json");
+		
+		// init boss system
+		_boss_manager.loadFromJson("assets/data/bosses.json");
 
 		// initialize player
 		Vector2 player_spawn_pos = {0.0f, 0.0f};
@@ -308,6 +311,9 @@ namespace Nawia::Core {
 			return;
 
 		if (_player->isDead()) {
+			if (_boss_manager.isFightActive()) {
+				_boss_manager.endBossFight(false, this);
+			}
 			_game_state = GameState::GameOver;
 			return;
 		}
@@ -323,6 +329,9 @@ namespace Nawia::Core {
 
 		// Aktualizacja questów: odblokowania łańcuchów i auto-complete.
 		_quest_manager.update(this);
+
+		// Aktualizacja stanu bossów.
+		_boss_manager.update(this, delta_time);
 
 		// Zbieramy encje utworzone przez istniejące obiekty, np. pociski.
 		std::vector<std::shared_ptr<Entity::Entity>> new_spawns;
@@ -404,7 +413,7 @@ namespace Nawia::Core {
 		    EndMode3D();
 
 		    /* RENDER 2D UI OVERLAY */
-            if (_ui_handler) _ui_handler->render(_camera);
+            if (_ui_handler) _ui_handler->render(_camera, &_boss_manager);
             
             // Render pause menu overlay if visible
             if (_show_pause_menu && _ui_handler)

@@ -264,19 +264,69 @@ namespace Nawia::Core {
         if (e->isDormant()) return false;
 
         const Entity::EntityType type = e->getType();
-        return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy || type == Entity::EntityType::Ally);
+        return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy || type == Entity::EntityType::Ally || type == Entity::EntityType::Wall);
     }
 
     void EntityManager::resolveOverlap(const std::shared_ptr<Entity::Entity>& e1, const std::shared_ptr<Entity::Entity>& e2) const
     {
-        // Simple radial collision for characters instead of checking Collider classes.
-        // This decouples physics from hitboxes and stops players/enemies from walking through each other.
+        const bool e1_wall = (e1->getType() == Entity::EntityType::Wall);
+        const bool e2_wall = (e2->getType() == Entity::EntityType::Wall);
+
+        // Wall vs Wall — no resolution needed
+        if (e1_wall && e2_wall) return;
+
+        // Wall vs Character — use AABB collision
+        if (e1_wall || e2_wall) {
+            const auto& wall = e1_wall ? e1 : e2;
+            const auto& character = e1_wall ? e2 : e1;
+
+            auto* rect = dynamic_cast<Entity::RectangleCollider*>(wall->getCollider());
+            if (!rect) return;
+
+            const Vector2 wall_center = rect->getPosition();
+            const float half_w = rect->getWidth() / 2.0f;
+            const float half_h = rect->getHeight() / 2.0f;
+
+            const float char_x = character->getX();
+            const float char_y = character->getY();
+            constexpr float char_radius = 0.4f;
+
+            // Find closest point on wall AABB to character
+            const float closest_x = std::clamp(char_x, wall_center.x - half_w, wall_center.x + half_w);
+            const float closest_y = std::clamp(char_y, wall_center.y - half_h, wall_center.y + half_h);
+
+            const float dx = char_x - closest_x;
+            const float dy = char_y - closest_y;
+            const float dist_sq = dx * dx + dy * dy;
+
+            if (dist_sq < char_radius * char_radius) {
+                if (dist_sq > 0.0001f) {
+                    const float dist = std::sqrt(dist_sq);
+                    const float overlap = char_radius - dist;
+                    const float push_x = (dx / dist) * overlap;
+                    const float push_y = (dy / dist) * overlap;
+                    character->setX(char_x + push_x);
+                    character->setY(char_y + push_y);
+                } else {
+                    // Character is exactly at closest point (inside wall) — push out along shortest axis
+                    const float pen_x = half_w - std::abs(char_x - wall_center.x) + char_radius;
+                    const float pen_y = half_h - std::abs(char_y - wall_center.y) + char_radius;
+                    if (pen_x < pen_y) {
+                        character->setX(char_x + (char_x < wall_center.x ? -pen_x : pen_x));
+                    } else {
+                        character->setY(char_y + (char_y < wall_center.y ? -pen_y : pen_y));
+                    }
+                }
+            }
+            return;
+        }
+
+        // Character vs Character — radial push
         const float dx = e2->getX() - e1->getX();
         const float dy = e2->getY() - e1->getY();
         const float dist_sq = dx * dx + dy * dy;
         
-        // Approximate physics radius for characters is 0.4.
-        const float combined_radius = 0.8f; 
+        constexpr float combined_radius = 0.8f; 
         
         if (dist_sq < combined_radius * combined_radius && dist_sq > 0.0001f) {
             float dist = std::sqrt(dist_sq);
