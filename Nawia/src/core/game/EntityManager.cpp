@@ -295,7 +295,8 @@ namespace Nawia::Core {
             for (size_t j = i + 1; j < collidable_entities.size(); ++j)
             {
                 auto& e2 = collidable_entities[j];
-                if (e2->getX() - e1->getX() > k_physical_collision_radius)
+                const bool involves_wall = e1->getType() == Entity::EntityType::Wall || e2->getType() == Entity::EntityType::Wall;
+                if (!involves_wall && e2->getX() - e1->getX() > k_physical_collision_radius)
                     break;
 
                 resolveOverlap(e1, e2);
@@ -309,13 +310,63 @@ namespace Nawia::Core {
         if (entity->isDormant()) return false;
 
         const Entity::EntityType type = entity->getType();
-        return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy || type == Entity::EntityType::Ally);
+        return type == Entity::EntityType::Player ||
+               type == Entity::EntityType::Enemy ||
+               type == Entity::EntityType::Ally ||
+               type == Entity::EntityType::Wall;
     }
 
     void EntityManager::resolveOverlap(
         const std::shared_ptr<Entity::Entity>& first_entity,
         const std::shared_ptr<Entity::Entity>& second_entity
     ) const {
+        const bool first_is_wall = first_entity->getType() == Entity::EntityType::Wall;
+        const bool second_is_wall = second_entity->getType() == Entity::EntityType::Wall;
+        if (first_is_wall && second_is_wall)
+            return;
+
+        if (first_is_wall || second_is_wall)
+        {
+            const auto& wall = first_is_wall ? first_entity : second_entity;
+            const auto& character = first_is_wall ? second_entity : first_entity;
+            const auto* rectangle = dynamic_cast<Entity::RectangleCollider*>(wall->getCollider());
+            if (!rectangle)
+                return;
+
+            const Vector2 wall_center = rectangle->getPosition();
+            const float half_width = rectangle->getWidth() * 0.5f;
+            const float half_height = rectangle->getHeight() * 0.5f;
+            const float character_x = character->getX();
+            const float character_y = character->getY();
+            constexpr float character_radius = 0.4f;
+
+            const float closest_x = std::clamp(character_x, wall_center.x - half_width, wall_center.x + half_width);
+            const float closest_y = std::clamp(character_y, wall_center.y - half_height, wall_center.y + half_height);
+            const float dx = character_x - closest_x;
+            const float dy = character_y - closest_y;
+            const float distance_sq = dx * dx + dy * dy;
+
+            if (distance_sq >= character_radius * character_radius)
+                return;
+
+            if (distance_sq > 0.0001f)
+            {
+                const float distance = std::sqrt(distance_sq);
+                const float overlap = character_radius - distance;
+                character->setX(character_x + (dx / distance) * overlap);
+                character->setY(character_y + (dy / distance) * overlap);
+                return;
+            }
+
+            const float penetration_x = half_width - std::abs(character_x - wall_center.x) + character_radius;
+            const float penetration_y = half_height - std::abs(character_y - wall_center.y) + character_radius;
+            if (penetration_x < penetration_y)
+                character->setX(character_x + (character_x < wall_center.x ? -penetration_x : penetration_x));
+            else
+                character->setY(character_y + (character_y < wall_center.y ? -penetration_y : penetration_y));
+            return;
+        }
+
         // Prosta kolizja radialna blokuje przenikanie postaci bez laczenia z hitboxami ataku.
         const float dx = second_entity->getX() - first_entity->getX();
         const float dy = second_entity->getY() - first_entity->getY();

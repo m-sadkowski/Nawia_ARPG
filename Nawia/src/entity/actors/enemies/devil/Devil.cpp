@@ -206,9 +206,9 @@ namespace Nawia::Entity {
 				{
 					// Gracza próbujemy powalić, pozostałym celom zadajemy zwykłe obrażenia.
 					if (target->getType() == EntityType::Player)
-						dynamic_cast<Player*>(target.get())->knockDown(DASH_DAMAGE);
+						dynamic_cast<Player*>(target.get())->knockDown(static_cast<int>(DASH_DAMAGE * _damage_multiplier));
 					else
-						target->takeDamage(DASH_DAMAGE);
+						target->takeDamage(static_cast<int>(DASH_DAMAGE * _damage_multiplier));
 					playSoundEffect(Audio::SoundId::DevilDashHit, 0.95f);
 					_dash_hit_target = true;
 
@@ -229,7 +229,7 @@ namespace Nawia::Entity {
 		}
 
 		const Vector2 dir = Vector2Normalize(Vector2Subtract(_dash_target_pos, my_pos));
-		const float move_amount = DASH_SPEED * dt;
+		const float move_amount = DASH_SPEED * _speed_multiplier * dt;
 
 		const float next_x = _pos.x + dir.x * move_amount;
 		const float next_y = _pos.y + dir.y * move_amount;
@@ -278,7 +278,7 @@ namespace Nawia::Entity {
 			{
 				if (getDistanceToTarget() <= ATTACK_RANGE * 1.5f)
 				{
-					target->takeDamage(ATTACK_DAMAGE);
+					target->takeDamage(static_cast<int>(ATTACK_DAMAGE * _damage_multiplier));
 					playSoundEffect(Audio::SoundId::DevilPunch, 0.85f);
 
 				}

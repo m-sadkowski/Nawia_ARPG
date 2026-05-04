@@ -12,6 +12,7 @@
 #include <LevelManager.h>
 #include <Player.h>
 #include <QuestManager.h>
+#include <BossManager.h>
 #include <ResourceManager.h>
 #include <Settings.h>
 #include <SettingsMenu.h>
@@ -444,7 +445,7 @@ namespace Nawia::UI
         DrawRectangleGradientV(0, 0, GetScreenWidth(), GetScreenHeight(), withAlpha(COLOR_ACCENT, 0.02f), withAlpha(BLACK, 0.12f));
     }
 
-    void UIHandler::render(const Core::GameCamera& camera)
+    void UIHandler::render(const Core::GameCamera& camera, const Game::BossManager* boss_manager)
     {
         if (!_player || !_entity_manager)
             return;
@@ -453,6 +454,7 @@ namespace Nawia::UI
         renderPlayerHealthBar();
         renderPlayerAbilityBar();
         renderCombatEntityHealthBars(camera);
+        renderBossHealthBar(boss_manager);
         renderLocationInfo();
         
         if (_damage_flash_timer > 0.0f)
@@ -551,6 +553,103 @@ namespace Nawia::UI
     void UIHandler::showNotification(const std::string& text, float duration)
     {
         _notifications.push_back({ text, duration, duration });
+    }
+
+    void UIHandler::renderBossHealthBar(const Game::BossManager* boss_manager) const
+    {
+        if (!boss_manager || !boss_manager->isFightActive())
+            return;
+
+        const auto* boss_data = boss_manager->getActiveBossData();
+        const auto boss_entity = boss_manager->getActiveBossEntity();
+        if (!boss_data || !boss_entity || boss_entity->getMaxHP() <= 0)
+            return;
+
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float bar_width = screen_width * 0.55f;
+        const float bar_height = Core::GlobalScaling::scaled(28.0f);
+        const float x = (screen_width - bar_width) * 0.5f;
+        const float y = Core::GlobalScaling::scaled(50.0f);
+        const float padding = Core::GlobalScaling::scaled(12.0f);
+        const float spacing = Core::GlobalScaling::scaled(1.5f);
+
+        const float hp_percent = std::clamp(
+            static_cast<float>(boss_entity->getHP()) / static_cast<float>(boss_entity->getMaxHP()),
+            0.0f,
+            1.0f);
+
+        const Rectangle panel = {
+            x - padding,
+            y - Core::GlobalScaling::scaled(40.0f),
+            bar_width + padding * 2.0f,
+            bar_height + Core::GlobalScaling::scaled(64.0f)
+        };
+        DrawRectangleRec(panel, Fade(BLACK, 0.70f));
+        DrawRectangleLinesEx(panel, Core::GlobalScaling::scaled(1.5f), Fade(GOLD, 0.45f));
+
+        const float name_font_size = Core::GlobalScaling::scaled(26.0f);
+        const Vector2 name_size = MeasureTextEx(_font, boss_data->name.c_str(), name_font_size, spacing);
+        const Vector2 name_position = {
+            x + (bar_width - name_size.x) * 0.5f,
+            y - name_size.y - Core::GlobalScaling::scaled(8.0f)
+        };
+        DrawTextEx(_font, boss_data->name.c_str(), { name_position.x + 2.0f, name_position.y + 2.0f }, name_font_size, spacing, Fade(BLACK, 0.8f));
+        DrawTextEx(_font, boss_data->name.c_str(), name_position, name_font_size, spacing, GOLD);
+
+        Color bar_color = { 180, 32, 26, 255 };
+        if (hp_percent > 0.5f)
+        {
+            const float t = (hp_percent - 0.5f) / 0.5f;
+            bar_color = {
+                static_cast<unsigned char>(255.0f * (1.0f - t)),
+                static_cast<unsigned char>(180.0f + 75.0f * t),
+                30,
+                255
+            };
+        }
+        else if (hp_percent > 0.2f)
+        {
+            const float t = (hp_percent - 0.2f) / 0.3f;
+            bar_color = {
+                255,
+                static_cast<unsigned char>(100.0f + 80.0f * t),
+                20,
+                255
+            };
+        }
+
+        DrawRectangleRec({ x, y, bar_width, bar_height }, { 20, 20, 20, 220 });
+        DrawRectangleRec({ x, y, bar_width * hp_percent, bar_height }, bar_color);
+        DrawRectangleRec({ x, y, bar_width * hp_percent, bar_height * 0.35f }, Fade(WHITE, 0.08f));
+
+        for (size_t i = 1; i < boss_data->phases.size(); ++i)
+        {
+            const float marker_x = x + bar_width * std::clamp(boss_data->phases[i].hp_threshold, 0.0f, 1.0f);
+            DrawRectangle(static_cast<int>(marker_x) - 1, static_cast<int>(y), 3, static_cast<int>(bar_height), Fade(WHITE, 0.5f));
+        }
+
+        DrawRectangleLinesEx({ x, y, bar_width, bar_height }, Core::GlobalScaling::scaled(2.5f), GOLD);
+
+        const char* hp_text = TextFormat("%d / %d", boss_entity->getHP(), boss_entity->getMaxHP());
+        const float hp_font_size = Core::GlobalScaling::scaled(16.0f);
+        const Vector2 hp_size = MeasureTextEx(_font, hp_text, hp_font_size, spacing);
+        const Vector2 hp_position = {
+            x + (bar_width - hp_size.x) * 0.5f,
+            y + (bar_height - hp_size.y) * 0.5f
+        };
+        DrawTextEx(_font, hp_text, { hp_position.x + 1.0f, hp_position.y + 1.0f }, hp_font_size, spacing, Fade(BLACK, 0.6f));
+        DrawTextEx(_font, hp_text, hp_position, hp_font_size, spacing, WHITE);
+
+        const int phase_index = boss_manager->getCurrentPhaseIndex();
+        const float info_y = y + bar_height + Core::GlobalScaling::scaled(5.0f);
+        const float info_font_size = Core::GlobalScaling::scaled(14.0f);
+        if (phase_index >= 0 && phase_index < static_cast<int>(boss_data->phases.size()))
+            DrawTextEx(_font, boss_data->phases[phase_index].name.c_str(), { x + 2.0f, info_y }, info_font_size, spacing, Fade(WHITE, 0.75f));
+
+        const float timer = boss_manager->getFightTimer();
+        const char* timer_text = TextFormat("%02d:%02d", static_cast<int>(timer) / 60, static_cast<int>(timer) % 60);
+        const Vector2 timer_size = MeasureTextEx(_font, timer_text, info_font_size, spacing);
+        DrawTextEx(_font, timer_text, { x + bar_width - timer_size.x - 2.0f, info_y }, info_font_size, spacing, Fade(WHITE, 0.75f));
     }
 
     void UIHandler::handleInput()
