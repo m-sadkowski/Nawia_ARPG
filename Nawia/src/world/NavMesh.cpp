@@ -12,6 +12,12 @@
 
 namespace Nawia::World {
 
+	namespace {
+
+		constexpr float k_max_path_end_distance_sq = 1.5f;
+
+	}
+
 	NavMesh::NavMesh() : _navMesh(nullptr), _navQuery(nullptr) {}
 
 	NavMesh::~NavMesh() {
@@ -309,17 +315,19 @@ namespace Nawia::World {
 				straightPath, straightPathFlags, straightPathPolys, &straightPathCount, 256);
 
 			if (straightPathCount > 0) {
-				// Final check: Is the last point of the path close to where we actually clicked?
+				// Final check on the XZ plane only.
+				// Large height differences are valid on reachable hills and stairs,
+				// so using full 3D distance rejects good paths to elevated points.
 				float lx = straightPath[(straightPathCount - 1) * 3 + 0];
-				float ly = straightPath[(straightPathCount - 1) * 3 + 1];
 				float lz = straightPath[(straightPathCount - 1) * 3 + 2];
 				float dx = lx - end.x;
-				float dy = ly - end.y;
 				float dz = lz - end.z;
-				float distSq = dx*dx + dy*dy + dz*dz;
+				float horizontal_dist_sq = dx * dx + dz * dz;
 
-				if (distSq > 1.5f) { // ~1.2m threshold
-					Core::Logger::debugLog("NavMesh::findPath - Path ends too far from click (" + std::to_string(sqrtf(distSq)) + "m), rejecting.");
+				if (horizontal_dist_sq > k_max_path_end_distance_sq) {
+					Core::Logger::debugLog(
+						"NavMesh::findPath - Path ends too far from click on XZ plane (" +
+						std::to_string(std::sqrt(horizontal_dist_sq)) + "m), rejecting.");
 					return {};
 				}
 

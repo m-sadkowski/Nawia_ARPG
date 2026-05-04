@@ -39,6 +39,9 @@ namespace Nawia::Core {
 		void processPendingAbility() const;
 		void updateCombatMovement(float dist_sq, float attack_range) const;
 		void updatePathMovement();
+		bool buildPathToWorldPosition(Vector3 desired_world_position);
+		void trimCurrentPathStart();
+		void moveAlongCurrentPath();
 
 		std::vector<Vector2> _current_path;
 
@@ -47,6 +50,7 @@ namespace Nawia::Core {
 			enum class Type { None, Move, Ability, Interact } type = Type::None;
 			float x = 0.0f;
 			float y = 0.0f;
+			float world_height = 0.0f;
 			int ability_index = -1;
 			std::weak_ptr<Entity::Entity> target;
 		};
