@@ -13,20 +13,20 @@ namespace Nawia::Core {
 
 	PlayerController::PlayerController(Engine* engine, std::shared_ptr<Entity::Player> player) : _engine(engine), _player(std::move(player)) {}
 
-	void PlayerController::handleInput(const float mouse_world_x, const float mouse_world_y, const float screen_x, const float screen_y) 
+	void PlayerController::handleInput(Vector3 mouse_world_pos, const float screen_x, const float screen_y)
 	{
 		if (!_player) return;
 
-		_last_mouse_x = mouse_world_x;
-		_last_mouse_y = mouse_world_y;
+		_last_mouse_x = mouse_world_pos.x;
+		_last_mouse_y = mouse_world_pos.z;
 
 		if (_engine->getUIHandler().isInputBlocked()) {
 			_player->stop();
 			return;
 		}
 
-		handleMouseInput(mouse_world_x, mouse_world_y, screen_x, screen_y);
-		handleKeyboardInput(mouse_world_x, mouse_world_y, screen_x, screen_y);
+		handleMouseInput(mouse_world_pos, screen_x, screen_y);
+		handleKeyboardInput(mouse_world_pos, screen_x, screen_y);
 	}
 
 	
@@ -34,7 +34,6 @@ namespace Nawia::Core {
 	{
 		processPendingAction();  
 
-		
 		if (processInteraction())
 			return;
 
@@ -45,6 +44,7 @@ namespace Nawia::Core {
 
 		processAutoAttack();
 
+		updatePathMovement();
 		updateRotation();
 	}
 
@@ -122,7 +122,7 @@ namespace Nawia::Core {
 	}
 
 	
-	void PlayerController::handleMouseInput(const float mouse_world_x, const float mouse_world_y, const float screen_x, const float screen_y)
+	void PlayerController::handleMouseInput(Vector3 mouse_world_pos, const float screen_x, const float screen_y)
 	{
 		if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) return;
 
@@ -137,7 +137,7 @@ namespace Nawia::Core {
 			{
 				if (_player->isAnimationLocked())
 				{
-					_pending_action = { PendingAction::Type::Interact, 0.0f, 0.0f, -1, entity };
+					_pending_action = { PendingAction::Type::Interact, 0.0f, 0.0f, 0.0f, -1, entity };
 				}
 				else
 				{
@@ -154,12 +154,13 @@ namespace Nawia::Core {
 
 		
 		_target_interactable = nullptr;
-		handleGroundClick(mouse_world_x, mouse_world_y);
+		handleGroundClick(mouse_world_pos);
 	}
-	void PlayerController::handleKeyboardInput(const float mouse_world_x, const float mouse_world_y, const float screen_x, const float screen_y)
+	void PlayerController::handleKeyboardInput(Vector3 mouse_world_pos, const float screen_x, const float screen_y)
 	{
-		int ability_index = -1;
+		if (_engine->getUIHandler().isInputBlocked()) return;
 
+		int ability_index = -1;
 		if (IsKeyPressed(KEY_Q)) ability_index = 0;
 		if (IsKeyPressed(KEY_W)) ability_index = 1;
 		if (IsKeyPressed(KEY_E)) ability_index = 2;
@@ -167,10 +168,10 @@ namespace Nawia::Core {
 
 		if (ability_index == -1) return;
 
-		if (const bool is_locked = _player->isAnimationLocked())
-			queueAbility(ability_index, mouse_world_x, mouse_world_y, screen_x, screen_y);
+		if (_player->isAnimationLocked())
+			queueAbility(ability_index, mouse_world_pos.x, mouse_world_pos.z, screen_x, screen_y);
 		else
-			castAbility(ability_index, mouse_world_x, mouse_world_y, screen_x, screen_y);
+			castAbility(ability_index, mouse_world_pos.x, mouse_world_pos.z, screen_x, screen_y);
 	}
 
 	void PlayerController::processPendingAction()
@@ -224,7 +225,7 @@ namespace Nawia::Core {
 
 		if (_player->isAnimationLocked())
 		{
-			_pending_action = { PendingAction::Type::Move, 0.0f, 0.0f, -1, enemy };
+			_pending_action = { PendingAction::Type::Move, 0.0f, 0.0f, 0.0f, -1, enemy };
 		}
 		else
 		{
@@ -234,24 +235,28 @@ namespace Nawia::Core {
 		return true;
 	}
 
-	void PlayerController::handleGroundClick(const float x, const float y)
+	void PlayerController::handleGroundClick(Vector3 pos) 
 	{
 		if (_player->isAnimationLocked())
 		{
-			_pending_action = { PendingAction::Type::Move, x, y, -1,  std::weak_ptr<Entity::Entity>() };
+			_pending_action = { PendingAction::Type::Move, pos.x, pos.z, pos.y, -1, std::weak_ptr<Entity::Entity>() };
 		}
 		else
 		{
-			Logger::debugLog("PlayerController::handleGroundClick -> x=" + std::to_string(x) + " y=" + std::to_string(y));
 			_target_enemy = nullptr;
-			_player->moveTo(x, y);
-			_pending_action = {}; // clear pending on new valid action
+
+			if (buildPathToWorldPosition(pos))
+				moveAlongCurrentPath();
+			else
+				_player->stop();
+
+			_pending_action = {};
 		}
 	}
 
 	void PlayerController::queueAbility(const int index, const float x, const float y, const float screen_x, const float screen_y)
 	{
-		_pending_action = { PendingAction::Type::Ability, x, y, index, std::weak_ptr<Entity::Entity>() };
+		_pending_action = { PendingAction::Type::Ability, x, y, 0.0f, index, std::weak_ptr<Entity::Entity>() };
 		
 		// try to find target for Unit-target abilities even when queuing
 		if (const auto ability = _player->getAbility(index))
@@ -305,13 +310,19 @@ namespace Nawia::Core {
 	{
 		_target_enemy = nullptr; // default clear
 		
-		if (const auto target = _pending_action.target.lock() )
+		if (const auto target = _pending_action.target.lock() ) {
 			// if we queued a move on an enemy, set as target
-			if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
+			if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target)) {
 				_target_enemy = enemy;
-		else
-			// ground move
-			_player->moveTo(_pending_action.x, _pending_action.y);
+			}
+		}
+		else {
+			const Vector3 pending_world_position = { _pending_action.x, _pending_action.world_height, _pending_action.y };
+			if (buildPathToWorldPosition(pending_world_position))
+				moveAlongCurrentPath();
+			else
+				_player->stop();
+		}
 	}
 
 	void PlayerController::processPendingAbility() const
@@ -352,6 +363,60 @@ namespace Nawia::Core {
 	}
 
 	
+
+	void PlayerController::updatePathMovement() 
+	{
+		// If player arrived at the current target point and we have more points
+		if (!_player->isMoving() && !_current_path.empty()) {
+			_current_path.erase(_current_path.begin()); // Pop the point we just arrived at
+			
+			if (!_current_path.empty()) {
+				_player->moveTo(_current_path.front().x, _current_path.front().y);
+			}
+		} else if (!_current_path.empty() && _target_enemy) {
+			// If we acquired a target enemy, discard the path
+			_current_path.clear();
+		}
+	}
+
+	bool PlayerController::buildPathToWorldPosition(Vector3 desired_world_position)
+	{
+		if (!_engine || !_engine->getCurrentMap()) {
+			_current_path = { { desired_world_position.x, desired_world_position.z } };
+			trimCurrentPathStart();
+			return !_current_path.empty();
+		}
+
+		const Vector3 start_world_position = _player->getWorldPos3D();
+
+		_current_path = _engine->getCurrentMap()->findPath(start_world_position, desired_world_position);
+		Logger::debugLog(
+			"PlayerController::buildPathToWorldPosition - findPath returned " +
+			std::to_string(_current_path.size()) + " points");
+
+		trimCurrentPathStart();
+		return !_current_path.empty();
+	}
+
+	void PlayerController::trimCurrentPathStart()
+	{
+		if (_current_path.empty())
+			return;
+
+		const Vector2 first_path_point = _current_path.front();
+		const float dx = first_path_point.x - _player->getCenter().x;
+		const float dy = first_path_point.y - _player->getCenter().y;
+		if (dx * dx + dy * dy < 0.1f)
+			_current_path.erase(_current_path.begin());
+	}
+
+	void PlayerController::moveAlongCurrentPath()
+	{
+		if (_current_path.empty())
+			return;
+
+		_player->moveTo(_current_path.front().x, _current_path.front().y);
+	}
 
 	void PlayerController::updateRotation() const
 	{

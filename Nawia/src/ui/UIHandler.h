@@ -7,6 +7,8 @@
 #include "UIDefines.h"
 #include "UIRenderUtils.h"
 
+#include <Camera.h>
+
 #include <memory>
 #include <vector>
 #include <raylib.h>
@@ -19,7 +21,6 @@ namespace Nawia::Entity {
 
 namespace Nawia::Core {
     class EntityManager;
-    struct GameCamera;
     class Settings;
     class ResourceManager;
 }

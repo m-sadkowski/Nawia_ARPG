@@ -8,11 +8,14 @@ namespace Nawia::World {
 
 	/**
 	 * @class DevLevel
-	 * @brief Development/debug level for placing static objects.
+	 * @brief Development level for placing props and tuning lighting.
 	 *
-	 * Right-click on the map to open a text prompt; type a prop name
+	 * Right-click on the map to open a text prompt, type a prop name,
 	 * and press Enter to save its world coordinates to
-	 * "static_objects_dev.json". Uses the "demo_map/inferno.glb" map.
+	 * `assets/data/static_objects_dev.json`.
+	 *
+	 * The level also exposes simple controls for moving the primary light
+	 * and saving the whole lighting setup to `assets/maps/forest_lighting.json`.
 	 */
 	class DevLevel : public Level {
 	public:
@@ -32,12 +35,18 @@ namespace Nawia::World {
 		[[nodiscard]] bool isTyping() const { return _is_typing; }
 
 	private:
+		void handleTypingInput();
+		void handleEditingInput(Core::Engine* engine);
+		void renderLightingOverlay(Core::Engine& engine) const;
+		void renderPropPlacementPrompt() const;
+		void clearTypingState();
+
 		bool _is_typing = false;
 		std::string _input_text;
-		Vector2 _saved_iso_pos = {0, 0};
+		Vector2 _saved_world_position = { 0.0f, 0.0f };
 
 		/** @brief Appends a named object entry with world coordinates to the JSON file. */
-		void saveObjectToJson(const std::string& name, float x, float y);
+		void saveObjectToJson(const std::string& object_name, float world_x, float world_z);
 	};
 
 } // namespace Nawia::World

@@ -88,8 +88,10 @@ namespace Nawia::Entity {
 		/// @{
 		[[nodiscard]] float getX() const { return _pos.x; }
 		[[nodiscard]] float getY() const { return _pos.y; }
+		[[nodiscard]] float getAltitude() const { return _altitude; }
 		void setX(float x) { _pos.x = x; }
 		void setY(float y) { _pos.y = y; }
+		void setAltitude(float a) { _altitude = a; }
 		[[nodiscard]] Vector2 getCenter() const;
 		/// @}
 
@@ -97,7 +99,7 @@ namespace Nawia::Entity {
 		/// @{
 		
 		/** @brief Get 3D world position (on ground plane). Override for altitude. */
-		[[nodiscard]] virtual Vector3 getWorldPos3D() const { return { _pos.x, 0.0f, _pos.y }; }
+		[[nodiscard]] virtual Vector3 getWorldPos3D() const { return { _pos.x, _altitude, _pos.y }; }
 
 		/** @brief Project entity world position to screen coordinates. */
 		[[nodiscard]] Vector2 getScreenPosition(const Camera3D& camera) const;
@@ -282,6 +284,7 @@ namespace Nawia::Entity {
 		Entity();
 
 		Vector2 _pos = {0.0f, 0.0f};
+		float _altitude = 0.0f;
 		Vector2 _velocity = {0.0f, 0.0f};
 		float _scale = 1.0f;
 		std::shared_ptr<Texture2D> _texture;
@@ -293,6 +296,10 @@ namespace Nawia::Entity {
 
 		int _hp = 1;
 		int _max_hp = 1;
+
+	public:
+		Model& getModel() { return _model; }
+	protected:
 
 		// 3D Model & Animation Data
 		Model _model;
