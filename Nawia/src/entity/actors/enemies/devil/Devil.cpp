@@ -1,9 +1,10 @@
 #include "Devil.h"
-#include "Player.h"
-#include "Collider.h"
 
+#include <Collider.h>
 #include <Map.h>
 #include <MathUtils.h>
+#include <Player.h>
+
 #include <raymath.h>
 
 namespace Nawia::Entity {

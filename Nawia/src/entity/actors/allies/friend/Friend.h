@@ -1,11 +1,20 @@
 #pragma once
 
-#include "AllyInterface.h"
+#include <AllyInterface.h>
+
+#include <memory>
 
 namespace Nawia::Entity {
 
+	/**
+	 * @class Friend
+	 * @brief Prosty sojusznik walczący obok gracza.
+	 */
 	class Friend : public AllyInterface {
 	public:
+		/**
+		 * @brief Aktualizuje AI, ruch, animacje i umiejętności sojusznika.
+		 */
 		void update(float dt) override;
 
 	private:
@@ -19,6 +28,10 @@ namespace Nawia::Entity {
 		void updateHardcodedBehavior(float dt);
 	};
 
+	/**
+	 * @class FriendBuilder
+	 * @brief Buduje instancję klasy `Friend` zgodnie z builderami aktorów.
+	 */
 	class FriendBuilder : public AllyBuilder<FriendBuilder> {
 	public:
 		FriendBuilder() {

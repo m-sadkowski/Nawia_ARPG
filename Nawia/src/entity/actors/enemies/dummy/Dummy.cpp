@@ -1,8 +1,9 @@
 #include "Dummy.h"
-#include "Ability.h"
-#include "FireballAbility.h"
-#include "Collider.h"
 
+#include <Ability.h>
+#include <Collider.h>
+#include <FireballAbility.h>
+#include <Map.h>
 #include <MathUtils.h>
 
 #include <cmath>

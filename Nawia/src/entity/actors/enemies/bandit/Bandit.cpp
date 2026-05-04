@@ -1,9 +1,11 @@
 #include "Bandit.h"
-#include "Ability.h"
-#include "KnifeThrowAbility.h"
-#include "Collider.h"
 
+#include <Ability.h>
+#include <Collider.h>
+#include <KnifeThrowAbility.h>
+#include <Map.h>
 #include <MathUtils.h>
+
 #include <raymath.h>
 
 namespace Nawia::Entity {

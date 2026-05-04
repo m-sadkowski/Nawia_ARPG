@@ -1,101 +1,175 @@
-# Przewodnik po klasie Ability
+# Przewodnik po Ability
 
-Klasa `Ability` (`src/entity/abilities/Ability.h`) jest bazą dla wszystkich umiejętności (skilli) w grze. Odpowiada za logikę "rzucania" czaru, zarządzanie czasem oczekiwania (cooldownem) oraz pobieraniem statystyk.
+Ten dokument opisuje aktualny system umiejętności w projekcie Nawia: klasę `Ability`, statystyki z JSON, cooldowny oraz tworzenie efektów w świecie gry.
 
-## Czym jest Ability?
-Ability to wirtualny obiekt logiczny (nie jest dziedziczonym Entity, samo z siebie z racji braku fizyki nie renderuje się na mapie), który należy do `Entity` (np. postać rzucająca - caster).
-Jego głównym zadaniem jest wykreowanie i rzut strefowym zjawiskiem w postaci np. obiekto-pocisku (Effect) w momencie użycia, który ukaże to na silniku wizualnym.
+## 1. Czym jest `Ability`
 
-## Jak stworzyć nową umiejętność?
+`Ability` jest obiektem logicznym przypiętym do encji, która go używa. Sama umiejętność nie jest renderowana i nie ma fizyki. Jej zadaniem jest:
 
-Należy stworzyć klasę dziedziczącą po `Nawia::Entity::Ability`.
+- trzymanie nazwy, ikony i statystyk,
+- pilnowanie cooldownu,
+- sprawdzenie typu celowania,
+- stworzenie efektu, pocisku albo innej encji po użyciu.
 
-### Przykład: SuperSlashAbility
+Najważniejsze pliki:
 
-#### Nagłówek (.h)
+- `src/entity/abilities/Ability.h`
+- `src/entity/abilities/Ability.cpp`
+- `src/entity/abilities/AbilityStats.h`
+- `src/entity/abilities/AbilityEffect.h`
+
+## 2. Typy celowania
+
+`AbilityTargetType` mówi, jak interpretować cel:
+
+- `POINT` - umiejętność celowana w punkt świata, np. fireball albo cięcie w stronę kursora.
+- `UNIT` - umiejętność celowana w konkretną encję.
+- `SELF` - umiejętność rzucana na casterze.
+
+Typ celowania powinien być zgodny z tym, co robi `cast(...)`. Jeśli ability przyjmuje punkt, używaj `POINT`, nawet gdy potem trafienie zostanie policzone po colliderze.
+
+## 3. Statystyki
+
+Statystyki są przechowywane w `assets/data/abilities.json` i trafiają do `AbilityStats`.
+
+Najczęściej używane pola:
+
+- `damage` - obrażenia zadawane przez efekt.
+- `cooldown` - czas oczekiwania przed kolejnym użyciem.
+- `cast_range` - zasięg użycia.
+- `hitbox_radius` - domyślny rozmiar collidera lub obszaru trafienia.
+- `duration` - czas życia efektu.
+
+Statystyki pobieraj przez:
+
+```cpp
+const AbilityStats stats = Entity::getAbilityStatsFromJson("SwordSlash");
+```
+
+## 4. Jak dodać nową umiejętność
+
+Standardowy flow:
+
+1. Dodaj klasę dziedziczącą po `Ability`.
+2. W konstruktorze przekaż nazwę, statystyki, typ celowania i ikonę.
+3. Zaimplementuj `cast(float target_x, float target_y)`.
+4. Jeśli ability tworzy efekt, ustaw mu frakcję castera.
+5. Po udanym użyciu odpal `startCooldown()`.
+6. Dodaj ability do encji przez `addAbility(...)`, zwykle w konstruktorze albo `EntityFactory`.
+
+## 5. Przykład
+
+Nagłówek:
+
 ```cpp
 #pragma once
-#include "Ability.h"
+
+#include <Ability.h>
+
+#include <memory>
 
 namespace Nawia::Entity {
 
-    class SuperSlashAbility : public Ability {
-    public:
-        // Konstruktor podpinający tekstury wizuali do HUD i przekazywane dla efektu przestrzeni 
-        SuperSlashAbility(const std::shared_ptr<Texture2D>& slash_tex, const std::shared_ptr<Texture2D>& icon_tex);
+	class SuperSlashAbility : public Ability {
+	public:
+		/**
+		 * @brief Tworzy umiejętność cięcia z teksturą efektu i ikoną HUD.
+		 */
+		SuperSlashAbility(
+			const std::shared_ptr<Texture2D>& slash_texture,
+			const std::shared_ptr<Texture2D>& icon_texture);
 
-        // Metoda cast zwraca wskaźnik na nowo urodzony obiekt przestrzenny zniszczenia Entity (efekt/cięcie)
-        std::unique_ptr<Entity> cast(float target_x, float target_y) override;
+		/**
+		 * @brief Tworzy efekt cięcia w kierunku wskazanego punktu.
+		 */
+		std::unique_ptr<Entity> cast(float target_x, float target_y) override;
 
-    private:
-        std::shared_ptr<Texture2D> _slash_texture;
-    };
+	private:
+		std::shared_ptr<Texture2D> _slash_texture;
+	};
 
-}
+} // namespace Nawia::Entity
 ```
 
-#### Implementacja (.cpp)
+Implementacja:
+
 ```cpp
 #include "SuperSlashAbility.h"
-#include "SwordSlashEffect.h" 
+
+#include <SwordSlashEffect.h>
 
 namespace Nawia::Entity {
 
-    SuperSlashAbility::SuperSlashAbility(const std::shared_ptr<Texture2D>& slash_tex, const std::shared_ptr<Texture2D>& icon_tex)
-        : Ability(
-            "SwordSlash", // Nazwa ułatwiająca szukanie w paczkach JSON statsów
-            Entity::getAbilityStatsFromJson("SwordSlash"), // Pobiera surowe uderzenie i obszar!
-            AbilityTargetType::POINT, 
-            icon_tex // Do GUI
-          ),
-          _slash_texture(slash_tex)
-    {
-    }
+	SuperSlashAbility::SuperSlashAbility(
+		const std::shared_ptr<Texture2D>& slash_texture,
+		const std::shared_ptr<Texture2D>& icon_texture)
+		: Ability(
+			  "SwordSlash",
+			  Entity::getAbilityStatsFromJson("SwordSlash"),
+			  AbilityTargetType::POINT,
+			  icon_texture),
+		  _slash_texture(slash_texture)
+	{
+	}
 
-    std::unique_ptr<Entity> SuperSlashAbility::cast(float target_x, float target_y) {
-        
-        // 1. Obróć fizyczne ciało postaci w stronę rzutu myszką! Współrzędne to punkty głębi z Raylib.
-        _caster->rotateTowardsCenter(target_x, target_y);
-        
-        // 2. Zapobiegaj sztywnemu chodzeniu przy cięciu z animacją blokowania ciała
-        startCooldown();
-        _caster->playAnimation("attack", false, true);
+	std::unique_ptr<Entity> SuperSlashAbility::cast(const float target_x, const float target_y)
+	{
+		if (!_caster || !isReady()) return nullptr;
 
-        // Pobierz tors swojego twórcy za fizyczny punkt spawnu obrażeń
-        Vector2 startPos = _caster->getCenter();
-        
-        // 3. Stwórz sam fizyczny byt obszarowy 2D/3D (Zasięg + Kolizja siatki)
-        auto slash = std::make_unique<SwordSlashEffect>(
-            startPos.x, startPos.y,
-            -_caster->getRotation(),  // kąt musi idealnie odzwierciedlać skręcenie korpusu postaci względem kamery!
-            _slash_texture, 
-            _stats
-        );
+		_caster->rotateTowardsCenter(target_x, target_y);
+		_caster->playAnimation("attack", false, true);
+		startCooldown();
 
-        // WAŻNE: Dodaj frakcję, żeby ogień maga nie zranił maga ani jego przyjaciół.
-        slash->setFaction(_caster->getFaction());
+		const Vector2 start_pos = _caster->getCenter();
+		auto slash = std::make_unique<SwordSlashEffect>(
+			start_pos.x,
+			start_pos.y,
+			-_caster->getRotation(),
+			_slash_texture,
+			_stats);
 
-        return slash;
-    }
+		slash->setFaction(_caster->getFaction());
+		return slash;
+	}
 
-}
+} // namespace Nawia::Entity
 ```
 
-## Szczegóły implementacji systemu Umiejętności (Ability)
+## 6. Caster i spawn efektów
 
-### Statystyki (`AbilityStats`)
-Struktura danych definiująca jak mocny jest skill pobierana z plikow `assets/data/abilities.json`:
-- `damage`: ilość zabieranego HP
-- `cooldown`: sekundy oczekiwania pomiędzy klatkami ataków.
-- `cast_range`: ułamek do weryfikacji poza który nie możesz odpalić spacji (zasięg ataku)
-- `hitbox_radius`: rozmiar Collidera nadawanego przy rzucie parametrami
-- `duration`: czas zanim animacja lub Entity czaru zostaną usunięte.
+Każda ability ma wskaźnik `_caster`. Ustawia go `Entity::addAbility(...)`. W `cast(...)` zakładaj, że caster może być pusty tylko w błędnej konfiguracji, więc dla bezpieczeństwa sprawdź go przy bardziej ryzykownych ability.
 
-### Typy celowania (`AbilityTargetType`)
-Opis zachowań kontrolerów:
-- `POINT`: Cięcie celowane w punkt z ziemi gdzie najeżdża kursor. Powszechne!
-- `UNIT`: Precyzyjne wybranie namierzonego Entity (Stun / Dot)
-- `SELF`: Automatycznie upuszczane na _castera (Tarcze)
+Efekty nie powinny być dodawane bezpośrednio do `EntityManager`. Zwykły pattern:
 
-### Ostrzeżenia
-Błędne obliczanie inkubacji startowej: Pamiętaj by wykorzystywać `_caster->getCenter()` by pociski rzucały siatkę z brzucha i dłoni bohatera 3D. Odejście od tego i zastosowanie zwykłego wektora GetX/GetY wywoła wystrzeliwanie ognia z podeszwy u nóg (Y=0)!
+1. `cast(...)` zwraca `std::unique_ptr<Entity>`.
+2. Encja używająca ability dodaje wynik przez `addPendingSpawn(...)`.
+3. `Engine` zbiera pending spawns po update i dopina je do świata.
+
+To ogranicza modyfikowanie listy encji w trakcie iteracji po świecie.
+
+## 7. Frakcje
+
+Każdy efekt bojowy powinien dostać frakcję castera:
+
+```cpp
+effect->setFaction(_caster->getFaction());
+```
+
+Dzięki temu projectile albo obszarowy efekt nie rani przypadkowo właściciela i jego sojuszników, jeśli logika kolizji filtruje po `Faction`.
+
+## 8. Pozycja startowa
+
+Do pocisków i melee prawie zawsze używaj:
+
+```cpp
+const Vector2 start_pos = _caster->getCenter();
+```
+
+`getX()` oraz `getY()` opisują pozycję logiczną encji, ale w walce często potrzebny jest środek hitboxa lub modelu. Użycie środka zmniejsza przypadki, w których pocisk startuje z nóg albo z krawędzi modelu.
+
+## 9. Powiązane dokumenty
+
+- `docs/guides/AbilityEffect_Guide.md`
+- `docs/guides/Entity_Guide.md`
+- `docs/guides/Enemy_Guide.md`
+- `docs/guides/Coding_Standards.md`

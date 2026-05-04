@@ -1,7 +1,8 @@
 #include "WalkingDead.h"
-#include "Collider.h"
 
+#include <Collider.h>
 #include <MathUtils.h>
+
 #include <raymath.h>
 
 namespace Nawia::Entity {

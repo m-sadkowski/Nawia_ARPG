@@ -1,39 +1,27 @@
 #pragma once
 
-#include "EnemyInterface.h"
+#include <EnemyInterface.h>
 
-#include <Map.h>
+#include <memory>
 
 namespace Nawia::Entity {
 
 	/**
 	 * @class WalkingDead
-	 * @brief Slow undead enemy with reactive hit animations and variable speed.
-	 * 
-	 * Walking Dead are undead creatures that chase the player when detected.
-	 * They walk slowly at distance but run when close. When hit, they play
-	 * a stagger animation before resuming their previous behavior.
-	 * 
-	 * ## States
-	 * - Idle: Standing still, watching for player in vision range
-	 * - Chasing: Moving toward player (walks far, runs when close)
-	 * - Attacking: Melee bite attack when in range
-	 * - GettingHit: Stagger animation when damaged (resets on each hit)
-	 * - Screaming: Frustration animation when player escapes vision
-	 * - Dying: Death animation, then marked as dead
-	 * 
-	 * ## Behavior
-	 * - Starts idle, activates when player enters VISION_RANGE
-	 * - Switches to running when player is within CLOSE_RANGE
-	 * - Attacks when within ATTACK_RANGE with cooldown
-	 * - Taking damage interrupts current action and plays get_hit animation
-	 * - Screams when target is lost or escapes vision range
+	 * @brief Powolny nieumarły z reakcją na trafienie i zmienną prędkością.
+	 *
+	 * Walking Dead przyspiesza po zbliżeniu się do celu, a otrzymane obrażenia
+	 * przerywają jego bieżący stan krótką animacją trafienia.
 	 */
 	class WalkingDead : public EnemyInterface {
 	public:
+		/** @brief Tworzy nieumarłego w podanym punkcie mapy. */
 		WalkingDead(float x, float y, Core::Map* map);
 
+		/** @brief Aktualizuje maszynę stanów i ruch nieumarłego. */
 		void update(float dt) override;
+
+		/** @brief Zadaje obrażenia i uruchamia reakcję na trafienie. */
 		void takeDamage(int dmg) override;
 		
 	private:

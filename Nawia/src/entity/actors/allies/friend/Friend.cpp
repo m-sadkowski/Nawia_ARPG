@@ -1,7 +1,8 @@
 #include "Friend.h"
 
-#include "Ability.h"
-#include "Collider.h"
+#include <Ability.h>
+#include <AllyBrain.h>
+#include <Collider.h>
 
 namespace Nawia::Entity {
 

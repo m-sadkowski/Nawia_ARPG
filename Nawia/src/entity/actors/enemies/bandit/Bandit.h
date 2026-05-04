@@ -1,32 +1,24 @@
 #pragma once
 
-#include "EnemyInterface.h"
+#include <EnemyInterface.h>
 
-#include <Map.h>
+#include <memory>
 
 namespace Nawia::Entity {
 
 	/**
 	 * @class Bandit
-	 * @brief Ranged enemy that throws knives at the player.
-	 * 
-	 * Bandits are hostile humanoids that keep their distance and throw knives.
-	 * They occasionally move to new positions to avoid being cornered.
-	 * 
-	 * ## States
-	 * - Idle: Standing still, watching for player
-	 * - Chasing: Moving toward player to get in range
-	 * - Casting: Throwing knife animation
-	 * - Dying: Death animation
-	 * 
-	 * ## Behavior
-	 * - Activates when player enters VISION_RANGE
-	 * - Throws knives when player is in ATTACK_RANGE and ability is ready
-	 * - Keeps distance, prefers ranged combat
+	 * @brief Dystansowy wróg rzucający nożami.
+	 *
+	 * Bandyta utrzymuje preferowany dystans, cofa się gdy cel podejdzie zbyt
+	 * blisko i odpala rzut nożem dopiero w odpowiedniej klatce animacji.
 	 */
 	class Bandit : public EnemyInterface {
 	public:
+		/** @brief Aktualizuje stan AI i animacji bandyty. */
 		void update(float dt) override;
+
+		/** @brief Obsługuje obrażenia oraz przejście do animacji trafienia. */
 		void takeDamage(int dmg) override;
 
 	private:

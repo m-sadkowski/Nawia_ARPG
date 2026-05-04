@@ -1,39 +1,24 @@
 #pragma once
 
-#include "EnemyInterface.h"
+#include <EnemyInterface.h>
 
-#include <Map.h>
+#include <memory>
 
 namespace Nawia::Entity {
 
 	/**
 	 * @class Devil
-	 * @brief Demonic enemy with aggressive dash attack behavior.
-	 * 
-	 * Devils are demonic creatures that chase the player and perform
-	 * quick dash attacks. The dash locks onto the player's position
-	 * BEFORE charging, allowing skilled players to dodge.
-	 * 
-	 * ## States
-	 * - Idle: Standing still, watching for player in vision range
-	 * - Chasing: Walking toward player
-	 * - PreparingDash: Brief pause to lock target position (telegraph)
-	 * - Dashing: Fast charge to locked position
-	 * - Attacking: Melee attack when dash ends near player
-	 * - GettingHit: Stagger animation when damaged
-	 * - Dying: Death animation, then marked as dead
-	 * 
-	 * ## Behavior
-	 * - Starts idle, activates when player enters VISION_RANGE
-	 * - When in DASH_TRIGGER_RANGE, prepares dash (locks target position)
-	 * - Dashes to locked position at high speed
-	 * - If player still nearby after dash, attacks
-	 * - Dash has cooldown between uses
+	 * @brief Agresywny demon z atakiem doskoku.
+	 *
+	 * Devil blokuje pozycję celu przed doskokiem, dzięki czemu atak jest
+	 * czytelny i możliwy do uniknięcia przez gracza.
 	 */
 	class Devil : public EnemyInterface {
 	public:
+		/** @brief Tworzy demona w podanym punkcie mapy. */
 		Devil(float x, float y, Core::Map* map);
 
+		/** @brief Aktualizuje maszynę stanów demona. */
 		void update(float dt) override;
 
 	private:

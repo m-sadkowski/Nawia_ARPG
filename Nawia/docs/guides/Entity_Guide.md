@@ -7,14 +7,16 @@ Ten dokument opisuje aktualny sposob tworzenia encji w projekcie Nawia oraz miej
 Podstawowa hierarchia wyglada teraz tak:
 
 - `Entity` - baza dla wszystkich obiektow swiata
-- `EnemyInterface` - baza dla wszystkich wrogow
-- `AllyInterface` - baza dla wszystkich sojusznikow
+- `ActorInterface` - wspolna baza jednostek bojowych z mapa i targetem
+- `EnemyInterface` - specjalizacja dla wszystkich wrogow
+- `AllyInterface` - specjalizacja dla wszystkich sojusznikow
 - `Player` - sterowana przez gracza postac
 - `AbilityEffect` - efekt umiejetnosci istniejący jako encja w swiecie
 
 Najwazniejsze pliki:
 
 - `src/entity/Entity.h`
+- `src/entity/actors/ActorInterface.h`
 - `src/entity/actors/enemies/EnemyInterface.h`
 - `src/entity/actors/allies/AllyInterface.h`
 - `src/world/spawn/EntityFactory.cpp`
@@ -31,7 +33,7 @@ Kazda `Entity` ma juz gotowe:
 - umiejetnosci (`addAbility`, `getAbility`, `updateAbilities`)
 - obsluge dormant (`setDormant`, `isDormant`)
 
-W praktyce oznacza to, ze nowa encja bardzo rzadko zaczyna "od zera". Najczesciej dziedziczymy po `EnemyInterface` albo `AllyInterface`, a nie bezposrednio po `Entity`.
+W praktyce oznacza to, ze nowa encja bardzo rzadko zaczyna "od zera". Najczesciej dziedziczymy po `EnemyInterface` albo `AllyInterface`, a nie bezposrednio po `Entity`. Obie klasy korzystaja z `ActorInterface`, wiec mapa i targetowanie sa wspolne dla enemy oraz ally.
 
 ## 3. Kiedy dziedziczyc po czym
 
@@ -479,4 +481,5 @@ To jest wazne, bo tak dziala teraz m.in. `SwordSlashAbility` i rzuty pociskow.
 - `docs/guides/Enemy_Guide.md`
 - `docs/guides/Ability_Guide.md`
 - `docs/guides/Level_Guide.md`
+- `docs/guides/Coding_Standards.md`
 - `src/entity/README.md`

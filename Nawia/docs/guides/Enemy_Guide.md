@@ -11,19 +11,22 @@ Ten dokument opisuje aktualny przeplyw tworzenia jednostek combatowych:
 Jednostki bojowe w projekcie opieraja sie o:
 
 - `Entity` - wspolna baza
-- `EnemyInterface` - baza dla wrogow
-- `AllyInterface` - baza dla sojusznikow
+- `ActorInterface` - wspolna baza dla actorow majacych mape i target
+- `EnemyInterface` - specjalizacja wrogow
+- `AllyInterface` - specjalizacja sojusznikow
 
-Obie warstwy interface daja:
+`ActorInterface` daje:
 
 - `_map` do ruchu po levelu
 - `_target` do sledzenia celu
 - builder z `setMap(...)` i `setTarget(...)`
 
-`AllyInterface` ma dodatkowo:
+`EnemyInterface` ustawia typ encji na `EntityType::Enemy`. `AllyInterface` ustawia typ encji na `EntityType::Ally` i ma dodatkowo:
 
 - `setBrain(...)`
 - `getBrain()`
+
+Dzieki temu targetowanie oraz wskaznik mapy nie sa juz duplikowane osobno w enemy i ally.
 
 ## 2. Jak tworzyc nowego enemy
 
@@ -87,7 +90,7 @@ Przyklad aktualny:
 
 Od teraz targetowanie jest odswiezane centralnie w:
 
-- `src/Core/game/EntityManager.cpp`
+- `src/core/game/EntityManager.cpp`
 
 Metoda `refreshCombatTargets()` ustawia cele co tick:
 
@@ -177,7 +180,7 @@ W praktyce warto tez trzymac:
 
 ## 7. Map, walkability i ruch
 
-`EnemyInterface` i `AllyInterface` maja dostep do `_map`.
+`EnemyInterface` i `AllyInterface` dziedzicza dostep do `_map` z `ActorInterface`.
 
 To przydaje sie do:
 
@@ -326,6 +329,7 @@ Minimalny przyklad braina:
 ```cpp
 class SupportBrain : public AllyBrain {
 public:
+	/** @brief Aktualizuje decyzje sojusznika w danej klatce. */
 	void update(AllyInterface& ally, float dt) override;
 };
 ```

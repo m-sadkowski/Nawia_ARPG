@@ -1,15 +1,21 @@
 #pragma once
 
-#include "EnemyInterface.h"
+#include <EnemyInterface.h>
 
-#include <Map.h>
+#include <memory>
 
 namespace Nawia::Entity {
 
+	/**
+	 * @class Dummy
+	 * @brief Testowy przeciwnik patrolujący losowe punkty i rzucający fireball.
+	 */
 	class Dummy : public EnemyInterface {
 	public:
+		/** @brief Tworzy testowego przeciwnika z podanymi statystykami. */
 		Dummy(float x, float y, const std::shared_ptr<Texture2D>& tex, int max_hp, Core::Map* map);
 
+		/** @brief Aktualizuje patrol, castowanie i animacje. */
 		void update(float dt) override;
 
 	private:
