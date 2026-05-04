@@ -27,6 +27,9 @@ namespace Nawia::Core {
 		 * @param scale Optional scaling factor
 		 * @param offset Optional position offset for the model
 		 * @param rotation Optional rotation in degrees (Euler angles: X, Y, Z)
+		 *
+		 * The navmesh is rebuilt automatically from the loaded model geometry.
+		 * There is currently no separate navmesh asset file to maintain.
 		 */
 		void loadMap(const std::string& filename, float scale = 1.0f, Vector3 offset = {0.0f, 0.0f, 0.0f}, Vector3 rotation = {0.0f, 0.0f, 0.0f});
 

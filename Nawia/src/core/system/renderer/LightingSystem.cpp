@@ -1,15 +1,41 @@
 #include "LightingSystem.h"
+
 #include <raymath.h>
+
 #include <json.hpp>
+
 #include <fstream>
 #include <filesystem>
+#include <array>
 
 namespace Nawia::Core::System::Renderer {
 
-	LightingSystem::LightingSystem() : _lightCount(0), _isInitialized(false) {}
+	namespace {
+
+		using json = nlohmann::json;
+
+		constexpr int k_max_lights = 4;
+		constexpr Color k_default_ambient_color = Color{ 25, 25, 25, 255 };
+
+		std::array<float, 3> toShaderVec3(const Vector3& vector) {
+			return { vector.x, vector.y, vector.z };
+		}
+
+		std::array<float, 4> toShaderVec4(const Color& color) {
+			return {
+				static_cast<float>(color.r) / 255.0f,
+				static_cast<float>(color.g) / 255.0f,
+				static_cast<float>(color.b) / 255.0f,
+				static_cast<float>(color.a) / 255.0f
+			};
+		}
+
+	}
+
+	LightingSystem::LightingSystem() = default;
 
 	LightingSystem::~LightingSystem() {
-		if (_isInitialized) {
+		if (_is_initialized) {
 			UnloadShader(_shader);
 		}
 	}
@@ -19,80 +45,55 @@ namespace Nawia::Core::System::Renderer {
 		
 		// Get some required shader locations
 		_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(_shader, "viewPos");
+		_view_position_location = _shader.locs[SHADER_LOC_VECTOR_VIEW];
 		
 		// Ambient light level (some basic lighting)
-		_ambientLoc = GetShaderLocation(_shader, "ambient");
-		setAmbientColor(Color{25, 25, 25, 255}); // Default ambient
+		_ambient_location = GetShaderLocation(_shader, "ambient");
+		setAmbientColor(k_default_ambient_color);
 
-		_isInitialized = true;
+		_is_initialized = true;
 	}
 
 	void LightingSystem::addLight(int type, Vector3 position, Vector3 target, Color color) {
-		if (_lightCount >= 4) return; // MAX_LIGHTS is 4
+		if (static_cast<int>(_lights.size()) >= k_max_lights)
+			return;
 
-		Light light;
+		Light light = {};
 		light.enabled = 1;
 		light.type = type;
 		light.position = position;
 		light.target = target;
 		light.color = color;
 
-		std::string lightName = "lights[" + std::to_string(_lightCount) + "]";
-
-		light.enabledLoc = GetShaderLocation(_shader, (lightName + ".enabled").c_str());
-		light.typeLoc = GetShaderLocation(_shader, (lightName + ".type").c_str());
-		light.positionLoc = GetShaderLocation(_shader, (lightName + ".position").c_str());
-		light.targetLoc = GetShaderLocation(_shader, (lightName + ".target").c_str());
-		light.colorLoc = GetShaderLocation(_shader, (lightName + ".color").c_str());
-
-		SetShaderValue(_shader, light.enabledLoc, &light.enabled, SHADER_UNIFORM_INT);
-		SetShaderValue(_shader, light.typeLoc, &light.type, SHADER_UNIFORM_INT);
-
-		// Send to shader with float arrays
-		float pos[3] = { light.position.x, light.position.y, light.position.z };
-		SetShaderValue(_shader, light.positionLoc, pos, SHADER_UNIFORM_VEC3);
-
-		float tar[3] = { light.target.x, light.target.y, light.target.z };
-		SetShaderValue(_shader, light.targetLoc, tar, SHADER_UNIFORM_VEC3);
-
-		float col[4] = { (float)light.color.r / 255.0f, (float)light.color.g / 255.0f, 
-						 (float)light.color.b / 255.0f, (float)light.color.a / 255.0f };
-		SetShaderValue(_shader, light.colorLoc, col, SHADER_UNIFORM_VEC4);
+		cacheLightUniformLocations(light, static_cast<int>(_lights.size()));
+		uploadLightToShader(light);
 
 		_lights.push_back(light);
-		_lightCount++;
 	}
 
 	void LightingSystem::setAmbientColor(Color color) {
-		_ambientColor = color;
-		float ambient[4] = { (float)color.r / 255.0f, (float)color.g / 255.0f, 
-							 (float)color.b / 255.0f, (float)color.a / 255.0f };
-		SetShaderValue(_shader, _ambientLoc, ambient, SHADER_UNIFORM_VEC4);
+		_ambient_color = color;
+		const auto ambient_color = toShaderVec4(color);
+		SetShaderValue(_shader, _ambient_location, ambient_color.data(), SHADER_UNIFORM_VEC4);
 	}
 
 	void LightingSystem::updateLightValues(int index) {
-		if (index < 0 || index >= _lights.size()) return;
-		Light& light = _lights[index];
-		SetShaderValue(_shader, light.enabledLoc, &light.enabled, SHADER_UNIFORM_INT);
-		SetShaderValue(_shader, light.typeLoc, &light.type, SHADER_UNIFORM_INT);
+		if (index < 0 || index >= static_cast<int>(_lights.size()))
+			return;
 
-		float pos[3] = { light.position.x, light.position.y, light.position.z };
-		SetShaderValue(_shader, light.positionLoc, pos, SHADER_UNIFORM_VEC3);
-
-		float tar[3] = { light.target.x, light.target.y, light.target.z };
-		SetShaderValue(_shader, light.targetLoc, tar, SHADER_UNIFORM_VEC3);
-
-		float col[4] = { (float)light.color.r / 255.0f, (float)light.color.g / 255.0f, 
-						 (float)light.color.b / 255.0f, (float)light.color.a / 255.0f };
-		SetShaderValue(_shader, light.colorLoc, col, SHADER_UNIFORM_VEC4);
+		uploadLightToShader(_lights[static_cast<size_t>(index)]);
 	}
 
 	void LightingSystem::saveLightingToJson(const std::string& filepath) const {
-		nlohmann::json data;
-		data["ambient"] = { _ambientColor.r, _ambientColor.g, _ambientColor.b, _ambientColor.a };
-		nlohmann::json lights = nlohmann::json::array();
+		const std::filesystem::path output_path(filepath);
+		if (!output_path.parent_path().empty())
+			std::filesystem::create_directories(output_path.parent_path());
+
+		json data;
+		data["ambient"] = { _ambient_color.r, _ambient_color.g, _ambient_color.b, _ambient_color.a };
+		json lights = json::array();
 		for (const auto& light : _lights) {
-			nlohmann::json l;
+			json l;
 			l["type"] = light.type;
 			l["enabled"] = light.enabled;
 			l["position"] = { light.position.x, light.position.y, light.position.z };
@@ -101,7 +102,8 @@ namespace Nawia::Core::System::Renderer {
 			lights.push_back(l);
 		}
 		data["lights"] = lights;
-		std::ofstream out(filepath);
+
+		std::ofstream out(output_path);
 		if (out.is_open()) {
 			out << data.dump(4);
 		}
@@ -110,42 +112,73 @@ namespace Nawia::Core::System::Renderer {
 	void LightingSystem::loadLightingFromJson(const std::string& filepath) {
 		if (!std::filesystem::exists(filepath)) return;
 		std::ifstream file(filepath);
-		if (!file.is_open()) return;
-		nlohmann::json data;
+		if (!file.is_open())
+			return;
+
+		json data;
 		try {
 			file >> data;
-		} catch(...) { return; }
+		}
+		catch (...) {
+			return;
+		}
 
 		if (data.contains("ambient")) {
-			auto a = data["ambient"];
+			const auto& a = data["ambient"];
 			setAmbientColor({ a[0], a[1], a[2], a[3] });
 		}
+
 		if (data.contains("lights")) {
 			_lights.clear();
-			_lightCount = 0;
 			for (const auto& l : data["lights"]) {
-				auto p = l["position"];
-				auto t = l["target"];
-				auto c = l["color"];
-				addLight(l["type"], {p[0], p[1], p[2]}, {t[0], t[1], t[2]}, {c[0], c[1], c[2], c[3]});
+				const auto& p = l["position"];
+				const auto& t = l["target"];
+				const auto& c = l["color"];
+				addLight(l["type"], { p[0], p[1], p[2] }, { t[0], t[1], t[2] }, { c[0], c[1], c[2], c[3] });
 			}
 		}
 	}
 
 	void LightingSystem::update(const Camera3D& camera) {
-		if (!_isInitialized) return;
+		if (!_is_initialized)
+			return;
 
 		// Update view position
-		float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
-		SetShaderValue(_shader, _shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
+		const auto camera_position = toShaderVec3(camera.position);
+		SetShaderValue(_shader, _view_position_location, camera_position.data(), SHADER_UNIFORM_VEC3);
 	}
 
 	void LightingSystem::applyToModel(Model& model) const {
-		if (!_isInitialized) return;
+		if (!_is_initialized)
+			return;
 
 		for (int i = 0; i < model.materialCount; i++) {
 			model.materials[i].shader = _shader;
 		}
+	}
+
+	void LightingSystem::cacheLightUniformLocations(Light& light, int light_index) {
+		const std::string light_name = "lights[" + std::to_string(light_index) + "]";
+
+		light.enabled_uniform_location = GetShaderLocation(_shader, (light_name + ".enabled").c_str());
+		light.type_uniform_location = GetShaderLocation(_shader, (light_name + ".type").c_str());
+		light.position_uniform_location = GetShaderLocation(_shader, (light_name + ".position").c_str());
+		light.target_uniform_location = GetShaderLocation(_shader, (light_name + ".target").c_str());
+		light.color_uniform_location = GetShaderLocation(_shader, (light_name + ".color").c_str());
+	}
+
+	void LightingSystem::uploadLightToShader(const Light& light) {
+		SetShaderValue(_shader, light.enabled_uniform_location, &light.enabled, SHADER_UNIFORM_INT);
+		SetShaderValue(_shader, light.type_uniform_location, &light.type, SHADER_UNIFORM_INT);
+
+		const auto light_position = toShaderVec3(light.position);
+		SetShaderValue(_shader, light.position_uniform_location, light_position.data(), SHADER_UNIFORM_VEC3);
+
+		const auto light_target = toShaderVec3(light.target);
+		SetShaderValue(_shader, light.target_uniform_location, light_target.data(), SHADER_UNIFORM_VEC3);
+
+		const auto light_color = toShaderVec4(light.color);
+		SetShaderValue(_shader, light.color_uniform_location, light_color.data(), SHADER_UNIFORM_VEC4);
 	}
 
 } // namespace Nawia::Core::System::Renderer
