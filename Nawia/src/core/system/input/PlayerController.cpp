@@ -118,7 +118,7 @@ namespace Nawia::Core {
 		if (auto effect = spell->cast(target_x, target_y))
 		{
 			Logger::debugLog("Ability " + std::to_string(index) + " used, target location: (" + std::to_string(target_x) + ", " + std::to_string(target_y) + ")");
-			_engine->spawnEntity(std::move(effect));
+			_engine->spawnEntity(effect);
 		}
 	}
 

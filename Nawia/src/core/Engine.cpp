@@ -13,6 +13,8 @@
 #include <PobojowiskoLevel.h>
 #include <LevelManager.h>
 
+#include <utility>
+
 namespace Nawia::Core {
 
 	Engine::Engine() : _is_running(false), _controller(nullptr), _game_state(GameState::Menu) 
@@ -108,9 +110,12 @@ namespace Nawia::Core {
 		return _entity_manager->getEntityAt(screen_x, screen_y, _camera.get());
 	}
 
-	void Engine::spawnEntity(const std::shared_ptr<Entity::Entity> &new_entity) const 
+	void Engine::spawnEntity(std::shared_ptr<Entity::Entity> new_entity) const
 	{
-		_entity_manager->addEntity(new_entity);
+		if (!new_entity)
+			return;
+
+		_entity_manager->addEntity(std::move(new_entity));
 	}
 
 	void Engine::run() 

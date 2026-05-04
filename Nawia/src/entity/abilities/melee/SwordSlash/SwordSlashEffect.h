@@ -3,8 +3,9 @@
 #include <AbilityEffect.h>
 #include <AbilityStats.h>
 
-#include <memory>
 #include <raylib.h>
+
+#include <memory>
 
 namespace Nawia::Entity {
 

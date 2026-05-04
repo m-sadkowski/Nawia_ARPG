@@ -672,7 +672,7 @@ namespace Nawia::UI
             
             if (!ability->isReady())
             {
-                const float cooldown_ratio = ability->getCooldownTimer() / ability->getStats().cooldown;
+				const float cooldown_ratio = ability->getCooldownRatio();
                 DrawRectangle(static_cast<int>(pos_x), static_cast<int>(start_y), static_cast<int>(icon_size), static_cast<int>(icon_size * cooldown_ratio), withAlpha(GRAY, 0.8f));
                 
                 const char* cd_text = TextFormat("%.1f", ability->getCooldownTimer());

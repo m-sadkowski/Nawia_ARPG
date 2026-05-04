@@ -8,6 +8,8 @@
 
 #include <raymath.h>
 
+#include <cmath>
+
 namespace Nawia::Entity {
 
 	Bandit::Bandit() {
@@ -146,7 +148,10 @@ namespace Nawia::Entity {
 					for (const float angle_offset : { 0.785f, -0.785f, 1.57f, -1.57f }) 
 					{
 						const float angle = std::atan2(away_dir.y, away_dir.x) + angle_offset;
-						retreat_point = { my_pos.x + std::cos(angle) * retreat_dist, my_pos.y + std::sin(angle) * retreat_dist };
+						retreat_point = {
+							my_pos.x + static_cast<float>(std::cos(angle)) * retreat_dist,
+							my_pos.y + static_cast<float>(std::sin(angle)) * retreat_dist
+						};
 						if (_map->isWalkable(retreat_point.x, retreat_point.y)) break;
 					}
 				}
@@ -209,7 +214,7 @@ namespace Nawia::Entity {
 
 					if (auto effect = knife->cast(tx, ty))
 					{
-						addPendingSpawn(std::move(effect));
+						addPendingSpawn(effect);
 						_knife_cooldown_timer = KNIFE_COOLDOWN;
 						_knife_thrown_this_cast = true;  // Oznaczamy rzut wykonany w tym caście.
 					}

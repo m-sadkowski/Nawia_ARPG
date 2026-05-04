@@ -458,7 +458,7 @@ To jest glowny mechanizm przelaczania encji miedzy lokacjami.
 
 ## 17. Umiejetnosci i pending spawns
 
-Jesli encja castuje ability, zwykle nie dodaje efektu bezposrednio do `EntityManager`.
+Jesli encja uzywa umiejetnosci, zwykle nie dodaje efektu bezposrednio do `EntityManager`.
 Zamiast tego:
 
 - ability tworzy efekt

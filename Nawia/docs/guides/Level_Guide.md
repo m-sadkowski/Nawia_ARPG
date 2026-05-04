@@ -127,7 +127,7 @@ Z punktu widzenia kodu level potrzebuje tylko poprawnego wywolania `loadMap(...)
 1. Umiesc plik mapy w `assets/maps/`.
 2. Ustal docelowe `scale`, `offset` i `rotation` w kodzie levela.
 3. Uruchom poziom i sprawdz:
-   - czy raycast myszy trafia w teren
+   - czy promien kursora trafia w teren
    - czy gracz chodzi tam, gdzie powinien
    - czy pathfinding nie tnie przez sciany
 4. Jesli poziom ma swoje swiatlo, dodaj tez plik `assets/maps/<nazwa>_lighting.json`.

@@ -1,9 +1,10 @@
 #pragma once
 
-#include <Ability.h>
+#include <ProjectileAbility.h>
+
+#include <raylib.h>
 
 #include <memory>
-#include <raylib.h>
 #include <string>
 
 namespace Nawia::Entity {
@@ -12,7 +13,7 @@ namespace Nawia::Entity {
 	 * @class FireballAbility
 	 * @brief Dystansowa umiejętność tworząca pocisk ognistej kuli.
 	 */
-	class FireballAbility : public Ability {
+	class FireballAbility : public ProjectileAbility {
 	public:
 		/**
 		 * @brief Tworzy umiejętność z modelem pocisku, skalą i teksturami UI/trafienia.
@@ -22,15 +23,11 @@ namespace Nawia::Entity {
 						const std::shared_ptr<Texture2D>& hit_tex,
 						const std::shared_ptr<Texture2D>& icon_tex);
 
+	protected:
 		/**
-		 * @brief Wystrzeliwuje pocisk w stronę wskazanego punktu świata.
+     * @brief Fireball startuje z logicznej pozycji źródła użycia, jak w dotychczasowym zachowaniu.
 		 */
-		std::unique_ptr<Entity> cast(float target_x, float target_y) override;
-
-	private:
-		std::string _model_path;
-		float _model_scale = 1.0f;
-		std::shared_ptr<Texture2D> _hit_texture;
+		[[nodiscard]] Vector2 getSpawnPosition() const override;
 	};
 
 } // namespace Nawia::Entity

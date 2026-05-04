@@ -2,8 +2,9 @@
 
 #include <AbilityEffect.h>
 
-#include <memory>
 #include <raylib.h>
+
+#include <memory>
 
 namespace Nawia::Entity {
 
@@ -25,7 +26,9 @@ namespace Nawia::Entity {
 		void render(const Camera3D& camera) override;
 
 		/** @brief Efekt wizualny nie koliduje z innymi encjami. */
-		[[nodiscard]] bool checkCollision(const std::shared_ptr<Entity>& target) const override { return false; }
+		[[nodiscard]] bool checkCollision([[maybe_unused]] const std::shared_ptr<Entity>& target) const override {
+			return false;
+		}
 
 	private:
 		int _frame_width = 0;

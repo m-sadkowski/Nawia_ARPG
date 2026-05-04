@@ -2,8 +2,9 @@
 
 #include <Ability.h>
 
-#include <memory>
 #include <raylib.h>
+
+#include <memory>
 
 namespace Nawia::Entity {
 
@@ -24,16 +25,19 @@ namespace Nawia::Entity {
 		void update(float dt) override;
 
 		/**
-		 * @brief Rozpoczyna animację ataku i zapamiętuje cel cięcia.
+		 * @brief Rozpoczyna animację ataku i przygotowuje opóźnione cięcie.
 		 */
-		std::unique_ptr<Entity> cast(float target_x, float target_y) override;
+		AbilitySpawn cast(float target_x, float target_y) override;
 
 	private:
+		/** @brief Wylicza moment pojawienia się hitboxa na podstawie animacji. */
+		[[nodiscard]] float calculateSpawnDelay() const;
+
+    /** @brief Dodaje efekt cięcia do pending spawnów źródła użycia. */
+		void spawnSlashEffect();
+
 		std::shared_ptr<Texture2D> _slash_tex;
 		bool _is_active = false;
-		float _target_x = 0.0f;
-		float _target_y = 0.0f;
-
 		bool _has_spawned = false;
 		float _active_time = 0.0f;
 		float _spawn_delay = 0.0f;

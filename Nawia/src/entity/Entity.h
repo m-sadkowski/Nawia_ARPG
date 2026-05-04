@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Nawia::Entity {
@@ -253,7 +254,10 @@ namespace Nawia::Entity {
 		/**
 		 * @brief Dodaje encję, którą silnik ma dopiąć do świata po zakończeniu aktualizacji.
 		 */
-		void addPendingSpawn(const std::shared_ptr<Entity>& entity) { _pending_spawns.push_back(entity); }
+		void addPendingSpawn(std::shared_ptr<Entity> entity) {
+			if (entity)
+				_pending_spawns.push_back(std::move(entity));
+		}
 
 		/**
 		 * @brief Zwraca listę encji oczekujących na dodanie do świata.

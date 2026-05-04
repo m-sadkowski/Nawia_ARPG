@@ -83,7 +83,7 @@ namespace Nawia::Entity {
 
 				if (auto effect = fireball->cast(tx, ty))
 				{
-					addPendingSpawn(std::move(effect));
+					addPendingSpawn(effect);
 					_fireball_cooldown_timer = 5.0f;
 				}
 			}

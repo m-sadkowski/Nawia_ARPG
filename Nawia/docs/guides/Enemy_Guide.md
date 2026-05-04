@@ -139,7 +139,7 @@ void MyUnit::update(const float dt)
 	if (dist <= 1.5f)
 	{
 		rotateTowardsCenter(target_pos.x, target_pos.y);
-		// cast / melee hit / state change
+		// użycie umiejętności, cios wręcz albo zmiana stanu
 	}
 	else
 	{

@@ -1,8 +1,10 @@
 #pragma once
 
-#include <Entity.h>
 #include <AbilityStats.h>
+#include <Entity.h>
 
+#include <memory>
+#include <string>
 #include <vector>
 
 namespace Nawia::Entity {
@@ -13,8 +15,6 @@ namespace Nawia::Entity {
 	 *
 	 * Efekt dodaje do `Entity` czas życia, obsługę kolizji bojowych oraz listę
 	 * trafionych celów, żeby ten sam efekt nie zadawał obrażeń wielokrotnie.
-	 *
-	 * @see Ability Umiejętność tworząca efekt.
 	 */
 	class AbilityEffect : public Entity {
 	public:
@@ -26,20 +26,25 @@ namespace Nawia::Entity {
 		 * @param tex Tekstura efektu.
 		 * @param stats Statystyki obrażeń, czasu życia i hitboxa.
 		 */
-		AbilityEffect(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats);
+		AbilityEffect(const std::string& name,
+					  float x,
+					  float y,
+					  const std::shared_ptr<Texture2D>& tex,
+					  const AbilityStats& stats);
 
-		/**
-		 * @brief Aktualizuje ruch i czas życia efektu.
-		 */
+		/** @brief Aktualizuje ruch i czas życia efektu. */
 		void update(float dt) override;
-		
+
 		/**
 		 * @brief Sprawdza, czy efekt przekroczył swój czas życia.
 		 * @return `true`, jeśli efekt powinien zostać usunięty.
 		 */
 		[[nodiscard]] bool isExpired() const;
-		
-		[[nodiscard]] int getDamage() const;
+
+		/** @brief Zwraca bazowe obrażenia efektu. */
+		[[nodiscard]] int getDamage() const { return _stats.damage; }
+
+		/** @brief Zwraca statystyki konfiguracyjne efektu. */
 		[[nodiscard]] const AbilityStats& getStats() const { return _stats; }
 
 		/**
@@ -48,25 +53,28 @@ namespace Nawia::Entity {
 		 * @return `true`, jeśli wykryto kolizję.
 		 */
 		[[nodiscard]] virtual bool checkCollision(const std::shared_ptr<Entity>& target) const;
-		
+
 		/**
 		 * @brief Wywoływane po wykryciu trafienia.
 		 * @param target Encja trafiona przez efekt.
 		 */
 		virtual void onCollision(const std::shared_ptr<Entity>& target);
-		
-		/**
-		 * @brief Sprawdza, czy cel został już trafiony przez ten efekt.
-		 */
+
+		/** @brief Sprawdza, czy cel został już trafiony przez ten efekt. */
 		[[nodiscard]] bool hasHit(const std::shared_ptr<Entity>& target) const;
-		
-		/// Zapisuje cel jako już trafiony.
+
+		/** @brief Zapisuje cel jako już trafiony. */
 		void addHit(const std::shared_ptr<Entity>& target);
 
 	protected:
+		/**
+		 * @brief Wspólny filtr celów przed dokładnym testem kolizji.
+		 */
+		[[nodiscard]] bool canHitTarget(const std::shared_ptr<Entity>& target) const;
+
 		AbilityStats _stats;
-		float _timer;  ///< Licznik czasu życia efektu.
-		std::vector<std::weak_ptr<Entity>> _hit_entities;  ///< Encje już trafione przez efekt.
+		float _timer = 0.0f; ///< Licznik czasu życia efektu.
+		std::vector<std::weak_ptr<Entity>> _hit_entities; ///< Encje już trafione przez efekt.
 	};
 
 } // namespace Nawia::Entity
