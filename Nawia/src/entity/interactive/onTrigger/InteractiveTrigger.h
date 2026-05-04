@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Entity.h"
 #include "Interactable.h"
 #include "Collider.h"
@@ -9,6 +9,7 @@ namespace Nawia::Entity {
         using Entity::Entity;
 
         void onInteract(Entity& instigator) override {}
+        float getInteractionRange() override { return 1.0f; }
     };
 }
 

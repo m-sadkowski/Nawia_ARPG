@@ -22,7 +22,8 @@ namespace Nawia::Entity {
 		Projectile, // AbilityEffect
 		Trigger, // Checkpoint
 		Chest, // Interactable
-		Item
+		Item,
+		Wall
 	};
 
 	/**
@@ -136,6 +137,12 @@ namespace Nawia::Entity {
 
 		void setMovementSpeed(float speed) { _movement_speed = speed; }
 		[[nodiscard]] float getMovementSpeed() const { return _movement_speed; }
+
+		// Combat multipliers (used by boss phase system)
+		void setSpeedMultiplier(float m) { _speed_multiplier = m; }
+		[[nodiscard]] float getSpeedMultiplier() const { return _speed_multiplier; }
+		void setDamageMultiplier(float m) { _damage_multiplier = m; }
+		[[nodiscard]] float getDamageMultiplier() const { return _damage_multiplier; }
 
 		// ═══════════════════════════════════════════════════════════════════════
 		// HEALTH & DAMAGE
@@ -318,6 +325,10 @@ namespace Nawia::Entity {
 		bool _is_moving = false;
 		float _movement_speed = 2.0f;
 		float _target_x = 0.0f, _target_y = 0.0f;
+
+		// Combat multipliers
+		float _speed_multiplier = 1.0f;
+		float _damage_multiplier = 1.0f;
 
 		// Target tracking
 		std::weak_ptr<Entity> _target;

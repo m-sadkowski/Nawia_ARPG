@@ -161,7 +161,7 @@ namespace Nawia::Entity {
 		
 		if (_is_moving) 
 		{
-			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
+			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED * _speed_multiplier);
 			playAnimation("walk");
 		}
 	}
@@ -200,9 +200,9 @@ namespace Nawia::Entity {
 				{
 					// Try to knock down the player, otherwise just deal damage
 					if (target->getType() == EntityType::Player)
-						dynamic_cast<Player*>(target.get())->knockDown(DASH_DAMAGE);
+						dynamic_cast<Player*>(target.get())->knockDown(static_cast<int>(DASH_DAMAGE * _damage_multiplier));
 					else
-						target->takeDamage(DASH_DAMAGE);
+						target->takeDamage(static_cast<int>(DASH_DAMAGE * _damage_multiplier));
 					_dash_hit_target = true;
 				}
 			}
@@ -221,7 +221,7 @@ namespace Nawia::Entity {
 		}
 
 		const Vector2 dir = Vector2Normalize(Vector2Subtract(_dash_target_pos, my_pos));
-		const float move_amount = DASH_SPEED * dt;
+		const float move_amount = DASH_SPEED * _speed_multiplier * dt;
 
 		const float next_x = _pos.x + dir.x * move_amount;
 		const float next_y = _pos.y + dir.y * move_amount;
@@ -270,7 +270,7 @@ namespace Nawia::Entity {
 			{
 				if (getDistanceToTarget() <= ATTACK_RANGE * 1.5f)
 				{
-					target->takeDamage(ATTACK_DAMAGE);
+					target->takeDamage(static_cast<int>(ATTACK_DAMAGE * _damage_multiplier));
 				}
 			}
 			

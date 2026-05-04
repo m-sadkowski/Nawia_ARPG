@@ -6,11 +6,11 @@
     "entities": [
         {
             "location": "Inferno",
-            "type": "devil",
-            "name": "Devil",
-            "x": 0.0, "y": 12.1,
-            "hp": 120,
-            "trigger_radius": 25.0
+            "type": "boss_trigger",
+            "boss_id": "devil_lord",
+            "x": 0.0, "y": 2.0,
+            "width": 10.0, "height": 4.0,
+            "trigger_radius": 0
         },
         {
             "location": "Demo Arena",

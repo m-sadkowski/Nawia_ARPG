@@ -1,0 +1,62 @@
+{
+    "bosses": [
+        {
+            "id": "devil_lord",
+            "name": "Devil Lord",
+            "enemy_type": "Devil",
+            "level_name": "DemoLevel",
+            "max_hp": 10,
+            "scale": 0.03,
+            "arena": {
+                "x": -18.0,
+                "y": -4.0,
+                "width": 36.0,
+                "height": 28.0,
+                "wall_thickness": 2.0,
+                "wall_color": [180, 40, 40, 120]
+            },
+            "spawn_pos": {
+                "x": 0.0,
+                "y": 10.0
+            },
+            "phases": [
+                {
+                    "hp_threshold": 1.0,
+                    "name": "Faza 1",
+                    "speed_multiplier": 1.0,
+                    "damage_multiplier": 1.0,
+                    "notification": "Devil Lord atakuje!"
+                },
+                {
+                    "hp_threshold": 0.5,
+                    "name": "Faza 2 — Wscieklosc",
+                    "speed_multiplier": 1.4,
+                    "damage_multiplier": 1.3,
+                    "notification": "Devil Lord wpada w szal!",
+                    "minions": [
+                        {
+                            "enemy_type": "WalkingDead",
+                            "count": 2,
+                            "hp": 60,
+                            "offset_x": 4.0,
+                            "offset_y": 3.0
+                        }
+                    ]
+                },
+                {
+                    "hp_threshold": 0.2,
+                    "name": "Faza 3 — Ostatni oddech",
+                    "speed_multiplier": 1.8,
+                    "damage_multiplier": 1.6,
+                    "notification": "Devil Lord jest bliski smierci!"
+                }
+            ],
+            "rewards": {
+                "gold": 500,
+                "exp": 1000,
+                "items": [1, 2]
+            },
+            "on_player_death": "end_fight"
+        }
+    ]
+}

@@ -9,13 +9,13 @@ namespace Nawia::Game {
 
     struct DialogueOption {
         std::string text;
-        int next_node_id; // -1 = end of dialogue
+        int next_node_id = -1; // -1 = end of dialogue
 
         std::function<void()> action = nullptr;
     };
 
     struct DialogueNode {
-        int id;
+        int id = -1;
         std::string text;
         std::string speaker_name;
         std::vector<DialogueOption> options;

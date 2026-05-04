@@ -58,6 +58,7 @@ namespace Nawia::World {
 		static std::shared_ptr<Entity::Entity> createStaticObject(const nlohmann::json& data, Core::Engine* engine);
 		static std::shared_ptr<Entity::Entity> createCheckpoint(const nlohmann::json& data);
 		static std::shared_ptr<Entity::Entity> createTeleport(const nlohmann::json& data, Core::Engine* engine);
+		static std::shared_ptr<Entity::Entity> createBossTrigger(const nlohmann::json& data);
 	};
 
 } // namespace Nawia::World

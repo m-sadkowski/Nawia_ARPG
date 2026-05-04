@@ -4,7 +4,6 @@
 #include "ChestUI.h"
 #include "DialogueUI.h"
 #include "QuestUI.h"
-
 #include <memory>
 #include <vector>
 #include <raylib.h>
@@ -24,6 +23,7 @@ namespace Nawia::Core {
 
 namespace Nawia::Game {
     class QuestManager;
+    class BossManager;
 }
 
 namespace Nawia::World {
@@ -58,10 +58,10 @@ namespace Nawia::UI {
         UIHandler();
         ~UIHandler();
 
-        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager, Game::QuestManager* quest_manager);
+        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager, Nawia::Game::QuestManager* quest_manager);
         
         void update(float dt);
-        void render(const Core::GameCamera& camera);
+        void render(const Core::GameCamera& camera, const Nawia::Game::BossManager* boss_manager = nullptr);
         void renderMainMenu() const;
         void renderSettingsMenu() const;
         
@@ -123,6 +123,7 @@ namespace Nawia::UI {
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
         void renderPlayerExperienceBar() const;
+        void renderBossHealthBar(const Nawia::Game::BossManager* boss_manager) const;
         void renderCombatEntityHealthBars(const Core::GameCamera& camera) const;
         
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;

@@ -13,6 +13,7 @@
 #include <Loottable.h>
 #include <DialogueManager.h>
 #include <QuestManager.h>
+#include <BossManager.h>
 
 #include <raylib.h>
 
@@ -60,6 +61,8 @@ namespace Nawia::Core {
 		const GameCamera& getCamera() const { return _camera; }
 		World::LevelManager& getLevelManager() const { return *_level_manager; }
 		Game::QuestManager& getQuestManager() { return _quest_manager; }
+		Nawia::Game::BossManager& getBossManager() { return _boss_manager; }
+		const Nawia::Game::BossManager& getBossManager() const { return _boss_manager; }
 	private:
 		void update(float delta_time);
 		void render() const;
@@ -85,6 +88,7 @@ namespace Nawia::Core {
 		Item::Loottable _loottable;
 		Game::DialogueManager _dialogue_manager;
 		Game::QuestManager _quest_manager;
+		Nawia::Game::BossManager _boss_manager;
 	};
 
 } // namespace Nawia::Core
