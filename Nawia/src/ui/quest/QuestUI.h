@@ -1,12 +1,18 @@
 #pragma once
 
 #include <raylib.h>
+
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace Nawia::Game {
     class QuestManager;
     class Quest;
+}
+
+namespace Nawia::Core {
+    class ResourceManager;
 }
 
 namespace Nawia::UI {
@@ -21,8 +27,11 @@ namespace Nawia::UI {
         QuestUI();
         ~QuestUI() = default;
 
-        static constexpr float MENU_WIDTH = 700.0f;
-        static constexpr float MENU_HEIGHT = 500.0f;
+        static constexpr float MENU_WIDTH = 724.0f;
+        static constexpr float MENU_HEIGHT = 543.0f;
+
+        /** @brief Laduje tlo ksiegi questow. */
+        void loadResources(Core::ResourceManager& resource_manager);
 
         /** @brief Rysuje panel questow z lista i szczegolami wybranego zadania. */
         void render(const Font& font, Game::QuestManager* quest_manager) const;
@@ -38,11 +47,12 @@ namespace Nawia::UI {
 
     private:
         QuestTab _current_tab = QuestTab::Active;
+        std::shared_ptr<Texture2D> _background;
         
         // Indeks aktualnie wybranego questa.
         mutable int _selected_quest_index = 0;
         
-        static constexpr float FONT_SIZE = 20.0f;
+        static constexpr float FONT_SIZE = 18.0f;
         static constexpr float PADDING = 10.0f;
         
         /** @brief Rysuje lewa kolumne z lista questow. */

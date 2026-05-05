@@ -19,8 +19,8 @@ namespace Nawia::UI {
         InventoryUI();
         ~InventoryUI() = default;
 
-        static constexpr float INV_WIDTH = 500.0f;
-        static constexpr float INV_HEIGHT = 400.0f;
+        static constexpr float INV_WIDTH = 724.0f;
+        static constexpr float INV_HEIGHT = 543.0f;
 
         /** @brief Laduje grafiki zastepcze pustych slotow ekwipunku. */
         void loadResources(Core::ResourceManager& resource_manager);
@@ -36,11 +36,11 @@ namespace Nawia::UI {
 
     private:
         static constexpr float FONT_SIZE = 20.0f;
-        static constexpr float SLOT_SIZE = 50.0f;
+        static constexpr float SLOT_SIZE = 52.0f;
         static constexpr float PADDING = 10.0f;
         static constexpr float SLOT_PADDING = 4.0f;
         static constexpr float SLOT_PLACEHOLDER_PADDING = 8.0f;
-        static constexpr float SLOT_SPACING = 10.0f;
+        static constexpr float SLOT_SPACING = 6.0f;
         static constexpr int BACKPACK_COLUMNS = 4;
         static constexpr int BACKPACK_ROWS = 5;
         static constexpr int BACKPACK_SLOT_COUNT = BACKPACK_COLUMNS * BACKPACK_ROWS;
@@ -55,6 +55,7 @@ namespace Nawia::UI {
         static constexpr float GOLD_PADDING_BOTTOM = 30.0f;
 
         std::map<Item::EquipmentSlot, std::shared_ptr<Texture2D>> _placeholders;
+        std::shared_ptr<Texture2D> _background;
 
         /** @brief Oblicza prostokat panelu ekwipunku. */
         [[nodiscard]] Rectangle getInventoryRect() const;
