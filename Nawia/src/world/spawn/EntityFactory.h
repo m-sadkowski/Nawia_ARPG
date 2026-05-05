@@ -6,7 +6,11 @@
 #include <string>
 
 namespace Nawia {
-	namespace Core { class Engine; class Map; }
+	namespace Core {
+		class Engine;
+		class Map;
+	}
+
 	namespace Entity { class Entity; }
 }
 
@@ -14,32 +18,22 @@ namespace Nawia::World {
 
 	/**
 	 * @class EntityFactory
-	 * @brief Creates game entities from JSON spawn definitions.
+	 * @brief Tworzy encje gry na podstawie definicji spawnu z JSON.
 	 *
-	 * This is the central factory that maps JSON `"type"` strings to concrete
-	 * C++ entity constructors. All entity creation for the spawn system goes
-	 * through this class.
-	 *
-	 * Supported types:
-	 *  - `"devil"`, `"bandit"`, `"walking_dead"` — enemies (EnemyInterface subclasses)
-	 *  - `"chest"` — lootable container
-	 *  - `"npc"` — NPC with dialogue/quest support (dispatched via `"npc_class"`)
-	 *  - `"static_object"` — decorative/blocking prop
-	 *  - `"checkpoint"` — respawn point trigger
-	 *
-	 * @note The factory needs an Engine pointer to access ResourceManager,
-	 *       ItemDatabase, Loottable, DialogueManager, and the current Map.
+	 * Fabryka mapuje tekstowe pole "type" na konkretne konstruktory C++.
+	 * Dzieki temu system spawnow nie musi znac szczegolow tworzenia wrogow,
+	 * NPC, skrzyn, teleportow ani dekoracji.
 	 */
 	class EntityFactory {
 	public:
 		/**
-		 * @brief Create an entity from a JSON definition.
+		 * @brief Tworzy encje z pelnej definicji JSON.
 		 *
-		 * @param type   Entity type string (e.g. "devil", "chest", "npc")
-		 * @param data   Full JSON object with entity parameters
-		 * @param engine Engine pointer for accessing subsystems
-		 * @param map    Current level's map (needed by enemies for pathfinding)
-		 * @return Shared pointer to the created entity, or nullptr on failure
+		 * @param type Typ encji, np. "devil", "chest" albo "npc".
+		 * @param data Dane konfiguracyjne encji.
+		 * @param engine Silnik potrzebny do dostepu do managerow i zasobow.
+		 * @param map Aktualna mapa uzywana m.in. przez wrogow do pathfindingu.
+		 * @return Wskaznik na utworzona encje albo nullptr przy bledzie.
 		 */
 		static std::shared_ptr<Entity::Entity> create(
 			const std::string& type,

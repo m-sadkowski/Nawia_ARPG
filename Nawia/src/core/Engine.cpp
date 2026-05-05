@@ -12,6 +12,8 @@
 #include <StarozytneLochyLevel.h>
 #include <PobojowiskoLevel.h>
 #include <LevelManager.h>
+#include <Level.h>
+#include <Map.h>
 
 #include <utility>
 
@@ -116,6 +118,14 @@ namespace Nawia::Core {
 			return;
 
 		_entity_manager->addEntity(std::move(new_entity));
+	}
+
+	Map* Engine::getCurrentMap() const
+	{
+		if (_level_manager && _level_manager->getCurrentLevel()) {
+			return _level_manager->getCurrentLevel()->getMap();
+		}
+		return nullptr;
 	}
 
 	void Engine::run() 

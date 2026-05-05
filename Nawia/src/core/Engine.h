@@ -15,11 +15,10 @@
 #include <UIHandler.h>
 
 #include <raylib.h>
-
 #include <memory>
 
 namespace Nawia::Core {
-
+	class Map;
 	class PlayerController;
 
 	/**
@@ -47,12 +46,7 @@ namespace Nawia::Core {
 		void spawnEntity(std::shared_ptr<Entity::Entity> new_entity) const;
 
 		UI::UIHandler& getUIHandler() const { return *_ui_handler; }
-		Map* getCurrentMap() const {
-			if (_level_manager && _level_manager->getCurrentLevel()) {
-				return _level_manager->getCurrentLevel()->getMap();
-			}
-			return nullptr;
-		}
+		Map* getCurrentMap() const;
 		Item::ItemDatabase& getItemDatabase() { return _item_database; }
 		Game::DialogueManager& getDialogueManager() { return _dialogue_manager; }
 		ResourceManager& getResourceManager() { return _resource_manager; }

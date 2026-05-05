@@ -1,5 +1,7 @@
 #pragma once
+
 #include <raylib.h>
+
 #include <vector>
 
 class dtNavMesh;
@@ -7,20 +9,33 @@ class dtNavMeshQuery;
 
 namespace Nawia::World {
 
+	/**
+	 * @class NavMesh
+	 * @brief Buduje siatke nawigacji z modelu mapy i wyznacza sciezki.
+	 */
 	class NavMesh {
 	public:
 		NavMesh();
 		~NavMesh();
 
-		/** @brief Buduje siatkę nawigacji z modelu w przestrzeni świata. */
+		/**
+		 * @brief Buduje siatke nawigacji z modelu w przestrzeni swiata.
+		 */
 		bool buildFromModel(const Model& model, float scale = 1.0f, Vector3 offset = {0.0f, 0.0f, 0.0f});
 
-		// Finds a path between two 3D world points. Returns 2D XZ path.
+		/**
+		 * @brief Zwraca sciezke po osi XZ miedzy dwoma punktami 3D.
+		 */
 		std::vector<Vector2> findPath(Vector3 start, Vector3 end) const;
 
-		// Gets the closest valid walkable position on the navmesh (useful for snapping entities)
+		/**
+		 * @brief Zwraca najblizsza poprawna pozycje na siatce nawigacji.
+		 */
 		Vector3 getClosestWalkablePosition(Vector3 pos) const;
 
+		/**
+		 * @brief Sprawdza, czy siatka jest gotowa do zapytan.
+		 */
 		bool isReady() const { return _navMesh != nullptr && _navQuery != nullptr; }
 
 	private:

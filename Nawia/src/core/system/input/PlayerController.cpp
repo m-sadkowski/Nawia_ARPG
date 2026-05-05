@@ -4,6 +4,7 @@
 #include <Ability.h>
 #include <Cat.h>
 #include <Engine.h>
+#include <Map.h>
 #include <EnemyInterface.h>
 #include <InteractiveClickable.h>
 #include <InteractiveTrigger.h>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <raylib.h>
 #include <json.hpp>
+#include <raylib.h>
 
 #include <memory>
 #include <string>
@@ -12,55 +12,30 @@ namespace Nawia::World {
 
 	/**
 	 * @struct SpawnPoint
-	 * @brief Describes a single entity spawn definition loaded from JSON.
+	 * @brief Opis pojedynczego spawnu wczytanego z JSON.
 	 *
-	 * Each SpawnPoint belongs to a specific location within a level and
-	 * defines what entity to spawn, where, and under what conditions.
-	 *
-	 * ## Activation Modes
-	 * - **Immediate** (`trigger_radius == 0`): Entity becomes active as soon
-	 *   as the player enters the location.
-	 * - **Proximity** (`trigger_radius > 0`): Entity wakes up only when
-	 *   the player comes within `trigger_radius` units of `spawn_center`.
-	 *
-	 * All entities are pre-created at level load time (dormant + invisible)
-	 * to avoid runtime lag from model loading. Proximity only toggles
-	 * the dormant flag.
+	 * Spawn nalezy do konkretnej lokacji poziomu i przechowuje dane potrzebne
+	 * do stworzenia encji, ustawienia jej pozycji oraz aktywowania jej dopiero
+	 * wtedy, gdy gracz znajdzie sie wystarczajaco blisko.
 	 */
 	struct SpawnPoint {
-		// ═══════════════════════════════════════════════════════════════
-		// IDENTITY
-		// ═══════════════════════════════════════════════════════════════
+		std::string location;       ///< Nazwa lokacji, do ktorej nalezy spawn.
+		std::string entity_type;    ///< Klucz fabryki, np. "devil", "chest" albo "npc".
+		nlohmann::json entity_data; ///< Pelny JSON przekazywany do EntityFactory.
 
-		std::string location;       ///< Location name this spawn belongs to (e.g. "Las")
-		std::string entity_type;    ///< Factory key (e.g. "devil", "chest", "npc")
-		nlohmann::json entity_data; ///< Full JSON blob passed to EntityFactory::create()
+		std::shared_ptr<Entity::Entity> entity; ///< Encja tworzona przy ladowaniu poziomu.
 
-		// ═══════════════════════════════════════════════════════════════
-		// PRE-CREATED ENTITY
-		// ═══════════════════════════════════════════════════════════════
+		Vector2 spawn_center = {0, 0}; ///< Srodek spawnu i punkt testu zasiegu.
+		float trigger_radius = 0.0f;   ///< 0 aktywuje od razu, wartosc dodatnia wymaga podejscia.
+		float spawn_radius = 0.0f;     ///< Promien losowego przesuniecia od srodka spawnu.
 
-		std::shared_ptr<Entity::Entity> entity; ///< Pre-created entity (starts dormant)
-
-		// ═══════════════════════════════════════════════════════════════
-		// POSITIONING & TRIGGER
-		// ═══════════════════════════════════════════════════════════════
-
-		Vector2 spawn_center = {0, 0}; ///< Center point for proximity check
-		float trigger_radius = 0.0f;   ///< 0 = activate immediately; >0 = distance-based
-		float spawn_radius = 0.0f;     ///< Random offset radius from spawn_center
-
-		// ═══════════════════════════════════════════════════════════════
-		// STATE TRACKING
-		// ═══════════════════════════════════════════════════════════════
-
-		bool activated = false;        ///< Has this entity been woken up?
-		bool respawnable = false;      ///< Can it respawn after entity dies?
-		float respawn_cooldown = 0.0f; ///< Seconds before respawn (if respawnable)
-		float respawn_timer = 0.0f;    ///< Current countdown timer
+		bool activated = false;        ///< Czy encja zostala juz obudzona.
+		bool respawnable = false;      ///< Czy encja moze odrodzic sie po smierci.
+		float respawn_cooldown = 0.0f; ///< Czas odrodzenia w sekundach.
+		float respawn_timer = 0.0f;    ///< Aktualny licznik odrodzenia.
 
 		/**
-		 * @brief Reset state (called when re-entering a level).
+		 * @brief Zeruje stan runtime spawnu przed ponownym wczytaniem poziomu.
 		 */
 		void reset() {
 			activated = false;

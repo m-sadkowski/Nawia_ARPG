@@ -1,13 +1,12 @@
 #include "DevLevel.h"
 
-#include <Map.h>
 #include <Engine.h>
 #include <Logger.h>
+#include <Map.h>
 #include <MathUtils.h>
 
-#include <array>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 #include <json.hpp>
 
 using json = nlohmann::json;
@@ -174,15 +173,15 @@ namespace Nawia::World {
 			return;
 
 		const auto& primary_light = lights[k_light_index];
-		const std::string light_info = "Primary light: (" +
+		const std::string light_info = "Glowne swiatlo: (" +
 			std::to_string(primary_light.position.x) + ", " +
 			std::to_string(primary_light.position.y) + ", " +
 			std::to_string(primary_light.position.z) + ")";
 
 		DrawText(light_info.c_str(), k_overlay_margin, 50, k_overlay_font_size, RAYWHITE);
-		DrawText("Arrows move X/Z, PgUp/PgDown move Y", k_overlay_margin, 80, k_overlay_font_size, RAYWHITE);
-		DrawText("Press S to save lighting", k_overlay_margin, 110, k_overlay_font_size, GREEN);
-		DrawText("Right click to save a prop position", k_overlay_margin, 140, k_overlay_font_size, RAYWHITE);
+		DrawText("Strzalki przesuwaja X/Z, PgUp/PgDown przesuwa Y", k_overlay_margin, 80, k_overlay_font_size, RAYWHITE);
+		DrawText("S zapisuje oswietlenie", k_overlay_margin, 110, k_overlay_font_size, GREEN);
+		DrawText("Prawy klik zapisuje pozycje propa", k_overlay_margin, 140, k_overlay_font_size, RAYWHITE);
 	}
 
 	void DevLevel::renderPropPlacementPrompt() const {
@@ -240,7 +239,7 @@ namespace Nawia::World {
 					file >> objects_data;
 				} 
 				catch(...) {
-					// empty / corrupted
+					// Pusty albo uszkodzony plik zaczynamy od nowej tablicy.
 				}
 			}
 		}

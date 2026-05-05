@@ -1,6 +1,7 @@
 #include "EntityManager.h"
 #include "Logger.h"
 #include "Engine.h"
+#include <Map.h>
 
 #include <AbilityEffect.h>
 #include <EnemyInterface.h>
