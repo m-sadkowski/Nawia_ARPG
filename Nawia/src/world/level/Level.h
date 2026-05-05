@@ -120,7 +120,7 @@ namespace Nawia::World {
 		 * @brief Returns the relative path to this level's JSON spawn file.
 		 *
 		 * Each level must provide a path to its spawn definitions file.
-		 * Example: "../assets/data/spawns/demo_level.json"
+		 * Example: "assets/data/spawns/demo_level.json"
 		 */
 		[[nodiscard]] virtual std::string getSpawnFilePath() const = 0;
 

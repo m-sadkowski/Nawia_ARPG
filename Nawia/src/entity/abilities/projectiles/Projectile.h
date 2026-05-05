@@ -12,23 +12,12 @@ namespace Nawia::Entity {
 
 	/**
 	 * @class Projectile
-	 * @brief Efekt umiejętności poruszający się jako pocisk 3D.
+	 * @brief Efekt umiejetnosci poruszajacy sie jako pocisk 3D.
 	 */
 	class Projectile : public AbilityEffect {
 	public:
 		/**
 		 * @brief Tworzy pocisk oparty o model 3D.
-		 * @param name Nazwa pocisku.
-		 * @param x Startowa pozycja X.
-		 * @param y Startowa pozycja Y, mapowana na Z świata.
-		 * @param target_x Pozycja X celu.
-		 * @param target_y Pozycja Y celu, mapowana na Z świata.
-		 * @param model_path Ścieżka do modelu `.glb`.
-		 * @param model_scale Skala modelu pocisku.
-		 * @param stats Statystyki prędkości, obrażeń i hitboxa.
-		 * @param caster Encja, która wystrzeliła pocisk.
-		 * @param hit_tex Opcjonalna tekstura efektu trafienia.
-		 * @param facing_offset Offset wizualnego kierunku modelu.
 		 */
 		Projectile(const std::string& name,
 				   float x,
@@ -39,29 +28,35 @@ namespace Nawia::Entity {
 				   float model_scale,
 				   const AbilityStats& stats,
 				   Entity* caster,
+				   float target_height,
 				   const std::shared_ptr<Texture2D>& hit_tex = nullptr,
 				   float facing_offset = 0.0f);
 
-		/** @brief Aktualizuje pozycję pocisku i czas życia. */
+		/** @brief Aktualizuje pozycje pocisku i czas zycia. */
 		void update(float dt) override;
 
-		/** @brief Sprawdza, czy pocisk trafia wskazaną encję. */
+		/** @brief Sprawdza, czy pocisk trafia wskazana encje. */
 		[[nodiscard]] bool checkCollision(const std::shared_ptr<Entity>& target) const override;
 
-		/** @brief Nakłada obrażenia, tworzy efekt trafienia i kończy życie pocisku. */
+		/** @brief Naklada obrazenia, tworzy efekt trafienia i konczy zycie pocisku. */
 		void onCollision(const std::shared_ptr<Entity>& target) override;
 
-		/** @brief Zwraca pozycję 3D z lotem nad ziemią. */
-		[[nodiscard]] Vector3 getWorldPos3D() const override { return {_pos.x, _fly_height, _pos.y}; }
+		/** @brief Zwraca pozycje 3D na aktualnej wysokosci lotu. */
+		[[nodiscard]] Vector3 getWorldPos3D() const override { return {_pos.x, _flight_height, _pos.y}; }
 
 	private:
-		/** @brief Ustawia kierunek lotu i rotację modelu. */
+		/** @brief Ustawia kierunek lotu i rotacje modelu. */
 		void configureMovement(float target_x, float target_y, float facing_offset);
 
 		float _speed = 0.0f;
 		float _vel_x = 0.0f;
 		float _vel_y = 0.0f;
-		float _fly_height = 1.0f; ///< Wysokość lotu nad ziemią, mniej więcej poziom tułowia.
+		float _start_x = 0.0f;
+		float _start_y = 0.0f;
+		float _travel_distance = 0.0f;
+		float _start_height = 1.0f;
+		float _target_height = 1.0f;
+		float _flight_height = 1.0f;
 		std::shared_ptr<Texture2D> _hit_texture;
 		Entity* _caster = nullptr;
 	};

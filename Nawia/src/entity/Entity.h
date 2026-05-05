@@ -279,6 +279,11 @@ namespace Nawia::Entity {
 		virtual void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
 
 		/**
+		 * @brief Zwraca aktualny cel encji albo `nullptr`.
+		 */
+		[[nodiscard]] std::shared_ptr<Entity> getTarget() const { return _target.lock(); }
+
+		/**
 		 * @brief Zwraca odległość do celu albo bardzo dużą wartość, gdy celu nie ma.
 		 */
 		[[nodiscard]] float getDistanceToTarget() const;
@@ -338,9 +343,14 @@ namespace Nawia::Entity {
 		 */
 		[[nodiscard]] Model& getModel() { return _model; }
 
+		/**
+		 * @brief Sprawdza, czy encja ma poprawnie załadowany model 3D.
+		 */
+		[[nodiscard]] bool hasModelLoaded() const { return _model_loaded; }
+
 	protected:
 		// Dane modelu i animacji.
-		Model _model;
+		Model _model = {};
 		std::vector<ModelAnimation> _animations;
 		std::map<std::string, int> _animation_map;
 

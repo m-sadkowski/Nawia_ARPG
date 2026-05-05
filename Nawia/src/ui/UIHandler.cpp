@@ -117,11 +117,11 @@ namespace Nawia::UI
         _quest_manager = quest_manager;
         _settings = settings;
 
-        _font = LoadFontEx("../assets/fonts/slavic_font.ttf", Core::GlobalScaling::scaledInt(300), nullptr, 0);
+        _font = LoadFontEx("assets/fonts/slavic_font.ttf", Core::GlobalScaling::scaledInt(300), nullptr, 0);
         GenTextureMipmaps(&_font.texture);
         SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
 
-        _main_menu_background = resource_manager.getTexture("../assets/textures/main_menu.png");
+        _main_menu_background = resource_manager.getTexture("assets/textures/main_menu.png");
         
         _inventory_ui = std::make_unique<InventoryUI>();
         _inventory_ui->loadResources(resource_manager);
@@ -630,11 +630,17 @@ namespace Nawia::UI
         {
             if (!entity->isDormant() && (entity->getFaction() == Entity::Faction::Enemy || entity->getFaction() == Entity::Faction::Ally) && entity->getHP() < entity->getMaxHP() && entity->getHP() > 0)
             {
-                const Vector2 screen_position = entity->getScreenPosition(camera.get());
+                const BoundingBox bounding_box = entity->getBoundingBox();
+                const Vector3 bar_world_position = {
+                    (bounding_box.min.x + bounding_box.max.x) * 0.5f,
+                    bounding_box.max.y + 0.35f,
+                    (bounding_box.min.z + bounding_box.max.z) * 0.5f
+                };
+                const Vector2 screen_position = GetWorldToScreen(bar_world_position, camera.get());
                 const float bar_width = 40.0f;
                 const float bar_height = 6.0f;
                 const float pos_x = screen_position.x - bar_width / 2.0f;
-                const float pos_y = screen_position.y - 60.0f * Core::GlobalScaling::getScale();
+                const float pos_y = screen_position.y - bar_height / 2.0f;
                 
                 const float hp_percentage = std::clamp(static_cast<float>(entity->getHP()) / entity->getMaxHP(), 0.0f, 1.0f);
                 drawBar(pos_x, pos_y, bar_width, bar_height, hp_percentage, RED, DARKGRAY);

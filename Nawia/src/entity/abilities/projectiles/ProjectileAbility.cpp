@@ -7,6 +7,13 @@
 
 namespace Nawia::Entity {
 
+	namespace {
+		float getModelCenterHeight(const Entity& entity) {
+			const BoundingBox bounding_box = entity.getBoundingBox();
+			return (bounding_box.min.y + bounding_box.max.y) * 0.5f;
+		}
+	}
+
 	ProjectileAbility::ProjectileAbility(std::string ability_name,
 										 const std::string& stats_key,
 										 const AbilityTargetType target_type,
@@ -28,6 +35,17 @@ namespace Nawia::Entity {
 			return nullptr;
 
 		const Vector2 spawn_position = getSpawnPosition();
+		float target_height = _caster ? _caster->getAltitude() + 1.0f : 1.0f;
+		if (_caster) {
+			if (const auto target = _caster->getTarget()) {
+				const Vector2 target_center = target->getCenter();
+				const float dx = target_center.x - target_x;
+				const float dy = target_center.y - target_y;
+				if (dx * dx + dy * dy < 1.0f)
+					target_height = getModelCenterHeight(*target);
+			}
+		}
+
 		return std::make_shared<Projectile>(
 			_projectile_name,
 			spawn_position.x,
@@ -38,6 +56,7 @@ namespace Nawia::Entity {
 			_model_scale,
 			_stats,
 			_caster,
+			target_height,
 			_hit_texture,
 			_facing_offset);
 	}

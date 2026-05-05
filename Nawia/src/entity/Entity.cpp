@@ -13,7 +13,7 @@
 #include <limits>
 
 namespace {
-	constexpr const char* ABILITIES_PATH = "../assets/data/abilities.json";
+	constexpr const char* ABILITIES_PATH = "assets/data/abilities.json";
 
 	nlohmann::json loadAbilitiesData()
 	{

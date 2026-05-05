@@ -11,14 +11,14 @@ namespace Nawia::Entity {
 		setScale(0.015f);
 		setFaction(Faction::Enemy);
 
-		loadModel("../assets/models/walking_dead_idle.glb");
-		addAnimation("idle", "../assets/models/walking_dead_idle.glb");
-		addAnimation("walk", "../assets/models/walking_dead_walk.glb");
-		addAnimation("run", "../assets/models/walking_dead_run.glb");
-		addAnimation("attack", "../assets/models/walking_dead_attack.glb");
-		addAnimation("death", "../assets/models/walking_dead_death.glb");
-		addAnimation("scream", "../assets/models/walking_dead_scream.glb");
-		addAnimation("get_hit", "../assets/models/walking_dead_hit.glb");
+		loadModel("assets/models/walking_dead_idle.glb");
+		addAnimation("idle", "assets/models/walking_dead_idle.glb");
+		addAnimation("walk", "assets/models/walking_dead_walk.glb");
+		addAnimation("run", "assets/models/walking_dead_run.glb");
+		addAnimation("attack", "assets/models/walking_dead_attack.glb");
+		addAnimation("death", "assets/models/walking_dead_death.glb");
+		addAnimation("scream", "assets/models/walking_dead_scream.glb");
+		addAnimation("get_hit", "assets/models/walking_dead_hit.glb");
 	}
 
 	void WalkingDead::takeDamage(const int dmg)

@@ -25,11 +25,11 @@ namespace Nawia::Entity {
 
 		this->setScale(0.03f);
 		setFaction(Faction::Enemy);
-		loadModel("../assets/models/dummy_idle.glb");
+		loadModel("assets/models/dummy_idle.glb");
 		
-		addAnimation("walk", "../assets/models/dummy_walk.glb");
-		addAnimation("cast_fireball", "../assets/models/dummy_cast_fireball.glb");
-		addAnimation("death", "../assets/models/dummy_death.glb");
+		addAnimation("walk", "assets/models/dummy_walk.glb");
+		addAnimation("cast_fireball", "assets/models/dummy_cast_fireball.glb");
+		addAnimation("death", "assets/models/dummy_death.glb");
 		playAnimation("default");
 		
 		pickNewTarget();

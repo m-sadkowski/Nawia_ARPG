@@ -8,9 +8,23 @@
 #include <Logger.h>
 #include <UIHandler.h>
 
+#include <algorithm>
+#include <cmath>
 #include <string>
 
 namespace Nawia::Core {
+
+	namespace {
+		float getHorizontalDistanceToBoxSq(const Entity::Entity& entity, const Vector2 position)
+		{
+			const BoundingBox box = entity.getBoundingBox();
+			const float closest_x = std::clamp(position.x, box.min.x, box.max.x);
+			const float closest_y = std::clamp(position.y, box.min.z, box.max.z);
+			const float dx = position.x - closest_x;
+			const float dy = position.y - closest_y;
+			return dx * dx + dy * dy;
+		}
+	}
 
 	PlayerController::PlayerController(Engine* engine, std::shared_ptr<Entity::Player> player) : _engine(engine), _player(std::move(player)) {}
 
@@ -64,16 +78,20 @@ namespace Nawia::Core {
 			return false;
 		}
 
-		const float dx = target_ent->getX() - _player->getX();
-		const float dy = target_ent->getY() - _player->getY();
-		const float dist_sq = dx * dx + dy * dy;
-
-		
-		float interact_range_sq = _target_interactable->getInteractionRange();
+		const float interact_range_sq = _target_interactable->getInteractionRange();
+		const float dist_sq = getHorizontalDistanceToBoxSq(*target_ent, _player->getCenter());
 
 		if (dist_sq > interact_range_sq)
 		{
-			_player->moveTo(target_ent->getX(), target_ent->getY());
+			if (!_current_path.empty() || _player->isMoving())
+			{
+				updatePathMovement();
+			}
+			else if (!moveTowardInteractable(target_ent, interact_range_sq))
+			{
+				_player->stop();
+				_target_interactable = nullptr;
+			}
 		}
 		else
 		{
@@ -144,6 +162,7 @@ namespace Nawia::Core {
 				{
 					_target_interactable = interactable;
 					_target_enemy = nullptr;
+					_current_path.clear();
 					_pending_action = {};
 				}
 				return;
@@ -293,7 +312,10 @@ namespace Nawia::Core {
 						if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
 			// Rzucamy tylko przy poprawnym celu.
 							if (!enemy->isDead() && enemy->getFaction() != Entity::Faction::None)
+							{
+								_player->setTarget(enemy);
 								useAbility(index, enemy->getCenter().x, enemy->getCenter().y);
+							}
 				break;
 
 				case Entity::AbilityTargetType::POINT:
@@ -331,11 +353,20 @@ namespace Nawia::Core {
 		if (const auto ability = _player->getAbility(_pending_action.ability_index))
 		{
 			if (ability->getTargetType() == Entity::AbilityTargetType::UNIT)
+			{
 				if (const auto target = _pending_action.target.lock())
+				{
 					if (const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(target))
+					{
+						_player->setTarget(enemy);
 						useAbility(_pending_action.ability_index, enemy->getCenter().x, enemy->getCenter().y);
+					}
+				}
+			}
 			else
+			{
 				useAbility(_pending_action.ability_index, _pending_action.x, _pending_action.y);
+			}
 		}
 	}
 
@@ -378,6 +409,39 @@ namespace Nawia::Core {
 		// Po przejęciu celu wroga porzucamy bieżącą ścieżkę.
 			_current_path.clear();
 		}
+	}
+
+	bool PlayerController::moveTowardInteractable(const std::shared_ptr<Entity::Entity>& target, const float interaction_range_sq)
+	{
+		if (!target)
+			return false;
+
+		const float interaction_range = std::sqrt(std::max(0.0f, interaction_range_sq));
+		const float approach_radius = std::max(0.5f, interaction_range * 0.75f);
+		const Vector2 target_center = target->getCenter();
+		const Vector3 target_world = target->getWorldPos3D();
+
+		if (buildPathToWorldPosition(target_world)) {
+			moveAlongCurrentPath();
+			return true;
+		}
+
+		constexpr int candidate_count = 12;
+		for (int i = 0; i < candidate_count; ++i) {
+			const float angle = (static_cast<float>(i) / candidate_count) * 2.0f * PI;
+			const Vector3 candidate = {
+				target_center.x + std::cos(angle) * approach_radius,
+				target_world.y,
+				target_center.y + std::sin(angle) * approach_radius
+			};
+
+			if (buildPathToWorldPosition(candidate)) {
+				moveAlongCurrentPath();
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	bool PlayerController::buildPathToWorldPosition(Vector3 desired_world_position)

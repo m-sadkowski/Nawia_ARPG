@@ -41,7 +41,7 @@ namespace Nawia::Core::System::Renderer {
 	}
 
 	void LightingSystem::initialize() {
-		_shader = LoadShader("../assets/shaders/lighting.vs", "../assets/shaders/lighting.fs");
+		_shader = LoadShader("assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
 		
 		// Get some required shader locations
 		_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(_shader, "viewPos");
@@ -149,7 +149,7 @@ namespace Nawia::Core::System::Renderer {
 	}
 
 	void LightingSystem::applyToModel(Model& model) const {
-		if (!_is_initialized)
+		if (!_is_initialized || model.materialCount <= 0 || model.materials == nullptr)
 			return;
 
 		for (int i = 0; i < model.materialCount; i++) {

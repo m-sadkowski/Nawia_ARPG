@@ -38,27 +38,27 @@ namespace Nawia::Core {
 		GlobalScaling::setManualScale(_settings.ui_scale);
 
 		// init item database
-		_item_database.loadDatabase("../assets/data/items.json", _resource_manager);
+		_item_database.loadDatabase("assets/data/items.json", _resource_manager);
 		Logger::debugLog("Zaladowano baze danych przedmiotow");
 
 		// init loottables
-		_loottable.loadLootTables("../assets/data/loottables.json", _item_database);
+		_loottable.loadLootTables("assets/data/loottables.json", _item_database);
 
 		// init quest system
-		_quest_manager.loadFromJson("../assets/data/quests.json");
+		_quest_manager.loadFromJson("assets/data/quests.json");
 
 		// initialize player
 		Vector2 player_spawn_pos = {0.0f, 0.0f};
 		_player = Entity::PlayerBuilder(this).setPosition(player_spawn_pos).build();
 
 		// initialize spells
-		const auto sword_slash_tex = _resource_manager.getTexture("../assets/textures/sword_slash.png");
-		const auto sword_slash_icon = _resource_manager.getTexture("../assets/textures/icons/sword_slash_icon.png");
+		const auto sword_slash_tex = _resource_manager.getTexture("assets/textures/sword_slash.png");
+		const auto sword_slash_icon = _resource_manager.getTexture("assets/textures/icons/sword_slash_icon.png");
 		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_tex, sword_slash_icon));
 		
-		const auto fireball_hit_tex = _resource_manager.getTexture("../assets/textures/fireball_hit.png");
-		const auto fireball_icon = _resource_manager.getTexture("../assets/textures/icons/fireball_icon.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>("../assets/models/fireball.glb", 0.5f, fireball_hit_tex, fireball_icon));
+		const auto fireball_hit_tex = _resource_manager.getTexture("assets/textures/fireball_hit.png");
+		const auto fireball_icon = _resource_manager.getTexture("assets/textures/icons/fireball_icon.png");
+		_player->addAbility(std::make_shared<Entity::FireballAbility>("assets/models/fireball.glb", 0.5f, fireball_hit_tex, fireball_icon));
 
 		// initialize player controller
 		_controller = std::make_unique<PlayerController>(this, _player);
@@ -371,7 +371,8 @@ namespace Nawia::Core {
 
 				_lighting_system.applyToModel(getCurrentMap()->getModel());
 				for (const auto& entity : _entity_manager->getEntities()) {
-					_lighting_system.applyToModel(entity->getModel());
+					if (entity->hasModelLoaded())
+						_lighting_system.applyToModel(entity->getModel());
 				}
 
 				getCurrentMap()->render();
@@ -393,7 +394,8 @@ namespace Nawia::Core {
 
 			_lighting_system.applyToModel(getCurrentMap()->getModel());
 			for (const auto& entity : _entity_manager->getEntities()) {
-				_lighting_system.applyToModel(entity->getModel());
+				if (entity->hasModelLoaded())
+					_lighting_system.applyToModel(entity->getModel());
 			}
 
 		    getCurrentMap()->render();

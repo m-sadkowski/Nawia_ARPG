@@ -84,6 +84,7 @@ namespace Nawia::Entity {
 			_slash_tex,
 			_stats,
 			_caster);
+		slash->setAltitude(_caster->getAltitude());
 
 		_caster->addPendingSpawn(slash);
 	}

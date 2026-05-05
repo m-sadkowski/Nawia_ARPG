@@ -56,6 +56,9 @@ namespace Nawia::Entity {
 		/** @brief Zwraca pozycję kolidera w świecie. */
 		[[nodiscard]] Vector2 getPosition() const;
 
+		/** @brief Zwraca wysokosc wlasciciela kolidera w swiecie 3D. */
+		[[nodiscard]] float getAltitude() const;
+
 	protected:
 		Entity* _owner = nullptr;
 		Vector2 _offset = {0.0f, 0.0f};

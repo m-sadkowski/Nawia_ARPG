@@ -13,6 +13,8 @@ namespace Nawia::Entity {
 	{
 		_type = EntityType::Chest;
 		setFaction(Faction::None);
+		loadModel("assets/models/fireball.glb");
+		setScale(0.35f);
 		setCollider(std::make_unique<RectangleCollider>(this, 0.9f, 0.4f, 0.0f, 0.0f));
 
 		_inventory = std::make_unique<Item::Backpack>(INVENTORY_SIZE);

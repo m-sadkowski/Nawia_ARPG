@@ -13,11 +13,11 @@ namespace Nawia::UI
 
     void InventoryUI::loadResources(Core::ResourceManager& resource_manager)
     {
-        _placeholders[Item::EquipmentSlot::Head] = resource_manager.getTexture("../assets/textures/ui/slot_head.png");
-        _placeholders[Item::EquipmentSlot::Chest] = resource_manager.getTexture("../assets/textures/ui/slot_chest.png");
-        _placeholders[Item::EquipmentSlot::Legs] = resource_manager.getTexture("../assets/textures/ui/slot_legs.png");
-        _placeholders[Item::EquipmentSlot::Feet] = resource_manager.getTexture("../assets/textures/ui/slot_feet.png");
-        _placeholders[Item::EquipmentSlot::Weapon] = resource_manager.getTexture("../assets/textures/ui/slot_weapon.png");
+        _placeholders[Item::EquipmentSlot::Head] = resource_manager.getTexture("assets/textures/ui/slot_head.png");
+        _placeholders[Item::EquipmentSlot::Chest] = resource_manager.getTexture("assets/textures/ui/slot_chest.png");
+        _placeholders[Item::EquipmentSlot::Legs] = resource_manager.getTexture("assets/textures/ui/slot_legs.png");
+        _placeholders[Item::EquipmentSlot::Feet] = resource_manager.getTexture("assets/textures/ui/slot_feet.png");
+        _placeholders[Item::EquipmentSlot::Weapon] = resource_manager.getTexture("assets/textures/ui/slot_weapon.png");
     }
 
     void InventoryUI::render(const Font& font, const Entity::Player& player) const

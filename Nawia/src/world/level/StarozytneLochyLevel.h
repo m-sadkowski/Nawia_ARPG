@@ -1,19 +1,14 @@
 #pragma once
 
-#include "Level.h"
+#include <Level.h>
 
 namespace Nawia::World {
 
 	/**
 	 * @class StarozytneLochyLevel
-	 * @brief Ancient dungeon level with an arena sub-location.
+	 * @brief Poziom starozytnych lochow z podlokacja areny.
 	 *
-	 * Locations:
-	 *  - Lochy (dungeon corridors — starting area)
-	 *  - Arena (combat arena — boss/wave area)
-	 *
-	 * Currently uses a placeholder map (demo_map/inferno.glb).
-	 * Spawn definitions in assets/data/spawns/starozytne_lochy.json.
+	 * Korzysta z `modular_terrain.glb`; spawny sa definiowane w `starozytne_lochy.json`.
 	 */
 	class StarozytneLochyLevel : public Level {
 	public:
@@ -21,7 +16,7 @@ namespace Nawia::World {
 
 		[[nodiscard]] std::string getName() const override { return "Starozytne Lochy"; }
 		[[nodiscard]] std::string getSpawnFilePath() const override {
-			return "../assets/data/level_entities/starozytne_lochy.json";
+			return "assets/data/level_entities/starozytne_lochy.json";
 		}
 		[[nodiscard]] std::vector<std::string> getLocations() const override {
 			return {"Lochy", "Arena"};

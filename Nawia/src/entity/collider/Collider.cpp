@@ -56,6 +56,10 @@ namespace Nawia::Entity {
         return _offset;
     }
 
+    float Collider::getAltitude() const {
+        return _owner ? _owner->getAltitude() : 0.0f;
+    }
+
     // =========================================================================
     // CircleCollider.
     // =========================================================================
@@ -91,8 +95,9 @@ namespace Nawia::Entity {
     bool CircleCollider::checkMeshCollision(const Entity* target) const {
         if (!target) return false;
         
-        Vector3 origin = { getPosition().x, 1.0f, getPosition().y };
-        Vector3 target_pos = { target->getX(), 1.0f, target->getY() };
+        const float base_height = getAltitude();
+        Vector3 origin = { getPosition().x, base_height + 1.0f, getPosition().y };
+        Vector3 target_pos = { target->getX(), target->getAltitude() + 1.0f, target->getY() };
         
         Vector3 dir = Vector3Normalize(Vector3Subtract(target_pos, origin));
         Ray ray = { origin, dir };
@@ -113,7 +118,7 @@ namespace Nawia::Entity {
         const Vector2 pos = getPosition();
         // Rysujemy okrąg lekko nad ziemią, żeby uniknąć z-fightingu.
         DrawCircle3D(
-            Vector3{ pos.x, 0.01f, pos.y },
+            Vector3{ pos.x, getAltitude() + 0.01f, pos.y },
             _radius,
             Vector3{ 1.0f, 0.0f, 0.0f }, 90.0f,
             RED
@@ -170,8 +175,9 @@ namespace Nawia::Entity {
     bool RectangleCollider::checkMeshCollision(const Entity* target) const {
         if (!target) return false;
         
-        Vector3 origin = { getPosition().x, 1.0f, getPosition().y };
-        Vector3 target_pos = { target->getX(), 1.0f, target->getY() };
+        const float base_height = getAltitude();
+        Vector3 origin = { getPosition().x, base_height + 1.0f, getPosition().y };
+        Vector3 target_pos = { target->getX(), target->getAltitude() + 1.0f, target->getY() };
         
         Vector3 dir = Vector3Normalize(Vector3Subtract(target_pos, origin));
         Ray ray = { origin, dir };
@@ -193,12 +199,12 @@ namespace Nawia::Entity {
         const Vector2 center = getPosition();
 		// Szkieletowy sześcian reprezentuje prostokąt kolidera na ziemi.
         DrawCubeWires(
-            Vector3{ center.x, 0.5f, center.y },
+            Vector3{ center.x, getAltitude() + 0.5f, center.y },
             _width, 1.0f, _height,
             BLUE
         );
 		// Znacznik środka kolidera.
-        DrawSphere(Vector3{ center.x, 0.01f, center.y }, 0.05f, RED);
+        DrawSphere(Vector3{ center.x, getAltitude() + 0.01f, center.y }, 0.05f, RED);
     }
 
     bool RectangleCollider::checkPoint(float screen_x, float screen_y, const Camera3D& camera) const {
@@ -247,8 +253,9 @@ namespace Nawia::Entity {
         const int num_rays_h = 10; // Wachlarz promieni w poziomie zwiększa dokładność stożka.
         const int num_rays_v = 5; // Kilka wysokości pozwala łapać cele o różnym wzroście.
         
-        const float min_h = 0.1f;
-        const float max_h = 2.0f;
+        const float base_height = getAltitude();
+        const float min_h = base_height + 0.1f;
+        const float max_h = base_height + 1.25f;
         
         for (int j = 0; j < num_rays_v; j++) {
             float fraction_v = (num_rays_v == 1) ? 0.5f : (float)j / (num_rays_v - 1);
@@ -282,17 +289,18 @@ namespace Nawia::Entity {
         const float rad_left = (rot_deg - angle_half) * DEG2RAD;
         const float rad_right = (rot_deg + angle_half) * DEG2RAD;
         
-        const Vector3 tip_3d = { tip_world.x, 0.05f, tip_world.y };
+        const float base_height = getAltitude();
+        const Vector3 tip_3d = { tip_world.x, base_height + 0.05f, tip_world.y };
         
         const Vector3 end_left_3d = {
             tip_world.x + cos(rad_left) * _radius,
-            0.05f,
+            base_height + 0.05f,
             tip_world.y + sin(rad_left) * _radius
         };
         
         const Vector3 end_right_3d = {
             tip_world.x + cos(rad_right) * _radius,
-            0.05f,
+            base_height + 0.05f,
             tip_world.y + sin(rad_right) * _radius
         };
         
@@ -303,8 +311,8 @@ namespace Nawia::Entity {
         // Promienie na wielu wysokościach pokazują wizualny wolumen stożka.
         const int num_rays_h = 10;
         const int num_rays_v = 5;
-        const float min_h = 0.1f;
-        const float max_h = 2.0f;
+        const float min_h = base_height + 0.1f;
+        const float max_h = base_height + 1.25f;
 
         for (int j = 0; j < num_rays_v; j++) {
             float fraction_v = (num_rays_v == 1) ? 0.5f : (float)j / (num_rays_v - 1);
@@ -329,7 +337,7 @@ namespace Nawia::Entity {
         const float rad_center = rot_deg * DEG2RAD;
         const Vector3 end_center_3d = {
             tip_world.x + cos(rad_center) * _radius,
-            0.05f,
+            base_height + 0.05f,
             tip_world.y + sin(rad_center) * _radius
         };
         DrawLine3D(tip_3d, end_center_3d, YELLOW);

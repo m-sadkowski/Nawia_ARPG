@@ -31,7 +31,7 @@ namespace Nawia::Item {
             std::string slot_str = entry["slot"];
             std::string tex_path = entry["texture"];
 
-            const auto icon = res_mgr.getTexture("../" + tex_path);
+            const auto icon = res_mgr.getTexture(tex_path);
             if (!icon)
                 continue;
 

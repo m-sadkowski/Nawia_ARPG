@@ -34,7 +34,7 @@ void Map::loadMap(const std::string& filename, const float scale, const Vector3 
 		_model_loaded = false;
 	}
 
-	const std::string filepath = "../assets/maps/" + filename;
+	const std::string filepath = "assets/maps/" + filename;
 	_scale = scale;
 	_offset = offset;
 	_rotation = rotation;
@@ -64,8 +64,8 @@ void Map::loadMap(const std::string& filename, const float scale, const Vector3 
 	Matrix matRotZ = MatrixRotateZ(_rotation.z * DEG2RAD);
 	_model.transform = MatrixMultiply(MatrixMultiply(matRotX, matRotY), matRotZ);
 
-	// Build navmesh
-	_navmesh.buildFromModel(_model, _scale);
+	// Budujemy navmesh w tej samej przestrzeni świata, w której renderowana jest mapa.
+	_navmesh.buildFromModel(_model, _scale, _offset);
 
 	// Cache bounding boxes for optimized raycasting
 	_mesh_bboxes.clear();

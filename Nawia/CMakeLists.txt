@@ -95,10 +95,10 @@ add_executable(Nawia ${SOURCES})
 # Link libraries
 target_link_libraries(Nawia PRIVATE raylib tinyxml2 Recast Detour)
 
-# Copy assets to build directory
+# Copy assets next to Nawia.exe.
 add_custom_command(TARGET Nawia POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_SOURCE_DIR}/assets"
-    "${CMAKE_BINARY_DIR}/assets"
+    "$<TARGET_FILE_DIR:Nawia>/assets"
     VERBATIM
 )

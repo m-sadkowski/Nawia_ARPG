@@ -43,11 +43,12 @@ namespace Nawia::Entity {
                 float w = rect_collider->getWidth();
                 float h = rect_collider->getHeight();
 
+                const float ground_height = getAltitude();
                 Color fill_color = Color{100, 0, 255, 100}; // Fiolet oznacza teleport.
-                DrawCube(Vector3{center.x, 0.1f, center.y}, w, 0.2f, h, fill_color);
-                DrawCubeWires(Vector3{center.x, 0.1f, center.y}, w, 0.2f, h, PURPLE);
+                DrawCube(Vector3{center.x, ground_height + 0.1f, center.y}, w, 0.2f, h, fill_color);
+                DrawCubeWires(Vector3{center.x, ground_height + 0.1f, center.y}, w, 0.2f, h, PURPLE);
                 
-                Vector2 screen_pos = GetWorldToScreen(Vector3{center.x, 0.5f, center.y}, camera);
+                Vector2 screen_pos = GetWorldToScreen(Vector3{center.x, ground_height + 0.5f, center.y}, camera);
                 DrawText(("TO " + _target_location).c_str(), (int)(screen_pos.x - 20), (int)(screen_pos.y - 10), 10, PURPLE);
             }
         }

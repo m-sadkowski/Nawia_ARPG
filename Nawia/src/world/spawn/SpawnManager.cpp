@@ -87,6 +87,14 @@ namespace Nawia::World {
 				continue;
 			}
 
+			if (map && map->getNavMesh().isReady()) {
+				const Vector3 snapped_position = map->getNavMesh().getClosestWalkablePosition(
+					{ entity->getX(), entity->getAltitude(), entity->getY() });
+				entity->setX(snapped_position.x);
+				entity->setY(snapped_position.z);
+				entity->setAltitude(snapped_position.y);
+			}
+
 			// Determine initial dormant state:
 			// - Entities in a different location → always dormant (activated on location change)
 			// - Entities in current location with trigger_radius > 0 → dormant (proximity)

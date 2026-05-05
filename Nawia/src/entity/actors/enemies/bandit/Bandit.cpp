@@ -16,12 +16,12 @@ namespace Nawia::Entity {
 		setScale(0.015f);
 		setFaction(Faction::Enemy);
 
-		loadModel("../assets/models/bandit_idle.glb");
-		addAnimation("idle", "../assets/models/bandit_idle.glb");
-		addAnimation("walk", "../assets/models/bandit_walk_backwards3.glb");
-		addAnimation("throw", "../assets/models/bandit_throw.glb");
-		addAnimation("death", "../assets/models/bandit_death.glb");
-		addAnimation("get_hit", "../assets/models/bandit_hit.glb");
+		loadModel("assets/models/bandit_idle.glb");
+		addAnimation("idle", "assets/models/bandit_idle.glb");
+		addAnimation("walk", "assets/models/bandit_walk_backwards3.glb");
+		addAnimation("throw", "assets/models/bandit_throw.glb");
+		addAnimation("death", "assets/models/bandit_death.glb");
+		addAnimation("get_hit", "assets/models/bandit_hit.glb");
 	}
 
 	void Bandit::takeDamage(const int dmg)

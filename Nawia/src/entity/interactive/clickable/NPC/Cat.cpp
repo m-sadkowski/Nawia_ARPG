@@ -10,7 +10,6 @@ namespace Nawia::Entity {
 
 	namespace {
 		constexpr int REQUIRED_FISH_ID = 6;
-		constexpr int CAT_SWORD_ID = 7;
 	}
 
 	Cat::Cat(const std::string& name, const float x, const float y, const std::shared_ptr<Texture2D>& texture)
@@ -19,7 +18,7 @@ namespace Nawia::Entity {
 		_type = EntityType::NPCStatic;
 		setFaction(Faction::None);
 		setScale(0.03f);
-		loadModel("../assets/models/cat_bounce.glb", false);
+		loadModel("assets/models/cat_bounce.glb", false);
 		playAnimation("default");
 
 		_inventory = std::make_unique<Item::Backpack>(INVENTORY_SIZE);
@@ -61,11 +60,8 @@ namespace Nawia::Entity {
 			}
 
 			if (fish_index != -1) {
-				// Usuwamy rybę i dodajemy nagrodę do ekwipunku kota.
+				// Usuwamy rybe, a nagrode nada system questow po dostarczeniu przedmiotu.
 				backpack.removeItem(fish_index);
-
-				if (const auto sword = player->getEngine()->getItemDatabase().createItem(CAT_SWORD_ID))
-					addItem(sword);
 
 				_quest_completed = true;
 
@@ -88,6 +84,23 @@ namespace Nawia::Entity {
 
 	void Cat::update(const float delta_time) {
 		Entity::update(delta_time);
+	}
+
+	bool Cat::isMouseOver(const float screen_x, const float screen_y, const Camera3D& camera) const {
+		if (Entity::isMouseOver(screen_x, screen_y, camera))
+			return true;
+
+		const Ray mouse_ray = GetScreenToWorldRay(Vector2{ screen_x, screen_y }, camera);
+		const Vector3 pos = getWorldPos3D();
+		constexpr float click_half_width = 0.7f;
+		constexpr float click_height = 1.45f;
+
+		const BoundingBox click_box = {
+			Vector3{ pos.x - click_half_width, pos.y, pos.z - click_half_width },
+			Vector3{ pos.x + click_half_width, pos.y + click_height, pos.z + click_half_width }
+		};
+
+		return GetRayCollisionBox(mouse_ray, click_box).hit;
 	}
 
 	void Cat::render(const Camera3D& camera) {

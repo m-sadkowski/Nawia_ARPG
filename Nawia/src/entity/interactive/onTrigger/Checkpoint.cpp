@@ -44,13 +44,14 @@ namespace Nawia::Entity {
                 float w = rect_collider->getWidth();
                 float h = rect_collider->getHeight();
 
+                const float ground_height = getAltitude();
                 Color fill_color = Color{0, 255, 0, 100};
-                DrawCube(Vector3{center.x, 0.1f, center.y}, w, 0.2f, h, fill_color);
-                DrawCubeWires(Vector3{center.x, 0.1f, center.y}, w, 0.2f, h, GREEN);
+                DrawCube(Vector3{center.x, ground_height + 0.1f, center.y}, w, 0.2f, h, fill_color);
+                DrawCubeWires(Vector3{center.x, ground_height + 0.1f, center.y}, w, 0.2f, h, GREEN);
                 
                 if (_activated) {
                     // Tekst "SAVED" pojawia się nad checkpointem w przestrzeni ekranu.
-                    Vector2 screen_pos = GetWorldToScreen(Vector3{center.x, 0.5f, center.y}, camera);
+                    Vector2 screen_pos = GetWorldToScreen(Vector3{center.x, ground_height + 0.5f, center.y}, camera);
                     DrawText("SAVED", (int)(screen_pos.x - 15), (int)(screen_pos.y - 10), 10, GREEN);
                 }
             }

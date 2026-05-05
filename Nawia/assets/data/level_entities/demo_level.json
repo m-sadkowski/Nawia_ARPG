@@ -50,7 +50,7 @@
             "location": "Demo Arena",
             "type": "chest",
             "name": "Stara Skrzynia",
-            "x": -13.44, "y": -21.44,
+            "x": -16.0, "y": -21.44,
             "loottable": "CHEST_NOOB",
             "trigger_radius": 0
         },
@@ -58,7 +58,7 @@
             "location": "Demo Arena",
             "type": "chest",
             "name": "Skrzynia Davida",
-            "x": 5.6, "y": 8.57,
+            "x": 2.8, "y": 8.57,
             "items": [6],
             "locked": true,
             "key_id": 5,

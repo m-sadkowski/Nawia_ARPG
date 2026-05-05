@@ -19,7 +19,7 @@
         "cast_range": 6.0,
         "projectile_speed": 0.0,
         "duration": 0.2,
-        "hitbox_radius": 6
+        "hitbox_radius": 4.5
       }
     },
     {

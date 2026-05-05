@@ -18,11 +18,11 @@ namespace Nawia::Entity {
 		_scale = 0.015f;
 		_type = EntityType::Player;
 		_faction = Faction::Player;
-		loadModel("../assets/models/player_idle.glb");
-		addAnimation("walk", "../assets/models/player_walk.glb");
-		addAnimation("attack", "../assets/models/player_auto_attack.glb");
-		addAnimation("knocked", "../assets/models/player_knocked.glb");
-		addAnimation("stand_up", "../assets/models/player_stand_up.glb");
+		loadModel("assets/models/player_idle.glb");
+		addAnimation("walk", "assets/models/player_walk.glb");
+		addAnimation("attack", "assets/models/player_auto_attack.glb");
+		addAnimation("knocked", "assets/models/player_knocked.glb");
+		addAnimation("stand_up", "assets/models/player_stand_up.glb");
 		playAnimation("default"); // Startowa animacja bezczynności.
 		setAnimationSpeed(1.0f);
 		_death_anim_name = "knocked";

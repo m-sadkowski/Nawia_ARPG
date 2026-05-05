@@ -76,7 +76,7 @@ public:
     };
     
     /// Default settings file path
-    static constexpr const char* DEFAULT_PATH = "../assets/settings.json";
+    static constexpr const char* DEFAULT_PATH = "assets/settings.json";
     
     /**
      * @brief Load settings from JSON file.
