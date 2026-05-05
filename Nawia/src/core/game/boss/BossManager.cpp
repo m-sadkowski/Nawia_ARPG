@@ -147,6 +147,7 @@ namespace Nawia::Game {
 
     bool BossManager::startBossFight(const std::string& boss_id, Core::Engine* engine) {
         if (isFightActive()) return false;
+        if (isBossDefeated(boss_id)) return false;
 
         auto it = _bosses.find(boss_id);
         if (it == _bosses.end()) {
@@ -205,6 +206,12 @@ namespace Nawia::Game {
             Core::Logger::debugLog("BossManager: Victory! Boss defeated: " + _active_boss_data->name);
             engine->getUIHandler().showNotification("ZWYCIESTWO! Boss pokonany.", 5.0f);
 
+            // Mark boss as defeated so fight can't be re-triggered
+            _defeated_bosses.insert(_active_boss_data->id);
+
+            // Notify quest system (use enemy_type as kill name for quest matching)
+            engine->getQuestManager().notifyKill(_active_boss_data->enemy_type);
+
             // Give rewards
             auto player = engine->getPlayer();
             if (player) {
@@ -219,6 +226,11 @@ namespace Nawia::Game {
         } else {
             Core::Logger::debugLog("BossManager: Defeat. Boss fight ended.");
             engine->getUIHandler().showNotification("Boss fight zakonczona.", 3.0f);
+
+            // Kill the boss entity so the arena is clean after respawn
+            if (_active_boss_entity && !_active_boss_entity->isDead()) {
+                _active_boss_entity->die();
+            }
         }
 
         removeMinions(engine);

@@ -13,7 +13,6 @@ namespace Nawia::Entity {
 
     private:
         std::string _boss_id;
-        bool _activated = false;
     };
 
 } // namespace Nawia::Entity
