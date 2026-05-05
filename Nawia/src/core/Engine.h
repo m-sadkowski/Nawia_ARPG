@@ -1,8 +1,8 @@
 #pragma once
 
-#include <DialogueManager.h>
 #include <Camera.h>
 #include <Constants.h>
+#include <DialogueManager.h>
 #include <EntityManager.h>
 #include <ItemDatabase.h>
 #include <LevelManager.h>
@@ -14,35 +14,49 @@
 #include <Settings.h>
 #include <UIHandler.h>
 
-#include <raylib.h>
 #include <memory>
+#include <raylib.h>
 
 namespace Nawia::Core {
+
 	class Map;
 	class PlayerController;
 
 	/**
 	 * @class Engine
-	 * @brief Main game engine managing game loop, state, and subsystems.
+	 * @brief Glowny wlasciciel petli gry i najwazniejszych systemow.
+	 *
+	 * Systemy z cyklem zycia zaleznym od silnika sa trzymane przez `unique_ptr`
+	 * albo jako pola wartosciowe. Gracz jest `shared_ptr`, bo wspoldziela go
+	 * Engine, EntityManager i kontroler.
 	 */
 	class Engine {
 	public:
-		/// Game states
+		/**
+		 * @enum GameState
+		 * @brief Ekran albo tryb, w ktorym aktualnie znajduje sie gra.
+		 */
 		enum class GameState {
-			Menu,           ///< Main menu
-			SettingsMenu,   ///< Settings menu overlay
-			LevelSelect,    ///< Level Selection overlay
-			Playing,        ///< Gameplay
-			GameOver        ///< Player death
+			Menu,
+			SettingsMenu,
+			LevelSelect,
+			Playing,
+			GameOver
 		};
 
 		Engine();
 		~Engine();
 
+		/** @brief Uruchamia petle gry. */
 		void run();
+
+		/** @brief Sprawdza, czy okno i petla gry nadal dzialaja. */
 		[[nodiscard]] bool isRunning() const;
 
+		/** @brief Zwraca encje pod kursorem albo nullptr. */
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y) const;
+
+		/** @brief Dodaje encje utworzona przez gameplay, np. efekt umiejetnosci. */
 		void spawnEntity(std::shared_ptr<Entity::Entity> new_entity) const;
 
 		UI::UIHandler& getUIHandler() const { return *_ui_handler; }
@@ -62,12 +76,18 @@ namespace Nawia::Core {
 		void update(float delta_time);
 		void render() const;
 		void handleInput();
-		
-		/// Apply new settings (resolution change, etc.)
+		void handleMenuInput();
+		void handleGameOverInput();
+		void handleSettingsInput();
+		void handleLevelSelectInput();
+		void handlePlayingInput();
+		void renderWorld() const;
+		void renderGameplay() const;
+		void collectPendingSpawns();
 		void applySettings(const Settings& new_settings);
 
-		bool _is_running;
-		GameState _game_state;
+		bool _is_running = false;
+		GameState _game_state = GameState::Menu;
 		bool _show_pause_menu = false;
 		GameState _previous_state = GameState::Menu;
 		Settings _settings;
