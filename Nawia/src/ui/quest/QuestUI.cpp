@@ -1,13 +1,62 @@
 #include "QuestUI.h"
-#include "UIDefines.h"
-#include "UIRenderUtils.h"
 
-#include <QuestManager.h>
-#include <Quest.h>
 #include <GlobalScaling.h>
+#include <Quest.h>
+#include <QuestManager.h>
+#include <UIDefines.h>
+#include <UIRenderUtils.h>
+
+#include <sstream>
+#include <string>
 
 namespace Nawia::UI
 {
+    namespace
+    {
+        std::vector<std::string> wrapText(const Font& font, const std::string& text, const float font_size, const float spacing, const float max_width)
+        {
+            std::vector<std::string> lines;
+            std::istringstream words(text);
+            std::string word;
+            std::string current_line;
+
+            while (words >> word)
+            {
+                const std::string candidate = current_line.empty() ? word : current_line + " " + word;
+                const Vector2 candidate_size = MeasureTextEx(font, candidate.c_str(), font_size, spacing);
+
+                if (candidate_size.x <= max_width || current_line.empty())
+                {
+                    current_line = candidate;
+                    continue;
+                }
+
+                lines.push_back(current_line);
+                current_line = word;
+            }
+
+            if (!current_line.empty())
+                lines.push_back(current_line);
+
+            if (lines.empty())
+                lines.push_back("");
+
+            return lines;
+        }
+
+        float drawWrappedText(const Font& font, const std::string& text, const Vector2 position, const float max_width, const float font_size, const float spacing, const Color color)
+        {
+            const std::vector<std::string> lines = wrapText(font, text, font_size, spacing, max_width);
+            const float line_height = font_size + Core::GlobalScaling::scaled(5.0f);
+
+            for (size_t i = 0; i < lines.size(); ++i)
+            {
+                DrawTextEx(font, lines[i].c_str(), { position.x, position.y + static_cast<float>(i) * line_height }, font_size, spacing, color);
+            }
+
+            return static_cast<float>(lines.size()) * line_height;
+        }
+    }
 
     QuestUI::QuestUI() {}
 
@@ -16,11 +65,10 @@ namespace Nawia::UI
         const float menu_width = Core::GlobalScaling::scaled(MENU_WIDTH);
         const float menu_height = Core::GlobalScaling::scaled(MENU_HEIGHT);
         const float screen_width = static_cast<float>(GetScreenWidth());
-        const float screen_height = static_cast<float>(GetScreenHeight());
         const float start_x = screen_width - menu_width - Core::GlobalScaling::scaled(50.0f);
         const float start_y = Core::GlobalScaling::scaled(50.0f);
 
-        const float padding = Core::GlobalScaling::scaled(25.0f); // Increased base padding
+        const float padding = Core::GlobalScaling::scaled(25.0f);
         const float tab_height = Core::GlobalScaling::scaled(40.0f);
         
         const float active_tab_x = start_x + padding;
@@ -44,11 +92,11 @@ namespace Nawia::UI
                 _selected_quest_index = 0;
             }
             
-            // Handle clicking on list items
+            // Obsluga klikniecia w liste questow.
             const float list_start_x = start_x + padding;
             const float list_start_y = start_y + padding * 1.5f + tab_height;
             const float list_width = menu_width / 2.0f - padding * 1.5f;
-            const float item_height = Core::GlobalScaling::scaled(40.0f); // Taller items
+            const float item_height = Core::GlobalScaling::scaled(40.0f);
             
             for (int i = 0; i < 10; ++i)
             {
@@ -70,17 +118,15 @@ namespace Nawia::UI
         const float menu_height = Core::GlobalScaling::scaled(MENU_HEIGHT);
         
         const float screen_width = static_cast<float>(GetScreenWidth());
-        const float screen_height = static_cast<float>(GetScreenHeight());
-        
         const float start_x = screen_width - menu_width - Core::GlobalScaling::scaled(50.0f);
         const float start_y = Core::GlobalScaling::scaled(50.0f);
 
-        // AAA Premium Background
+        // Tlo panelu questow.
         DrawRectangleRec({ start_x, start_y, menu_width, menu_height }, withAlpha(COLOR_PANEL_BG, 0.98f));
         DrawRectangleLinesEx({ start_x, start_y, menu_width, menu_height }, 2.0f, withAlpha(COLOR_ACCENT, 0.8f));
         DrawRectangleGradientV(static_cast<int>(start_x), static_cast<int>(start_y), static_cast<int>(menu_width), static_cast<int>(menu_height / 6.0f), withAlpha(WHITE, 0.05f), withAlpha(WHITE, 0.0f));
 
-        // Draw Tabs
+        // Zakladki.
         const float tab_height = Core::GlobalScaling::scaled(40.0f);
         const float active_tab_x = start_x + padding;
         const float completed_tab_x = active_tab_x + Core::GlobalScaling::scaled(180.0f);
@@ -104,13 +150,13 @@ namespace Nawia::UI
         draw_tab(tab_active_rect, "Aktywne", _current_tab == QuestTab::Active);
         draw_tab(tab_completed_rect, "Ukonczone", _current_tab == QuestTab::Completed);
 
-        // Fetch Quests
+        // Lista questow z aktualnej zakladki.
         std::vector<Game::Quest*> quests = (_current_tab == QuestTab::Active) ? quest_manager->getActiveQuests() : quest_manager->getCompletedQuests();
         
         if (_selected_quest_index >= static_cast<int>(quests.size()))
             _selected_quest_index = quests.empty() ? 0 : static_cast<int>(quests.size()) - 1;
         
-        // List Area
+        // Lewa kolumna z lista.
         const float list_start_x = start_x + padding;
         const float list_start_y = start_y + padding * 1.5f + tab_height;
         const float list_width = menu_width / 2.0f - padding * 1.5f;
@@ -118,12 +164,12 @@ namespace Nawia::UI
         
         drawQuestList(font, quests, list_start_x, list_start_y, list_width, list_height);
         
-        // Details Area
+        // Prawa kolumna ze szczegolami.
         const float separator_x = start_x + menu_width / 2.0f;
-        const float details_start_x = separator_x + padding; // Proper padding from separator
+        const float details_start_x = separator_x + padding;
         const float details_width = menu_width - (details_start_x - start_x) - padding;
         
-        // Draw separator
+        // Separator kolumn.
         DrawLineEx({ separator_x, list_start_y }, { separator_x, start_y + menu_height - padding }, 1.0f, withAlpha(COLOR_ACCENT, 0.2f));
         
         if (!quests.empty() && _selected_quest_index >= 0 && _selected_quest_index < static_cast<int>(quests.size()))
@@ -153,7 +199,7 @@ namespace Nawia::UI
                 DrawRectangleRec(item_rect, withAlpha(WHITE, 0.05f));
             
             const Color text_color = (i == _selected_quest_index) ? COLOR_GOLDEN_TEXT : (is_hovered ? COLOR_PARCHMENT : withAlpha(COLOR_PARCHMENT, 0.6f));
-            // Add small offset for text within the item rectangle
+            // Maly margines wewnatrz wiersza listy.
             DrawTextEx(font, quests[i]->name.c_str(), { start_x + 10.0f, current_y + (item_height - font_size) / 2.0f }, font_size, 1.0f, text_color);
         }
     }
@@ -163,19 +209,17 @@ namespace Nawia::UI
         const float font_size = Core::GlobalScaling::scaled(FONT_SIZE);
         const float font_size_large = Core::GlobalScaling::scaled(FONT_SIZE * 1.3f);
         const float padding = Core::GlobalScaling::scaled(15.0f);
+        const float text_spacing = Core::GlobalScaling::scaled(1.0f);
         
         float current_y = start_y;
         
-        // Title
-        DrawTextEx(font, quest->name.c_str(), { start_x, current_y }, font_size_large, 1.0f, COLOR_ACCENT);
-        current_y += font_size_large + padding;
+        current_y += drawWrappedText(font, quest->name, { start_x, current_y }, width, font_size_large, text_spacing, COLOR_ACCENT);
+        current_y += padding;
         
-        // Description
-        DrawTextEx(font, quest->description.c_str(), { start_x, current_y }, font_size, 1.0f, withAlpha(COLOR_PARCHMENT, 0.8f));
-        current_y += Core::GlobalScaling::scaled(80.0f); 
+        current_y += drawWrappedText(font, quest->description, { start_x, current_y }, width, font_size, text_spacing, withAlpha(COLOR_PARCHMENT, 0.8f));
+        current_y += padding;
         
-        // Objectives
-        DrawTextEx(font, "Cele:", { start_x, current_y }, font_size, 1.0f, COLOR_ACCENT); // Made Cele: smaller
+        DrawTextEx(font, "Cele:", { start_x, current_y }, font_size, text_spacing, COLOR_ACCENT);
         current_y += font_size + padding;
         
         for (const auto& objective : quest->objectives)
@@ -185,14 +229,13 @@ namespace Nawia::UI
                 objective_text += " (" + std::to_string(objective.current_count) + "/" + std::to_string(objective.required_count) + ")";
             
             const Color text_color = objective.isCompleted() ? COLOR_SLAVIC_BLUE : withAlpha(COLOR_PARCHMENT, 0.7f);
-            DrawTextEx(font, objective_text.c_str(), { start_x + 10.0f, current_y }, font_size, 1.0f, text_color);
-            current_y += font_size + padding / 2.0f;
+            current_y += drawWrappedText(font, objective_text, { start_x + 10.0f, current_y }, width - Core::GlobalScaling::scaled(10.0f), font_size, text_spacing, text_color);
+            current_y += padding / 2.0f;
         }
         
-        // Progress string
         current_y += padding;
         const std::string progress_string = "Postep: " + quest->getProgressString();
-        DrawTextEx(font, progress_string.c_str(), { start_x, current_y }, font_size, 1.0f, withAlpha(COLOR_PARCHMENT, 0.4f));
+        drawWrappedText(font, progress_string, { start_x, current_y }, width, font_size, text_spacing, withAlpha(COLOR_PARCHMENT, 0.4f));
     }
 
 } // namespace Nawia::UI

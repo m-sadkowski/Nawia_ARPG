@@ -1,6 +1,6 @@
 #include "AllyBrain.h"
 
-#include "AllyInterface.h"
+#include <AllyInterface.h>
 
 namespace Nawia::Entity {
 

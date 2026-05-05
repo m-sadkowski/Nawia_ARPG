@@ -6,12 +6,16 @@
 
 namespace Nawia::World {
 
+	namespace {
+		constexpr const char* MAP_FILE = "forest.glb";
+		constexpr float MAP_SCALE = 2.0f;
+	}
+
 	void MrocznyLasLevel::onEnter(Core::Engine* engine) {
 		Core::Logger::debugLog("Ladowanie poziomu Mroczny Las...");
 
-		// Placeholder map
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
-		_map->loadMap("demo_map/inferno.glb", 1.f, {0.0f, -20.0f, 0.0f}, {0, 180, 0});
+		_map->loadMap(MAP_FILE, MAP_SCALE);
 
 		engine->getEntityManager().clearNonPlayerEntities();
 

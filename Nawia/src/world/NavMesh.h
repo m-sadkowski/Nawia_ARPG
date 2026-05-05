@@ -12,9 +12,8 @@ namespace Nawia::World {
 		NavMesh();
 		~NavMesh();
 
-		// Builds the navigation mesh from a loaded Raylib model.
-		// Assumes the model is placed at origin. Scale is applied to vertices.
-		bool buildFromModel(const Model& model, float scale = 1.0f);
+		/** @brief Buduje siatkę nawigacji z modelu w przestrzeni świata. */
+		bool buildFromModel(const Model& model, float scale = 1.0f, Vector3 offset = {0.0f, 0.0f, 0.0f});
 
 		// Finds a path between two 3D world points. Returns 2D XZ path.
 		std::vector<Vector2> findPath(Vector3 start, Vector3 end) const;

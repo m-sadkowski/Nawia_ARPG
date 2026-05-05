@@ -1,17 +1,54 @@
 #include "Entity.h"
-#include "Ability.h"
-#include "Collider.h"
+#include <Ability.h>
+#include <Collider.h>
 
 #include <Logger.h>
 #include <MathUtils.h>
 
 #include <json.hpp>
-#include <fstream>
 #include <raymath.h>
+
+#include <cmath>
+#include <fstream>
+#include <limits>
+
+namespace {
+	constexpr const char* ABILITIES_PATH = "assets/data/abilities.json";
+
+	nlohmann::json loadAbilitiesData()
+	{
+		std::ifstream file(ABILITIES_PATH);
+		if (!file.is_open())
+		{
+			Nawia::Core::Logger::errorLog(std::string("Entity - nie można otworzyć pliku: ") + ABILITIES_PATH);
+			return {};
+		}
+
+		nlohmann::json data;
+		try
+		{
+			file >> data;
+		}
+		catch (const nlohmann::json::parse_error&)
+		{
+			Nawia::Core::Logger::errorLog(std::string("Entity - nie można sparsować JSON: ") + ABILITIES_PATH);
+			return {};
+		}
+
+		return data;
+	}
+
+	template <typename T>
+	void assignStatIfPresent(const nlohmann::json& json_stats, const char* key, T& destination)
+	{
+		if (const auto stat_it = json_stats.find(key); stat_it != json_stats.end())
+			destination = stat_it->get<T>();
+	}
+}
 
 namespace Nawia::Entity {
 
-	bool Entity::DebugColliders = true; // enable debug hitbox drawing
+bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxów.
 	
 	Entity::Entity() 
 		: _pos{0.0f, 0.0f}, _velocity{0.0f, 0.0f}, _scale(1.0f), 
@@ -39,17 +76,17 @@ namespace Nawia::Entity {
 		_model = LoadModel(path.c_str());
 		if (_model.meshCount == 0)
 		{
-			Core::Logger::errorLog("Failed to load model: " + path);
+			Core::Logger::errorLog("Nie udało się załadować modelu: " + path);
 			return;
 		}
 
-		// correction for Z-up models
+		// Korekta dla modeli zapisanych w układzie Z-up.
 		if (rotate_model)
 			_model.transform = MatrixRotateX(-PI / 2.0f);
 
 		_model_loaded = true;
 
-		// load animations from the initial file
+		// Plik modelu traktujemy też jako domyślne źródło animacji.
 		addAnimation("default", path);
 	}
 
@@ -76,9 +113,10 @@ namespace Nawia::Entity {
 
 	void Entity::playAnimation(const std::string& name, const bool loop, const bool lock_movement, const int start_frame, const bool force)
 	{
-		if (_animation_map.find(name) != _animation_map.end())
+		const auto animation_it = _animation_map.find(name);
+		if (animation_it != _animation_map.end())
 		{
-			const int index = _animation_map[name];
+			const int index = animation_it->second;
 			if (force || index != _current_anim_index)
 			{
 				_current_anim_index = index;
@@ -91,13 +129,15 @@ namespace Nawia::Entity {
 
 	int Entity::getAnimationFrameCount(const std::string& name) const
 	{
-		if (_animation_map.find(name) != _animation_map.end()) {
-			const int index = _animation_map.at(name);
-			if (index >= 0 && index < _animations.size()) {
-				return _animations[index].frameCount;
-			}
-		}
-		return 0;
+		const auto animation_it = _animation_map.find(name);
+		if (animation_it == _animation_map.end())
+			return 0;
+
+		const int index = animation_it->second;
+		if (index < 0 || static_cast<size_t>(index) >= _animations.size())
+			return 0;
+
+		return _animations[index].frameCount;
 	}
 
 	void Entity::update(const float delta_time)
@@ -109,7 +149,7 @@ namespace Nawia::Entity {
 			updateAnimation(delta_time);
 			if (!isAnimationLocked())
 				_hp = 0;
-			return; // Do not update position or other logic while dying
+			return; // Podczas śmierci nie aktualizujemy ruchu ani logiki encji.
 		}
 
 		_pos.x += _velocity.x * delta_time;
@@ -151,15 +191,18 @@ namespace Nawia::Entity {
 			DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, WHITE);
 
 			if (_hovered)
-				// Draw the model again with a dark tint overlay for hover effect
+			{
+				// Drugi przebieg renderu daje subtelne przyciemnienie przy hoverze.
 				DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, Fade(BLACK, 0.2f));
+			}
 		}
 
-		if (DebugColliders) {
+		if (DebugColliders)
+		{
 			if (_collider)
 				_collider->render(camera);
 
-			// Draw 3D bounding box (green = clickable area)
+			// Zielone pudełko ograniczające pokazuje obszar kliknięcia i szybki test wstępny.
 			if (_model_loaded)
 			{
 				const BoundingBox bbox = getBoundingBox();
@@ -172,14 +215,14 @@ namespace Nawia::Entity {
 	{
 		if (_is_dying) return;
 
-		Core::Logger::debugLog("Entity " + getName() + " taking damage: " + std::to_string(dmg) + ". Current HP: " + std::to_string(_hp));
+		Core::Logger::debugLog("Entity " + getName() + " otrzymuje obrażenia: " + std::to_string(dmg) + ". Obecne HP: " + std::to_string(_hp));
 		if (_hp - dmg <= 0) 
 		{
-			_hp = 1; // keep alive for death animation
+			_hp = 1; // Utrzymujemy encję przy życiu do końca animacji śmierci.
 			_is_dying = true;
 			playAnimation(_death_anim_name, false, true, 0, true);
 			setFaction(Faction::None);
-			Core::Logger::debugLog("Entity " + getName() + " started dying sequence.");
+			Core::Logger::debugLog("Entity " + getName() + " rozpoczęła sekwencję śmierci.");
 		}
 		else
 		{
@@ -190,7 +233,7 @@ namespace Nawia::Entity {
 	void Entity::die()
 	{
 		_hp = 0;
-		Core::Logger::debugLog("Entity " + getName() + " killed!");
+		Core::Logger::debugLog("Entity " + getName() + " została zabita.");
 	}
 
 	void Entity::setMaxHp(const int max_hp)
@@ -207,7 +250,7 @@ namespace Nawia::Entity {
 			return checkRayHitsMesh(mouse_ray);
 		}
 
-		// Fallback for entities without a 3D model
+		// Awaryjne sprawdzanie encji bez modelu 3D.
 		const Vector2 screen_pos = getScreenPosition(camera);
 		constexpr float click_radius = 30.0f;
 		const float dx = screen_x - screen_pos.x;
@@ -224,8 +267,7 @@ namespace Nawia::Entity {
 		const Matrix mat_scale = MatrixScale(_scale, _scale, _scale);
 		return MatrixMultiply(
 			MatrixMultiply(MatrixMultiply(mat_scale, _model.transform), mat_rotate),
-			mat_translate
-		);
+			mat_translate);
 	}
 
 	bool Entity::checkRayHitsMesh(const Ray& ray) const
@@ -264,7 +306,7 @@ namespace Nawia::Entity {
 	{
 		if (!_model_loaded)
 		{
-			// Return a small default box at position
+		// Małe domyślne pudełko pozwala klikać encje bez modelu.
 			const Vector3 pos = getWorldPos3D();
 			return BoundingBox{
 				Vector3{ pos.x - 0.5f, pos.y, pos.z - 0.5f },
@@ -272,11 +314,11 @@ namespace Nawia::Entity {
 			};
 		}
 
-		// Get model-local bounding box
+		// Pudełko ograniczające z rayliba jest lokalne względem modelu.
 		const BoundingBox local_bb = GetModelBoundingBox(_model);
 		const Vector3 pos = getWorldPos3D();
 
-		// Scale and translate the bounding box to world space
+		// Skalujemy i przesuwamy pudełko do przestrzeni świata.
 		return BoundingBox{
 			Vector3{
 				local_bb.min.x * _scale + pos.x,
@@ -303,71 +345,58 @@ namespace Nawia::Entity {
 
 	AbilityStats Entity::getAbilityStatsFromJson(const std::string& name)
 	{
-		std::string path = "../assets/data/abilities.json";
-		std::ifstream file(path);
-		
-		if (!file.is_open()) {
-			file.open(path);
-			if (!file.is_open()) {
-				Core::Logger::errorLog("Entity - Couldn't open file " + path);
-				return {};
-			}
-		}
-
-		nlohmann::json data;
-		try {
-			file >> data;
-		}
-		catch (const nlohmann::json::parse_error& e) {
-			(void)e;
-			Core::Logger::errorLog("Entity - Couldn't parse json file: " + path);
-			return {};
-		}
+		static const nlohmann::json data = loadAbilitiesData();
 
 		if (data.contains("abilities"))
 		{
 			for (const auto& ability : data["abilities"])
 			{
-				if (ability["name"] == name)
+				if (ability.value("name", "") == name)
 				{
 					AbilityStats stats;
-					if (ability.contains("stats")) 
+					if (const auto stats_it = ability.find("stats"); stats_it != ability.end() && stats_it->is_object())
 					{
-						const auto& json_stats = ability["stats"];
-						if (json_stats.contains("damage")) stats.damage = json_stats["damage"].get<int>();
-						if (json_stats.contains("cooldown")) stats.cooldown = json_stats["cooldown"].get<float>();
-						if (json_stats.contains("cast_range")) stats.cast_range = json_stats["cast_range"].get<float>();
-						if (json_stats.contains("projectile_speed")) stats.projectile_speed = json_stats["projectile_speed"].get<float>();
-						if (json_stats.contains("duration")) stats.duration = json_stats["duration"].get<float>();
-						if (json_stats.contains("hitbox_radius")) stats.hitbox_radius = json_stats["hitbox_radius"].get<float>();
+						const auto& json_stats = *stats_it;
+						assignStatIfPresent(json_stats, "damage", stats.damage);
+						assignStatIfPresent(json_stats, "cooldown", stats.cooldown);
+						assignStatIfPresent(json_stats, "cast_range", stats.cast_range);
+						assignStatIfPresent(json_stats, "projectile_speed", stats.projectile_speed);
+						assignStatIfPresent(json_stats, "duration", stats.duration);
+						assignStatIfPresent(json_stats, "hitbox_radius", stats.hitbox_radius);
 					}
 					return stats;
 				}
 			}
 		}
 		
-		Core::Logger::errorLog("Entity - Ability not found: " + name);
+		Core::Logger::errorLog("Entity - nie znaleziono umiejętności: " + name);
 		return {};
 	}
 
 	void Entity::addAbility(const std::shared_ptr<Ability>& ability) 
 	{
+		if (!ability) return;
+
 		ability->setCaster(this);
 		_abilities.push_back(ability);
 	}
 
 	std::shared_ptr<Ability> Entity::getAbility(const int index)
 	{
-		if (index >= 0 && index < _abilities.size())
-			return _abilities[index];
+		if (index < 0)
+			return nullptr;
+
+		const auto ability_index = static_cast<size_t>(index);
+		if (ability_index < _abilities.size())
+			return _abilities[ability_index];
 
 		return nullptr;
 	}
 
 	void Entity::updateAbilities(const float dt) const 
 	{
-		for (auto &s : _abilities)
-			s->update(dt);
+		for (const auto& ability : _abilities)
+			ability->update(dt);
 	}
 
 	void Entity::setCollider(std::unique_ptr<Collider> collider)
@@ -408,10 +437,7 @@ namespace Nawia::Entity {
 		const float dx = _target_x - getX();
 		const float dy = _target_y - getY();
 		
-		if (dx * dx + dy * dy > 0.001f)
-			_is_moving = true;
-		else
-			_is_moving = false;
+		_is_moving = dx * dx + dy * dy > 0.001f;
 	}
 
 	void Entity::updateMovement(const float dt)
@@ -421,6 +447,14 @@ namespace Nawia::Entity {
 		const float dx = _target_x - getX();
 		const float dy = _target_y - getY();
 		const float distance = std::sqrt(dx * dx + dy * dy);
+
+		if (distance <= 0.001f)
+		{
+			_pos.x = _target_x;
+			_pos.y = _target_y;
+			_is_moving = false;
+			return;
+		}
 
 		if (distance > 0.001f)
 			rotateTowards(_target_x, _target_y);

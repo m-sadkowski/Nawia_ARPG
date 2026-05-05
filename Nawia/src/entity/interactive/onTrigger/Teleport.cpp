@@ -2,8 +2,8 @@
 
 #include <Collider.h>
 #include <Engine.h>
-#include <LevelManager.h>
 #include <Level.h>
+#include <LevelManager.h>
 #include <Logger.h>
 #include <Player.h>
 
@@ -35,7 +35,7 @@ namespace Nawia::Entity {
     }
 
     void Teleport::render(const Camera3D& camera) {
-        // Invisible in normal gameplay, visible in debug mode
+		// Teleport jest niewidoczny w normalnej grze, widoczny tylko w trybie diagnostycznym.
         if (DebugColliders && _collider) {
             auto* rect_collider = dynamic_cast<RectangleCollider*>(_collider.get());
             if (rect_collider) {
@@ -43,11 +43,12 @@ namespace Nawia::Entity {
                 float w = rect_collider->getWidth();
                 float h = rect_collider->getHeight();
 
-                Color fill_color = Color{100, 0, 255, 100}; // Purple for teleport
-                DrawCube(Vector3{center.x, 0.1f, center.y}, w, 0.2f, h, fill_color);
-                DrawCubeWires(Vector3{center.x, 0.1f, center.y}, w, 0.2f, h, PURPLE);
+                const float ground_height = getAltitude();
+                Color fill_color = Color{100, 0, 255, 100}; // Fiolet oznacza teleport.
+                DrawCube(Vector3{center.x, ground_height + 0.1f, center.y}, w, 0.2f, h, fill_color);
+                DrawCubeWires(Vector3{center.x, ground_height + 0.1f, center.y}, w, 0.2f, h, PURPLE);
                 
-                Vector2 screen_pos = GetWorldToScreen(Vector3{center.x, 0.5f, center.y}, camera);
+                Vector2 screen_pos = GetWorldToScreen(Vector3{center.x, ground_height + 0.5f, center.y}, camera);
                 DrawText(("TO " + _target_location).c_str(), (int)(screen_pos.x - 20), (int)(screen_pos.y - 10), 10, PURPLE);
             }
         }

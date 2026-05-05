@@ -1,7 +1,8 @@
 #include "Friend.h"
 
-#include "Ability.h"
-#include "Collider.h"
+#include <Ability.h>
+#include <AllyBrain.h>
+#include <Collider.h>
 
 namespace Nawia::Entity {
 
@@ -14,10 +15,10 @@ namespace Nawia::Entity {
 		setFaction(Faction::Ally);
 		_death_anim_name = "knocked";
 
-		loadModel("../assets/models/player_idle.glb");
-		addAnimation("walk", "../assets/models/player_walk.glb");
-		addAnimation("attack", "../assets/models/player_auto_attack.glb");
-		addAnimation("knocked", "../assets/models/player_knocked.glb");
+		loadModel("assets/models/player_idle.glb");
+		addAnimation("walk", "assets/models/player_walk.glb");
+		addAnimation("attack", "assets/models/player_auto_attack.glb");
+		addAnimation("knocked", "assets/models/player_knocked.glb");
 		playAnimation("default");
 
 		setCollider(std::make_unique<RectangleCollider>(this, 0.9f, 1.2f, 0.0f, 0.0f));

@@ -33,7 +33,7 @@ namespace Nawia::Core::System::Renderer {
 		void initialize();
 		void update(const Camera3D& camera);
 		
-		// Assigns the shader to a model
+		/** @brief Przypisuje shader do poprawnie załadowanego modelu. */
 		void applyToModel(Model& model) const;
 		
 		void addLight(int type, Vector3 position, Vector3 target, Color color);

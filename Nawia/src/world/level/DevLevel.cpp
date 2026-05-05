@@ -28,22 +28,10 @@ namespace Nawia::World {
 		constexpr int k_prompt_input_font_size = 30;
 		constexpr int k_prompt_box_padding = 10;
 		constexpr float k_overlay_background_alpha = 0.7f;
+		constexpr Vector2 k_dev_player_spawn = { -4.3f, 33.0f };
 
 		std::filesystem::path resolveAssetPath(const std::filesystem::path& relative_asset_path) {
-			const std::array<std::filesystem::path, 4> candidate_roots = {
-				std::filesystem::path("assets"),
-				std::filesystem::path("../../assets"),
-				std::filesystem::path("../../../assets"),
-				std::filesystem::path("../assets")
-			};
-
-			for (const auto& candidate_root : candidate_roots) {
-				const auto candidate_path = (candidate_root / relative_asset_path).lexically_normal();
-				if (std::filesystem::exists(candidate_path))
-					return candidate_path;
-			}
-
-			return (candidate_roots.front() / relative_asset_path).lexically_normal();
+			return (std::filesystem::path("assets") / relative_asset_path).lexically_normal();
 		}
 
 		std::string toPathString(const std::filesystem::path& path) {
@@ -63,6 +51,16 @@ namespace Nawia::World {
 
 		auto& entity_manager = engine->getEntityManager();
 		entity_manager.clearNonPlayerEntities();
+
+		if (const auto player = engine->getPlayer()) {
+			const Vector3 snapped_spawn = _map->getNavMesh().getClosestWalkablePosition(
+				{ k_dev_player_spawn.x, 0.0f, k_dev_player_spawn.y });
+			player->setX(snapped_spawn.x);
+			player->setY(snapped_spawn.z);
+			player->setAltitude(snapped_spawn.y);
+			player->setRespawnPoint({ snapped_spawn.x, snapped_spawn.z });
+			player->stop();
+		}
 	}
 
 	void DevLevel::handleInput(Core::Engine* engine) {

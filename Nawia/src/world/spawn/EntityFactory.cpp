@@ -1,6 +1,8 @@
 #include "EntityFactory.h"
 
+#include <Backpack.h>
 #include <Engine.h>
+#include <Item.h>
 #include <Map.h>
 #include <Logger.h>
 
@@ -95,7 +97,7 @@ namespace Nawia::World {
 				const std::string ab = ability_name.get<std::string>();
 				if (ab == "KnifeThrow") {
 					bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(
-						"../assets/models/knife.glb", 0.05f, nullptr, nullptr, 180.0f));
+						"assets/models/knife.glb", 0.05f, nullptr, nullptr, 180.0f));
 				}
 			}
 		}
@@ -140,7 +142,7 @@ namespace Nawia::World {
 			.build();
 
 		auto& rm = engine->getResourceManager();
-		const auto sword_slash_icon = rm.getTexture("../assets/textures/icons/sword_slash_icon.png");
+		const auto sword_slash_icon = rm.getTexture("assets/textures/icons/sword_slash_icon.png");
 		friend_entity->addAbility(std::make_shared<Entity::SwordSlashAbility>(nullptr, sword_slash_icon));
 
 		return friend_entity;
@@ -154,7 +156,7 @@ namespace Nawia::World {
 		const std::string name = data.value("name", "Skrzynia");
 
 		auto& rm = engine->getResourceManager();
-		const auto tex = rm.getTexture("../assets/textures/chest.png");
+		const auto tex = rm.getTexture("assets/textures/chest.png");
 
 		auto chest = std::make_shared<Entity::Chest>(name, x, y, tex);
 
@@ -196,7 +198,7 @@ namespace Nawia::World {
 		const std::string name = data.value("name", "NPC");
 
 		auto& rm = engine->getResourceManager();
-		const auto tex = rm.getTexture("../assets/textures/chest.png");
+		const auto tex = rm.getTexture("assets/textures/chest.png");
 
 		if (npc_class == "cat") {
 			auto cat = std::make_shared<Entity::Cat>(name, x, y, tex);
@@ -213,6 +215,19 @@ namespace Nawia::World {
 				else if (lt_name == "CAT")        lt_type = Item::LOOTTABLE_TYPE::CAT;
 
 				cat->initializeInventory(loottable, lt_type);
+			}
+
+			constexpr int cat_key_id = 5;
+			if (cat->getInventory() && !cat->getInventory()->getItem(0)) {
+				if (const auto key = engine->getItemDatabase().createItem(cat_key_id))
+					cat->addItem(key);
+				else
+					cat->addItem(std::make_shared<Item::Item>(
+						cat_key_id,
+						"Klucz Kota",
+						"Klucz nalezacy do Kota Olgi.",
+						Item::EquipmentSlot::None,
+						nullptr));
 			}
 
 			return cat;
@@ -232,7 +247,7 @@ namespace Nawia::World {
 		const std::string texture_path = data.value("texture", "assets/textures/chest.png");
 
 		auto& rm = engine->getResourceManager();
-		const auto tex = rm.getTexture("../" + texture_path);
+		const auto tex = rm.getTexture(texture_path);
 
 		auto obj = Entity::StaticObjectBuilder()
 			.setName(name)

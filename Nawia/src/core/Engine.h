@@ -1,21 +1,22 @@
 #pragma once
 
-#include "Camera.h"
-#include "Constants.h"
-#include "EntityManager.h"
-#include "LevelManager.h"
-#include "ResourceManager.h"
-#include "Settings.h"
-
-#include <Player.h>
-#include <UIHandler.h>
-#include <ItemDatabase.h>
-#include <Loottable.h>
 #include <DialogueManager.h>
-#include <QuestManager.h>
+#include <Camera.h>
+#include <Constants.h>
+#include <EntityManager.h>
+#include <ItemDatabase.h>
+#include <LevelManager.h>
 #include <LightingSystem.h>
+#include <Loottable.h>
+#include <Player.h>
+#include <QuestManager.h>
+#include <ResourceManager.h>
+#include <Settings.h>
+#include <UIHandler.h>
 
 #include <raylib.h>
+
+#include <memory>
 
 namespace Nawia::Core {
 
@@ -43,7 +44,7 @@ namespace Nawia::Core {
 		[[nodiscard]] bool isRunning() const;
 
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y) const;
-		void spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const;
+		void spawnEntity(std::shared_ptr<Entity::Entity> new_entity) const;
 
 		UI::UIHandler& getUIHandler() const { return *_ui_handler; }
 		Map* getCurrentMap() const {

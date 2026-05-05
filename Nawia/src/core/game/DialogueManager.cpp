@@ -1,6 +1,8 @@
 #include "DialogueManager.h"
-#include "Dialogue.h"
-#include "Engine.h"
+
+#include <Cat.h>
+#include <Dialogue.h>
+#include <Engine.h>
 
 namespace Nawia::Game {
 
@@ -42,9 +44,8 @@ namespace Nawia::Game {
          open_eq_opt.text = "Dzieki!";
          open_eq_opt.next_node_id = -1;
          
-         open_eq_opt.action = [engine, cat]() {
+         open_eq_opt.action = [engine]() {
             engine->getUIHandler().closeDialogue();
-            engine->getUIHandler().openContainer(cat);
          };
 
          thank_node.options.push_back(open_eq_opt);

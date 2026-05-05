@@ -1,10 +1,14 @@
 #include "Bandit.h"
-#include "Ability.h"
-#include "KnifeThrowAbility.h"
-#include "Collider.h"
 
+#include <Ability.h>
+#include <Collider.h>
+#include <KnifeThrowAbility.h>
+#include <Map.h>
 #include <MathUtils.h>
+
 #include <raymath.h>
+
+#include <cmath>
 
 namespace Nawia::Entity {
 
@@ -12,12 +16,12 @@ namespace Nawia::Entity {
 		setScale(0.015f);
 		setFaction(Faction::Enemy);
 
-		loadModel("../assets/models/bandit_idle.glb");
-		addAnimation("idle", "../assets/models/bandit_idle.glb");
-		addAnimation("walk", "../assets/models/bandit_walk_backwards3.glb");
-		addAnimation("throw", "../assets/models/bandit_throw.glb");
-		addAnimation("death", "../assets/models/bandit_death.glb");
-		addAnimation("get_hit", "../assets/models/bandit_hit.glb");
+		loadModel("assets/models/bandit_idle.glb");
+		addAnimation("idle", "assets/models/bandit_idle.glb");
+		addAnimation("walk", "assets/models/bandit_walk_backwards3.glb");
+		addAnimation("throw", "assets/models/bandit_throw.glb");
+		addAnimation("death", "assets/models/bandit_death.glb");
+		addAnimation("get_hit", "assets/models/bandit_hit.glb");
 	}
 
 	void Bandit::takeDamage(const int dmg)
@@ -80,7 +84,7 @@ namespace Nawia::Entity {
 	}
 
 	void Bandit::handleChasingState(const float dt) {
-		Entity::update(dt);  // Base update for animations
+		Entity::update(dt);  // Bazowa aktualizacja animacji.
 		updateAbilities(dt);
 
 		auto target = _target.lock();
@@ -102,12 +106,12 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		// Ready to throw knife?
+		// Sprawdzenie gotowości rzutu nożem.
 		if (dist <= ATTACK_RANGE && _knife_cooldown_timer <= 0.0f) {
 			if (const auto knife = getAbility(0)) {
 				if (knife->isReady()) {
 					_state = State::Casting;
-					_knife_thrown_this_cast = false;  // reset flag for new cast
+		_knife_thrown_this_cast = false;  // Reset flagi dla nowej sekwencji rzutu.
 					setAnimationSpeed(1.5f);
 					playAnimation("throw", false, true);
 					rotateTowards(target->getX(), target->getY());
@@ -123,28 +127,31 @@ namespace Nawia::Entity {
 		
 		setMovementSpeed(SPEED);
 		
-		// Too close - retreat using pathfinding
+		// Cel jest za blisko, więc bandyta wycofuje się z użyciem wyznaczania ścieżki.
 		if (dist < MIN_DISTANCE) 
 		{
 			_path_recalc_timer -= dt;
 			
 			if (_path_recalc_timer <= 0.0f || !_is_moving || !_is_retreating) 
 			{
-				// Find a retreat point - 3 tiles away from player, opposite direction
+				// Punkt odwrotu leży kilka jednostek od celu w przeciwnym kierunku.
 				const Vector2 away_dir = Vector2Normalize(Vector2Subtract(my_pos, target_pos));
 				constexpr float retreat_dist = 3.0f;
 				
-				// Try to find a walkable retreat point
+				// Najpierw próbujemy znaleźć punkt odwrotu, po którym da się chodzić.
 				Vector2 retreat_point = { my_pos.x + away_dir.x * retreat_dist, my_pos.y + away_dir.y * retreat_dist };
 				
-				// If not walkable, try smaller distances or angles
+				// Jeśli punkt jest zablokowany, próbujemy alternatywnych kątów.
 				if (_map && !_map->isWalkable(retreat_point.x, retreat_point.y))
 				{
-					// Try 45 degree offsets
+					// Odchylenia o około 45 i 90 stopni zwiększają szansę znalezienia obejścia.
 					for (const float angle_offset : { 0.785f, -0.785f, 1.57f, -1.57f }) 
 					{
 						const float angle = std::atan2(away_dir.y, away_dir.x) + angle_offset;
-						retreat_point = { my_pos.x + std::cos(angle) * retreat_dist, my_pos.y + std::sin(angle) * retreat_dist };
+						retreat_point = {
+							my_pos.x + static_cast<float>(std::cos(angle)) * retreat_dist,
+							my_pos.y + static_cast<float>(std::sin(angle)) * retreat_dist
+						};
 						if (_map->isWalkable(retreat_point.x, retreat_point.y)) break;
 					}
 				}
@@ -156,9 +163,9 @@ namespace Nawia::Entity {
 			
 			playAnimation("walk");
 			updateMovement(dt);
-			rotateTowards(target->getX(), target->getY());  // Face target while retreating
+			rotateTowards(target->getX(), target->getY());  // Podczas odwrotu nadal patrzymy na cel.
 		}
-		// Too far - approach using pathfinding
+		// Cel jest za daleko, więc bandyta podchodzi.
 		else if (dist > ATTACK_RANGE) 
 		{
 			_path_recalc_timer -= dt;
@@ -173,7 +180,7 @@ namespace Nawia::Entity {
 			playAnimation("walk");
 			updateMovement(dt);
 		}
-		// In sweet spot - stand and face target
+		// Dystans jest dobry, więc bandyta stoi i celuje.
 		else 
 		{
 			playAnimation("idle");
@@ -189,13 +196,13 @@ namespace Nawia::Entity {
 		Entity::update(dt);
 		updateAbilities(dt);
 
-		// keep rotating towards player during cast animation
+		// Podczas animacji rzutu bandyta dalej obraca się w stronę celu.
 		if (auto target = _target.lock())
 		{
 			rotateTowards(target->getX(), target->getY());
 		}
 
-		// throw knife once during animation (at frame 60)
+		// Nóż rzucamy tylko raz, w konkretnej fazie animacji.
 		if (_anim_frame_counter > 60 && !_knife_thrown_this_cast)
 		{
 			if (const auto knife = getAbility(0))
@@ -207,9 +214,9 @@ namespace Nawia::Entity {
 
 					if (auto effect = knife->cast(tx, ty))
 					{
-						addPendingSpawn(std::move(effect));
+						addPendingSpawn(effect);
 						_knife_cooldown_timer = KNIFE_COOLDOWN;
-						_knife_thrown_this_cast = true;  // mark as thrown for this cast
+						_knife_thrown_this_cast = true;  // Oznaczamy rzut wykonany w tym caście.
 					}
 				}
 			}

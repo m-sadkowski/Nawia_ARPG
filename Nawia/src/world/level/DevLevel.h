@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Level.h"
+#include <Level.h>
 
 #include <raylib.h>
 
@@ -8,14 +8,10 @@ namespace Nawia::World {
 
 	/**
 	 * @class DevLevel
-	 * @brief Development level for placing props and tuning lighting.
+	 * @brief Poziom developerski do ustawiania propow i swiatla.
 	 *
-	 * Right-click on the map to open a text prompt, type a prop name,
-	 * and press Enter to save its world coordinates to
-	 * `assets/data/static_objects_dev.json`.
-	 *
-	 * The level also exposes simple controls for moving the primary light
-	 * and saving the whole lighting setup to `assets/maps/forest_lighting.json`.
+	 * Prawy klik zapisuje pozycje propa, a kontrolki swiatla pozwalaja
+	 * dostroic i zapisac oswietlenie mapy.
 	 */
 	class DevLevel : public Level {
 	public:
@@ -31,7 +27,7 @@ namespace Nawia::World {
 			return {"Dev Sandbox"};
 		}
 
-		/** @brief Returns true when the text input prompt is active (blocks player input). */
+		/** @brief Zwraca, czy aktywne pole tekstowe blokuje input gracza. */
 		[[nodiscard]] bool isTyping() const { return _is_typing; }
 
 	private:
@@ -45,7 +41,7 @@ namespace Nawia::World {
 		std::string _input_text;
 		Vector2 _saved_world_position = { 0.0f, 0.0f };
 
-		/** @brief Appends a named object entry with world coordinates to the JSON file. */
+		/** @brief Dopisuje nazwany obiekt z pozycja swiata do pliku JSON. */
 		void saveObjectToJson(const std::string& object_name, float world_x, float world_z);
 	};
 

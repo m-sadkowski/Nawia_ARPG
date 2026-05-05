@@ -31,7 +31,7 @@ namespace Nawia::World {
 		_navQuery = nullptr;
 	}
 
-	bool NavMesh::buildFromModel(const Model& model, float scale) {
+	bool NavMesh::buildFromModel(const Model& model, float scale, Vector3 offset) {
 		cleanup();
 
 		if (model.meshCount == 0) {
@@ -61,10 +61,10 @@ namespace Nawia::World {
 				// Apply model transform
 				pos = Vector3Transform(pos, model.transform);
 
-				// Apply uniform scale
-				verts.push_back(pos.x * scale);
-				verts.push_back(pos.y * scale);
-				verts.push_back(pos.z * scale);
+				// Skala i offset muszą odpowiadać temu, jak mapa jest renderowana.
+				verts.push_back(pos.x * scale + offset.x);
+				verts.push_back(pos.y * scale + offset.y);
+				verts.push_back(pos.z * scale + offset.z);
 			}
 
 			// Add indices

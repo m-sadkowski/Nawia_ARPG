@@ -1,22 +1,24 @@
 #include "UIHandler.h"
-#include "SettingsMenu.h"
-#include "LevelSelectMenu.h"
-#include "StatsUI.h"
 
-#include <Player.h>
-#include <EntityManager.h>
-#include <Entity.h>
-#include <InteractiveClickable.h>
-#include <Constants.h>
-#include <GlobalScaling.h>
-#include <Settings.h>
+#include <Ability.h>
 #include <Camera.h>
 #include <Collider.h>
-#include <ResourceManager.h>
-#include <QuestManager.h>
+#include <Constants.h>
+#include <Entity.h>
+#include <EntityManager.h>
+#include <GlobalScaling.h>
+#include <InteractiveClickable.h>
+#include <LevelSelectMenu.h>
 #include <LevelManager.h>
+#include <Player.h>
+#include <QuestManager.h>
+#include <ResourceManager.h>
+#include <Settings.h>
+#include <SettingsMenu.h>
+#include <StatsUI.h>
 
 #include <raymath.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -32,7 +34,7 @@ namespace Nawia::UI
 
     void UIHandler::onLevelLoaded()
     {
-        _location_banner_timer = 6.0f; // Increased to 6s
+        _location_banner_timer = 6.0f; // Wydluzone do 6 s po ladowaniu poziomu.
         if (_level_manager)
             _last_location_name = _level_manager->getCurrentLocationName();
         _ignore_next_dt = true;
@@ -41,7 +43,7 @@ namespace Nawia::UI
     namespace
     {
         /**
-         * Helper to calculate layout for vertical stacks of buttons.
+         * @brief Oblicza prostokaty pionowego stosu przyciskow menu.
          */
         std::vector<Rectangle> getVerticalMenuLayout(int button_count, bool centered = false)
         {
@@ -71,7 +73,7 @@ namespace Nawia::UI
 
         void drawParticlesFx(float width, float height, float time)
         {
-            // Smoke Layers
+        // Warstwy dymu.
             for (int i = 0; i < SMOKE_LAYER_COUNT; ++i)
             {
                 const float seed = static_cast<float>(i) * 11.73f + 3.1f;
@@ -86,7 +88,7 @@ namespace Nawia::UI
                 DrawCircleGradient(static_cast<int>(pos_x), static_cast<int>(pos_y), radius, withAlpha(LIGHTGRAY, alpha), withAlpha(DARKGRAY, 0.0f));
             }
 
-            // Fire Particles
+        // Czasteczki ognia.
             for (int i = 0; i < FIRE_PARTICLE_COUNT; ++i)
             {
                 const float seed = static_cast<float>(i) * 17.13f + 8.0f;
@@ -115,11 +117,11 @@ namespace Nawia::UI
         _quest_manager = quest_manager;
         _settings = settings;
 
-        _font = LoadFontEx("../assets/fonts/slavic_font.ttf", Core::GlobalScaling::scaledInt(300), nullptr, 0);
+        _font = LoadFontEx("assets/fonts/slavic_font.ttf", Core::GlobalScaling::scaledInt(300), nullptr, 0);
         GenTextureMipmaps(&_font.texture);
         SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
 
-        _main_menu_background = resource_manager.getTexture("../assets/textures/main_menu.png");
+        _main_menu_background = resource_manager.getTexture("assets/textures/main_menu.png");
         
         _inventory_ui = std::make_unique<InventoryUI>();
         _inventory_ui->loadResources(resource_manager);
@@ -188,7 +190,7 @@ namespace Nawia::UI
                 ++iterator;
         }
         
-        // Cap delta_time for UI animations to prevent skipping during frame spikes (loading)
+        // Ograniczamy delta_time animacji UI, zeby skoki klatek podczas ladowania nie przeskakiwaly stanow.
         float effective_delta_time = (delta_time > 0.1f) ? 0.016f : delta_time;
         
         if (_ignore_next_dt)
@@ -207,14 +209,11 @@ namespace Nawia::UI
             }
         }
 
-        // gui skrzyni na wysokosci gui eq
-        // dialogi padding
-        
         if (_location_banner_timer > 0.0f)
             _location_banner_timer -= effective_delta_time;
     }
 
-    void UIHandler::draw_menu_buttons_stack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rectangles) const
+    void UIHandler::drawMenuButtonsStack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rectangles) const
     {
         for (size_t i = 0; i < buttons.size(); ++i)
         {
@@ -223,7 +222,7 @@ namespace Nawia::UI
         }
     }
 
-    int UIHandler::get_clicked_button_index(const std::vector<Rectangle>& rectangles) const
+    int UIHandler::getClickedButtonIndex(const std::vector<Rectangle>& rectangles) const
     {
         if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             return -1;
@@ -261,7 +260,7 @@ namespace Nawia::UI
             DrawTextEx(_font, title, title_position, title_font_size, font_spacing, COLOR_ACCENT);
 
         const auto button_rectangles = getVerticalMenuLayout(static_cast<int>(buttons.size()), centered);
-        draw_menu_buttons_stack(buttons, button_rectangles);
+        drawMenuButtonsStack(buttons, button_rectangles);
     }
 
     void UIHandler::renderMainMenu() const
@@ -316,7 +315,7 @@ namespace Nawia::UI
             const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
             
             const Rectangle back_rectangle = { (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height };
-            if (get_clicked_button_index({back_rectangle}) == 0)
+            if (getClickedButtonIndex({back_rectangle}) == 0)
             {
                 _is_authors_open = false;
                 return MenuAction::None;
@@ -325,7 +324,7 @@ namespace Nawia::UI
         else
         {
             const auto button_rectangles = getVerticalMenuLayout(4, false);
-            const int clicked_index = get_clicked_button_index(button_rectangles);
+            const int clicked_index = getClickedButtonIndex(button_rectangles);
             
             if (clicked_index == 0) return MenuAction::Play;
             if (clicked_index == 1) return MenuAction::Settings;
@@ -419,7 +418,7 @@ namespace Nawia::UI
             DrawTextEx(_font, fps_text, { static_cast<float>(GetScreenWidth()) - text_size.x - margin, margin }, font_size, 1.0f, WHITE);
         }
 
-        // Notifications
+        // Powiadomienia.
         float current_notify_y = 10.0f;
         for (const auto& notification : _notifications)
         {
@@ -460,7 +459,7 @@ namespace Nawia::UI
 
     MenuAction UIHandler::handlePauseMenuInput()
     {
-        const int clicked_index = get_clicked_button_index(getVerticalMenuLayout(3, true));
+        const int clicked_index = getClickedButtonIndex(getVerticalMenuLayout(3, true));
         
         if (clicked_index == 0) return MenuAction::Play;
         if (clicked_index == 1) return MenuAction::Settings;
@@ -480,7 +479,7 @@ namespace Nawia::UI
 
     MenuAction UIHandler::handleGameOverInput()
     {
-        const int clicked_index = get_clicked_button_index(getVerticalMenuLayout(2, true));
+        const int clicked_index = getClickedButtonIndex(getVerticalMenuLayout(2, true));
         
         if (clicked_index == 0) return MenuAction::Respawn;
         if (clicked_index == 1) return MenuAction::Exit;
@@ -547,13 +546,13 @@ namespace Nawia::UI
 
     void UIHandler::drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text) const
     {
-        // Outer glow
+        // Zewnętrzna poświata.
         DrawCircleGradient(static_cast<int>(center_x), static_cast<int>(center_y), radius + Core::GlobalScaling::scaled(6.0f), withAlpha(fill_dark, 0.25f * target_percent), withAlpha(BLACK, 0.0f));
         
-        // Background sphere
+        // Tło kuli.
         DrawCircleV({ center_x, center_y }, radius, bg_color);
         
-        // Ghost fill (damage history)
+        // Cień wypełnienia pokazujący historię obrażeń.
         if (ghost_percent > target_percent)
         {
             const float ghost_fill_height = radius * 2.0f * ghost_percent;
@@ -563,32 +562,32 @@ namespace Nawia::UI
             EndScissorMode();
         }
         
-        // Fill from bottom using scissor clipping
+        // Wypełnienie od dołu z przycinaniem scissor.
         const float fill_height = radius * 2.0f * target_percent;
         const float clip_y = center_y + radius - fill_height;
         BeginScissorMode(static_cast<int>(center_x - radius), static_cast<int>(clip_y), static_cast<int>(radius * 2.0f), static_cast<int>(fill_height));
         DrawCircleGradient(static_cast<int>(center_x), static_cast<int>(center_y), radius - 1.0f, fill_bright, fill_dark);
         EndScissorMode();
         
-        // Liquid surface wavering highlight
+        // Falujący refleks na powierzchni płynu.
         const float surface_y = clip_y;
         const float wave_offset = std::sin(static_cast<float>(GetTime()) * wave_speed) * Core::GlobalScaling::scaled(1.5f);
         if (target_percent > 0.02f && target_percent < 0.98f)
         {
-            // Calculate the width of the circle at the fill line
+        // Liczymy szerokość koła na wysokości linii wypełnienia.
             const float dy = (surface_y + wave_offset) - center_y;
             const float half_width = std::sqrt(std::max(0.0f, radius * radius - dy * dy));
             DrawLineEx({ center_x - half_width, surface_y + wave_offset }, { center_x + half_width, surface_y + wave_offset }, Core::GlobalScaling::scaled(1.5f), withAlpha(WHITE, 0.25f));
         }
         
-        // Glass highlight (top-left crescent)
+        // Szklany refleks w lewym górnym rogu.
         DrawCircleGradient(static_cast<int>(center_x - radius * 0.3f), static_cast<int>(center_y - radius * 0.3f), radius * 0.55f, withAlpha(WHITE, 0.12f), withAlpha(WHITE, 0.0f));
         
-        // Border ring
+        // Pierścień obramowania.
         DrawCircleLinesV({ center_x, center_y }, radius, withAlpha(COLOR_ACCENT, 0.6f));
         DrawCircleLinesV({ center_x, center_y }, radius + 1.0f, withAlpha(BLACK, 0.4f));
         
-        // Text
+        // Tekst.
         const float font_size = Core::GlobalScaling::scaled(18.0f);
         const Vector2 text_size = MeasureTextEx(_font, text, font_size, 1.0f);
         DrawTextEx(_font, text, { center_x - text_size.x / 2.0f + 1.0f, center_y - text_size.y / 2.0f + 1.0f }, font_size, 1.0f, withAlpha(BLACK, 0.6f));
@@ -613,7 +612,7 @@ namespace Nawia::UI
         const int display_hp = _player->isDying() ? 0 : _player->getHP();
         const float target_hp = std::clamp(static_cast<float>(display_hp) / _player->getMaxHP(), 0.0f, 1.0f);
         
-        // Orb fill colors
+        // Kolory wypełnienia kuli.
         const Color orb_fill_dark = { 120, 10, 10, 255 };
         const Color orb_fill_bright = { 200, 30, 30, 255 };
         const Color orb_bg = { 20, 12, 12, 240 };
@@ -628,11 +627,17 @@ namespace Nawia::UI
         {
             if (!entity->isDormant() && (entity->getFaction() == Entity::Faction::Enemy || entity->getFaction() == Entity::Faction::Ally) && entity->getHP() < entity->getMaxHP() && entity->getHP() > 0)
             {
-                const Vector2 screen_position = entity->getScreenPosition(camera.get());
+                const BoundingBox bounding_box = entity->getBoundingBox();
+                const Vector3 bar_world_position = {
+                    (bounding_box.min.x + bounding_box.max.x) * 0.5f,
+                    bounding_box.max.y + 0.35f,
+                    (bounding_box.min.z + bounding_box.max.z) * 0.5f
+                };
+                const Vector2 screen_position = GetWorldToScreen(bar_world_position, camera.get());
                 const float bar_width = 40.0f;
                 const float bar_height = 6.0f;
                 const float pos_x = screen_position.x - bar_width / 2.0f;
-                const float pos_y = screen_position.y - 60.0f * Core::GlobalScaling::getScale();
+                const float pos_y = screen_position.y - bar_height / 2.0f;
                 
                 const float hp_percentage = std::clamp(static_cast<float>(entity->getHP()) / entity->getMaxHP(), 0.0f, 1.0f);
                 drawBar(pos_x, pos_y, bar_width, bar_height, hp_percentage, RED, DARKGRAY);
@@ -670,7 +675,7 @@ namespace Nawia::UI
             
             if (!ability->isReady())
             {
-                const float cooldown_ratio = ability->getCooldownTimer() / ability->getStats().cooldown;
+				const float cooldown_ratio = ability->getCooldownRatio();
                 DrawRectangle(static_cast<int>(pos_x), static_cast<int>(start_y), static_cast<int>(icon_size), static_cast<int>(icon_size * cooldown_ratio), withAlpha(GRAY, 0.8f));
                 
                 const char* cd_text = TextFormat("%.1f", ability->getCooldownTimer());
@@ -695,7 +700,7 @@ namespace Nawia::UI
         const float orb_center_x = ability_end_x + orb_gap + orb_radius;
         const float orb_center_y = ability_center_y;
         
-        // Orb fill colors  
+        // Kolory wypełnienia kuli.
         const Color orb_fill_dark = { 15, 40, 120, 255 };
         const Color orb_fill_bright = { 50, 100, 220, 255 };
         const Color orb_bg = { 10, 12, 25, 240 };
@@ -713,9 +718,9 @@ namespace Nawia::UI
         const float alpha = std::clamp(_location_banner_timer > 4.0f ? (5.0f - _location_banner_timer) : (_location_banner_timer / 1.0f), 0.0f, 1.0f);
         
         const float banner_height = Core::GlobalScaling::scaled(100.0f);
-        const float banner_y = Core::GlobalScaling::scaled(60.0f) * alpha; // Slide in effect
+        const float banner_y = Core::GlobalScaling::scaled(60.0f) * alpha; // Efekt wsunięcia.
         
-        // Cinematic Background
+        // Filmowe tło.
         DrawRectangleGradientH(0, static_cast<int>(banner_y), static_cast<int>(screen_width / 2), static_cast<int>(banner_height), withAlpha(BLACK, 0.0f), withAlpha(BLACK, 0.7f * alpha));
         DrawRectangleGradientH(static_cast<int>(screen_width / 2), static_cast<int>(banner_y), static_cast<int>(screen_width / 2), static_cast<int>(banner_height), withAlpha(BLACK, 0.7f * alpha), withAlpha(BLACK, 0.0f));
         
@@ -731,25 +736,100 @@ namespace Nawia::UI
         DrawTextEx(_font, level_name.c_str(), { (screen_width - level_size.x) / 2.0f, banner_y + 20.0f }, level_font_size, 2.0f, withAlpha(COLOR_ACCENT, alpha));
         DrawTextEx(_font, location_name.c_str(), { (screen_width - location_size.x) / 2.0f, banner_y + 20.0f + level_size.y + 4.0f }, location_font_size, 1.0f, withAlpha(WHITE, alpha * 0.8f));
         
-        // Lines
+        // Linie.
         const float line_width = Core::GlobalScaling::scaled(200.0f) * alpha;
         DrawLineEx({ screen_width / 2.0f - line_width, banner_y }, { screen_width / 2.0f + line_width, banner_y }, 1.0f, withAlpha(COLOR_ACCENT, alpha * 0.5f));
         DrawLineEx({ screen_width / 2.0f - line_width, banner_y + banner_height }, { screen_width / 2.0f + line_width, banner_y + banner_height }, 1.0f, withAlpha(COLOR_ACCENT, alpha * 0.5f));
     }
 
-    void UIHandler::renderSettingsMenu() const { if (_settings_menu) { drawSharedMenuBackground(); _settings_menu->render(*this); } }
-    MenuAction UIHandler::handleSettingsInput() { if (!_settings_menu) return MenuAction::None; if (_settings_menu->handleInput()) { _settings_menu.reset(); return MenuAction::Play; } return MenuAction::None; }
-    void UIHandler::openSettings(const Core::Settings& s) { _settings_menu = std::make_unique<SettingsMenu>(s); }
-    bool UIHandler::wereSettingsApplied() const { return _settings_menu && _settings_menu->wasApplied(); }
-    const Core::Settings& UIHandler::getAppliedSettings() const { return _settings_menu->getSettings(); }
-    void UIHandler::closeSettingsMenu() { _settings_menu.reset(); }
-    void UIHandler::renderLevelSelectMenu() const { if (_level_select_menu) { drawSharedMenuBackground(); _level_select_menu->render(*this); } }
-    void UIHandler::openLevelSelect(const std::vector<World::LevelInfo>& l) { _level_select_menu = std::make_unique<LevelSelectMenu>(l); }
-    void UIHandler::closeLevelSelect() { _level_select_menu.reset(); }
-    std::string UIHandler::handleLevelSelectInput() { if (IsKeyPressed(KEY_ESCAPE)) return "BACK"; if (_level_select_menu) return _level_select_menu->handleInput(); return ""; }
-    void UIHandler::openContainer(Entity::InteractiveClickable* c) { _current_container = c; _is_inventory_open = true; }
-    void UIHandler::closeContainer() { _current_container = nullptr; }
-    bool UIHandler::isInputBlocked() const { return _dialogueUI.isOpen() || _current_container || isMouseOverUI(); }
+    void UIHandler::renderSettingsMenu() const
+    {
+        if (!_settings_menu)
+            return;
+
+        drawSharedMenuBackground();
+        _settings_menu->render(*this);
+    }
+
+    MenuAction UIHandler::handleSettingsInput()
+    {
+        if (!_settings_menu)
+            return MenuAction::None;
+
+        if (_settings_menu->handleInput())
+        {
+            _settings_menu.reset();
+            return MenuAction::Play;
+        }
+
+        return MenuAction::None;
+    }
+
+    void UIHandler::openSettings(const Core::Settings& settings)
+    {
+        _settings_menu = std::make_unique<SettingsMenu>(settings);
+    }
+
+    bool UIHandler::wereSettingsApplied() const
+    {
+        return _settings_menu && _settings_menu->wasApplied();
+    }
+
+    const Core::Settings& UIHandler::getAppliedSettings() const
+    {
+        return _settings_menu->getSettings();
+    }
+
+    void UIHandler::closeSettingsMenu()
+    {
+        _settings_menu.reset();
+    }
+
+    void UIHandler::renderLevelSelectMenu() const
+    {
+        if (!_level_select_menu)
+            return;
+
+        drawSharedMenuBackground();
+        _level_select_menu->render(*this);
+    }
+
+    void UIHandler::openLevelSelect(const std::vector<World::LevelInfo>& levels)
+    {
+        _level_select_menu = std::make_unique<LevelSelectMenu>(levels);
+    }
+
+    void UIHandler::closeLevelSelect()
+    {
+        _level_select_menu.reset();
+    }
+
+    std::string UIHandler::handleLevelSelectInput()
+    {
+        if (IsKeyPressed(KEY_ESCAPE))
+            return "BACK";
+
+        if (_level_select_menu)
+            return _level_select_menu->handleInput();
+
+        return "";
+    }
+
+    void UIHandler::openContainer(Entity::InteractiveClickable* container)
+    {
+        _current_container = container;
+        _is_inventory_open = true;
+    }
+
+    void UIHandler::closeContainer()
+    {
+        _current_container = nullptr;
+    }
+
+    bool UIHandler::isInputBlocked() const
+    {
+        return _dialogueUI.isOpen() || _current_container || isMouseOverUI();
+    }
 
     bool UIHandler::isMouseOverUI() const
     {
