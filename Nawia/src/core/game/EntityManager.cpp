@@ -213,7 +213,8 @@ namespace Nawia::Core {
 
         for (auto& entity : _active_entities) 
         {
-            if (entity == _player) continue;
+            if (!entity || entity == _player) continue;
+            if (entity->isDormant()) continue;
 
             if (const auto trigger = dynamic_cast<Entity::InteractiveTrigger*>(entity.get())) 
             {

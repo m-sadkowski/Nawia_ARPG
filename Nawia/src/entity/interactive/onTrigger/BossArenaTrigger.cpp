@@ -13,12 +13,13 @@ namespace Nawia::Entity {
     }
 
     void BossArenaTrigger::onTriggerEnter(Entity& other) {
-        if (!_activated && other.getFaction() == Faction::Player) {
+        if (other.getFaction() == Faction::Player) {
             if (auto* player = dynamic_cast<Player*>(&other)) {
                 if (player->getEngine()) {
-                    if (player->getEngine()->getBossManager().startBossFight(_boss_id, player->getEngine())) {
-                        _activated = true;
-                    }
+                    auto& boss_mgr = player->getEngine()->getBossManager();
+                    // Don't trigger if a fight is already active
+                    if (boss_mgr.isFightActive()) return;
+                    boss_mgr.startBossFight(_boss_id, player->getEngine());
                 }
             }
         }
