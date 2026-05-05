@@ -9,6 +9,10 @@
 
 namespace Nawia::UI {
 
+    /**
+     * @class DialogueUI
+     * @brief Rysuje aktywny dialog i zarzadza przejsciami miedzy wezlami.
+     */
     class DialogueUI {
     public:
         /** @brief Otwiera drzewo dialogowe od pierwszego wezla. */
@@ -32,4 +36,5 @@ namespace Nawia::UI {
         int _current_node_id = 0;
         std::vector<Rectangle> _option_rectangles;
     };
+
 } // namespace Nawia::UI

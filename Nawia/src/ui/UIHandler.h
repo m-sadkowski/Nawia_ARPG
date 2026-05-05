@@ -48,11 +48,23 @@ namespace Nawia::UI {
         None, Play, Settings, Authors, Respawn, Exit
     };
 
+    /**
+     * @struct MenuButtonDef
+     * @brief Opis przycisku menu i akcji, ktora uruchamia.
+     */
     struct MenuButtonDef {
         const char* label;
         MenuAction action;
     };
 
+    /**
+     * @class UIHandler
+     * @brief Koordynuje glowne ekrany UI, HUD i interakcje z ekwipunkiem.
+     *
+     * UIHandler trzyma shared_ptr do gracza i posiada wlasne komponenty UI.
+     * Surowe wskazniki sa nieposiadajacymi referencjami do managerow
+     * zyjacych w Engine.
+     */
     class UIHandler {
     public:
         UIHandler();

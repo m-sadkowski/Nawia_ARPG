@@ -1,32 +1,40 @@
 #pragma once
 
-#include "Item.h"
-
-#include <ResourceManager.h>
+#include <Item.h>
 
 #include <map>
-#include <string>
 #include <memory>
-#include <vector>
-#include <fstream>
-#include "json.hpp"
+#include <string>
 
-using json = nlohmann::json;
+namespace Nawia::Core { class ResourceManager; }
 
 namespace Nawia::Item {
 
+    /**
+     * @class ItemDatabase
+     * @brief Wczytuje template'y przedmiotow i tworzy ich kopie po ID.
+     */
     class ItemDatabase {
     public:
-        void loadDatabase(const std::string& filepath, Core::ResourceManager& res_mgr);
+        /**
+         * @brief Laduje baze przedmiotow z pliku JSON.
+         */
+        void loadDatabase(const std::string& filepath, Core::ResourceManager& resource_manager);
 
+        /**
+         * @brief Tworzy kopie przedmiotu z template'u albo nullptr.
+         */
         std::shared_ptr<Item> createItem(int id);
+
+        /**
+         * @brief Zwraca template przedmiotu albo nullptr.
+         */
         std::shared_ptr<Item> getItemTemplate(int id);
 
     private:
-        // id -> item object
         std::map<int, std::shared_ptr<Item>> _templates;
 
-        // conversion to slot
-        EquipmentSlot stringToSlot(const std::string& str);
+        [[nodiscard]] EquipmentSlot stringToSlot(const std::string& slot_name) const;
     };
-}
+
+} // namespace Nawia::Item

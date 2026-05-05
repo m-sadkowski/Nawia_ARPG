@@ -1,6 +1,7 @@
 #pragma once
 
 #include <raylib.h>
+
 #include <memory>
 
 namespace Nawia::Entity { class Player; }
@@ -8,6 +9,10 @@ namespace Nawia::Core { class ResourceManager; }
 
 namespace Nawia::UI {
 
+    /**
+     * @class StatsUI
+     * @brief Rysuje panel statystyk aktualnego gracza.
+     */
     class StatsUI {
     public:
         StatsUI(const std::shared_ptr<Entity::Player>& player);
@@ -17,6 +22,7 @@ namespace Nawia::UI {
 
         /** @brief Rysuje panel statystyk gracza. */
         void render(float x, float y, const Font& font) const;
+
     private:
         std::shared_ptr<Entity::Player> _player;
         std::shared_ptr<Texture2D> _background;

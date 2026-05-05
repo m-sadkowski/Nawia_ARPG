@@ -17,11 +17,19 @@ namespace Nawia::Core {
 
 namespace Nawia::UI {
 
+    /**
+     * @enum QuestTab
+     * @brief Zakladka ksiegi questow.
+     */
     enum class QuestTab {
         Active,
         Completed
     };
 
+    /**
+     * @class QuestUI
+     * @brief Rysuje ksiege questow z lista i szczegolami zadania.
+     */
     class QuestUI {
     public:
         QuestUI();

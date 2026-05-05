@@ -1,7 +1,7 @@
 #include "SettingsMenu.h"
-#include "UIHandler.h"
 
 #include <GlobalScaling.h>
+#include <UIHandler.h>
 
 #include <algorithm>
 #include <cmath>
@@ -29,7 +29,7 @@ namespace Nawia::UI
         drawSidebar(margin, margin, sidebar_width, panel_height, ui); 
         drawSettingsContent(content_x, margin, screen_width - content_x - margin, panel_height, ui);
         
-        // Action Buttons
+        // Przyciski akcji.
         const float button_width = Core::GlobalScaling::scaled(BUTTON_WIDTH * 0.65f);
         const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT * 0.85f);
         const float button_margin = Core::GlobalScaling::scaled(25.0f);
