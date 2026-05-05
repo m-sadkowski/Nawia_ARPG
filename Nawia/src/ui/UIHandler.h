@@ -1,17 +1,17 @@
 #pragma once
 
-#include "InventoryUI.h"
-#include "ChestUI.h"
-#include "DialogueUI.h"
-#include "QuestUI.h"
-#include "UIDefines.h"
-#include "UIRenderUtils.h"
-
 #include <Camera.h>
+#include <ChestUI.h>
+#include <DialogueUI.h>
+#include <InventoryUI.h>
+#include <QuestUI.h>
+#include <UIDefines.h>
+#include <UIRenderUtils.h>
+
+#include <raylib.h>
 
 #include <memory>
 #include <vector>
-#include <raylib.h>
 
 namespace Nawia::Entity {
     class Player;
@@ -42,7 +42,7 @@ namespace Nawia::UI {
 
     /**
      * @enum MenuAction
-     * @brief Actions that can result from menu input handling.
+     * @brief Akcja wybrana przez gracza w menu.
      */
     enum class MenuAction {
         None, Play, Settings, Authors, Respawn, Exit
@@ -58,7 +58,7 @@ namespace Nawia::UI {
         UIHandler();
         ~UIHandler();
 
-        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& _resource_manager, Game::QuestManager* quest_manager, const Core::Settings* settings);
+        void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager, const Core::Settings* settings);
         
         void update(float dt);
         void render(const Core::GameCamera& camera);
@@ -104,7 +104,11 @@ namespace Nawia::UI {
         [[nodiscard]] bool isAuthorsOpen() const { return _is_authors_open; }
 
         void showNotification(const std::string& text, float duration = 2.0f);
+
+        /** @brief Zwraca, czy input gry powinien zostac zatrzymany przez otwarte UI. */
         [[nodiscard]] bool isInputBlocked() const;
+
+        /** @brief Sprawdza, czy kursor znajduje sie nad aktywnym panelem UI. */
         [[nodiscard]] bool isMouseOverUI() const;
         bool closeOpenWindows();
 
@@ -125,8 +129,8 @@ namespace Nawia::UI {
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;
         void drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text) const;
         
-        void draw_menu_buttons_stack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rects) const;
-        [[nodiscard]] int get_clicked_button_index(const std::vector<Rectangle>& rects) const;
+        void drawMenuButtonsStack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rects) const;
+        [[nodiscard]] int getClickedButtonIndex(const std::vector<Rectangle>& rects) const;
 
         std::shared_ptr<Entity::Player> _player;
         Core::EntityManager* _entity_manager;

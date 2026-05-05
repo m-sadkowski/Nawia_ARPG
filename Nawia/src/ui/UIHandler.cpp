@@ -34,7 +34,7 @@ namespace Nawia::UI
 
     void UIHandler::onLevelLoaded()
     {
-            _location_banner_timer = 6.0f; // Wydłużone do 6 s.
+        _location_banner_timer = 6.0f; // Wydluzone do 6 s po ladowaniu poziomu.
         if (_level_manager)
             _last_location_name = _level_manager->getCurrentLocationName();
         _ignore_next_dt = true;
@@ -43,7 +43,7 @@ namespace Nawia::UI
     namespace
     {
         /**
-         * Helper to calculate layout for vertical stacks of buttons.
+         * @brief Oblicza prostokaty pionowego stosu przyciskow menu.
          */
         std::vector<Rectangle> getVerticalMenuLayout(int button_count, bool centered = false)
         {
@@ -88,7 +88,7 @@ namespace Nawia::UI
                 DrawCircleGradient(static_cast<int>(pos_x), static_cast<int>(pos_y), radius, withAlpha(LIGHTGRAY, alpha), withAlpha(DARKGRAY, 0.0f));
             }
 
-        // Cząsteczki ognia.
+        // Czasteczki ognia.
             for (int i = 0; i < FIRE_PARTICLE_COUNT; ++i)
             {
                 const float seed = static_cast<float>(i) * 17.13f + 8.0f;
@@ -190,7 +190,7 @@ namespace Nawia::UI
                 ++iterator;
         }
         
-        // Ograniczamy delta_time animacji UI, żeby skoki klatek podczas ładowania nie przeskakiwały stanów.
+        // Ograniczamy delta_time animacji UI, zeby skoki klatek podczas ladowania nie przeskakiwaly stanow.
         float effective_delta_time = (delta_time > 0.1f) ? 0.016f : delta_time;
         
         if (_ignore_next_dt)
@@ -209,14 +209,11 @@ namespace Nawia::UI
             }
         }
 
-        // gui skrzyni na wysokosci gui eq
-        // dialogi padding
-        
         if (_location_banner_timer > 0.0f)
             _location_banner_timer -= effective_delta_time;
     }
 
-    void UIHandler::draw_menu_buttons_stack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rectangles) const
+    void UIHandler::drawMenuButtonsStack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rectangles) const
     {
         for (size_t i = 0; i < buttons.size(); ++i)
         {
@@ -225,7 +222,7 @@ namespace Nawia::UI
         }
     }
 
-    int UIHandler::get_clicked_button_index(const std::vector<Rectangle>& rectangles) const
+    int UIHandler::getClickedButtonIndex(const std::vector<Rectangle>& rectangles) const
     {
         if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             return -1;
@@ -263,7 +260,7 @@ namespace Nawia::UI
             DrawTextEx(_font, title, title_position, title_font_size, font_spacing, COLOR_ACCENT);
 
         const auto button_rectangles = getVerticalMenuLayout(static_cast<int>(buttons.size()), centered);
-        draw_menu_buttons_stack(buttons, button_rectangles);
+        drawMenuButtonsStack(buttons, button_rectangles);
     }
 
     void UIHandler::renderMainMenu() const
@@ -318,7 +315,7 @@ namespace Nawia::UI
             const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
             
             const Rectangle back_rectangle = { (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height };
-            if (get_clicked_button_index({back_rectangle}) == 0)
+            if (getClickedButtonIndex({back_rectangle}) == 0)
             {
                 _is_authors_open = false;
                 return MenuAction::None;
@@ -327,7 +324,7 @@ namespace Nawia::UI
         else
         {
             const auto button_rectangles = getVerticalMenuLayout(4, false);
-            const int clicked_index = get_clicked_button_index(button_rectangles);
+            const int clicked_index = getClickedButtonIndex(button_rectangles);
             
             if (clicked_index == 0) return MenuAction::Play;
             if (clicked_index == 1) return MenuAction::Settings;
@@ -462,7 +459,7 @@ namespace Nawia::UI
 
     MenuAction UIHandler::handlePauseMenuInput()
     {
-        const int clicked_index = get_clicked_button_index(getVerticalMenuLayout(3, true));
+        const int clicked_index = getClickedButtonIndex(getVerticalMenuLayout(3, true));
         
         if (clicked_index == 0) return MenuAction::Play;
         if (clicked_index == 1) return MenuAction::Settings;
@@ -482,7 +479,7 @@ namespace Nawia::UI
 
     MenuAction UIHandler::handleGameOverInput()
     {
-        const int clicked_index = get_clicked_button_index(getVerticalMenuLayout(2, true));
+        const int clicked_index = getClickedButtonIndex(getVerticalMenuLayout(2, true));
         
         if (clicked_index == 0) return MenuAction::Respawn;
         if (clicked_index == 1) return MenuAction::Exit;
@@ -745,19 +742,94 @@ namespace Nawia::UI
         DrawLineEx({ screen_width / 2.0f - line_width, banner_y + banner_height }, { screen_width / 2.0f + line_width, banner_y + banner_height }, 1.0f, withAlpha(COLOR_ACCENT, alpha * 0.5f));
     }
 
-    void UIHandler::renderSettingsMenu() const { if (_settings_menu) { drawSharedMenuBackground(); _settings_menu->render(*this); } }
-    MenuAction UIHandler::handleSettingsInput() { if (!_settings_menu) return MenuAction::None; if (_settings_menu->handleInput()) { _settings_menu.reset(); return MenuAction::Play; } return MenuAction::None; }
-    void UIHandler::openSettings(const Core::Settings& s) { _settings_menu = std::make_unique<SettingsMenu>(s); }
-    bool UIHandler::wereSettingsApplied() const { return _settings_menu && _settings_menu->wasApplied(); }
-    const Core::Settings& UIHandler::getAppliedSettings() const { return _settings_menu->getSettings(); }
-    void UIHandler::closeSettingsMenu() { _settings_menu.reset(); }
-    void UIHandler::renderLevelSelectMenu() const { if (_level_select_menu) { drawSharedMenuBackground(); _level_select_menu->render(*this); } }
-    void UIHandler::openLevelSelect(const std::vector<World::LevelInfo>& l) { _level_select_menu = std::make_unique<LevelSelectMenu>(l); }
-    void UIHandler::closeLevelSelect() { _level_select_menu.reset(); }
-    std::string UIHandler::handleLevelSelectInput() { if (IsKeyPressed(KEY_ESCAPE)) return "BACK"; if (_level_select_menu) return _level_select_menu->handleInput(); return ""; }
-    void UIHandler::openContainer(Entity::InteractiveClickable* c) { _current_container = c; _is_inventory_open = true; }
-    void UIHandler::closeContainer() { _current_container = nullptr; }
-    bool UIHandler::isInputBlocked() const { return _dialogueUI.isOpen() || _current_container || isMouseOverUI(); }
+    void UIHandler::renderSettingsMenu() const
+    {
+        if (!_settings_menu)
+            return;
+
+        drawSharedMenuBackground();
+        _settings_menu->render(*this);
+    }
+
+    MenuAction UIHandler::handleSettingsInput()
+    {
+        if (!_settings_menu)
+            return MenuAction::None;
+
+        if (_settings_menu->handleInput())
+        {
+            _settings_menu.reset();
+            return MenuAction::Play;
+        }
+
+        return MenuAction::None;
+    }
+
+    void UIHandler::openSettings(const Core::Settings& settings)
+    {
+        _settings_menu = std::make_unique<SettingsMenu>(settings);
+    }
+
+    bool UIHandler::wereSettingsApplied() const
+    {
+        return _settings_menu && _settings_menu->wasApplied();
+    }
+
+    const Core::Settings& UIHandler::getAppliedSettings() const
+    {
+        return _settings_menu->getSettings();
+    }
+
+    void UIHandler::closeSettingsMenu()
+    {
+        _settings_menu.reset();
+    }
+
+    void UIHandler::renderLevelSelectMenu() const
+    {
+        if (!_level_select_menu)
+            return;
+
+        drawSharedMenuBackground();
+        _level_select_menu->render(*this);
+    }
+
+    void UIHandler::openLevelSelect(const std::vector<World::LevelInfo>& levels)
+    {
+        _level_select_menu = std::make_unique<LevelSelectMenu>(levels);
+    }
+
+    void UIHandler::closeLevelSelect()
+    {
+        _level_select_menu.reset();
+    }
+
+    std::string UIHandler::handleLevelSelectInput()
+    {
+        if (IsKeyPressed(KEY_ESCAPE))
+            return "BACK";
+
+        if (_level_select_menu)
+            return _level_select_menu->handleInput();
+
+        return "";
+    }
+
+    void UIHandler::openContainer(Entity::InteractiveClickable* container)
+    {
+        _current_container = container;
+        _is_inventory_open = true;
+    }
+
+    void UIHandler::closeContainer()
+    {
+        _current_container = nullptr;
+    }
+
+    bool UIHandler::isInputBlocked() const
+    {
+        return _dialogueUI.isOpen() || _current_container || isMouseOverUI();
+    }
 
     bool UIHandler::isMouseOverUI() const
     {

@@ -2,8 +2,10 @@
 #include "PlayerController.h"
 
 #include <Ability.h>
+#include <Cat.h>
 #include <Engine.h>
 #include <EnemyInterface.h>
+#include <InteractiveClickable.h>
 #include <InteractiveTrigger.h>
 #include <Logger.h>
 #include <UIHandler.h>

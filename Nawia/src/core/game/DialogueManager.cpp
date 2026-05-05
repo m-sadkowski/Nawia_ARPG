@@ -1,5 +1,6 @@
 #include "DialogueManager.h"
 
+#include <Cat.h>
 #include <Dialogue.h>
 #include <Engine.h>
 
