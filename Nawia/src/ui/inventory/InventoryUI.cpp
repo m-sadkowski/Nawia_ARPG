@@ -8,16 +8,35 @@
 
 namespace Nawia::UI
 {
+    namespace
+    {
+        /**
+         * @brief Wlacza lagodniejsze skalowanie tekstury UI.
+         */
+        void smoothUiTexture(const std::shared_ptr<Texture2D>& texture)
+        {
+            if (!texture || texture->id <= 0)
+                return;
+
+            GenTextureMipmaps(texture.get());
+            SetTextureFilter(*texture, TEXTURE_FILTER_TRILINEAR);
+        }
+    }
 
     InventoryUI::InventoryUI() {}
 
     void InventoryUI::loadResources(Core::ResourceManager& resource_manager)
     {
+        _background = resource_manager.getTexture("assets/textures/ui/eq.png");
         _placeholders[Item::EquipmentSlot::Head] = resource_manager.getTexture("assets/textures/ui/slot_head.png");
         _placeholders[Item::EquipmentSlot::Chest] = resource_manager.getTexture("assets/textures/ui/slot_chest.png");
         _placeholders[Item::EquipmentSlot::Legs] = resource_manager.getTexture("assets/textures/ui/slot_legs.png");
         _placeholders[Item::EquipmentSlot::Feet] = resource_manager.getTexture("assets/textures/ui/slot_feet.png");
         _placeholders[Item::EquipmentSlot::Weapon] = resource_manager.getTexture("assets/textures/ui/slot_weapon.png");
+
+        smoothUiTexture(_background);
+        for (const auto& placeholder : _placeholders)
+            smoothUiTexture(placeholder.second);
     }
 
     Rectangle InventoryUI::getInventoryRect() const
@@ -33,13 +52,10 @@ namespace Nawia::UI
     Rectangle InventoryUI::getBackpackSlotRect(const int index) const
     {
         const Rectangle inventory_rect = getInventoryRect();
-        const float slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
-        const float slot_spacing = Core::GlobalScaling::scaled(SLOT_SPACING);
-        const float equipment_width = Core::GlobalScaling::scaled(EQ_WIDTH);
-        const float backpack_section_width = inventory_rect.width - equipment_width;
-        const float grid_width = (slot_size * BACKPACK_COLUMNS) + (slot_spacing * (BACKPACK_COLUMNS - 1));
-        const float backpack_x = inventory_rect.x + equipment_width + (backpack_section_width - grid_width) / 2.0f;
-        const float backpack_y = inventory_rect.y + Core::GlobalScaling::scaled(BP_START_TOP + 5.0f);
+        const float slot_size = inventory_rect.width * 0.072f;
+        const float slot_spacing = inventory_rect.width * 0.0075f;
+        const float backpack_x = inventory_rect.x + inventory_rect.width * 0.433f;
+        const float backpack_y = inventory_rect.y + inventory_rect.height * 0.148f;
         const int column = index % BACKPACK_COLUMNS;
         const int row = index / BACKPACK_COLUMNS;
 
@@ -54,30 +70,35 @@ namespace Nawia::UI
     Rectangle InventoryUI::getEquipmentSlotRect(const Item::EquipmentSlot slot_type) const
     {
         const Rectangle inventory_rect = getInventoryRect();
-        const float slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
-        const float padding = Core::GlobalScaling::scaled(PADDING);
-        const float equipment_width = Core::GlobalScaling::scaled(EQ_WIDTH);
-        const float equipment_center_x = inventory_rect.x + equipment_width / 2.0f;
-        const float equipment_top_y = inventory_rect.y + Core::GlobalScaling::scaled(EQ_START_TOP + 5.0f);
+        auto slot_from_texture = [&](const float texture_x, const float texture_y, const float size_ratio)
+        {
+            const float slot_size = inventory_rect.width * size_ratio;
+            return Rectangle{
+                inventory_rect.x + inventory_rect.width * texture_x,
+                inventory_rect.y + inventory_rect.height * texture_y,
+                slot_size,
+                slot_size
+            };
+        };
 
         switch (slot_type)
         {
             case Item::EquipmentSlot::Head:
-                return { equipment_center_x - slot_size / 2.0f, equipment_top_y, slot_size, slot_size };
+                return slot_from_texture(0.150f, 0.138f, 0.070f);
             case Item::EquipmentSlot::Neck:
-                return { equipment_center_x + slot_size / 2.0f + padding, equipment_top_y, slot_size, slot_size };
+                return slot_from_texture(0.254f, 0.176f, 0.046f);
             case Item::EquipmentSlot::Chest:
-                return { equipment_center_x - slot_size / 2.0f, equipment_top_y + slot_size + padding, slot_size, slot_size };
+                return slot_from_texture(0.150f, 0.278f, 0.070f);
             case Item::EquipmentSlot::Legs:
-                return { equipment_center_x - slot_size / 2.0f, equipment_top_y + (slot_size + padding) * 2.0f, slot_size, slot_size };
+                return slot_from_texture(0.150f, 0.420f, 0.070f);
             case Item::EquipmentSlot::Feet:
-                return { equipment_center_x - slot_size / 2.0f, equipment_top_y + (slot_size + padding) * 3.0f, slot_size, slot_size };
+                return slot_from_texture(0.150f, 0.560f, 0.070f);
             case Item::EquipmentSlot::Weapon:
-                return { equipment_center_x - slot_size * 1.5f - padding, equipment_top_y + slot_size + padding, slot_size, slot_size };
+                return slot_from_texture(0.150f, 0.700f, 0.070f);
             case Item::EquipmentSlot::OffHand:
-                return { equipment_center_x + slot_size / 2.0f + padding, equipment_top_y + slot_size + padding, slot_size, slot_size };
+                return slot_from_texture(0.310f, 0.176f, 0.053f);
             case Item::EquipmentSlot::Ring:
-                return { equipment_center_x - slot_size * 1.5f - padding, equipment_top_y + (slot_size + padding) * 2.0f, slot_size, slot_size };
+                return slot_from_texture(0.254f, 0.313f, 0.046f);
             case Item::EquipmentSlot::None:
             default:
                 return { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -88,30 +109,23 @@ namespace Nawia::UI
     {
         const float font_size = Core::GlobalScaling::scaled(FONT_SIZE);
         const Rectangle inventory_rect = getInventoryRect();
-        const float text_y_offset = Core::GlobalScaling::scaled(TEXT_PADDING_TOP + 10.0f); // Dodatkowy oddech nad naglowkiem.
-        const float equipment_width = Core::GlobalScaling::scaled(EQ_WIDTH);
-        const float gold_y_offset = Core::GlobalScaling::scaled(GOLD_PADDING_BOTTOM + 15.0f); // Odstep od dolnej krawedzi panelu.
+        const float gold_y_offset = Core::GlobalScaling::scaled(GOLD_PADDING_BOTTOM + 30.0f); // Odstep od dolnej krawedzi panelu.
 
-        // Tlo panelu ekwipunku.
-        DrawRectangleRec(inventory_rect, withAlpha(COLOR_PANEL_BG, 0.98f));
-        DrawRectangleLinesEx(inventory_rect, 2.0f, withAlpha(COLOR_ACCENT, 0.8f));
-
-        // Separator miedzy wyposazeniem a plecakiem.
-        DrawLineEx(
-            { inventory_rect.x + equipment_width, inventory_rect.y },
-            { inventory_rect.x + equipment_width, inventory_rect.y + inventory_rect.height },
-            1.0f,
-            withAlpha(COLOR_ACCENT, 0.3f));
-
-        // Naglowki sekcji.
-        auto draw_centered_title = [&](const char* text, float start_x, float width)
+        if (_background && _background->id > 0)
         {
-            const Vector2 text_size = MeasureTextEx(font, text, font_size, 1.0f);
-            DrawTextEx(font, text, { start_x + (width - text_size.x) / 2.0f, inventory_rect.y + text_y_offset }, font_size, 1.0f, COLOR_ACCENT);
-        };
-
-        draw_centered_title("EKWIPUNEK", inventory_rect.x, equipment_width);
-        draw_centered_title("PLECAK", inventory_rect.x + equipment_width, inventory_rect.width - equipment_width);
+            DrawTexturePro(
+                *_background,
+                { 0.0f, 0.0f, static_cast<float>(_background->width), static_cast<float>(_background->height) },
+                inventory_rect,
+                { 0.0f, 0.0f },
+                0.0f,
+                WHITE);
+        }
+        else
+        {
+            DrawRectangleRec(inventory_rect, withAlpha(COLOR_PANEL_BG, 0.98f));
+            DrawRectangleLinesEx(inventory_rect, 2.0f, withAlpha(COLOR_ACCENT, 0.8f));
+        }
 
         const Vector2 mouse_pos = GetMousePosition();
         drawSpecificSlot(Item::EquipmentSlot::Head, player, mouse_pos);
@@ -124,7 +138,6 @@ namespace Nawia::UI
         drawSpecificSlot(Item::EquipmentSlot::Ring, player, mouse_pos);
 
         const auto& backpack_items = player.getBackpack().getItems();
-        const float backpack_section_width = inventory_rect.width - equipment_width;
 
         std::shared_ptr<Item::Item> item_tooltip = nullptr;
         Vector2 tooltip_pos = { 0.0f, 0.0f };
@@ -146,7 +159,7 @@ namespace Nawia::UI
 
         const std::string gold_text = "ZLOTO: " + std::to_string(player.getGold());
         const Vector2 gold_size = MeasureTextEx(font, gold_text.c_str(), font_size, 1.0f);
-        DrawTextEx(font, gold_text.c_str(), { inventory_rect.x + equipment_width + (backpack_section_width - gold_size.x) / 2.0f, inventory_rect.y + inventory_rect.height - gold_y_offset }, font_size, 1.0f, COLOR_ACCENT);
+        DrawTextEx(font, gold_text.c_str(), { inventory_rect.x + (inventory_rect.width - gold_size.x) / 2.0f, inventory_rect.y + inventory_rect.height - gold_y_offset }, font_size, 1.0f, COLOR_ACCENT);
     
         if (item_tooltip != nullptr)
             drawTooltip(font, item_tooltip, tooltip_pos.x, tooltip_pos.y);
@@ -185,11 +198,8 @@ namespace Nawia::UI
     {
         const float slot_padding = Core::GlobalScaling::scaled(SLOT_PADDING);
 
-        const Color background_color = is_hovered ? withAlpha(COLOR_ACCENT, 0.2f) : withAlpha(BLACK, 0.4f);
-        const Color border_color = is_hovered ? COLOR_ACCENT : withAlpha(WHITE, 0.3f);
-        
-        DrawRectangleRec(slot_rect, background_color);
-        DrawRectangleLinesEx(slot_rect, 1.0f, border_color);
+        if (is_hovered)
+            DrawRectangleRec(slot_rect, withAlpha(COLOR_ACCENT, 0.20f));
 
         if (item != nullptr)
         {
