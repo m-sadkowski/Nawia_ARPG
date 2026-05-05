@@ -1,29 +1,42 @@
 #pragma once
-#include "Constants.h"
 
-#include <Entity.h>
+#include <Constants.h>
+
 #include <raylib.h>
 
-namespace Nawia::Core
-{
+namespace Nawia::Entity { class Entity; }
+
+namespace Nawia::Core {
 
 	/**
 	 * @class GameCamera
-	 * @brief Wraps Raylib Camera3D with isometric-like follow behavior.
+	 * @brief Opakowuje Camera3D i prowadzi ja za wskazana encja.
 	 *
-	 * The camera looks down at an angle, following the player on the XZ plane.
-	 * Entity positions use Vector2{x, y} which maps to world 3D as {x, 0, y}.
+	 * Kamera nie posiada celu. `follow()` przyjmuje surowy wskaznik jako
+	 * nieposiadajacy widok encji, ktora zyje w EntityManagerze.
 	 */
-	class GameCamera
-	{
+	class GameCamera {
 	public:
 		GameCamera();
 
+		/**
+		 * @brief Obsluguje zoom kamery z kolka myszy.
+		 */
 		void handleInput();
+
+		/**
+		 * @brief Ustawia kamere nad wskazanym celem.
+		 */
 		void follow(const Entity::Entity* target);
 
-		/// Get the underlying Camera3D for Raylib calls.
+		/**
+		 * @brief Zwraca kamere Raylib tylko do odczytu.
+		 */
 		[[nodiscard]] const Camera3D& get() const;
+
+		/**
+		 * @brief Zwraca modyfikowalna kamere Raylib.
+		 */
 		[[nodiscard]] Camera3D& get();
 
 	private:

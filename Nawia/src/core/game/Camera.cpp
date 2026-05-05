@@ -1,12 +1,12 @@
 #include "Camera.h"
 
+#include <Entity.h>
+
 #include <algorithm>
 
-namespace Nawia::Core
-{
+namespace Nawia::Core {
 
-	namespace
-	{
+	namespace {
 		constexpr float k_zoom_step = 0.1f;
 		constexpr float k_min_zoom_factor = 0.3f;
 		constexpr float k_max_zoom_factor = 2.0f;
@@ -14,8 +14,7 @@ namespace Nawia::Core
 		constexpr float k_horizontal_follow_factor = 0.7f;
 	}
 
-	GameCamera::GameCamera()
-	{
+	GameCamera::GameCamera() {
 		_camera_3d.position = Vector3{ 0.0f, CAMERA_HEIGHT, CAMERA_DISTANCE };
 		_camera_3d.target = Vector3{ 0.0f, 0.0f, 0.0f };
 		_camera_3d.up = Vector3{ 0.0f, 1.0f, 0.0f };
@@ -23,8 +22,7 @@ namespace Nawia::Core
 		_camera_3d.projection = CAMERA_PERSPECTIVE;
 	}
 
-	void GameCamera::handleInput()
-	{
+	void GameCamera::handleInput() {
 		const float mouse_wheel_delta = GetMouseWheelMove();
 		if (mouse_wheel_delta == 0.0f)
 			return;
@@ -33,8 +31,7 @@ namespace Nawia::Core
 		_zoom_factor = std::clamp(_zoom_factor, k_min_zoom_factor, k_max_zoom_factor);
 	}
 
-	void GameCamera::follow(const Entity::Entity* target)
-	{
+	void GameCamera::follow(const Entity::Entity* target) {
 		if (!target)
 			return;
 
@@ -50,13 +47,11 @@ namespace Nawia::Core
 		_camera_3d.fovy = CAMERA_FOV * _zoom_factor;
 	}
 
-	const Camera3D& GameCamera::get() const
-	{
+	const Camera3D& GameCamera::get() const {
 		return _camera_3d;
 	}
 
-	Camera3D& GameCamera::get()
-	{
+	Camera3D& GameCamera::get() {
 		return _camera_3d;
 	}
 
