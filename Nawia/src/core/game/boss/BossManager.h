@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <memory>
 #include <raylib.h>
 
@@ -81,6 +82,7 @@ namespace Nawia::Game {
         [[nodiscard]] std::shared_ptr<Entity::EnemyInterface> getActiveBossEntity() const { return _active_boss_entity; }
         [[nodiscard]] int getCurrentPhaseIndex() const { return _current_phase_index; }
         [[nodiscard]] float getFightTimer() const { return _fight_timer; }
+        [[nodiscard]] bool isBossDefeated(const std::string& boss_id) const { return _defeated_bosses.count(boss_id) > 0; }
 
         [[nodiscard]] const std::map<std::string, BossData>& getAllBosses() const { return _bosses; }
 
@@ -106,6 +108,9 @@ namespace Nawia::Game {
         void spawnMinions(const std::vector<MinionSpawnInfo>& minions, Core::Engine* engine);
         void removeMinions(Core::Engine* engine);
         std::vector<std::shared_ptr<Entity::Entity>> _active_minions;
+        
+        // Track defeated bosses so fights can't be re-triggered
+        std::set<std::string> _defeated_bosses;
     };
 
 } // namespace Nawia::Game
