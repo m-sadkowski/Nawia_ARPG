@@ -1,32 +1,31 @@
 # Standard kodu i dokumentacji
 
-Ten dokument opisuje zasady obowiązujące w kodzie Nawia. Traktuj go jako punkt odniesienia przy nowych funkcjach, refaktorach i poprawkach po review.
+Ten dokument jest zrodlem prawdy dla stylu kodu w Nawia. Stosuj go przy nowych funkcjach, refaktorach i poprawkach po review.
 
 ## Nazewnictwo
 
-- Typy, klasy, struktury i enumy: `PascalCase`, np. `ActorInterface`, `EntityType`.
-- Namespace'y zostają w obecnym stylu projektu: `Nawia::Entity`, `Nawia::Core`, `Nawia::World`.
-- Metody publicznego API zostają w obecnym stylu projektu: `camelCase`, np. `setTarget`, `getDistanceToTarget`.
-- Zmienne lokalne, parametry i pola prywatne: `snake_case`.
-- Pola prywatne/protected mają prefiks `_`, np. `_movement_speed`, `_attack_cooldown_timer`.
-- Stałe `static constexpr`: `UPPER_SNAKE_CASE`, np. `VISION_RANGE`, `ATTACK_COOLDOWN`.
-- Nazwy mają mówić, co reprezentują. Unikaj skrótów typu `tmp`, `obj`, `val`, jeśli zakres użycia nie jest natychmiast oczywisty.
+- Klasy, struktury, enumy i aliasy typow: `PascalCase`, np. `EntityFactory`, `EquipmentSlot`.
+- Namespace'y zostaja w stylu projektu: `Nawia::Entity`, `Nawia::Core`, `Nawia::World`, `Nawia::UI`.
+- Metody publiczne: `camelCase`, np. `setTarget`, `getDistanceToTarget`, `loadResources`.
+- Zmienne lokalne, parametry i pola pomocnicze: `snake_case`.
+- Pola prywatne/protected maja prefiks `_`, np. `_movement_speed`, `_attack_cooldown_timer`.
+- Stale `static constexpr`: `UPPER_SNAKE_CASE`, np. `ATTACK_RANGE`, `DIALOGUE_BOX_MARGIN`.
+- Nazwy maja opisywac role obiektu. Unikaj `tmp`, `obj`, `val`, jezeli zakres nie jest oczywisty.
 
 ## Include'y
 
-Kolejność include'ów:
+Docelowy format:
 
-1. W pliku `.cpp` najpierw własny nagłówek implementowanej klasy w cudzysłowie, np. `#include "Bandit.h"`.
-2. Pozostałe nagłówki projektu w nawiasach ostrych, np. `#include <AllyInterface.h>`, `#include <Map.h>`.
-3. Zewnętrzne biblioteki w nawiasach ostrych, np. `#include <raylib.h>`, `#include <raymath.h>`.
-4. Biblioteka standardowa C++ w nawiasach ostrych, np. `#include <memory>`, `#include <vector>`.
+1. W `.cpp` pierwszy jest wlasny header klasy w cudzyslowie.
+2. Wszystkie pozostale headery projektu sa w nawiasach ostrych.
+3. Biblioteki zewnetrzne sa w nawiasach ostrych.
+4. Biblioteka standardowa C++ jest w nawiasach ostrych.
 
-W nagłówkach `.h` wszystkie include'y zapisujemy w nawiasach ostrych, bo nie istnieje tam osobny
-include własnego nagłówka implementacji.
+W `.h` wszystkie include'y sa w nawiasach ostrych. Header nie ma "wlasnego" include'a.
 
-W każdej grupie sortuj alfabetycznie. Między grupami zostaw pustą linię.
+Miedzy grupami zostaw pusta linie. W grupach sortuj alfabetycznie, o ile nie pogarsza to czytelnosci.
 
-Przykład:
+Przyklad:
 
 ```cpp
 #include "Bandit.h"
@@ -34,30 +33,30 @@ Przykład:
 #include <Ability.h>
 #include <Collider.h>
 #include <Map.h>
-#include <MathUtils.h>
 
 #include <raymath.h>
 
 #include <memory>
+#include <vector>
 ```
 
 ## Forward declaration kontra include
 
-W nagłówkach preferuj forward declaration, gdy typ jest używany tylko przez wskaźnik, referencję lub `std::shared_ptr`/`std::unique_ptr` w deklaracji API.
+W headerach preferuj forward declaration, gdy typ wystepuje tylko jako wskaznik, referencja albo smart pointer w deklaracji API.
 
-Użyj pełnego include'a w nagłówku, gdy:
+Pelny include w headerze jest potrzebny, gdy:
 
-- dziedziczysz po klasie,
-- przechowujesz typ przez wartość,
-- metoda inline odwołuje się do pól albo metod tego typu,
-- potrzebujesz definicji enumu, stałej lub aliasu,
-- szablon wymaga pełnej definicji typu w miejscu deklaracji.
+- dziedziczysz po typie,
+- trzymasz typ przez wartosc,
+- uzywasz metod albo pol typu w metodzie inline,
+- potrzebujesz definicji enumu, stalej lub aliasu,
+- szablon wymaga pelnej definicji w miejscu deklaracji.
 
-Pełne definicje przenoś do `.cpp`, jeśli są potrzebne tylko w implementacji. To zmniejsza sprzężenie i skraca przebudowy.
+Pelne zaleznosci przenos do `.cpp`, jesli sa potrzebne tylko w implementacji. To zmniejsza sprzezenie modulow i skroci przebudowy.
 
-## Doxygen
+## Dokumentacja Doxygen
 
-Publiczne klasy, enumy, funkcje i nietrywialne metody protected powinny mieć krótki komentarz Doxygen po polsku.
+Publiczne klasy, enumy, funkcje i nietrywialne metody protected powinny miec krotki komentarz Doxygen po polsku.
 
 Preferowany format:
 
@@ -69,34 +68,43 @@ Preferowany format:
 void update(float dt) override;
 ```
 
-Komentarz ma odpowiadać na pytania: co robi funkcja, po co istnieje i kiedy trzeba uważać na szczegóły implementacji. Jeśli nazwa funkcji jest w pełni samowyjaśniająca, wystarczy krótki `@brief`.
+Komentarz ma opisac kontrakt: co metoda robi, po co istnieje i kiedy trzeba uwazac. Nie opisuj mechanicznie kazdej linijki. Jezeli nazwa jest oczywista, wystarczy krotki `@brief`.
 
-Nie opisuj mechanicznie każdej linijki. Doxygen ma pomagać czytelnikowi zrozumieć kontrakt, nie przepisywać implementację.
+Komentarze w kodzie pisz po polsku. W nowych plikach trzymaj ASCII, zeby unikac problemow kodowania w Visual Studio i terminalu.
 
 ## Formatowanie
 
-- Projekt używa tabów do wcięć w C++.
-- Maksymalna długość linii: 120 znaków, chyba że czytelność realnie cierpi na łamaniu.
-- Bloki `if`, `for`, `while`, `switch` używają klamer przy logice dłuższej niż jedna bardzo prosta instrukcja.
-- Unikaj wielkich funkcji. Gdy metoda zaczyna mieszać kilka decyzji, wyciągnij prywatne helpery typu `handleChasingState`, `updateCooldowns`, `tryCastAbility`.
-- Nie formatuj całego projektu przy małej zmianie. Wielkie przebiegi formatterem robimy jako osobny commit/refaktor.
+- Nie formatuj calego projektu przy malej zmianie.
+- Rozbijaj dlugie funkcje na prywatne helpery, gdy metoda miesza kilka decyzji.
+- Preferuj wczesne wyjscia dla guardow, ale nie kosztem czytelnosci.
+- Klamry dodawaj przy nietrywialnych blokach. Jedna bardzo prosta instrukcja moze zostac w jednej linii tylko wtedy, gdy jest czytelna.
+- Nie dodawaj abstrakcji "na zapas". Interfejs ma usuwac realna duplikacje albo ograniczac sprzezenie.
 
-## Podział odpowiedzialności
+## Wlasnosc i pointery
 
-- `Entity` przechowuje wspólne cechy obiektów świata: pozycję, model, animacje, HP, frakcję, target i abilities.
-- `ActorInterface` zbiera wspólne zachowanie jednostek bojowych: mapa poziomu i target.
-- `EnemyInterface` ustawia specjalizację wroga.
-- `AllyInterface` ustawia specjalizację sojusznika i opcjonalny `AllyBrain`.
-- `EntityFactory` składa obiekty z danych JSON, ale nie prowadzi AI.
-- Logika decyzji powinna żyć w klasie aktora albo brainie, a nie w factory.
+- `std::unique_ptr` oznacza jednoznaczne posiadanie, np. komponent UI posiadany przez `UIHandler`.
+- `std::shared_ptr` stosuj dla obiektow wspoldzielonych w runtime, np. encji w `EntityManager`, template'ow itemow, tekstur z cache.
+- `std::weak_ptr` stosuj dla relacji, ktore nie powinny przedluzac zycia obiektu, np. target encji.
+- Surowy wskaznik jest dopuszczalny jako nieposiadajaca referencja do systemu zyjacego dluzej, np. manager w `Engine`.
+- Nie przekazuj ownership przez surowe wskazniki.
 
-## Plan refaktorów
+## Podzial odpowiedzialnosci
 
-Najbezpieczniejszy podział dalszych prac:
+- `Entity` zbiera wspolny stan obiektow swiata: pozycje, model, animacje, HP, frakcje, target, abilities i pending spawns.
+- `ActorInterface` trzyma wspolne elementy jednostek bojowych: mape i target.
+- `EnemyInterface` i `AllyInterface` dodaja specjalizacje bojowa.
+- `EntityFactory` sklada encje z JSON, ale nie prowadzi AI.
+- `SpawnManager` zarzadza aktywacja encji per lokacja i proximity.
+- `UIHandler` koordynuje ekrany UI i HUD, a mniejsze klasy rysuja konkretne panele.
 
-1. Fundamenty: standard dokumentacji, include'y, forward declarations, małe pull-upy wspólnych pól.
-2. Actors: wspólny model enemy/ally, redukcja duplikacji stanów, ujednolicenie `takeDamage`.
-3. Abilities: wspólny kontrakt castowania, pending spawns, cooldowny i dokumentacja efektów.
-4. Entity/Engine: rozbijanie długich metod, ograniczanie bezpośrednich zależności między managerami.
-5. UI: wyciąganie helperów renderujących i porządek w `UIHandler`.
-6. Guides: aktualizacja przewodników po każdej większej zmianie w module.
+## Checklist review
+
+Przed oddaniem zmiany sprawdz:
+
+1. Czy include'y sa w docelowym formacie.
+2. Czy nowe publiczne API ma Doxygen po polsku.
+3. Czy komentarze nie sa po angielsku.
+4. Czy zaleznosci w headerach da sie zastapic forward declaration.
+5. Czy pointery pokazuja realna wlasnosc obiektu.
+6. Czy dluga metoda nie prosi sie o helper.
+7. Czy zmiana nie dodaje logiki gameplayowej do factory albo UI.
