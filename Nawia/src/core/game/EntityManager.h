@@ -1,51 +1,67 @@
 #pragma once
 
-#include "Camera.h"
-#include <Entity.h>
+#include <raylib.h>
 
-#include <vector>
 #include <memory>
+#include <utility>
+#include <vector>
+
+namespace Nawia::Entity { class Entity; }
 
 namespace Nawia::Core {
 
 	class Engine;
 
+	/**
+	 * @class EntityManager
+	 * @brief Przechowuje aktywne encje i koordynuje ich update, render oraz kolizje.
+	 *
+	 * Manager posiada encje przez `shared_ptr`, bo te same obiekty sa widziane
+	 * przez kilka systemow gameplayowych. `_engine` jest nieposiadajacym
+	 * wskaznikiem do wlasciciela managera.
+	 */
 	class EntityManager {
 	public:
-		EntityManager(Engine* engine) : _engine(engine) {}
+		explicit EntityManager(Engine* engine) : _engine(engine) {}
 		~EntityManager() = default;
 
-		/// Get all active entities (for rendering health bars, etc.)
+		/**
+		 * @brief Zwraca aktywne encje do renderowania i UI.
+		 */
 		[[nodiscard]] const std::vector<std::shared_ptr<Entity::Entity>>& getEntities() const { return _active_entities; }
 
-		// Core management
+		/**
+		 * @brief Dodaje encje do aktywnej listy.
+		 */
 		void addEntity(std::shared_ptr<Entity::Entity> new_entity);
+
+		/**
+		 * @brief Ustawia gracza przechowywanego przez manager.
+		 */
 		void setPlayer(std::shared_ptr<Entity::Entity> player) { _player = std::move(player); }
+
+		/**
+		 * @brief Usuwa wszystkie encje poza graczem.
+		 */
 		void clearNonPlayerEntities();
 
 	private:
-		// Game Loop methods
 		void updateEntities(float delta_time);
 		void renderEntities(const Camera3D& camera) const;
 		void handleEntitiesCollisions() const;
 		void refreshCombatTargets();
 
-		// Input 
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, const Camera3D& camera) const;
 		void updateHoverState(float screen_x, float screen_y, const Camera3D& camera);
 
-		// For collisions
 		void processAbilityCollisions() const;
 		void processTriggerCollisions() const;
 		void processPhysicalCollisions() const;
 
-		// For overlap
-		[[nodiscard]] bool isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& e) const;
-		void resolveOverlap(const std::shared_ptr<Entity::Entity>& e1, const std::shared_ptr<Entity::Entity>& e2) const;
+		[[nodiscard]] bool isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& entity) const;
+		void resolveOverlap(const std::shared_ptr<Entity::Entity>& first_entity, const std::shared_ptr<Entity::Entity>& second_entity) const;
 		[[nodiscard]] std::shared_ptr<Entity::Entity> findClosestCombatTarget(const std::shared_ptr<Entity::Entity>& seeker) const;
-		
 
-	private:
 		Engine* _engine = nullptr;
 		std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
 		std::shared_ptr<Entity::Entity> _player;

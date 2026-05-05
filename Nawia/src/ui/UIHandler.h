@@ -48,11 +48,23 @@ namespace Nawia::UI {
         None, Play, Settings, Authors, Respawn, Exit
     };
 
+    /**
+     * @struct MenuButtonDef
+     * @brief Opis przycisku menu i akcji, ktora uruchamia.
+     */
     struct MenuButtonDef {
         const char* label;
         MenuAction action;
     };
 
+    /**
+     * @class UIHandler
+     * @brief Koordynuje glowne ekrany UI, HUD i interakcje z ekwipunkiem.
+     *
+     * UIHandler trzyma shared_ptr do gracza i posiada wlasne komponenty UI.
+     * Surowe wskazniki sa nieposiadajacymi referencjami do managerow
+     * zyjacych w Engine.
+     */
     class UIHandler {
     public:
         UIHandler();
@@ -127,7 +139,7 @@ namespace Nawia::UI {
         void updateHoverTimers(float dt, const std::vector<Rectangle>& button_rects);
         void renderAuthorsMenu() const;
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;
-        void drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text) const;
+        void drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text, const std::shared_ptr<Texture2D>& frame_texture) const;
         
         void drawMenuButtonsStack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rects) const;
         [[nodiscard]] int getClickedButtonIndex(const std::vector<Rectangle>& rects) const;
@@ -139,6 +151,9 @@ namespace Nawia::UI {
         std::shared_ptr<Texture2D> _main_menu_background;
         std::shared_ptr<Texture2D> _menu_btn_idle;
         std::shared_ptr<Texture2D> _menu_btn_hover;
+        std::shared_ptr<Texture2D> _ability_bar_frame;
+        std::shared_ptr<Texture2D> _hp_orb_frame;
+        std::shared_ptr<Texture2D> _level_orb_frame;
         std::vector<float> _hover_timers;
         
         std::unique_ptr<SettingsMenu> _settings_menu;

@@ -3,27 +3,22 @@
 #include <Backpack.h>
 #include <Engine.h>
 #include <Item.h>
-#include <Map.h>
 #include <Logger.h>
+#include <Map.h>
 
-// Enemies / allies
-#include <Devil.h>
 #include <Bandit.h>
-#include <WalkingDead.h>
+#include <Devil.h>
 #include <Friend.h>
-
-// Interactive
-#include <Chest.h>
 #include <Cat.h>
+#include <Chest.h>
 #include <Checkpoint.h>
 #include <StaticObject.h>
 #include <Teleport.h>
+#include <WalkingDead.h>
 
-// Abilities
 #include <KnifeThrowAbility.h>
 #include <SwordSlashAbility.h>
 
-// Items / Loot
 #include <ItemDatabase.h>
 #include <Loottable.h>
 
@@ -32,6 +27,20 @@
 using json = nlohmann::json;
 
 namespace Nawia::World {
+
+	namespace {
+
+		Item::LOOTTABLE_TYPE parseLoottableType(
+			const std::string& loottable_name,
+			Item::LOOTTABLE_TYPE default_type
+		) {
+			if (loottable_name == "CHEST_BAD") return Item::LOOTTABLE_TYPE::CHEST_BAD;
+			if (loottable_name == "CAT") return Item::LOOTTABLE_TYPE::CAT;
+			if (loottable_name == "CHEST_NOOB") return Item::LOOTTABLE_TYPE::CHEST_NOOB;
+			return default_type;
+		}
+
+	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::create(
 		const std::string& type,
@@ -94,8 +103,8 @@ namespace Nawia::World {
 
 		if (data.contains("abilities")) {
 			for (const auto& ability_name : data["abilities"]) {
-				const std::string ab = ability_name.get<std::string>();
-				if (ab == "KnifeThrow") {
+				const std::string ability_id = ability_name.get<std::string>();
+				if (ability_id == "KnifeThrow") {
 					bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(
 						"assets/models/knife.glb", 0.05f, nullptr, nullptr, 180.0f));
 				}
@@ -156,26 +165,24 @@ namespace Nawia::World {
 		const std::string name = data.value("name", "Skrzynia");
 
 		auto& rm = engine->getResourceManager();
-		const auto tex = rm.getTexture("assets/textures/chest.png");
+		const auto texture = rm.getTexture("assets/textures/chest.png");
 
-		auto chest = std::make_shared<Entity::Chest>(name, x, y, tex);
+		auto chest = std::make_shared<Entity::Chest>(name, x, y, texture);
 
 		if (data.contains("loottable")) {
-			const std::string lt_name = data["loottable"].get<std::string>();
+			const std::string loottable_name = data["loottable"].get<std::string>();
 			auto& loottable = engine->getLoottable();
 
-			Item::LOOTTABLE_TYPE lt_type = Item::LOOTTABLE_TYPE::CHEST_NOOB;
-			if (lt_name == "CHEST_NOOB")      lt_type = Item::LOOTTABLE_TYPE::CHEST_NOOB;
-			else if (lt_name == "CHEST_BAD")  lt_type = Item::LOOTTABLE_TYPE::CHEST_BAD;
-			else if (lt_name == "CAT")        lt_type = Item::LOOTTABLE_TYPE::CAT;
-
-			chest->initializeInventory(loottable, lt_type);
+			chest->initializeInventory(
+				loottable,
+				parseLoottableType(loottable_name, Item::LOOTTABLE_TYPE::CHEST_NOOB)
+			);
 		}
 
 		if (data.contains("items")) {
-			auto& itemDB = engine->getItemDatabase();
+			auto& item_database = engine->getItemDatabase();
 			for (const auto& item_id : data["items"]) {
-				if (auto item = itemDB.createItem(item_id.get<int>())) {
+				if (auto item = item_database.createItem(item_id.get<int>())) {
 					chest->addItem(item);
 				}
 			}
@@ -198,23 +205,21 @@ namespace Nawia::World {
 		const std::string name = data.value("name", "NPC");
 
 		auto& rm = engine->getResourceManager();
-		const auto tex = rm.getTexture("assets/textures/chest.png");
+		const auto texture = rm.getTexture("assets/textures/chest.png");
 
 		if (npc_class == "cat") {
-			auto cat = std::make_shared<Entity::Cat>(name, x, y, tex);
+			auto cat = std::make_shared<Entity::Cat>(name, x, y, texture);
 
 			engine->getDialogueManager().createCatDialogue(engine, cat.get());
 
 			if (data.contains("loottable")) {
-				const std::string lt_name = data["loottable"].get<std::string>();
+				const std::string loottable_name = data["loottable"].get<std::string>();
 				auto& loottable = engine->getLoottable();
 
-				Item::LOOTTABLE_TYPE lt_type = Item::LOOTTABLE_TYPE::CAT;
-				if (lt_name == "CHEST_NOOB")      lt_type = Item::LOOTTABLE_TYPE::CHEST_NOOB;
-				else if (lt_name == "CHEST_BAD")  lt_type = Item::LOOTTABLE_TYPE::CHEST_BAD;
-				else if (lt_name == "CAT")        lt_type = Item::LOOTTABLE_TYPE::CAT;
-
-				cat->initializeInventory(loottable, lt_type);
+				cat->initializeInventory(
+					loottable,
+					parseLoottableType(loottable_name, Item::LOOTTABLE_TYPE::CAT)
+				);
 			}
 
 			constexpr int cat_key_id = 5;
@@ -247,16 +252,16 @@ namespace Nawia::World {
 		const std::string texture_path = data.value("texture", "assets/textures/chest.png");
 
 		auto& rm = engine->getResourceManager();
-		const auto tex = rm.getTexture(texture_path);
+		const auto texture = rm.getTexture(texture_path);
 
-		auto obj = Entity::StaticObjectBuilder()
+		auto object = Entity::StaticObjectBuilder()
 			.setName(name)
 			.setPosition({x, y})
 			.setMaxHp(hp)
-			.setTexture(tex)
+			.setTexture(texture)
 			.build();
 
-		return obj;
+		return object;
 	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createCheckpoint(const json& data)

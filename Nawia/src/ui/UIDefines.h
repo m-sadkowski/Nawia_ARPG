@@ -16,7 +16,7 @@ namespace Nawia::UI {
     constexpr float MENU_SIDE_X_PCT = 0.10f;
     constexpr float MENU_START_Y_PCT = 0.42f;
     constexpr float BUTTON_WIDTH = 340.0f;
-    constexpr float BUTTON_HEIGHT = 70.0f;
+    constexpr float BUTTON_HEIGHT = 92.0f;
     constexpr float BUTTON_SPACING = 18.0f;
     constexpr float BACK_BUTTON_BOTTOM_OFFSET = 140.0f;
     constexpr float SIDEBAR_WIDTH = 280.0f;

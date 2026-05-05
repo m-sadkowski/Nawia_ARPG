@@ -1,8 +1,8 @@
 #include "DemoLevel.h"
 
 #include <Engine.h>
-#include <Map.h>
 #include <Logger.h>
+#include <Map.h>
 
 namespace Nawia::World {
 
@@ -23,19 +23,19 @@ namespace Nawia::World {
 
 		engine->getEntityManager().clearNonPlayerEntities();
 
-		// Wczytujemy spawny i pozycję gracza z JSON-a.
+		// Wczytuje spawny i pozycje gracza z JSON-a.
 		loadSpawns(engine);
 	}
 
 	void DemoLevel::changeLocation(Core::Engine* engine, const std::string& location_name) {
-		// Zmiana geometrii mapy
+		// Zmienia geometrie mapy przed przeniesieniem gracza.
 		if (location_name == "Demo Arena") {
 			_map->loadMap(DEMO_ARENA_MAP, DEMO_ARENA_SCALE);
 		} else if (location_name == "Inferno") {
 			_map->loadMap(INFERNO_MAP, INFERNO_SCALE);
 		}
 
-		// Wywołaj bazową logikę (przebudzenie/zamrożenie encji, teleport gracza)
+		// Bazowa logika budzi/zamraza encje i teleportuje gracza.
 		Level::changeLocation(engine, location_name);
 	}
 

@@ -1,14 +1,16 @@
 #include "NavMesh.h"
+
 #include <Logger.h>
-#include <raymath.h>
 
 #include <Recast.h>
 #include <DetourNavMesh.h>
 #include <DetourNavMeshBuilder.h>
 #include <DetourNavMeshQuery.h>
+#include <raymath.h>
 
-#include <cstring>
 #include <cmath>
+#include <cstring>
+#include <string>
 
 namespace Nawia::World {
 
@@ -35,85 +37,78 @@ namespace Nawia::World {
 		cleanup();
 
 		if (model.meshCount == 0) {
-			Core::Logger::errorLog("NavMesh: Cannot build from an empty model.");
+			Core::Logger::errorLog("NavMesh: nie mozna zbudowac z pustego modelu.");
 			return false;
 		}
 
-		Core::Logger::debugLog("NavMesh: Building from model with " + std::to_string(model.meshCount) + " meshes.");
+		Core::Logger::debugLog("NavMesh: budowanie z modelu, liczba meshy: " + std::to_string(model.meshCount));
 
-		// 1. Gather all vertices and indices
 		std::vector<float> verts;
 		std::vector<int> tris;
 
-		for (int m = 0; m < model.meshCount; ++m) {
-			const Mesh& mesh = model.meshes[m];
-			
-			int vertexOffset = verts.size() / 3;
+		for (int mesh_index = 0; mesh_index < model.meshCount; ++mesh_index) {
+			const Mesh& mesh = model.meshes[mesh_index];
+			const int vertex_offset = static_cast<int>(verts.size() / 3);
 
-			// Add vertices
-			for (int v = 0; v < mesh.vertexCount; ++v) {
-				Vector3 pos = {
-					mesh.vertices[v * 3 + 0],
-					mesh.vertices[v * 3 + 1],
-					mesh.vertices[v * 3 + 2]
+			for (int vertex_index = 0; vertex_index < mesh.vertexCount; ++vertex_index) {
+				Vector3 position = {
+					mesh.vertices[vertex_index * 3 + 0],
+					mesh.vertices[vertex_index * 3 + 1],
+					mesh.vertices[vertex_index * 3 + 2]
 				};
 
-				// Apply model transform
-				pos = Vector3Transform(pos, model.transform);
+				position = Vector3Transform(position, model.transform);
 
-				// Skala i offset muszą odpowiadać temu, jak mapa jest renderowana.
-				verts.push_back(pos.x * scale + offset.x);
-				verts.push_back(pos.y * scale + offset.y);
-				verts.push_back(pos.z * scale + offset.z);
+				// Skala i offset musza odpowiadac temu, jak mapa jest renderowana.
+				verts.push_back(position.x * scale + offset.x);
+				verts.push_back(position.y * scale + offset.y);
+				verts.push_back(position.z * scale + offset.z);
 			}
 
-			// Add indices
 			if (mesh.indices != nullptr) {
-				for (int i = 0; i < mesh.triangleCount * 3; i += 3) {
-					tris.push_back(vertexOffset + mesh.indices[i]);
-					tris.push_back(vertexOffset + mesh.indices[i + 1]);
-					tris.push_back(vertexOffset + mesh.indices[i + 2]);
+				for (int index = 0; index < mesh.triangleCount * 3; index += 3) {
+					tris.push_back(vertex_offset + mesh.indices[index]);
+					tris.push_back(vertex_offset + mesh.indices[index + 1]);
+					tris.push_back(vertex_offset + mesh.indices[index + 2]);
 				}
 			} else {
-				// If no indices, assume sequential triangles
-				for (int i = 0; i < mesh.vertexCount; i += 3) {
-					tris.push_back(vertexOffset + i);
-					tris.push_back(vertexOffset + i + 1);
-					tris.push_back(vertexOffset + i + 2);
+				// Mesh bez indeksow traktujemy jako kolejne trojkaty.
+				for (int index = 0; index < mesh.vertexCount; index += 3) {
+					tris.push_back(vertex_offset + index);
+					tris.push_back(vertex_offset + index + 1);
+					tris.push_back(vertex_offset + index + 2);
 				}
 			}
 		}
 
-		int nverts = verts.size() / 3;
-		int ntris = tris.size() / 3;
+		const int nverts = static_cast<int>(verts.size() / 3);
+		const int ntris = static_cast<int>(tris.size() / 3);
 
 		if (nverts == 0 || ntris == 0) {
-			Core::Logger::errorLog("NavMesh: No geometry found.");
+			Core::Logger::errorLog("NavMesh: nie znaleziono geometrii.");
 			return false;
 		}
 
-		// Calculate bounds
-		float bmin[3] = { verts[0], verts[1], verts[2] };
-		float bmax[3] = { verts[0], verts[1], verts[2] };
-		for (int i = 1; i < nverts; ++i) {
-			const float* v = &verts[i * 3];
-			rcVmin(bmin, v);
-			rcVmax(bmax, v);
+		float bmin[3] = {verts[0], verts[1], verts[2]};
+		float bmax[3] = {verts[0], verts[1], verts[2]};
+		for (int vertex_index = 1; vertex_index < nverts; ++vertex_index) {
+			const float* vertex = &verts[vertex_index * 3];
+			rcVmin(bmin, vertex);
+			rcVmax(bmax, vertex);
 		}
 
-		// 2. Initialize Recast configuration
 		rcConfig cfg;
 		memset(&cfg, 0, sizeof(cfg));
-		cfg.cs = 0.3f;          // Cell size
-		cfg.ch = 0.2f;          // Cell height
-		cfg.walkableSlopeAngle = 45.0f; // Standard slope for smoother ground navigation
-		cfg.walkableHeight = (int)ceilf(1.5f / cfg.ch); // Allow lower ceilings
-		cfg.walkableClimb = (int)floorf(1.0f / cfg.ch); // Allow higher steps
-		cfg.walkableRadius = (int)ceilf(0.3f / cfg.cs); // Allow narrower gaps
-		cfg.maxEdgeLen = (int)(12.0f / cfg.cs);
+		cfg.cs = 0.3f;
+		cfg.ch = 0.2f;
+		cfg.walkableSlopeAngle = 45.0f;
+		cfg.walkableHeight = static_cast<int>(ceilf(1.5f / cfg.ch));
+		cfg.walkableClimb = static_cast<int>(floorf(1.0f / cfg.ch));
+		cfg.walkableRadius = static_cast<int>(ceilf(0.3f / cfg.cs));
+		cfg.maxEdgeLen = static_cast<int>(12.0f / cfg.cs);
 		cfg.maxSimplificationError = 1.3f;
-		cfg.minRegionArea = (int)rcSqr(8);      // Note: area = size*size
-		cfg.mergeRegionArea = (int)rcSqr(20);   // Note: area = size*size
+		cfg.minRegionArea = static_cast<int>(rcSqr(8));
+		cfg.mergeRegionArea = static_cast<int>(rcSqr(20));
 		cfg.maxVertsPerPoly = 6;
 		cfg.detailSampleDist = 6.0f < 0.9f ? 0 : cfg.cs * 6.0f;
 		cfg.detailSampleMaxError = 1.0f;
@@ -124,76 +119,65 @@ namespace Nawia::World {
 
 		rcContext ctx;
 
-		// 3. Rasterize input polygon soup
 		rcHeightfield* solid = rcAllocHeightfield();
 		if (!rcCreateHeightfield(&ctx, *solid, cfg.width, cfg.height, cfg.bmin, cfg.bmax, cfg.cs, cfg.ch)) {
-			Core::Logger::errorLog("NavMesh: Could not create solid heightfield.");
+			Core::Logger::errorLog("NavMesh: nie udalo sie stworzyc heightfield.");
 			return false;
 		}
 
-		// Allocate and populate triangle areas
-		unsigned char* triareas = new unsigned char[ntris];
-		memset(triareas, 0, ntris);
-		rcMarkWalkableTriangles(&ctx, cfg.walkableSlopeAngle, verts.data(), nverts, tris.data(), ntris, triareas);
-		if (!rcRasterizeTriangles(&ctx, verts.data(), nverts, tris.data(), triareas, ntris, *solid, cfg.walkableClimb)) {
-			Core::Logger::errorLog("NavMesh: Could not rasterize triangles.");
-			delete[] triareas;
+		std::vector<unsigned char> triangle_areas(ntris, 0);
+		rcMarkWalkableTriangles(&ctx, cfg.walkableSlopeAngle, verts.data(), nverts, tris.data(), ntris, triangle_areas.data());
+		if (!rcRasterizeTriangles(&ctx, verts.data(), nverts, tris.data(), triangle_areas.data(), ntris, *solid, cfg.walkableClimb)) {
+			Core::Logger::errorLog("NavMesh: nie udalo sie zrasteryzowac trojkatow.");
 			return false;
 		}
-		delete[] triareas;
 
-		// 4. Filter walkables surfaces
 		rcFilterLowHangingWalkableObstacles(&ctx, cfg.walkableClimb, *solid);
 		rcFilterLedgeSpans(&ctx, cfg.walkableHeight, cfg.walkableClimb, *solid);
 		rcFilterWalkableLowHeightSpans(&ctx, cfg.walkableHeight, *solid);
 
-		// 5. Partition walkable surface to simple regions
 		rcCompactHeightfield* chf = rcAllocCompactHeightfield();
 		if (!rcBuildCompactHeightfield(&ctx, cfg.walkableHeight, cfg.walkableClimb, *solid, *chf)) {
-			Core::Logger::errorLog("NavMesh: Could not build compact data.");
+			Core::Logger::errorLog("NavMesh: nie udalo sie zbudowac compact heightfield.");
 			return false;
 		}
 		rcFreeHeightField(solid);
 
 		if (!rcErodeWalkableArea(&ctx, cfg.walkableRadius, *chf)) {
-			Core::Logger::errorLog("NavMesh: Could not erode.");
+			Core::Logger::errorLog("NavMesh: nie udalo sie zwezyc obszaru chodzenia.");
 			return false;
 		}
 
 		if (!rcBuildDistanceField(&ctx, *chf)) {
-			Core::Logger::errorLog("NavMesh: Could not build distance field.");
+			Core::Logger::errorLog("NavMesh: nie udalo sie zbudowac distance field.");
 			return false;
 		}
 
 		if (!rcBuildRegions(&ctx, *chf, 0, cfg.minRegionArea, cfg.mergeRegionArea)) {
-			Core::Logger::errorLog("NavMesh: Could not build regions.");
+			Core::Logger::errorLog("NavMesh: nie udalo sie zbudowac regionow.");
 			return false;
 		}
 
-		// 6. Trace and simplify region contours
 		rcContourSet* cset = rcAllocContourSet();
 		if (!rcBuildContours(&ctx, *chf, cfg.maxSimplificationError, cfg.maxEdgeLen, *cset)) {
-			Core::Logger::errorLog("NavMesh: Could not create contours.");
+			Core::Logger::errorLog("NavMesh: nie udalo sie stworzyc konturow.");
 			return false;
 		}
 
-		// 7. Build polygons mesh from contours
 		rcPolyMesh* pmesh = rcAllocPolyMesh();
 		if (!rcBuildPolyMesh(&ctx, *cset, cfg.maxVertsPerPoly, *pmesh)) {
-			Core::Logger::errorLog("NavMesh: Could not triangulate contours.");
+			Core::Logger::errorLog("NavMesh: nie udalo sie zbudowac poly mesh.");
 			return false;
 		}
 
-		// 8. Create detail mesh
 		rcPolyMeshDetail* dmesh = rcAllocPolyMeshDetail();
 		if (!rcBuildPolyMeshDetail(&ctx, *pmesh, *chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *dmesh)) {
-			Core::Logger::errorLog("NavMesh: Could not build detail mesh.");
+			Core::Logger::errorLog("NavMesh: nie udalo sie zbudowac detail mesh.");
 			return false;
 		}
 		rcFreeCompactHeightfield(chf);
 		rcFreeContourSet(cset);
 
-		// 9. Create Detour data
 		dtNavMeshCreateParams params;
 		memset(&params, 0, sizeof(params));
 		params.verts = pmesh->verts;
@@ -217,43 +201,43 @@ namespace Nawia::World {
 		params.ch = cfg.ch;
 		params.buildBvTree = true;
 
-		// For all polys, set flags to 1 so they are considered walkable
-		for (int i = 0; i < pmesh->npolys; ++i) {
-			pmesh->flags[i] = 1;
+		// Wszystkie poligony zbudowane przez Recast traktujemy jako chodliwe.
+		for (int poly_index = 0; poly_index < pmesh->npolys; ++poly_index) {
+			pmesh->flags[poly_index] = 1;
 		}
 
-		unsigned char* navData = 0;
-		int navDataSize = 0;
-		if (!dtCreateNavMeshData(&params, &navData, &navDataSize)) {
-			Core::Logger::errorLog("NavMesh: Could not build Detour navmesh.");
+		unsigned char* nav_data = 0;
+		int nav_data_size = 0;
+		if (!dtCreateNavMeshData(&params, &nav_data, &nav_data_size)) {
+			Core::Logger::errorLog("NavMesh: nie udalo sie zbudowac danych Detour.");
 			return false;
 		}
 
 		_navMesh = dtAllocNavMesh();
 		if (!_navMesh) {
-			Core::Logger::errorLog("NavMesh: Could not allocate Detour navmesh.");
-			dtFree(navData);
+			Core::Logger::errorLog("NavMesh: nie udalo sie zaalokowac Detour navmesh.");
+			dtFree(nav_data);
 			return false;
 		}
 
-		dtStatus status = _navMesh->init(navData, navDataSize, DT_TILE_FREE_DATA);
+		dtStatus status = _navMesh->init(nav_data, nav_data_size, DT_TILE_FREE_DATA);
 		if (dtStatusFailed(status)) {
-			Core::Logger::errorLog("NavMesh: Could not init Detour navmesh.");
-			dtFree(navData);
+			Core::Logger::errorLog("NavMesh: nie udalo sie zainicjalizowac Detour navmesh.");
+			dtFree(nav_data);
 			return false;
 		}
 
 		_navQuery = dtAllocNavMeshQuery();
 		status = _navQuery->init(_navMesh, 2048);
 		if (dtStatusFailed(status)) {
-			Core::Logger::errorLog("NavMesh: Could not init Detour navmesh query.");
+			Core::Logger::errorLog("NavMesh: nie udalo sie zainicjalizowac zapytan Detour.");
 			return false;
 		}
 
 		rcFreePolyMesh(pmesh);
 		rcFreePolyMeshDetail(dmesh);
 
-		Core::Logger::debugLog("NavMesh: Successfully built! Polys: " + std::to_string(params.polyCount));
+		Core::Logger::debugLog("NavMesh: zbudowano pomyslnie. Poligony: " + std::to_string(params.polyCount));
 		return true;
 	}
 
@@ -264,17 +248,17 @@ namespace Nawia::World {
 		filter.setIncludeFlags(0xffff);
 		filter.setExcludeFlags(0);
 
-		float extents[3] = { 2.0f, 100.0f, 2.0f }; // Huge Y extent to snap 2D positions to 3D terrain
-		float center[3] = { pos.x, pos.y, pos.z };
+		float extents[3] = {2.0f, 100.0f, 2.0f}; // Duzy zasieg Y sciaga pozycje 2D na teren.
+		float center[3] = {pos.x, pos.y, pos.z};
 
-		dtPolyRef nearestRef = 0;
-		float nearestPt[3];
-		_navQuery->findNearestPoly(center, extents, &filter, &nearestRef, nearestPt);
+		dtPolyRef nearest_ref = 0;
+		float nearest_point[3];
+		_navQuery->findNearestPoly(center, extents, &filter, &nearest_ref, nearest_point);
 
-		if (nearestRef) {
-			return { nearestPt[0], nearestPt[1], nearestPt[2] };
+		if (nearest_ref) {
+			return {nearest_point[0], nearest_point[1], nearest_point[2]};
 		}
-		return pos; // Fallback
+		return pos;
 	}
 
 	std::vector<Vector2> NavMesh::findPath(Vector3 start, Vector3 end) const {
@@ -284,63 +268,64 @@ namespace Nawia::World {
 		filter.setIncludeFlags(0xffff);
 		filter.setExcludeFlags(0);
 
-		float extents[3] = { 2.0f, 100.0f, 2.0f }; // Huge Y extent
-		
-		float startPos[3] = { start.x, start.y, start.z }; 
-		float endPos[3] = { end.x, end.y, end.z };
+		float extents[3] = {2.0f, 100.0f, 2.0f};
 
-		dtPolyRef startRef, endRef;
-		float startPt[3], endPt[3];
+		float start_pos[3] = {start.x, start.y, start.z};
+		float end_pos[3] = {end.x, end.y, end.z};
 
-		_navQuery->findNearestPoly(startPos, extents, &filter, &startRef, startPt);
-		_navQuery->findNearestPoly(endPos, extents, &filter, &endRef, endPt);
+		dtPolyRef start_ref = 0;
+		dtPolyRef end_ref = 0;
+		float start_point[3], end_point[3];
 
-		if (!startRef || !endRef) {
-			Core::Logger::debugLog("NavMesh::findPath - Failed to find startRef (" + std::to_string(startRef) + ") or endRef (" + std::to_string(endRef) + ")");
+		_navQuery->findNearestPoly(start_pos, extents, &filter, &start_ref, start_point);
+		_navQuery->findNearestPoly(end_pos, extents, &filter, &end_ref, end_point);
+
+		if (!start_ref || !end_ref) {
+			Core::Logger::debugLog("NavMesh::findPath - nie znaleziono start_ref (" +
+				std::to_string(start_ref) + ") albo end_ref (" + std::to_string(end_ref) + ")");
 			return {};
 		}
 
 		dtPolyRef path[256];
-		int pathCount = 0;
-		_navQuery->findPath(startRef, endRef, startPt, endPt, &filter, path, &pathCount, 256);
+		int path_count = 0;
+		_navQuery->findPath(start_ref, end_ref, start_point, end_point, &filter, path, &path_count, 256);
 
-		// Only accept the path if it reaches the destination polygon
-		if (pathCount > 0 && path[pathCount - 1] == endRef) {
-			float straightPath[256 * 3];
-			unsigned char straightPathFlags[256];
-			dtPolyRef straightPathPolys[256];
-			int straightPathCount = 0;
+		// Akceptujemy tylko sciezke, ktora dochodzi do poligonu celu.
+		if (path_count > 0 && path[path_count - 1] == end_ref) {
+			float straight_path[256 * 3];
+			unsigned char straight_path_flags[256];
+			dtPolyRef straight_path_polys[256];
+			int straight_path_count = 0;
 
-			_navQuery->findStraightPath(startPt, endPt, path, pathCount,
-				straightPath, straightPathFlags, straightPathPolys, &straightPathCount, 256);
+			_navQuery->findStraightPath(start_point, end_point, path, path_count,
+				straight_path, straight_path_flags, straight_path_polys, &straight_path_count, 256);
 
-			if (straightPathCount > 0) {
-				// Final check on the XZ plane only.
-				// Large height differences are valid on reachable hills and stairs,
-				// so using full 3D distance rejects good paths to elevated points.
-				float lx = straightPath[(straightPathCount - 1) * 3 + 0];
-				float lz = straightPath[(straightPathCount - 1) * 3 + 2];
-				float dx = lx - end.x;
-				float dz = lz - end.z;
-				float horizontal_dist_sq = dx * dx + dz * dz;
+			if (straight_path_count > 0) {
+				// Koncowy test robimy po XZ, bo wysokosc na wzgorzach moze byc poprawna.
+				const float last_x = straight_path[(straight_path_count - 1) * 3 + 0];
+				const float last_z = straight_path[(straight_path_count - 1) * 3 + 2];
+				const float dx = last_x - end.x;
+				const float dz = last_z - end.z;
+				const float horizontal_distance_sq = dx * dx + dz * dz;
 
-				if (horizontal_dist_sq > k_max_path_end_distance_sq) {
+				if (horizontal_distance_sq > k_max_path_end_distance_sq) {
 					Core::Logger::debugLog(
-						"NavMesh::findPath - Path ends too far from click on XZ plane (" +
-						std::to_string(std::sqrt(horizontal_dist_sq)) + "m), rejecting.");
+						"NavMesh::findPath - sciezka konczy sie za daleko od celu po XZ (" +
+						std::to_string(std::sqrt(horizontal_distance_sq)) + "m), odrzucono.");
 					return {};
 				}
 
 				std::vector<Vector2> result;
-				for (int i = 0; i < straightPathCount; ++i) {
-					result.push_back({ straightPath[i * 3], straightPath[i * 3 + 2] });
+				for (int point_index = 0; point_index < straight_path_count; ++point_index) {
+					result.push_back({straight_path[point_index * 3], straight_path[point_index * 3 + 2]});
 				}
-				Core::Logger::debugLog("NavMesh::findPath - Found complete path with " + std::to_string(straightPathCount) + " points");
+				Core::Logger::debugLog("NavMesh::findPath - znaleziono sciezke, punkty: " +
+					std::to_string(straight_path_count));
 				return result;
 			}
 		}
 
-		Core::Logger::debugLog("NavMesh::findPath - Path incomplete or destination unreachable");
+		Core::Logger::debugLog("NavMesh::findPath - sciezka niepelna albo cel nieosiagalny");
 		return {};
 	}
 

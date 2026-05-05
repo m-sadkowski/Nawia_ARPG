@@ -4,9 +4,9 @@
 
 #include <json.hpp>
 
-#include <fstream>
-#include <filesystem>
 #include <array>
+#include <filesystem>
+#include <fstream>
 
 namespace Nawia::Core::System::Renderer {
 
@@ -43,11 +43,9 @@ namespace Nawia::Core::System::Renderer {
 	void LightingSystem::initialize() {
 		_shader = LoadShader("assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
 		
-		// Get some required shader locations
 		_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(_shader, "viewPos");
 		_view_position_location = _shader.locs[SHADER_LOC_VECTOR_VIEW];
 		
-		// Ambient light level (some basic lighting)
 		_ambient_location = GetShaderLocation(_shader, "ambient");
 		setAmbientColor(k_default_ambient_color);
 
@@ -111,6 +109,7 @@ namespace Nawia::Core::System::Renderer {
 
 	void LightingSystem::loadLightingFromJson(const std::string& filepath) {
 		if (!std::filesystem::exists(filepath)) return;
+
 		std::ifstream file(filepath);
 		if (!file.is_open())
 			return;
@@ -143,7 +142,6 @@ namespace Nawia::Core::System::Renderer {
 		if (!_is_initialized)
 			return;
 
-		// Update view position
 		const auto camera_position = toShaderVec3(camera.position);
 		SetShaderValue(_shader, _view_position_location, camera_position.data(), SHADER_UNIFORM_VEC3);
 	}

@@ -1,39 +1,27 @@
 #include "ResourceManager.h"
-#include "Logger.h"
 
-#include <iostream>
+#include <Logger.h>
 
 namespace Nawia::Core {
 
-	std::shared_ptr<Texture2D> ResourceManager::getTexture(const std::string& filename) 
-	{
-		// if texture is already loaded, return it
-		// if not, load it from file
-		const auto texture = _textures.find(filename);
-		if (texture != _textures.end())
-			return texture->second;
+	std::shared_ptr<Texture2D> ResourceManager::getTexture(const std::string& filename) {
+		const auto cached_texture = _textures.find(filename);
+		if (cached_texture != _textures.end())
+			return cached_texture->second;
 
-		// load texture using raylib
-		const Texture2D tex = LoadTexture(filename.c_str());
-
-		if (tex.id == 0) {
-			Logger::errorLog("Resource Manager - could not load texture: " + filename);
+		const Texture2D texture = LoadTexture(filename.c_str());
+		if (texture.id == 0) {
+			Logger::errorLog("ResourceManager: nie udalo sie zaladowac tekstury: " + filename);
 			return nullptr;
 		}
 
-		// Logger::debugLog("Resource Manager - loaded file: " + filename);
+		std::shared_ptr<Texture2D> loaded_texture(new Texture2D(texture), [](const Texture2D* texture_to_unload) {
+			UnloadTexture(*texture_to_unload);
+			delete texture_to_unload;
+		});
 
-		// create a shared_ptr to put in map, custom deleter calls UnloadTexture
-		std::shared_ptr<Texture2D> new_texture(new Texture2D(tex), [](const Texture2D *t) 
-			{
-				UnloadTexture(*t);
-				delete t;
-				// Logger::debugLog("Resource Manager - removed resource.");
-			}
-		);
-
-		_textures[filename] = new_texture;
-		return new_texture;
+		_textures[filename] = loaded_texture;
+		return loaded_texture;
 	}
 
 } // namespace Nawia::Core

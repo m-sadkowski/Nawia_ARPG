@@ -6,13 +6,18 @@
 
 namespace Nawia::UI {
 
+    /** @brief Zwraca czesc ulamkowa liczby. */
     inline float fract(float v) { return v - std::floor(v); }
+
+    /** @brief Tworzy deterministyczna wartosc pseudolosowa z zakresu 0..1. */
     inline float hash01(float s) { return fract(std::sin(s * 127.1f) * 43758.5453f); }
-    
+
+    /** @brief Zwraca kolor z podmieniona przezroczystoscia. */
     inline Color withAlpha(Color c, float a) { 
         return { c.r, c.g, c.b, static_cast<unsigned char>(std::clamp(a, 0.0f, 1.0f) * 255.0f) }; 
     }
-    
+
+    /** @brief Interpoluje liniowo dwa kolory. */
     inline Color LerpColor(Color c1, Color c2, float t) {
         return {
             static_cast<unsigned char>(c1.r + (c2.r - c1.r) * t),

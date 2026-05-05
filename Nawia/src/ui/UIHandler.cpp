@@ -21,6 +21,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <string>
 
 namespace Nawia::UI
 {
@@ -69,6 +71,18 @@ namespace Nawia::UI
             }
 
             return button_rectangles;
+        }
+
+        /**
+         * @brief Wlacza lagodniejsze skalowanie tekstury UI.
+         */
+        void smoothUiTexture(const std::shared_ptr<Texture2D>& texture)
+        {
+            if (!texture || texture->id <= 0)
+                return;
+
+            GenTextureMipmaps(texture.get());
+            SetTextureFilter(*texture, TEXTURE_FILTER_TRILINEAR);
         }
 
         void drawParticlesFx(float width, float height, float time)
@@ -122,13 +136,25 @@ namespace Nawia::UI
         SetTextureFilter(_font.texture, TEXTURE_FILTER_TRILINEAR);
 
         _main_menu_background = resource_manager.getTexture("assets/textures/main_menu.png");
+        smoothUiTexture(_main_menu_background);
+        _menu_btn_idle = resource_manager.getTexture("assets/textures/ui/button.png");
+        smoothUiTexture(_menu_btn_idle);
+        _ability_bar_frame = resource_manager.getTexture("assets/textures/ui/ability_bar.png");
+        _hp_orb_frame = resource_manager.getTexture("assets/textures/ui/hp_orb.png");
+        _level_orb_frame = resource_manager.getTexture("assets/textures/ui/level_orb.png");
+        smoothUiTexture(_ability_bar_frame);
+        smoothUiTexture(_hp_orb_frame);
+        smoothUiTexture(_level_orb_frame);
         
         _inventory_ui = std::make_unique<InventoryUI>();
         _inventory_ui->loadResources(resource_manager);
         
         _chest_ui = std::make_unique<ChestUI>();
+        _chest_ui->loadResources(resource_manager);
         _stats_ui = std::make_unique<StatsUI>(_player);
+        _stats_ui->loadResources(resource_manager);
         _quest_ui = std::make_unique<QuestUI>();
+        _quest_ui->loadResources(resource_manager);
         
         _previous_hp = _player ? _player->getHP() : 0;
         _visual_hp_percent = 1.0f;
@@ -215,9 +241,10 @@ namespace Nawia::UI
 
     void UIHandler::drawMenuButtonsStack(const std::vector<MenuButtonDef>& buttons, const std::vector<Rectangle>& rectangles) const
     {
+        const Vector2 mouse_position = GetMousePosition();
         for (size_t i = 0; i < buttons.size(); ++i)
         {
-            const float hover_progress = (i < _hover_timers.size()) ? _hover_timers[i] : 0.0f;
+            const float hover_progress = CheckCollisionPointRec(mouse_position, rectangles[i]) ? 1.0f : 0.0f;
             drawMenuButton(rectangles[i], buttons[i].label, hover_progress);
         }
     }
@@ -300,8 +327,8 @@ namespace Nawia::UI
         const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT);
         const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
         
-        const float hover_progress = _hover_timers.empty() ? 0.0f : _hover_timers[0];
-        drawMenuButton({ (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height }, LABEL_BACK, hover_progress);
+        const Rectangle back_button_rect = { (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height };
+        drawMenuButton(back_button_rect, LABEL_BACK, CheckCollisionPointRec(GetMousePosition(), back_button_rect) ? 1.0f : 0.0f);
     }
 
     MenuAction UIHandler::handleMenuInput()
@@ -340,23 +367,45 @@ namespace Nawia::UI
 
     void UIHandler::drawMenuButton(const Rectangle& rectangle, const char* text, float hover_progress) const
     {
-        DrawRectangleRec(rectangle, withAlpha(COLOR_PANEL_BG, 0.45f + hover_progress * 0.35f));
-        
-        const Color border_color = LerpColor(withAlpha(WHITE, 0.35f), withAlpha(COLOR_ACCENT, 0.9f), hover_progress);
-        DrawRectangleLinesEx(rectangle, Core::GlobalScaling::scaled(2.0f), border_color);
-        
-        if (hover_progress > 0.01f)
-            DrawRectangleGradientV(static_cast<int>(rectangle.x), static_cast<int>(rectangle.y), static_cast<int>(rectangle.width), static_cast<int>(rectangle.height), withAlpha(WHITE, 0.06f * hover_progress), withAlpha(WHITE, 0.0f));
+        static std::map<std::string, float> button_hover_progress;
+
+        const std::string button_key = TextFormat("%s:%.0f:%.0f:%.0f:%.0f", text, rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+        const float target_hover = hover_progress > 0.01f ? 1.0f : 0.0f;
+        float& visual_hover = button_hover_progress[button_key];
+        const float animation_speed = target_hover > visual_hover ? 9.0f : 6.0f;
+        visual_hover += (target_hover - visual_hover) * std::min(1.0f, GetFrameTime() * animation_speed);
+
+        if (_menu_btn_idle && _menu_btn_idle->id > 0)
+        {
+            DrawTexturePro(
+                *_menu_btn_idle,
+                { 0.0f, 0.0f, static_cast<float>(_menu_btn_idle->width), static_cast<float>(_menu_btn_idle->height) },
+                rectangle,
+                { 0.0f, 0.0f },
+                0.0f,
+                WHITE);
+
+        }
+        else
+        {
+            DrawRectangleRec(rectangle, withAlpha(COLOR_PANEL_BG, 0.45f + visual_hover * 0.35f));
+
+            const Color border_color = LerpColor(withAlpha(WHITE, 0.35f), withAlpha(COLOR_ACCENT, 0.9f), visual_hover);
+            DrawRectangleLinesEx(rectangle, Core::GlobalScaling::scaled(2.0f), border_color);
+
+            if (visual_hover > 0.01f)
+                DrawRectangleGradientV(static_cast<int>(rectangle.x), static_cast<int>(rectangle.y), static_cast<int>(rectangle.width), static_cast<int>(rectangle.height), withAlpha(WHITE, 0.06f * visual_hover), withAlpha(WHITE, 0.0f));
+        }
         
         const float button_font_size = Core::GlobalScaling::scaled(FONT_SIZE_BUTTON);
         const Vector2 text_size = MeasureTextEx(_font, text, button_font_size, 2.0f);
         const Vector2 text_position = { 
-            rectangle.x + (rectangle.width - text_size.x) / 2.0f + hover_progress * Core::GlobalScaling::scaled(12.0f), 
+            rectangle.x + (rectangle.width - text_size.x) / 2.0f + visual_hover * Core::GlobalScaling::scaled(12.0f),
             rectangle.y + (rectangle.height - text_size.y) / 2.0f 
         };
         
         DrawTextEx(_font, text, { text_position.x + 2, text_position.y + 2 }, button_font_size, 2.0f, withAlpha(BLACK, 0.5f));
-        DrawTextEx(_font, text, text_position, button_font_size, 2.0f, LerpColor(withAlpha(WHITE, 0.95f), COLOR_GOLDEN_TEXT, hover_progress));
+        DrawTextEx(_font, text, text_position, button_font_size, 2.0f, LerpColor(withAlpha(WHITE, 0.95f), WHITE, visual_hover));
     }
 
     void UIHandler::drawSharedMenuBackground() const
@@ -437,10 +486,16 @@ namespace Nawia::UI
         if (_is_inventory_open)
         {
             _inventory_ui->render(_font, *_player);
-            if (_stats_ui)
-                _stats_ui->render(Core::GlobalScaling::scaled(50.0f), static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(220.0f + 50.0f), _font);
             if (_current_container)
+            {
                 _chest_ui->render(*_current_container->getInventory(), _font);
+                if (_stats_ui)
+                    _stats_ui->render(Core::GlobalScaling::scaled(50.0f), Core::GlobalScaling::scaled(610.0f), _font);
+            }
+            else if (_stats_ui)
+            {
+                _stats_ui->render(Core::GlobalScaling::scaled(50.0f), Core::GlobalScaling::scaled(610.0f), _font);
+            }
         }
         
         if (_is_quest_ui_open)
@@ -512,7 +567,7 @@ namespace Nawia::UI
             toggleInventory();
         }
         
-        if (IsKeyPressed(KEY_P)) toggleQuestUI();
+        if (IsKeyPressed(KEY_P) && !_current_container) toggleQuestUI();
         if (_is_quest_ui_open) _quest_ui->handleInput();
         
         if (_is_inventory_open)
@@ -544,7 +599,7 @@ namespace Nawia::UI
         }
     }
 
-    void UIHandler::drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text) const
+    void UIHandler::drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text, const std::shared_ptr<Texture2D>& frame_texture) const
     {
         // Zewnętrzna poświata.
         DrawCircleGradient(static_cast<int>(center_x), static_cast<int>(center_y), radius + Core::GlobalScaling::scaled(6.0f), withAlpha(fill_dark, 0.25f * target_percent), withAlpha(BLACK, 0.0f));
@@ -584,8 +639,28 @@ namespace Nawia::UI
         DrawCircleGradient(static_cast<int>(center_x - radius * 0.3f), static_cast<int>(center_y - radius * 0.3f), radius * 0.55f, withAlpha(WHITE, 0.12f), withAlpha(WHITE, 0.0f));
         
         // Pierścień obramowania.
-        DrawCircleLinesV({ center_x, center_y }, radius, withAlpha(COLOR_ACCENT, 0.6f));
-        DrawCircleLinesV({ center_x, center_y }, radius + 1.0f, withAlpha(BLACK, 0.4f));
+        if (frame_texture && frame_texture->id > 0)
+        {
+            const float frame_size = radius * 2.9f;
+            const Rectangle frame_destination = {
+                center_x - frame_size / 2.0f,
+                center_y - frame_size / 2.0f,
+                frame_size,
+                frame_size
+            };
+            DrawTexturePro(
+                *frame_texture,
+                { 0.0f, 0.0f, static_cast<float>(frame_texture->width), static_cast<float>(frame_texture->height) },
+                frame_destination,
+                { 0.0f, 0.0f },
+                0.0f,
+                WHITE);
+        }
+        else
+        {
+            DrawCircleLinesV({ center_x, center_y }, radius, withAlpha(COLOR_ACCENT, 0.6f));
+            DrawCircleLinesV({ center_x, center_y }, radius + 1.0f, withAlpha(BLACK, 0.4f));
+        }
         
         // Tekst.
         const float font_size = Core::GlobalScaling::scaled(18.0f);
@@ -598,15 +673,13 @@ namespace Nawia::UI
     {
         const float screen_width = static_cast<float>(GetScreenWidth());
         const float screen_height = static_cast<float>(GetScreenHeight());
-        const float icon_size = Core::GlobalScaling::scaled(ABILITY_ICON_SIZE);
-        const float icon_spacing = Core::GlobalScaling::scaled(ABILITY_SPACING);
-        const float total_ability_width = (icon_size * 4) + (icon_spacing * 3);
-        const float ability_start_x = (screen_width - total_ability_width) / 2.0f;
-        const float ability_center_y = screen_height - Core::GlobalScaling::scaled(140.0f) + icon_size / 2.0f;
-        
-        const float orb_radius = Core::GlobalScaling::scaled(38.0f);
-        const float orb_gap = Core::GlobalScaling::scaled(18.0f);
-        const float orb_center_x = ability_start_x - orb_gap - orb_radius;
+        const float ability_frame_width = Core::GlobalScaling::scaled(520.0f);
+        const float ability_frame_x = (screen_width - ability_frame_width) / 2.0f;
+        const float ability_center_y = screen_height - Core::GlobalScaling::scaled(126.0f) + Core::GlobalScaling::scaled(55.0f);
+
+        const float orb_radius = Core::GlobalScaling::scaled(39.0f);
+        const float orb_gap = Core::GlobalScaling::scaled(12.0f);
+        const float orb_center_x = ability_frame_x - orb_gap - orb_radius;
         const float orb_center_y = ability_center_y;
         
         const int display_hp = _player->isDying() ? 0 : _player->getHP();
@@ -618,7 +691,7 @@ namespace Nawia::UI
         const Color orb_bg = { 20, 12, 12, 240 };
         
         const char* health_text = TextFormat("%d HP", display_hp);
-        drawOrb(orb_center_x, orb_center_y, orb_radius, target_hp, _visual_hp_percent, 2.5f, orb_fill_bright, orb_fill_dark, orb_bg, health_text);
+        drawOrb(orb_center_x, orb_center_y, orb_radius, target_hp, _visual_hp_percent, 2.5f, orb_fill_bright, orb_fill_dark, orb_bg, health_text, _hp_orb_frame);
     }
 
     void UIHandler::renderCombatEntityHealthBars(const Core::GameCamera& camera) const
@@ -649,19 +722,25 @@ namespace Nawia::UI
     void UIHandler::renderPlayerAbilityBar() const
     {
         const auto& abilities = _player->getAbilities();
-        const float icon_size = Core::GlobalScaling::scaled(ABILITY_ICON_SIZE);
-        const float icon_spacing = Core::GlobalScaling::scaled(ABILITY_SPACING);
-        const float total_width = (icon_size * 4) + (icon_spacing * 3);
-        const float start_x = (static_cast<float>(GetScreenWidth()) - total_width) / 2.0f;
-        const float start_y = static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(140.0f);
-        
+        const float frame_width = Core::GlobalScaling::scaled(520.0f);
+        const float frame_height = Core::GlobalScaling::scaled(111.0f);
+        const float frame_x = (static_cast<float>(GetScreenWidth()) - frame_width) / 2.0f;
+        const float frame_y = static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(126.0f);
+        const float icon_size = frame_height * 0.55f;
+
+        const float slot_center_ratios[] = { 0.247f, 0.370f, 0.630f, 0.753f };
+        const float slot_center_y = frame_y + frame_height * 0.53f;
+
         for (int i = 0; i < 4; ++i)
         {
-            const float pos_x = start_x + (icon_size + icon_spacing) * i;
+            const float pos_x = frame_x + frame_width * slot_center_ratios[i] - icon_size / 2.0f - Core::GlobalScaling::scaled(4.0f);
+            const float start_y = slot_center_y - icon_size / 2.0f;
             const Rectangle icon_rectangle = { pos_x, start_y, icon_size, icon_size };
             
-            DrawRectangleRec(icon_rectangle, withAlpha(BLACK, 0.5f));
-            DrawRectangleLinesEx(icon_rectangle, 2.0f, DARKGRAY);
+            if (!_ability_bar_frame || _ability_bar_frame->id <= 0)
+            {
+                DrawRectangleRec(icon_rectangle, withAlpha(BLACK, 0.5f));
+            }
             
             if (static_cast<size_t>(i) >= abilities.size())
                 continue;
@@ -675,12 +754,33 @@ namespace Nawia::UI
             
             if (!ability->isReady())
             {
-				const float cooldown_ratio = ability->getCooldownRatio();
+                const float cooldown_ratio = ability->getCooldownRatio();
                 DrawRectangle(static_cast<int>(pos_x), static_cast<int>(start_y), static_cast<int>(icon_size), static_cast<int>(icon_size * cooldown_ratio), withAlpha(GRAY, 0.8f));
                 
                 const char* cd_text = TextFormat("%.1f", ability->getCooldownTimer());
-                const Vector2 text_size = MeasureTextEx(_font, cd_text, 20.0f, 1.0f);
-                DrawTextEx(_font, cd_text, { pos_x + (icon_size - text_size.x) / 2.0f, start_y + (icon_size - text_size.y) / 2.0f }, 20.0f, 1.0f, WHITE);
+                const float cooldown_font_size = Core::GlobalScaling::scaled(18.0f);
+                const Vector2 text_size = MeasureTextEx(_font, cd_text, cooldown_font_size, 1.0f);
+                DrawTextEx(_font, cd_text, { pos_x + (icon_size - text_size.x) / 2.0f, start_y + (icon_size - text_size.y) / 2.0f }, cooldown_font_size, 1.0f, WHITE);
+            }
+        }
+
+        if (_ability_bar_frame && _ability_bar_frame->id > 0)
+        {
+            DrawTexturePro(
+                *_ability_bar_frame,
+                { 0.0f, 0.0f, static_cast<float>(_ability_bar_frame->width), static_cast<float>(_ability_bar_frame->height) },
+                { frame_x, frame_y, frame_width, frame_height },
+                { 0.0f, 0.0f },
+                0.0f,
+                WHITE);
+        }
+        else
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                const float pos_x = frame_x + frame_width * slot_center_ratios[i] - icon_size / 2.0f - Core::GlobalScaling::scaled(4.0f);
+                const float start_y = slot_center_y - icon_size / 2.0f;
+                DrawRectangleLinesEx({ pos_x, start_y, icon_size, icon_size }, 2.0f, DARKGRAY);
             }
         }
     }
@@ -689,24 +789,22 @@ namespace Nawia::UI
     {
         const float screen_width = static_cast<float>(GetScreenWidth());
         const float screen_height = static_cast<float>(GetScreenHeight());
-        const float icon_size = Core::GlobalScaling::scaled(ABILITY_ICON_SIZE);
-        const float icon_spacing = Core::GlobalScaling::scaled(ABILITY_SPACING);
-        const float total_ability_width = (icon_size * 4) + (icon_spacing * 3);
-        const float ability_end_x = (screen_width + total_ability_width) / 2.0f;
-        const float ability_center_y = screen_height - Core::GlobalScaling::scaled(140.0f) + icon_size / 2.0f;
-        
-        const float orb_radius = Core::GlobalScaling::scaled(38.0f);
-        const float orb_gap = Core::GlobalScaling::scaled(18.0f);
-        const float orb_center_x = ability_end_x + orb_gap + orb_radius;
+        const float ability_frame_width = Core::GlobalScaling::scaled(520.0f);
+        const float ability_frame_x = (screen_width - ability_frame_width) / 2.0f;
+        const float ability_center_y = screen_height - Core::GlobalScaling::scaled(126.0f) + Core::GlobalScaling::scaled(55.0f);
+
+        const float orb_radius = Core::GlobalScaling::scaled(39.0f);
+        const float orb_gap = Core::GlobalScaling::scaled(12.0f);
+        const float orb_center_x = ability_frame_x + ability_frame_width + orb_gap + orb_radius;
         const float orb_center_y = ability_center_y;
-        
+
         // Kolory wypełnienia kuli.
         const Color orb_fill_dark = { 15, 40, 120, 255 };
         const Color orb_fill_bright = { 50, 100, 220, 255 };
         const Color orb_bg = { 10, 12, 25, 240 };
         
         const char* level_text = TextFormat("%d LVL", _player->getLevel());
-        drawOrb(orb_center_x, orb_center_y, orb_radius, _visual_exp_percent, 0.0f, 2.0f, orb_fill_bright, orb_fill_dark, orb_bg, level_text);
+        drawOrb(orb_center_x, orb_center_y, orb_radius, _visual_exp_percent, 0.0f, 2.0f, orb_fill_bright, orb_fill_dark, orb_bg, level_text, _level_orb_frame);
     }
 
     void UIHandler::renderLocationInfo() const
@@ -819,6 +917,7 @@ namespace Nawia::UI
     {
         _current_container = container;
         _is_inventory_open = true;
+        _is_quest_ui_open = false;
     }
 
     void UIHandler::closeContainer()
@@ -853,7 +952,7 @@ namespace Nawia::UI
             const float screen_width = static_cast<float>(GetScreenWidth());
             const float start_x = screen_width - menu_width - Core::GlobalScaling::scaled(50.0f);
             const float start_y = Core::GlobalScaling::scaled(50.0f);
-            const Rectangle rect = { start_x, start_y, menu_width, menu_height };
+            const Rectangle rect = { start_x, start_y, menu_width, menu_height + Core::GlobalScaling::scaled(50.0f) };
             if (CheckCollisionPointRec(mouse_pos, rect))
                 return true;
         }

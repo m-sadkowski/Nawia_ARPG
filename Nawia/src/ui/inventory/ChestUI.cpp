@@ -1,24 +1,52 @@
 #include "ChestUI.h"
 
 #include <GlobalScaling.h>
+#include <ResourceManager.h>
 #include <UIDefines.h>
 #include <UIRenderUtils.h>
 
 namespace Nawia::UI
 {
+    namespace
+    {
+        /**
+         * @brief Wlacza lagodniejsze skalowanie tekstury UI.
+         */
+        void smoothUiTexture(const std::shared_ptr<Texture2D>& texture)
+        {
+            if (!texture || texture->id <= 0)
+                return;
+
+            GenTextureMipmaps(texture.get());
+            SetTextureFilter(*texture, TEXTURE_FILTER_TRILINEAR);
+        }
+    }
 
     ChestUI::ChestUI() {}
 
+    void ChestUI::loadResources(Core::ResourceManager& resource_manager)
+    {
+        _background = resource_manager.getTexture("assets/textures/ui/chest.png");
+        smoothUiTexture(_background);
+    }
+
+    Rectangle ChestUI::getPanelRect() const
+    {
+        return {
+            Core::GlobalScaling::scaled(INV_START_X),
+            Core::GlobalScaling::scaled(INV_START_Y),
+            Core::GlobalScaling::scaled(INV_WIDTH),
+            Core::GlobalScaling::scaled(INV_HEIGHT)
+        };
+    }
+
     Rectangle ChestUI::getSlotRect(const int index) const
     {
-        const float slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
-        const float slot_spacing = Core::GlobalScaling::scaled(SLOT_SPACING);
-        const float inventory_start_x = Core::GlobalScaling::scaled(INV_START_X);
-        const float inventory_start_y = Core::GlobalScaling::scaled(INV_START_Y);
-        const float text_padding_left = Core::GlobalScaling::scaled(TEXT_PADDING_LEFT);
-        const float text_padding_top = Core::GlobalScaling::scaled(TEXT_PADDING_TOP);
-        const float backpack_x = inventory_start_x + text_padding_left;
-        const float backpack_y = inventory_start_y + text_padding_top + Core::GlobalScaling::scaled(50.0f);
+        const Rectangle panel_rect = getPanelRect();
+        const float slot_size = panel_rect.width * 0.19f;
+        const float slot_spacing = panel_rect.width * 0.035f;
+        const float backpack_x = panel_rect.x + panel_rect.width * 0.18f;
+        const float backpack_y = panel_rect.y + panel_rect.height * 0.18f;
         const int column = index % COLS;
         const int row = index / COLS;
 
@@ -32,20 +60,23 @@ namespace Nawia::UI
 
     void ChestUI::render(const Item::Backpack& chest_backpack, const Font& font) const 
     {
-        const float inventory_start_x = Core::GlobalScaling::scaled(INV_START_X);
-        const float inventory_start_y = Core::GlobalScaling::scaled(INV_START_Y);
-        const float inventory_width = Core::GlobalScaling::scaled(INV_WIDTH);
-        const float inventory_height = Core::GlobalScaling::scaled(INV_HEIGHT);
-        const float text_padding_left = Core::GlobalScaling::scaled(TEXT_PADDING_LEFT);
-        const float text_padding_top = Core::GlobalScaling::scaled(TEXT_PADDING_TOP);
-        const float font_size = Core::GlobalScaling::scaled(FONT_SIZE);
+        const Rectangle panel_rect = getPanelRect();
 
-        // Tlo panelu skrzyni.
-        DrawRectangleRec({ inventory_start_x, inventory_start_y, inventory_width, inventory_height }, withAlpha(COLOR_PANEL_BG, 0.95f));
-        DrawRectangleLinesEx({ inventory_start_x, inventory_start_y, inventory_width, inventory_height }, 2.0f, withAlpha(COLOR_ACCENT, 0.8f));
-        DrawRectangleGradientV(static_cast<int>(inventory_start_x), static_cast<int>(inventory_start_y), static_cast<int>(inventory_width), static_cast<int>(inventory_height / 6.0f), withAlpha(WHITE, 0.05f), withAlpha(WHITE, 0.0f));
-
-        DrawTextEx(font, "SKRZYNIA", { inventory_start_x + text_padding_left, inventory_start_y + text_padding_top }, font_size, 1.0f, COLOR_ACCENT);
+        if (_background && _background->id > 0)
+        {
+            DrawTexturePro(
+                *_background,
+                { 0.0f, 0.0f, static_cast<float>(_background->width), static_cast<float>(_background->height) },
+                panel_rect,
+                { 0.0f, 0.0f },
+                0.0f,
+                WHITE);
+        }
+        else
+        {
+            DrawRectangleRec(panel_rect, withAlpha(COLOR_PANEL_BG, 0.95f));
+            DrawRectangleLinesEx(panel_rect, 2.0f, withAlpha(COLOR_ACCENT, 0.8f));
+        }
 
         const Vector2 mouse_position = GetMousePosition();
 
@@ -89,11 +120,8 @@ namespace Nawia::UI
     {
         const float slot_padding = Core::GlobalScaling::scaled(SLOT_PADDING);
 
-        const Color background_color = is_hovered ? withAlpha(COLOR_ACCENT, 0.2f) : withAlpha(BLACK, 0.4f);
-        const Color border_color = is_hovered ? COLOR_ACCENT : withAlpha(WHITE, 0.3f);
-        
-        DrawRectangleRec(slot_rect, background_color);
-        DrawRectangleLinesEx(slot_rect, 1.0f, border_color);
+        if (is_hovered)
+            DrawRectangleRec(slot_rect, withAlpha(COLOR_ACCENT, 0.20f));
 
         if (item != nullptr)
         {

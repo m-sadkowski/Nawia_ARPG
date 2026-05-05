@@ -1,62 +1,40 @@
-# Przewodnik po levelach, mapach i navmeshach
+# Przewodnik po levelach, mapach i spawnach
 
-Ten dokument opisuje aktualny workflow dodawania nowego levela w `Nawia`:
-- mapa 3D trafia do `assets/maps/`
-- level laduje ja przez `Core::Map`
-- encje sa definiowane w `assets/data/level_entities/*.json`
-- navmesh buduje sie automatycznie z geometrii wczytanego modelu
+Ten dokument opisuje dodawanie levelu, ladowanie mapy 3D, navmesh, lokacje i encje z JSON.
 
-## Najwazniejsza zasada
+## Glowny przeplyw
 
-Mapa i navmesh nie sa dzis utrzymywane jako dwa osobne pliki. Po wywolaniu:
+Level robi zwykle:
 
-```cpp
-_map->loadMap("forest.glb", 2.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f });
-```
+1. Tworzy `Core::Map`.
+2. Laduje model mapy przez `Map::loadMap(...)`.
+3. Czysci stare encje poza graczem.
+4. Wczytuje spawny przez `loadSpawns(engine)`.
 
-`Map`:
-- laduje model z `assets/maps/forest.glb`
-- ustawia transformacje modelu
-- przebudowuje navmesh przez `NavMesh::buildFromModel(...)`
+`Map::loadMap(...)` laduje model z `assets/maps/` i buduje navmesh z geometrii modelu.
 
-To oznacza, ze jakosc nawigacji zalezy bezposrednio od geometrii w pliku `.glb`.
+## Dodanie nowego levelu
 
-## Jak dodac nowy level
-
-### 1. Dodaj mape do assetow
-
-Wrzuc plik `.glb` albo `.gltf` do `assets/maps/`.
-
-Przyklad:
-
-```text
-assets/maps/moja_dolina.glb
-```
-
-### 2. Dodaj klase levela
-
-Utworz plik naglowkowy, na przyklad `src/world/level/MojaDolinaLevel.h`:
+Header:
 
 ```cpp
 #pragma once
 
-#include "Level.h"
+#include <Level.h>
 
 namespace Nawia::World {
 
 class MojaDolinaLevel : public Level {
 public:
-    void onEnter(Core::Engine* engine) override;
+	void onEnter(Core::Engine* engine) override;
 
-    [[nodiscard]] std::string getName() const override { return "Moja Dolina"; }
-
-    [[nodiscard]] std::string getSpawnFilePath() const override {
-        return "../assets/data/level_entities/moja_dolina.json";
-    }
-
-    [[nodiscard]] std::vector<std::string> getLocations() const override {
-        return { "Polana", "Jaskinia" };
-    }
+	[[nodiscard]] std::string getName() const override { return "Moja Dolina"; }
+	[[nodiscard]] std::string getSpawnFilePath() const override {
+		return "../assets/data/level_entities/moja_dolina.json";
+	}
+	[[nodiscard]] std::vector<std::string> getLocations() const override {
+		return { "Polana", "Jaskinia" };
+	}
 };
 
 } // namespace Nawia::World
@@ -73,30 +51,25 @@ Implementacja:
 
 namespace Nawia::World {
 
-void MojaDolinaLevel::onEnter(Core::Engine* engine) {
-    Core::Logger::debugLog("Ladowanie poziomu Moja Dolina...");
+void MojaDolinaLevel::onEnter(Core::Engine* engine)
+{
+	Core::Logger::debugLog("Ladowanie poziomu Moja Dolina...");
 
-    _map = std::make_unique<Core::Map>(engine->getResourceManager());
-    _map->loadMap("moja_dolina.glb", 1.5f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f });
+	_map = std::make_unique<Core::Map>(engine->getResourceManager());
+	_map->loadMap("moja_dolina.glb", 1.5f, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
 
-    engine->getEntityManager().clearNonPlayerEntities();
-    loadSpawns(engine);
+	engine->getEntityManager().clearNonPlayerEntities();
+	loadSpawns(engine);
 }
 
 } // namespace Nawia::World
 ```
 
-### 3. Zarejestruj level w `Engine`
+Na koncu zarejestruj level w `Engine`.
 
-W konstruktorze `Engine` dodaj:
+## Plik `level_entities`
 
-```cpp
-_level_manager->registerLevel(std::make_shared<World::MojaDolinaLevel>());
-```
-
-### 4. Dodaj plik encji
-
-Utworz `assets/data/level_entities/moja_dolina.json`.
+Kazdy level ma plik w `assets/data/level_entities/`.
 
 Przyklad:
 
@@ -109,87 +82,86 @@ Przyklad:
     "entities": [
         {
             "location": "Polana",
-            "type": "devil",
-            "name": "Straznik",
+            "type": "bandit",
+            "name": "Bandyta",
             "x": 8.0,
             "y": 4.0,
-            "hp": 150,
-            "trigger_radius": 12.0
+            "hp": 80,
+            "trigger_radius": 12.0,
+            "abilities": ["KnifeThrow"]
         }
     ]
 }
 ```
 
-## Jak dodac nowa mape poprawnie
+Wspolne pola:
 
-Z punktu widzenia kodu level potrzebuje tylko poprawnego wywolania `loadMap(...)`, ale w praktyce warto przejsc ta checkliste:
+- `location` - nazwa lokacji z `getLocations()`,
+- `type` - typ obslugiwany przez `EntityFactory`,
+- `name` - nazwa encji,
+- `x`, `y` - pozycja logiczna X/Z,
+- `hp` - zdrowie, jezeli typ tego uzywa,
+- `trigger_radius` - 0 oznacza aktywna od razu, >0 aktywuje po zblizeniu,
+- `spawn_radius` - opcjonalny losowy offset,
+- `respawnable` i `respawn_cooldown` - przygotowane pod respawn.
 
-1. Umiesc plik mapy w `assets/maps/`.
-2. Ustal docelowe `scale`, `offset` i `rotation` w kodzie levela.
-3. Uruchom poziom i sprawdz:
-   - czy promien kursora trafia w teren
-   - czy gracz chodzi tam, gdzie powinien
-   - czy pathfinding nie tnie przez sciany
-4. Jesli poziom ma swoje swiatlo, dodaj tez plik `assets/maps/<nazwa>_lighting.json`.
+## Typy encji
 
-## Jak dzis dziala navmesh
+Aktualnie w JSON sa obslugiwane m.in.:
 
-Aktualny system:
-- bierze wszystkie meshe z modelu
-- transformuje je przez `model.transform`
-- stosuje `scale`
-- buduje navmesh w runtime przez Recast/Detour
+- `bandit`,
+- `devil`,
+- `walking_dead`,
+- `friend`,
+- `chest`,
+- `npc` z `npc_class`,
+- `static_object`,
+- `teleport`,
+- `checkpoint`.
 
-To daje prosty pipeline, ale ma tez konsekwencje:
+Nowy typ dodaj w `EntityFactory`, a nie bezposrednio w levelu.
 
-1. Jesli w modelu sa duze dekoracje albo sufity, tez wejda do budowy navmesha.
-2. Jesli teren jest bardzo gesty albo brudny topologicznie, navmesh moze byc slabej jakosci.
-3. `offset` nie zmienia samej siatki navmesha, ale `rotation` i `scale` juz tak, bo sa uwzgledniane przy budowie z `model.transform`.
+## Lokacje i dormant
 
-## Rekomendacje dla authoringu map
+Wszystkie encje levelu sa tworzone przy wejsciu na level, ale moga startowac jako dormant.
 
-Zeby obecny auto-navmesh dzialal dobrze:
+Encja jest dormant, gdy:
 
-1. Trzymaj teren mozliwie czysty i prosty.
-2. Unikaj wrzucania do glownego modelu niepotrzebnych, ogromnych meshy kolizyjnych.
-3. Jesli dekoracje mocno psuja nawigacje, rozdziel mape na bardziej przewidywalna geometrie.
-4. Po kazdej zmianie geometrii przetestuj:
-   - ruch gracza
-   - klik-move
-   - przeciwnikow korzystajacych z pathfindingu
+- nalezy do innej lokacji niz aktualna,
+- ma `trigger_radius > 0` i gracz jeszcze nie podszedl.
 
-## Kiedy potrzebny jest osobny plik navmesha
+Dormant encja nie renderuje sie, nie aktualizuje AI i nie bierze udzialu w kolizjach.
 
-Na ten moment nie jest potrzebny, bo silnik go nie wczytuje. Jedynym zrodlem danych dla navmesha jest wczytany model mapy.
+## Navmesh
 
-Jesli w przyszlosci dojdzie osobny mesh tylko pod nawigacje, dokumentacja powinna zostac rozszerzona o osobny pipeline eksportu.
+Navmesh jest budowany runtime z geometrii modelu mapy.
 
-## Typowe problemy
+Konsekwencje:
 
-### Gracz moze chodzic tam, gdzie nie powinien
+- dekoracje w modelu moga trafic do navmesha,
+- brudna topologia pogarsza pathfinding,
+- `scale` i `rotation` maja znaczenie dla budowy,
+- po zmianie assetow trzeba przebudowac projekt, zeby build dostal aktualne pliki.
 
-Najczestsze przyczyny:
-- zbyt uproszczona geometria mapy
-- dekoracje dolaczone do glownego modelu i potraktowane jako powierzchnia chodzona
-- zly `scale`
+## Static props
 
-### Pathfinding nie dochodzi do kliknietego miejsca
+Static objecty powinny byc ustawione na poziomie podlogi przez logike spawn/map, a nie przez legacy plaska plaszczyzne. Jezeli prop wisi, sprawdz:
 
-Najczestsze przyczyny:
-- klik trafia w miejsce poza navmeshem
-- koniec sciezki wypada za daleko od punktu docelowego
-- model ma dziury albo bardzo nieczytelne uskoki
+- pozycje JSON,
+- snap do mapy,
+- bounding box modelu,
+- skale i offset.
 
-### Po przebudowie nie widac nowych assetow
+## Lighting
 
-Assety z `Nawia/assets` sa kopiowane do katalogu builda po kompilacji. Jesli dodajesz nowy plik mapy albo plik lighting JSON, przebuduj projekt, zeby kopia w katalogu build byla aktualna.
+Poziom moze ladowac konfiguracje swiatla z JSON w `assets/maps/..._lighting.json`.
 
-## Powiazane pliki
+`DevLevel` sluzy do szybkiego ustawiania swiatel i zapisu roboczej konfiguracji.
 
-- `src/world/level/Level.h`
-- `src/world/level/Level.cpp`
-- `src/core/game/Map.h`
-- `src/core/game/Map.cpp`
-- `src/world/NavMesh.h`
-- `src/world/NavMesh.cpp`
-- `src/world/spawn/SpawnManager.cpp`
+## Dobre praktyki
+
+- Level nie powinien recznie tworzyc zwyklych enemy/NPC.
+- Nowy gameplay spawnuj przez JSON i `EntityFactory`.
+- Po zmianie mapy testuj klik-move, enemy pathfinding i teleporty.
+- Nie mieszaj danych kilku leveli w jednym pliku spawn.
+- Zawsze zakladaj uruchamianie z `out/build/x64-Release`.

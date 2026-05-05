@@ -1,64 +1,83 @@
-# Przewodnik po obiektach Interaktywnych
+# Przewodnik po interakcjach
 
-Obiekty interaktywne to elementy świata, z którymi gracz może wchodzić w interakcję (klikać na nie lub wchodzić w nie).
-Najczęstszym przypadkiem są obiekty "Klikalne", takie jak Skrzynie, NPC, czy Dźwignie, a także triggery takie jak Strefy Ognia.
+Obiekty interaktywne to encje, z ktorymi gracz moze wejsc w interakcje przez klikniecie albo wejscie w obszar triggera.
 
-## Klasa Bazowa: `InteractiveClickable`
+## Glowny podzial
 
-Klasa `Nawia::Entity::InteractiveClickable` dziedziczy po `Entity` (ma pozycję, wczytuje podpiętą grafikę/model 3d) oraz `Interactable` (interfejs interakcji).
+- `Interactable` - interfejs kontraktu interakcji.
+- `InteractiveClickable` - obiekt klikany myszka, np. skrzynia albo NPC.
+- `InteractiveTrigger` - obszar aktywowany wejsciem, np. teleport albo checkpoint.
 
-### Interfejs `Interactable`
-```cpp
-virtual void onInteract(Entity& instigator) = 0;   // Co się dzieje po kliknięciu/interakcji (Tylko dla obiektów typu InteractiveClickable)
-virtual void onTriggerEnter(Entity& other) = 0;    // Co się dzieje po natychmiastowym wdepnięciu na obiekt fizycznie
-virtual bool canInteract() const;                  // Czy można teraz użyć (np. zablokowane drzwi)
-```
+## `Interactable`
 
-## Jak stworzyć klikalną skrzynię?
-
-Należy odziedziczyć po `InteractiveClickable`.
+Kontrakt:
 
 ```cpp
-#include "InteractiveClickable.h"
-
-namespace Nawia::Entity {
-
-    class TreasureChest : public InteractiveClickable {
-    public:
-        TreasureChest(float x, float y) 
-            : InteractiveClickable("Chest", x, y, nullptr, 1) // 1 HP (niezniszczalne logicznie)
-        {
-            // Ładowanie precyzyjnego modelu 3D
-            loadModel("assets/models/chest.glb");
-            addAnimation("closed", "assets/animations/chest_closed.glb");
-            addAnimation("open", "assets/animations/chest_open.glb");
-            
-            setFaction(Faction::Neutral); // Obiekty interaktywne zazwyczaj są neutralne by nie były raniowane czarami walki
-            
-            playAnimation("closed");
-        }
-
-        // Ta metoda jest wywoływana przez PlayerController, gdy gracz kliknie NA SIATKĘ OBIEKTU 3D i podejdzie blisko
-        void onInteract(Entity& instigator) override {
-            if (_is_open) return; // Już otwarta
-
-            _is_open = true;
-            playAnimation("open", false); // Odtwórz raz
-            
-            std::cout << "Skrzynia otwarta przez " << instigator.getName() << "!" << std::endl;
-        }
-
-    private:
-        bool _is_open = false;
-    };
-}
+virtual void onInteract(Entity& instigator) = 0;
+virtual void onTriggerEnter(Entity& other) = 0;
+virtual bool canInteract() const;
+virtual float getInteractionRange() const;
 ```
 
-## Ważne uwagi z silnika Pół-3D
+`onInteract(...)` jest dla klikniecia, `onTriggerEnter(...)` dla wejscia w obszar.
 
-1. **System Wykrywania Przez Myszke:** Wskazówka 3D nie potrzebuje dodawania żadnych ręcznych wirtualnych brył pod teksturę! Przez najnowszą aktualizację silnika do operacji o 3D Meshe, myszka wystrzeliwuje `Raycast` natywnie. Jeżeli najedziesz kursorem obok tekstury na puste miejsce – skrzynia się nie podświetli. Najedź starannie dokładnie na róg wieka, to postać się przyciemnia!
-2. **Interactable vs Trigger**:
-   - Jeśli chcesz obiekt, na który gracz z własnej woli **Klika** kursorem (Otwiera skrzynie, zagaduj NPC): dziedziczysz bezwzględnie w oparciu o obiekt klasy `InteractiveClickable` i implementujesz funkcję `onInteract`.
-   - Jeśli chcesz niewidzialny Trigger strefowy na podłodze, np. zapadający po wdepnięciu przez bohatera: musisz używać dziedziczenia pod `InteractiveTrigger`. Ten wciąż potrzebuje definicji Collidera (na przykład rzucając mu płaski RectangleCollider na podłogę)! Strefa z Colliderem pod Trigger natywnie wykryje czy gruba animacja Bounding Boxu Gracza stanęła na niego w systemie Broadphase i wywoła na Tobie publiczną metodę `onTriggerEnter`.
+## Klikalne obiekty
 
-3. **Zasięg interakcji**: Pamiętaj by dla własnych skrzyń nadpisać float `getInteractionRange()` (Obecnie w skrzyni to pole 6.25 z dystansu promienia logowania). To PlayerController decyduje, jak długo Twoja postać idzie do klikniętej wcześniej przedmiotu a następnie wykonuje akcję zapisaną w onInteract gdy jej promień dotknie wymaganego ułamka.
+Dziedzicz po `InteractiveClickable`, gdy gracz ma kliknac konkretny model.
+
+Przyklady:
+
+- `Chest`,
+- `Cat`,
+- przyszli kupcy/NPC.
+
+Klikanie jest oparte o raycast w mesh modelu i fallback bounding box. To oznacza, ze model z dziwna geometria moze byc trudniejszy do trafienia kursorem. W takim przypadku popraw model, bounding box albo interaction range.
+
+## Triggery
+
+Dziedzicz po `InteractiveTrigger`, gdy efekt ma odpalic sie po wejsciu w obszar.
+
+Przyklady:
+
+- `Teleport`,
+- `Checkpoint`.
+
+Trigger powinien miec collider, zwykle `RectangleCollider`, bo jego zadaniem jest wykrycie wejscia encji w obszar.
+
+## Zasieg interakcji
+
+`PlayerController` moze zapamietac klikniety obiekt i podejsc do niego. Interakcja odpali sie dopiero, gdy dystans do obiektu bedzie mniejszy od `getInteractionRange()`.
+
+Skrzynie i NPC moga miec wiekszy zasieg niz zwykly obiekt, jezeli stoja na nierownym terenie albo maja duzy model.
+
+## Skrzynie
+
+`Chest`:
+
+- moze losowac loot z `Loottable`,
+- moze byc zablokowana kluczem,
+- udostepnia `Backpack` dla `ChestUI`,
+- otwiera UI przez `UIHandler::openContainer(...)`.
+
+Zawartosc skrzyni powinna pochodzic z JSON albo loottable, a nie z UI.
+
+## NPC
+
+Aktualny NPC to `Cat`.
+
+`Cat`:
+
+- moze miec loot table,
+- reaguje na oddanie ryby,
+- po zakonczeniu questa nie powinien ponownie otwierac inventory z nagroda,
+- moze delegowac dialog do `DialogueManager`.
+
+Docelowo nowe NPC powinny dostawac dialog/quest binding z danych, ale obecny system ma jeszcze czesc logiki w C++.
+
+## Dobre praktyki
+
+- Klikalne obiekty nie powinny udawac triggerow.
+- Triggery powinny miec czytelny collider.
+- UI otwieraj przez `UIHandler`, nie bezposrednio z encji.
+- Interakcje z itemami trzymaj w `Item`/`Inventory`, nie w klasach UI.
+- Dla problemow z hoverem najpierw sprawdz mesh i bounding box.

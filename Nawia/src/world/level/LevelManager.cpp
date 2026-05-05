@@ -1,7 +1,10 @@
 #include "LevelManager.h"
 
 #include <Engine.h>
+#include <Level.h>
 #include <Logger.h>
+
+#include <utility>
 
 namespace Nawia::World {
 
@@ -29,7 +32,7 @@ namespace Nawia::World {
 		_current_level = it->second;
 		_current_level->onEnter(engine);
 
-		// Notify QuestManager about the current level
+		// Informuje questy o aktualnym poziomie, zeby mogly odblokowac zadania.
 		if (engine) {
 			engine->getQuestManager().setCurrentLevel(_current_level->getName());
 		}

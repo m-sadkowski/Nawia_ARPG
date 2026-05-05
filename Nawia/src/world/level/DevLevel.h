@@ -15,14 +15,25 @@ namespace Nawia::World {
 	 */
 	class DevLevel : public Level {
 	public:
+		/** @brief Wczytuje mape developerska i ustawia gracza na bezpiecznym spawnie. */
 		void onEnter(Core::Engine* engine) override;
 
+		/** @brief Obsluguje tryb edycji albo wpisywanie nazwy propa. */
 		void handleInput(Core::Engine* engine) override;
+
+		/** @brief Zachowuje wspolny interfejs poziomu; logika jest obslugiwana inputem. */
 		void update(Core::Engine* engine, float dt) override;
+
+		/** @brief Rysuje overlay developerski i pole nazwy propa. */
 		void renderUI(Core::Engine* engine) override;
 
+		/** @brief Zwraca nazwe poziomu developerskiego. */
 		[[nodiscard]] std::string getName() const override { return "DevLevel"; }
+
+		/** @brief DevLevel nie uzywa pliku spawnow. */
 		[[nodiscard]] std::string getSpawnFilePath() const override { return ""; }
+
+		/** @brief Zwraca pojedyncza lokacje robocza. */
 		[[nodiscard]] std::vector<std::string> getLocations() const override {
 			return {"Dev Sandbox"};
 		}
@@ -31,10 +42,19 @@ namespace Nawia::World {
 		[[nodiscard]] bool isTyping() const { return _is_typing; }
 
 	private:
+		/** @brief Przetwarza wpisywana nazwe propa i zapisuje ja po Enterze. */
 		void handleTypingInput();
+
+		/** @brief Obsluguje przesuwanie swiatla i zapisywanie pozycji propa. */
 		void handleEditingInput(Core::Engine* engine);
+
+		/** @brief Rysuje dane aktualnego swiatla na ekranie. */
 		void renderLightingOverlay(Core::Engine& engine) const;
+
+		/** @brief Rysuje modal wpisywania nazwy zapisywanego propa. */
 		void renderPropPlacementPrompt() const;
+
+		/** @brief Czysci stan wpisywania nazwy propa. */
 		void clearTypingState();
 
 		bool _is_typing = false;

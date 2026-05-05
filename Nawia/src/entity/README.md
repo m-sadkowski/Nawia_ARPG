@@ -43,3 +43,5 @@ Szczegoly sa w:
 - `docs/guides/Entity_Guide.md`
 - `docs/guides/Enemy_Guide.md`
 - `docs/guides/Ability_Guide.md`
+- `docs/guides/AbilityEffect_Guide.md`
+- `docs/guides/Interactive_Guide.md`

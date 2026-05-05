@@ -6,58 +6,65 @@
 
 namespace Nawia::Game {
 
-    void DialogueManager::createCatDialogue(Core::Engine* engine, Entity::Cat* cat) 
-	{
-        Game::DialogueTree tree;
-        Game::DialogueNode start_node;
-        start_node.id = 0;
-        start_node.speaker_name = "Kot Olga";
-        start_node.text = "Miau. Czy mozesz przyniesc odzyskac moja rybe? Ukradla mi ja mewa ktora zjadl diabel - mam klucz do skrzyni diabla.";
+	void DialogueManager::createCatDialogue(Core::Engine* engine, Entity::Cat* cat) {
+		if (!engine || !cat)
+			return;
 
-        Game::DialogueOption open_eq_opt;
-        open_eq_opt.text = "Jasne!";
-        open_eq_opt.next_node_id = -1;
-        open_eq_opt.action = [engine, cat]() {
-            engine->getUIHandler().closeDialogue();
-            engine->getUIHandler().openContainer(cat);
-        };
+		DialogueTree tree;
+		DialogueNode start_node;
+		start_node.id = 0;
+		start_node.speaker_name = "Kot Olga";
+		start_node.text = "Miau. Czy mozesz odzyskac moja rybe? Ukradla mi ja mewa, ktora zjadl diabel. Mam klucz do skrzyni diabla.";
 
-        DialogueOption exit_option;
-        exit_option.text = "Nie?";
-        exit_option.next_node_id = -1;
+		DialogueOption open_inventory_option;
+		open_inventory_option.text = "Jasne!";
+		open_inventory_option.next_node_id = -1;
+		open_inventory_option.action = [engine, cat]() {
+			if (!engine || !cat)
+				return;
 
-        start_node.options.push_back(open_eq_opt);
-        start_node.options.push_back(exit_option);
+			engine->getUIHandler().closeDialogue();
+			engine->getUIHandler().openContainer(cat);
+		};
 
-        tree.addNode(start_node);
-        cat->setDialogue(tree);
-    }
+		DialogueOption exit_option;
+		exit_option.text = "Nie?";
+		exit_option.next_node_id = -1;
 
-    void DialogueManager::createCatQuestCompletedDialogue(Core::Engine* engine, Entity::Cat* cat)
-    {
-         Game::DialogueNode thank_node;
-         thank_node.id = 0;
-         thank_node.speaker_name = "Kot Olga";
-         thank_node.text = "Miau! Dzieki za rybe! Masz tu prezent.";
+		start_node.options.push_back(open_inventory_option);
+		start_node.options.push_back(exit_option);
 
-         Game::DialogueOption open_eq_opt;
-         open_eq_opt.text = "Dzieki!";
-         open_eq_opt.next_node_id = -1;
-         
-         open_eq_opt.action = [engine]() {
-            engine->getUIHandler().closeDialogue();
-         };
+		tree.addNode(start_node);
+		cat->setDialogue(tree);
+	}
 
-         thank_node.options.push_back(open_eq_opt);
+	void DialogueManager::createCatQuestCompletedDialogue(Core::Engine* engine, Entity::Cat* cat) {
+		if (!engine || !cat)
+			return;
 
-         Game::DialogueOption exit_opt;
-         exit_opt.text = "Na nic mi twoje prezenty, bywaj.";
-         exit_opt.next_node_id = -1;
-         thank_node.options.push_back(exit_opt);
-         
-         Game::DialogueTree tree;
-         tree.addNode(thank_node);
-         cat->setDialogue(tree);
-    }
+		DialogueNode thank_node;
+		thank_node.id = 0;
+		thank_node.speaker_name = "Kot Olga";
+		thank_node.text = "Miau! Dzieki za rybe! Masz tu prezent.";
+
+		DialogueOption close_option;
+		close_option.text = "Dzieki!";
+		close_option.next_node_id = -1;
+		close_option.action = [engine]() {
+			if (engine)
+				engine->getUIHandler().closeDialogue();
+		};
+
+		DialogueOption exit_option;
+		exit_option.text = "Na nic mi twoje prezenty, bywaj.";
+		exit_option.next_node_id = -1;
+
+		thank_node.options.push_back(close_option);
+		thank_node.options.push_back(exit_option);
+
+		DialogueTree tree;
+		tree.addNode(thank_node);
+		cat->setDialogue(tree);
+	}
 
 } // namespace Nawia::Game
