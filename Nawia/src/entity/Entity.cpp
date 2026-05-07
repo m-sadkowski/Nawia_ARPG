@@ -118,6 +118,35 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		}
 	}
 
+	void Entity::loadAnimationBundle(const std::string& path) {
+		if (!_model_loaded)
+			return;
+
+		int count = 0;
+		ModelAnimation* anims = LoadModelAnimations(path.c_str(), &count);
+
+		if (count > 0) {
+			const int start_index = static_cast<int>(_animations.size());
+
+			for (int i = 0; i < count; i++) {
+				_animations.push_back(anims[i]);
+
+				// Pobieramy nazwę animacji prosto ze struktury raylib (nazwa z Blendera)
+				std::string anim_name = anims[i].name;
+
+				// Jeśli w Blenderze jakaś animacja nie miała nazwy, dajemy jej domyślną
+				if (anim_name.empty()) {
+					anim_name = "anim_" + std::to_string(start_index + i);
+				}
+
+				// Dodajemy do mapy pod oryginalną nazwą
+				_animation_map[anim_name] = start_index + i;
+			}
+
+			MemFree(anims);
+		}
+	}
+
 	void Entity::playAnimation(const std::string& name, const bool loop, const bool lock_movement, const int start_frame, const bool force)
 	{
 		const auto animation_it = _animation_map.find(name);

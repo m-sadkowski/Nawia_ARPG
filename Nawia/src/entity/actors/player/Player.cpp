@@ -16,17 +16,15 @@ namespace Nawia::Entity {
 		_name = "Player";
 		_max_hp = 200;
 		_hp = _max_hp;
-		_scale = 0.015f;
+		_scale = 1.5f;
 		_type = EntityType::Player;
 		_faction = Faction::Player;
-		loadModel("assets/models/player_idle.glb");
-		addAnimation("walk", "assets/models/player_walk.glb");
-		addAnimation("attack", "assets/models/player_auto_attack.glb");
-		addAnimation("knocked", "assets/models/player_knocked.glb");
-		addAnimation("stand_up", "assets/models/player_stand_up.glb");
-		playAnimation("default"); // Startowa animacja bezczynności.
+		loadModel("assets/models/player/player.glb");
+		loadAnimationBundle("assets/models/animations/anims.glb");
+		loadAnimationBundle("assets/models/animations/anims2.glb");
+		playAnimation("Idle_Loop");
 		setAnimationSpeed(1.0f);
-		_death_anim_name = "knocked";
+		_death_anim_name = "Death01";
 
 		// Inicjalizacja plecaka i ekwipunku.
 		_backpack = std::make_unique<Item::Backpack>(INIT_BACKPACK_SIZE);
@@ -50,7 +48,7 @@ namespace Nawia::Entity {
 			if (!isAnimationLocked())
 			{
 				setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
-				playAnimation("walk");
+				playAnimation("Walk_Loop");
 			}
 		} 
 		else 
@@ -58,7 +56,7 @@ namespace Nawia::Entity {
 			if (!isAnimationLocked())
 			{
 				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
-				playAnimation("default");
+				playAnimation("Idle_Loop");
 			}
 		}
 	}
@@ -71,7 +69,7 @@ namespace Nawia::Entity {
 		if (!isAnimationLocked())
 		{
 			setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
-			playAnimation("default");
+			playAnimation("Idle_Loop");
 		}
 	}
 
@@ -92,14 +90,14 @@ namespace Nawia::Entity {
 				if (_knockdown_phase == KnockdownPhase::Knocked)
 				{
 					_knockdown_phase = KnockdownPhase::StandingUp;
-					playAnimation("stand_up", false, true, 0, true);
+					playAnimation("LayToIdle", false, true, 0, true);
 				}
 				else
 				{
 					_is_knocked_down = false;
 					_knockdown_phase = KnockdownPhase::None;
 					setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
-					playAnimation("default");
+					playAnimation("Idle_Loop");
 				}
 			}
 			return; // Podczas powalenia nie przetwarzamy ruchu.
@@ -119,7 +117,7 @@ namespace Nawia::Entity {
 		if (!isAnimationLocked()) 
 		{
 			setAnimationSpeed(_current_stats.movement_speed * WALK_ANIM_BASE_SPEED);
-			playAnimation("walk");
+			playAnimation("Walk_Loop");
 		}
 
 		Entity::updateMovement(delta_time);
@@ -127,7 +125,7 @@ namespace Nawia::Entity {
 
 		if (!_is_moving && !isAnimationLocked()) 
 		{
-			playAnimation("default");
+			playAnimation("Idle_Loop");
 		}
 	}
 
@@ -187,7 +185,7 @@ namespace Nawia::Entity {
 		_is_knocked_down = true;
 		_knockdown_phase = KnockdownPhase::Knocked;
 		setAnimationSpeed(4.0f);
-		playAnimation("knocked", false, true, 0, true);
+		playAnimation("Hit_Knockback", false, true, 0, true);
 	}
 
 	void Player::levelUp() {
@@ -234,7 +232,7 @@ namespace Nawia::Entity {
 		_path.clear();
 		setFaction(Faction::Player);
 		setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
-		playAnimation("default");
+		playAnimation("Idle_Loop");
 	}
 
 	void Player::onDeathStarted()

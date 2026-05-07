@@ -189,6 +189,8 @@ namespace Nawia::Entity {
 		 */
 		void addAnimation(const std::string& name, const std::string& path);
 
+		void loadAnimationBundle(const std::string& path);
+
 		/**
 		 * @brief Odtwarza zarejestrowaną animację.
 		 * @param name Nazwa animacji dodana przez `addAnimation`.
