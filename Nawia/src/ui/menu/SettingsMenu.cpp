@@ -78,7 +78,7 @@ namespace Nawia::UI
         DrawRectangleRec({pos_x, pos_y, width, height}, Fade(BLACK, 0.25f)); 
         DrawRectangleLinesEx({pos_x, pos_y, width, height}, 1.0f, Fade(WHITE, 0.1f));
         
-        if (_current_category != Category::Graphics)
+        if (_current_category == Category::Controls)
         {
             const char* message = "Opcja niedostepna w tej wersji"; 
             const Vector2 text_size = MeasureTextEx(ui.getFont(), message, 24.0f, 1.0f); 
@@ -89,6 +89,18 @@ namespace Nawia::UI
         float current_y = pos_y + Core::GlobalScaling::scaled(40.0f);
         const float item_width = width - Core::GlobalScaling::scaled(80.0f);
         const float item_x = pos_x + Core::GlobalScaling::scaled(40.0f);
+
+        if (_current_category == Category::Audio)
+        {
+            drawSlider(item_x, current_y, item_width, "Glosnosc ogolna", _settings.master_volume, Core::Settings::AUDIO_VOLUME_MIN, Core::Settings::AUDIO_VOLUME_MAX, ui, SliderDisplay::Percent);
+            current_y += Core::GlobalScaling::scaled(80.0f);
+
+            drawSlider(item_x, current_y, item_width, "Muzyka", _settings.music_volume, Core::Settings::AUDIO_VOLUME_MIN, Core::Settings::AUDIO_VOLUME_MAX, ui, SliderDisplay::Percent);
+            current_y += Core::GlobalScaling::scaled(80.0f);
+
+            drawSlider(item_x, current_y, item_width, "Efekty", _settings.effects_volume, Core::Settings::AUDIO_VOLUME_MIN, Core::Settings::AUDIO_VOLUME_MAX, ui, SliderDisplay::Percent);
+            return;
+        }
         
         int dummy_change = 0; 
         drawSelector(item_x, current_y, item_width, "Rozdzielczosc", _settings.resolution.toString(), ui, &dummy_change); 
@@ -97,7 +109,7 @@ namespace Nawia::UI
         drawToggle(item_x, current_y, item_width, "Pelny ekran", _settings.fullscreen, ui); 
         current_y += Core::GlobalScaling::scaled(80.0f);
         
-        drawSlider(item_x, current_y, item_width, "Skala interfejsu", _settings.ui_scale, Core::Settings::UI_SCALE_MIN, Core::Settings::UI_SCALE_MAX, ui); 
+        drawSlider(item_x, current_y, item_width, "Skala interfejsu", _settings.ui_scale, Core::Settings::UI_SCALE_MIN, Core::Settings::UI_SCALE_MAX, ui, SliderDisplay::Multiplier); 
         current_y += Core::GlobalScaling::scaled(80.0f);
         
         int dummy_texture_change = 0; 
@@ -152,7 +164,7 @@ namespace Nawia::UI
         DrawCircleV({ enabled ? (toggle_x + toggle_width - toggle_height / 2.0f - 4) : (toggle_x + toggle_height / 2.0f + 4), toggle_y + toggle_height / 2.0f }, toggle_height / 2.0f - 4, WHITE);
     }
 
-    void SettingsMenu::drawSlider(float pos_x, float pos_y, float width, const char* label, float value, float min_value, float max_value, const UIHandler& ui) const
+    void SettingsMenu::drawSlider(float pos_x, float pos_y, float width, const char* label, float value, float min_value, float max_value, const UIHandler& ui, SliderDisplay display) const
     {
         const Font& font = ui.getFont(); 
         const float label_font_size = Core::GlobalScaling::scaled(FONT_SIZE_BUTTON); 
@@ -168,8 +180,10 @@ namespace Nawia::UI
         const float percentage = (value - min_value) / (max_value - min_value); 
         DrawRectangleRounded({slider_x, track_y, slider_width * percentage, track_height}, 1.0f, 4, COLOR_ACCENT);
         
-        DrawCircleV({slider_x + slider_width * percentage, track_y + track_height / 2.0f}, Core::GlobalScaling::scaled(10.0f), WHITE); 
-        DrawTextEx(font, TextFormat("%.1fx", value), { slider_x - Core::GlobalScaling::scaled(60.0f), pos_y + (Core::GlobalScaling::scaled(40.0f) - 18.0f) / 2.0f }, 18.0f, 1.0f, WHITE);
+        DrawCircleV({slider_x + slider_width * percentage, track_y + track_height / 2.0f}, Core::GlobalScaling::scaled(10.0f), WHITE);
+
+        const char* value_text = display == SliderDisplay::Percent ? TextFormat("%.0f%%", value * 100.0f) : TextFormat("%.1fx", value);
+        DrawTextEx(font, value_text, { slider_x - Core::GlobalScaling::scaled(70.0f), pos_y + (Core::GlobalScaling::scaled(40.0f) - 18.0f) / 2.0f }, 18.0f, 1.0f, WHITE);
     }
 
     bool SettingsMenu::handleInput()
@@ -190,7 +204,8 @@ namespace Nawia::UI
             {
                 if (CheckCollisionPointRec(mouse_pos, { margin, margin + i * item_height, sidebar_width, item_height }))
                 { 
-                    _current_category = static_cast<Category>(i); 
+                    _current_category = static_cast<Category>(i);
+                    _dragging_slider_index = -1;
                     return false; 
                 } 
             }
@@ -231,16 +246,16 @@ namespace Nawia::UI
             const Rectangle track_rect = { slider_x, current_y, slider_width, Core::GlobalScaling::scaled(40.0f) };
             if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
             { 
-                if (_dragging_slider || CheckCollisionPointRec(mouse_pos, track_rect))
+                if (_dragging_slider_index == 0 || CheckCollisionPointRec(mouse_pos, track_rect))
                 { 
-                    _dragging_slider = true; 
+                    _dragging_slider_index = 0;
                     const float percentage = std::clamp((mouse_pos.x - slider_x) / slider_width, 0.0f, 1.0f); 
                     _settings.ui_scale = Core::Settings::UI_SCALE_MIN + percentage * (Core::Settings::UI_SCALE_MAX - Core::Settings::UI_SCALE_MIN); 
                     _settings.ui_scale = roundf(_settings.ui_scale / Core::Settings::UI_SCALE_STEP) * Core::Settings::UI_SCALE_STEP; 
                 } 
             }
             else
-                _dragging_slider = false;
+                _dragging_slider_index = -1;
             
             current_y += Core::GlobalScaling::scaled(80.0f);
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
@@ -268,6 +283,35 @@ namespace Nawia::UI
                 if (CheckCollisionPointRec(mouse_pos, { item_x + item_width - toggle_width, current_y, toggle_width, Core::GlobalScaling::scaled(40.0f) }))
                     _settings.show_fps = !_settings.show_fps;
             }
+        }
+        else if (_current_category == Category::Audio)
+        {
+            float current_y = margin + Core::GlobalScaling::scaled(40.0f);
+            const float item_width = screen_width - content_x - margin - Core::GlobalScaling::scaled(80.0f);
+            const float item_x = content_x + Core::GlobalScaling::scaled(40.0f);
+            const float slider_width = Core::GlobalScaling::scaled(350.0f);
+            const float slider_x = item_x + item_width - slider_width;
+
+            float* values[] = { &_settings.master_volume, &_settings.music_volume, &_settings.effects_volume };
+            for (int i = 0; i < 3; ++i)
+            {
+                const Rectangle track_rect = { slider_x, current_y, slider_width, Core::GlobalScaling::scaled(40.0f) };
+                if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+                {
+                    if (_dragging_slider_index == i + 1 || CheckCollisionPointRec(mouse_pos, track_rect))
+                    {
+                        _dragging_slider_index = i + 1;
+                        const float percentage = std::clamp((mouse_pos.x - slider_x) / slider_width, 0.0f, 1.0f);
+                        *values[i] = Core::Settings::AUDIO_VOLUME_MIN + percentage * (Core::Settings::AUDIO_VOLUME_MAX - Core::Settings::AUDIO_VOLUME_MIN);
+                        *values[i] = roundf(*values[i] / Core::Settings::AUDIO_VOLUME_STEP) * Core::Settings::AUDIO_VOLUME_STEP;
+                    }
+                }
+
+                current_y += Core::GlobalScaling::scaled(80.0f);
+            }
+
+            if (!IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+                _dragging_slider_index = -1;
         }
         
         const float button_width = Core::GlobalScaling::scaled(BUTTON_WIDTH * 0.65f);

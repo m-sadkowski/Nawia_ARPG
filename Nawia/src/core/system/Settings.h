@@ -1,8 +1,8 @@
 #pragma once
 
+#include <fstream>
 #include <string>
 #include <vector>
-#include <fstream>
 
 namespace Nawia::Core {
 
@@ -49,11 +49,25 @@ public:
 
     /// Czy pokazywac licznik FPS.
     bool show_fps = false;
+
+    /// Glosnosc ogolna gry.
+    float master_volume = 1.0f;
+
+    /// Glosnosc muzyki.
+    float music_volume = 0.7f;
+
+    /// Glosnosc efektow dzwiekowych.
+    float effects_volume = 1.0f;
     
     /// Limity skali interfejsu.
     static constexpr float UI_SCALE_MIN = 0.5f;
     static constexpr float UI_SCALE_MAX = 1.5f;
     static constexpr float UI_SCALE_STEP = 0.1f;
+
+    /// Limity glosnosci audio.
+    static constexpr float AUDIO_VOLUME_MIN = 0.0f;
+    static constexpr float AUDIO_VOLUME_MAX = 1.0f;
+    static constexpr float AUDIO_VOLUME_STEP = 0.05f;
     
     /// Dostepne presety rozdzielczosci.
     static inline const std::vector<Resolution> AVAILABLE_RESOLUTIONS = {

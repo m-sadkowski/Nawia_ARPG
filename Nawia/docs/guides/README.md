@@ -18,6 +18,7 @@ Ten katalog zawiera praktyczne przewodniki po aktualnej architekturze projektu.
 
 ## Narzedzia i UI
 
+- `Audio_Guide.md` - efekty, muzyka, playlisty, formaty plikow i glosnosc.
 - `UI_Guide.md` - layout UI, HUD, questbook, dialogi i menu.
 - `DevLevel_Guide.md` - robocze ustawianie propsow i swiatla.
 

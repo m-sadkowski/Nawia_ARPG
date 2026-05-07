@@ -1,11 +1,11 @@
 {
     "player_spawn": {
-        "Demo Arena": { "x": -4.3, "y": 33.0 },
-        "Inferno": { "x": 0.0, "y": -5.0 }
+        "Tajemniczy Las": { "x": -4.3, "y": 33.0 },
+        "Lesna Dolina": { "x": 0.0, "y": -5.0 }
     },
     "entities": [
         {
-            "location": "Inferno",
+            "location": "Lesna Dolina",
             "type": "devil",
             "name": "Devil",
             "x": 0.0, "y": 12.1,
@@ -13,7 +13,7 @@
             "trigger_radius": 25.0
         },
         {
-            "location": "Demo Arena",
+            "location": "Tajemniczy Las",
             "type": "bandit",
             "name": "Bandyta",
             "x": 15.9, "y": 12.6,
@@ -22,7 +22,7 @@
             "abilities": ["KnifeThrow"]
         },
         {
-            "location": "Demo Arena",
+            "location": "Tajemniczy Las",
             "type": "walking_dead",
             "name": "Walking Dead",
             "x": 23.36, "y": 20.49,
@@ -30,7 +30,7 @@
             "trigger_radius": 12.0
         },
         {
-            "location": "Demo Arena",
+            "location": "Tajemniczy Las",
             "type": "friend",
             "name": "Friend",
             "x": 9.0, "y": 24.0,
@@ -38,7 +38,7 @@
             "trigger_radius": 0
         },
         {
-            "location": "Demo Arena",
+            "location": "Tajemniczy Las",
             "type": "static_object",
             "name": "Drzewo",
             "x": 5.0, "y": 5.0,
@@ -47,7 +47,7 @@
             "trigger_radius": 0
         },
         {
-            "location": "Demo Arena",
+            "location": "Tajemniczy Las",
             "type": "chest",
             "name": "Stara Skrzynia",
             "x": -16.0, "y": -21.44,
@@ -55,7 +55,7 @@
             "trigger_radius": 0
         },
         {
-            "location": "Demo Arena",
+            "location": "Tajemniczy Las",
             "type": "chest",
             "name": "Skrzynia Davida",
             "x": 2.8, "y": 8.57,
@@ -65,7 +65,7 @@
             "trigger_radius": 0
         },
         {
-            "location": "Demo Arena",
+            "location": "Tajemniczy Las",
             "type": "npc",
             "npc_class": "cat",
             "name": "Kot Olga",
@@ -74,25 +74,25 @@
             "trigger_radius": 0
         },
         {
-            "location": "Demo Arena",
+            "location": "Tajemniczy Las",
             "type": "checkpoint",
             "name": "Punkt Kontrolny",
             "x": 20.0, "y": 20.0,
             "trigger_radius": 0
         },
         {
-            "location": "Demo Arena",
+            "location": "Tajemniczy Las",
             "type": "teleport",
-            "name": "Portal do Inferno",
-            "target_location": "Inferno",
+            "name": "Portal do Lesnej Doliny",
+            "target_location": "Lesna Dolina",
             "x": -10.0, "y": 30.0,
             "trigger_radius": 0
         },
         {
-            "location": "Inferno",
+            "location": "Lesna Dolina",
             "type": "teleport",
             "name": "Portal Powrotny",
-            "target_location": "Demo Arena",
+            "target_location": "Tajemniczy Las",
             "x": 0.0, "y": -10.0,
             "trigger_radius": 0
         }

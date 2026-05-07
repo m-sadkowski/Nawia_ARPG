@@ -4,6 +4,7 @@ Ten katalog zawiera kod gry Nawia.
 
 ## Glowne moduly
 
+- `audio/` - manager efektow dzwiekowych, muzyki, playlist i glosnosci.
 - `core/` - petla silnika, kamera, mapa, input, resource manager, questy i systemy pomocnicze.
 - `entity/` - encje swiata, aktorzy, ability, collidery i interakcje.
 - `item/` - itemy, backpack, equipment, baza itemow i loottable.
@@ -33,6 +34,7 @@ assets/maps/demo_map/demo.glb
 - `docs/guides/Enemy_Guide.md`
 - `docs/guides/Ability_Guide.md`
 - `docs/guides/AbilityEffect_Guide.md`
+- `docs/guides/Audio_Guide.md`
 - `docs/guides/Level_Guide.md`
 - `docs/guides/Interactive_Guide.md`
 - `docs/guides/Item_Guide.md`

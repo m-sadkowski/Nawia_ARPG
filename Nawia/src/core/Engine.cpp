@@ -25,6 +25,7 @@ namespace Nawia::Core {
 	namespace {
 
 		constexpr Vector2 k_initial_player_spawn = {0.0f, 0.0f};
+		constexpr const char* MENU_MUSIC_PATH = "assets/audio/music/soulfuljamtracks-slavic-folk-308126.mp3";
 
 	}
 
@@ -33,6 +34,7 @@ namespace Nawia::Core {
 		InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Nawia");
 		SetExitKey(0);
 		SetTargetFPS(0);
+		_audio_manager.initialize();
 
 		_lighting_system.initialize();
 		_lighting_system.addLight(System::Renderer::LightingSystem::LIGHT_DIRECTIONAL, {-50.0f, 50.0f, -50.0f}, {0.0f, 0.0f, 0.0f}, WHITE);
@@ -40,6 +42,12 @@ namespace Nawia::Core {
 
 		if (_settings.load())
 			SetWindowSize(_settings.resolution.width, _settings.resolution.height);
+
+		_audio_manager.setMasterVolume(_settings.master_volume);
+		_audio_manager.setMusicVolume(_settings.music_volume);
+		_audio_manager.setEffectsVolume(_settings.effects_volume);
+
+		_audio_manager.playMusic(MENU_MUSIC_PATH, true, 1.f);
 
 		GlobalScaling::setManualScale(_settings.ui_scale);
 
@@ -169,6 +177,7 @@ namespace Nawia::Core {
 			_entity_manager->addEntity(_player);
 			_game_state = GameState::Playing;
 		} else if (action == UI::MenuAction::Exit) {
+			_audio_manager.playMusic(MENU_MUSIC_PATH, true, 0.45f);
 			_game_state = GameState::Menu;
 		}
 	}
@@ -204,6 +213,7 @@ namespace Nawia::Core {
 			_game_state = GameState::Menu;
 		} else if (!selected_level.empty()) {
 			_ui_handler->closeLevelSelect();
+			_audio_manager.stopMusic();
 			_level_manager->changeLevel(selected_level, this);
 			_game_state = GameState::Playing;
 			_ui_handler->onLevelLoaded();
@@ -229,6 +239,7 @@ namespace Nawia::Core {
 				_game_state = GameState::SettingsMenu;
 				_show_pause_menu = false;
 			} else if (action == UI::MenuAction::Exit) {
+				_audio_manager.playMusic(MENU_MUSIC_PATH, true, 1.f);
 				_game_state = GameState::Menu;
 				_show_pause_menu = false;
 			}
@@ -267,6 +278,8 @@ namespace Nawia::Core {
 	}
 
 	void Engine::update(const float delta_time) {
+		_audio_manager.update();
+
 		if (_game_state == GameState::Menu || _game_state == GameState::SettingsMenu || _game_state == GameState::LevelSelect) {
 			if (_ui_handler) _ui_handler->update(delta_time);
 			return;
@@ -376,6 +389,9 @@ namespace Nawia::Core {
 		}
 
 		GlobalScaling::setManualScale(_settings.ui_scale);
+		_audio_manager.setMasterVolume(_settings.master_volume);
+		_audio_manager.setMusicVolume(_settings.music_volume);
+		_audio_manager.setEffectsVolume(_settings.effects_volume);
 
 		if (_settings.save())
 			Logger::debugLog("Zapisano ustawienia.");
