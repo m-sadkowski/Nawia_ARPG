@@ -6,6 +6,7 @@
 #include <Logger.h>
 #include <Map.h>
 #include <MathUtils.h>
+#include <SoundIds.h>
 
 #include <cmath>
 
@@ -66,6 +67,7 @@ namespace Nawia::Entity {
 	{
 		_is_moving = false;
 		_path.clear();
+		updateMovementSound(Audio::SoundPath::Footsteps, false);
 		if (!isAnimationLocked())
 		{
 			setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
@@ -109,7 +111,10 @@ namespace Nawia::Entity {
 	void Player::updateMovement(const float delta_time)
 	{
 		if (!_is_moving || _is_knocked_down)
+		{
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
+		}
 
 		if (!isAnimationLocked()) 
 		{
@@ -118,6 +123,7 @@ namespace Nawia::Entity {
 		}
 
 		Entity::updateMovement(delta_time);
+		updateMovementSound(Audio::SoundPath::Footsteps, _is_moving && !isAnimationLocked(), 0.48f);
 
 		if (!_is_moving && !isAnimationLocked()) 
 		{
@@ -135,7 +141,9 @@ namespace Nawia::Entity {
 		if (const auto old_item = _equipment->equip(item)) 
 			_backpack->addItem(old_item);
 
+		playSoundEffect(Audio::SoundId::ItemEquip, 0.85f);
 		recalculateStats();
+
 	}
 
 	void Player::unequipItem(const Item::EquipmentSlot slot) 
@@ -202,6 +210,8 @@ namespace Nawia::Entity {
 	{
 		const bool was_dying = isDying();
 		Entity::takeDamage(dmg);
+		if (!isDying()) playSoundEffect(Audio::SoundId::PlayerHurt, 0.85f);
+
 
 		if (!was_dying && isDying())
 		{
@@ -225,6 +235,12 @@ namespace Nawia::Entity {
 		setFaction(Faction::Player);
 		setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 		playAnimation("default");
+	}
+
+	void Player::onDeathStarted()
+	{
+		updateMovementSound(Audio::SoundPath::Footsteps, false);
+		playSoundEffect(Audio::SoundId::HumanDeath, 0.9f);
 	}
 
 } // namespace Nawia::Entity

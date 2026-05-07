@@ -5,6 +5,7 @@
 #include <Engine.h>
 #include <Loottable.h>
 #include <Player.h>
+#include <SoundIds.h>
 
 namespace Nawia::Entity {
 
@@ -80,6 +81,7 @@ namespace Nawia::Entity {
 			return;
 
 		_is_open = true;
+		playSoundEffect(Audio::SoundId::CatMeow, 0.8f);
 	}
 
 	void Cat::update(const float delta_time) {

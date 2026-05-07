@@ -53,6 +53,7 @@ namespace Nawia::Entity {
 		void handleChasingState(float dt);
 		void handleCastingState(float dt);
 		void handleGettingHitState(float dt);
+		void onDeathStarted() override;
 	};
 
 	/**

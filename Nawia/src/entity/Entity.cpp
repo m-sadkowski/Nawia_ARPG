@@ -1,5 +1,6 @@
 #include "Entity.h"
 #include <Ability.h>
+#include <AudioManager.h>
 #include <Collider.h>
 
 #include <Logger.h>
@@ -9,6 +10,7 @@
 #include <raymath.h>
 
 #include <cmath>
+#include <cstdint>
 #include <fstream>
 #include <limits>
 
@@ -62,6 +64,9 @@ bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxó
 
 	Entity::~Entity()
 	{
+		if (!_movement_sound_id.empty())
+			stopSoundEffect(_movement_sound_id);
+
 		if (_model_loaded)
 		{
 			for (const auto& anim : _animations)
@@ -222,6 +227,7 @@ bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxó
 			_is_dying = true;
 			playAnimation(_death_anim_name, false, true, 0, true);
 			setFaction(Faction::None);
+			onDeathStarted();
 			Core::Logger::debugLog("Entity " + getName() + " rozpoczęła sekwencję śmierci.");
 		}
 		else
@@ -514,6 +520,36 @@ bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxó
 		}
 		
 		updateMovement(dt);
+	}
+
+	void Entity::playSoundEffect(const std::string& id, const float volume, const bool restart_if_playing, const float pitch) const
+	{
+		if (!_audio_manager)
+			return;
+
+		_audio_manager->playSound(id, Audio::SoundOptions{volume, pitch, restart_if_playing});
+	}
+
+	void Entity::stopSoundEffect(const std::string& id) const
+	{
+		if (!_audio_manager)
+			return;
+
+		_audio_manager->stopSound(id);
+	}
+
+	void Entity::updateMovementSound(const std::string& path, const bool should_play, const float volume, const float pitch)
+	{
+		if (!_audio_manager)
+			return;
+
+		if (_movement_sound_id.empty())
+			_movement_sound_id = "movement:" + std::to_string(reinterpret_cast<std::uintptr_t>(this));
+
+		if (should_play)
+			_audio_manager->playSoundFile(_movement_sound_id, path, Audio::SoundOptions{volume, pitch, false});
+		else
+			_audio_manager->stopSound(_movement_sound_id);
 	}
 
 } // namespace Nawia::Entity

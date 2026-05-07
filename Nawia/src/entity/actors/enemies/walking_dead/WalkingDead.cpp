@@ -2,6 +2,7 @@
 
 #include <Collider.h>
 #include <MathUtils.h>
+#include <SoundIds.h>
 
 #include <raymath.h>
 
@@ -46,6 +47,7 @@ namespace Nawia::Entity {
 		}
 
 		if (isDormant()) return;
+		updateAmbientSound(dt);
 
 		// Aktualizacja czasu odnowienia ataku.
 		if (_attack_cooldown_timer > 0.0f)
@@ -95,6 +97,7 @@ namespace Nawia::Entity {
 		if (!target || target->isDead())
 		{
 			_state = State::Screaming;
+			playSoundEffect(Audio::SoundId::ZombieScream, 0.85f);
 			playAnimation("scream", false, true);
 			setVelocity(0, 0);
 			_is_moving = false;
@@ -107,6 +110,7 @@ namespace Nawia::Entity {
 		if (dist > VISION_RANGE * 1.5f)
 		{
 			_state = State::Screaming;
+			playSoundEffect(Audio::SoundId::ZombieScream, 0.85f);
 			playAnimation("scream", false, true);
 			setVelocity(0, 0);
 			_is_moving = false;
@@ -229,6 +233,22 @@ namespace Nawia::Entity {
 				break;
 			}
 		}
+	}
+
+	void WalkingDead::updateAmbientSound(const float dt)
+	{
+		_ambient_sound_timer -= dt;
+		if (_ambient_sound_timer > 0.0f)
+			return;
+
+		_ambient_sound_timer = static_cast<float>(GetRandomValue(700, 1700)) / 100.0f;
+		if (GetRandomValue(0, 100) <= 35)
+			playSoundEffect(Audio::SoundId::ZombieAmbient, 0.55f, false, static_cast<float>(GetRandomValue(90, 110)) / 100.0f);
+	}
+
+	void WalkingDead::onDeathStarted()
+	{
+		playSoundEffect(Audio::SoundId::ZombieDeath, 0.9f);
 	}
 
 } // namespace Nawia::Entity

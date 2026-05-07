@@ -2,6 +2,7 @@
 
 #include <Entity.h>
 #include <Projectile.h>
+#include <SoundIds.h>
 
 #include <utility>
 
@@ -44,6 +45,13 @@ namespace Nawia::Entity {
 				if (dx * dx + dy * dy < 1.0f)
 					target_height = getModelCenterHeight(*target);
 			}
+		}
+
+		if (_caster) {
+			if (_name == "Fireball")
+				_caster->playSoundEffect(Audio::SoundId::FireballCast, 0.85f);
+			else if (_name == "Knife Throw")
+				_caster->playSoundEffect(Audio::SoundId::KnifeThrow, 0.8f);
 		}
 
 		return std::make_shared<Projectile>(

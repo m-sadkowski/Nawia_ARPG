@@ -4,6 +4,7 @@
 #include <Map.h>
 #include <MathUtils.h>
 #include <Player.h>
+#include <SoundIds.h>
 
 #include <raymath.h>
 
@@ -41,6 +42,9 @@ namespace Nawia::Entity {
 
 	void Devil::update(const float dt)
 	{
+		updateMovementSound(Audio::SoundPath::DevilStep, _is_moving && !isDying() && !isDormant(), 0.45f);
+
+
 		if (isDying())
 		{
 			Entity::update(dt);
@@ -87,6 +91,7 @@ namespace Nawia::Entity {
 			if (dist <= VISION_RANGE)
 			{
 				_state = State::Chasing;
+				playSoundEffect(Audio::SoundId::DevilAggro, 0.9f);
 				setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 				playAnimation("walk");
 			}
@@ -181,6 +186,7 @@ namespace Nawia::Entity {
 			
 			_state = State::Dashing;
 			_dash_hit_target = false;  
+			playSoundEffect(Audio::SoundId::DevilDash, 0.9f);
 			setAnimationSpeed(DEVIL_DASH_ANIMATION_SPEED);
 			playAnimation("run", false, false);  
 		}
@@ -203,7 +209,9 @@ namespace Nawia::Entity {
 						dynamic_cast<Player*>(target.get())->knockDown(DASH_DAMAGE);
 					else
 						target->takeDamage(DASH_DAMAGE);
+					playSoundEffect(Audio::SoundId::DevilDashHit, 0.95f);
 					_dash_hit_target = true;
+
 				}
 			}
 		}
@@ -271,6 +279,8 @@ namespace Nawia::Entity {
 				if (getDistanceToTarget() <= ATTACK_RANGE * 1.5f)
 				{
 					target->takeDamage(ATTACK_DAMAGE);
+					playSoundEffect(Audio::SoundId::DevilPunch, 0.85f);
+
 				}
 			}
 			
@@ -279,6 +289,11 @@ namespace Nawia::Entity {
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 			playAnimation("walk");
 		}
+	}
+
+	void Devil::onDeathStarted()
+	{
+		playSoundEffect(Audio::SoundId::DevilDeath, 0.95f);
 	}
 } // namespace Nawia::Entity
 

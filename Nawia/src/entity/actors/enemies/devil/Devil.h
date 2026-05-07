@@ -73,6 +73,7 @@ namespace Nawia::Entity {
 		void handleDashingState(float dt);
 		void handleRecoveringState(float dt);
 		void handleAttackingState(float dt);
+		void onDeathStarted() override;
 	};
 
 	/**

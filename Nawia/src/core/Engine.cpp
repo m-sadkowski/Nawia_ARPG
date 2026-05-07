@@ -13,6 +13,7 @@
 #include <Map.h>
 #include <MrocznyLasLevel.h>
 #include <PobojowiskoLevel.h>
+#include <SoundIds.h>
 #include <StarozytneLochyLevel.h>
 #include <SwordSlashAbility.h>
 
@@ -46,6 +47,7 @@ namespace Nawia::Core {
 		_audio_manager.setMasterVolume(_settings.master_volume);
 		_audio_manager.setMusicVolume(_settings.music_volume);
 		_audio_manager.setEffectsVolume(_settings.effects_volume);
+		loadGameplaySounds();
 
 		_audio_manager.playMusic(MENU_MUSIC_PATH, true, 1.f);
 
@@ -58,6 +60,7 @@ namespace Nawia::Core {
 		_quest_manager.loadFromJson("assets/data/quests.json");
 
 		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
+		_player->setAudioManager(&_audio_manager);
 
 		const auto sword_slash_texture = _resource_manager.getTexture("assets/textures/sword_slash.png");
 		const auto sword_slash_icon = _resource_manager.getTexture("assets/textures/icons/sword_slash_icon.png");
@@ -317,6 +320,27 @@ namespace Nawia::Core {
 
 		for (const auto& spawn : new_spawns)
 			spawnEntity(spawn);
+	}
+
+	void Engine::loadGameplaySounds() {
+		_audio_manager.loadSound(Audio::SoundId::ZombieScream, Audio::SoundPath::ZombieScream);
+		_audio_manager.loadSound(Audio::SoundId::ZombieDeath, Audio::SoundPath::ZombieDeath);
+		_audio_manager.loadSound(Audio::SoundId::ZombieAmbient, Audio::SoundPath::ZombieAmbient);
+		_audio_manager.loadSound(Audio::SoundId::SwordSlash, Audio::SoundPath::SwordSlash);
+		_audio_manager.loadSound(Audio::SoundId::FireballCast, Audio::SoundPath::FireballCast);
+		_audio_manager.loadSound(Audio::SoundId::DevilDeath, Audio::SoundPath::DevilDeath);
+		_audio_manager.loadSound(Audio::SoundId::DevilDash, Audio::SoundPath::DevilDash);
+		_audio_manager.loadSound(Audio::SoundId::DevilAggro, Audio::SoundPath::DevilAggro);
+		_audio_manager.loadSound(Audio::SoundId::DevilPunch, Audio::SoundPath::DevilPunch);
+		_audio_manager.loadSound(Audio::SoundId::DevilStep, Audio::SoundPath::DevilStep);
+		_audio_manager.loadSound(Audio::SoundId::ChestOpen, Audio::SoundPath::ChestOpen);
+		_audio_manager.loadSound(Audio::SoundId::DevilDashHit, Audio::SoundPath::DevilDashHit);
+		_audio_manager.loadSound(Audio::SoundId::ItemEquip, Audio::SoundPath::ItemEquip);
+		_audio_manager.loadSound(Audio::SoundId::FireballHit, Audio::SoundPath::FireballHit);
+		_audio_manager.loadSound(Audio::SoundId::PlayerHurt, Audio::SoundPath::PlayerHurt);
+		_audio_manager.loadSound(Audio::SoundId::HumanDeath, Audio::SoundPath::HumanDeath);
+		_audio_manager.loadSound(Audio::SoundId::KnifeThrow, Audio::SoundPath::KnifeThrow);
+		_audio_manager.loadSound(Audio::SoundId::CatMeow, Audio::SoundPath::CatMeow);
 	}
 
 	void Engine::render() const {

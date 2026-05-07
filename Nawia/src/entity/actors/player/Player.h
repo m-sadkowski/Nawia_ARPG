@@ -125,6 +125,7 @@ namespace Nawia::Entity {
 	private:
 		friend class PlayerBuilder;
 		Player();
+		void onDeathStarted() override;
 
 		Core::Engine* _engine = nullptr;
 

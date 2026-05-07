@@ -50,6 +50,7 @@ namespace Nawia::Entity {
 
 		float _attack_cooldown_timer = 0.0f;
 		bool _is_running = false; // Czy aktualnie odtwarzamy wariant biegu.
+		float _ambient_sound_timer = 0.0f;
 
 		// Ruch i wyznaczanie ścieżki.
 		static constexpr float DIRECT_MOVE_DISTANCE = 2.0f;
@@ -60,6 +61,8 @@ namespace Nawia::Entity {
 		void handleAttackingState(float dt);
 		void handleScreamingState(float dt);
 		void handleGettingHitState(float dt);
+		void updateAmbientSound(float dt);
+		void onDeathStarted() override;
 	};
 
 	/**

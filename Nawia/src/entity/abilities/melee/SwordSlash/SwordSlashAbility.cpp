@@ -2,6 +2,7 @@
 
 #include <Entity.h>
 #include <Player.h>
+#include <SoundIds.h>
 #include <SwordSlashEffect.h>
 
 namespace Nawia::Entity {
@@ -29,6 +30,7 @@ namespace Nawia::Entity {
 		}
 
 		_caster->playAnimation("attack", false, true);
+		_caster->playSoundEffect(Audio::SoundId::SwordSlash, 0.85f);
 
 		// Zapisujemy stan opóźnionego utworzenia efektu.
 		_is_active = true;

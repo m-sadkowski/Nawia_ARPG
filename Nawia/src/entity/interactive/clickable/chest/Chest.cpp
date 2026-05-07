@@ -5,6 +5,8 @@
 #include <Engine.h>
 #include <Loottable.h>
 #include <Player.h>
+#include <SoundIds.h>
+
 
 namespace Nawia::Entity {
 
@@ -77,6 +79,7 @@ namespace Nawia::Entity {
 
 		// Tu można później uruchomić animację otwierania skrzyni.
 		_is_open = true;
+		playSoundEffect(Audio::SoundId::ChestOpen, 0.85f);
 	}
 
 	void Chest::update(const float delta_time) {

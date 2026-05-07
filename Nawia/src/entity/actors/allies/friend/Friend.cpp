@@ -3,6 +3,7 @@
 #include <Ability.h>
 #include <AllyBrain.h>
 #include <Collider.h>
+#include <SoundIds.h>
 
 namespace Nawia::Entity {
 
@@ -28,6 +29,7 @@ namespace Nawia::Entity {
 	{
 		if (isDying())
 		{
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			Entity::update(dt);
 			return;
 		}
@@ -54,6 +56,7 @@ namespace Nawia::Entity {
 		if (!target || target->isDead() || target->isDying())
 		{
 			_is_moving = false;
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			if (!isAnimationLocked())
 				playAnimation("default");
 			return;
@@ -69,6 +72,7 @@ namespace Nawia::Entity {
 		if (dist > VISION_RANGE)
 		{
 			_is_moving = false;
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			playAnimation("default");
 			return;
 		}
@@ -89,11 +93,18 @@ namespace Nawia::Entity {
 		const Vector2 target_pos = target->getCenter();
 		moveTo(target_pos.x, target_pos.y);
 		updateMovement(dt);
+		updateMovementSound(Audio::SoundPath::Footsteps, _is_moving && !isAnimationLocked(), 0.42f, 1.04f);
 
 		if (_is_moving)
 			playAnimation("walk");
 		else
 			playAnimation("default");
+	}
+
+	void Friend::onDeathStarted()
+	{
+		updateMovementSound(Audio::SoundPath::Footsteps, false);
+		playSoundEffect(Audio::SoundId::HumanDeath, 0.85f);
 	}
 
 } // namespace Nawia::Entity
