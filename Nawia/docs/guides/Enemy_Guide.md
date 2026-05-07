@@ -1,40 +1,46 @@
 # Przewodnik po Enemy i Ally
 
-Ten dokument opisuje aktualny przeplyw tworzenia jednostek combatowych:
+Ten dokument opisuje jednostki bojowe: wrogow, sojusznikow, wspolny `ActorInterface` i aktualny model targetowania.
 
-- `EnemyInterface`
-- `AllyInterface`
-- konkretne klasy jak `Bandit`, `WalkingDead`, `Devil`, `Friend`
+## Hierarchia
 
-## 1. Wspolny model dla jednostek bojowych
+Jednostki bojowe opieraja sie o:
 
-Jednostki bojowe w projekcie opieraja sie o:
+- `Entity` - baza wszystkich obiektow swiata,
+- `ActorInterface` - wspolna baza actorow z mapa i targetem,
+- `EnemyInterface` - specjalizacja wrogow,
+- `AllyInterface` - specjalizacja sojusznikow,
+- `AllyBrain` - opcjonalny obiekt decyzyjny dla ally.
 
-- `Entity` - wspolna baza
-- `EnemyInterface` - baza dla wrogow
-- `AllyInterface` - baza dla sojusznikow
+`ActorInterface` przechowuje `_map` i `_target`, dzieki czemu enemy i ally nie duplikuja tej samej infrastruktury.
 
-Obie warstwy interface daja:
+## Targetowanie
 
-- `_map` do ruchu po levelu
-- `_target` do sledzenia celu
-- builder z `setMap(...)` i `setTarget(...)`
+Cele sa odswiezane centralnie przez `EntityManager::refreshCombatTargets()`:
 
-`AllyInterface` ma dodatkowo:
+- enemy wybiera najblizszego `Player` albo `Ally`,
+- ally wybiera najblizszego `Enemy`.
 
-- `setBrain(...)`
-- `getBrain()`
+Typowa klasa enemy/ally nie musi recznie wyszukiwac celu. Powinna tylko reagowac na:
 
-## 2. Jak tworzyc nowego enemy
+- brak celu,
+- cel poza zasiegiem,
+- cel w zasiegu ability,
+- animacje ataku albo hit react.
 
-Najczestszy wzorzec w repo:
+Nietypowy priorytet celu mozna zrobic lokalnie w klasie albo w przyszlym brainie.
 
-1. klasa dziedziczy po `EnemyInterface`
-2. ma prywatny konstruktor
-3. ma `Builder`
-4. `update()` obsluguje stany
+## Nowy enemy
 
-Przyklad:
+Standardowy wzorzec:
+
+1. Klasa dziedziczy po `EnemyInterface`.
+2. Ma prywatny konstruktor.
+3. Ma builder.
+4. `update()` obsluguje stany.
+5. Typ jest dodany w `EntityFactory`.
+
+Szkielet:
 
 ```cpp
 class Orc : public EnemyInterface {
@@ -51,112 +57,68 @@ private:
 };
 ```
 
-W konstruktorze enemy zwykle:
+W konstruktorze ustaw zwykle:
 
-- `setFaction(Faction::Enemy)`
-- `setScale(...)`
-- `loadModel(...)`
-- `addAnimation(...)`
-- `playAnimation("default")` albo `playAnimation("idle")`
-- opcjonalnie `setCollider(...)`
-- opcjonalnie `addAbility(...)`
+- frakcje `Faction::Enemy`,
+- model, animacje i skale,
+- HP,
+- opcjonalny collider,
+- opcjonalne ability.
 
-## 3. Jak tworzyc nowego ally
+## Nowy ally
 
-Ally tworzy sie prawie identycznie jak enemy.
+Ally dziala analogicznie, ale:
 
-Roznica polega glownie na tym, ze:
+- ma `Faction::Ally`,
+- walczy po stronie gracza,
+- moze delegowac decyzje do `AllyBrain`.
 
-- ma `Faction::Ally`
-- walczy po stronie gracza
-- moze miec `AllyBrain`
+Aktualny wzorzec to `Friend`, ktory ma `SwordSlashAbility` i prosty fallback bez braina.
 
-Przyklad aktualny:
-
-- `src/entity/actors/allies/friend/Friend.h`
-- `src/entity/actors/allies/friend/Friend.cpp`
-
-`Friend` jest teraz referencyjnym prostym ally:
-
-- ma 100 HP
-- ma `SwordSlashAbility`
-- bez braina uzywa hardcoded zachowania
-- atakuje najblizszego wroga
-
-## 4. Targetowanie - co dzieje sie automatycznie
-
-Od teraz targetowanie jest odswiezane centralnie w:
-
-- `src/Core/game/EntityManager.cpp`
-
-Metoda `refreshCombatTargets()` ustawia cele co tick:
-
-- enemy -> najblizszy `Player` albo `Ally`
-- ally -> najblizszy `Enemy`
-
-To oznacza, ze w typowej klasie enemy/ally nie trzeba juz robic recznego wyszukiwania targetu. Klasa jednostki moze skupic sie na pytaniach:
-
-- czy isc do celu
-- czy castowac
-- czy grac animacje ataku
-- co zrobic po utracie targetu
-
-Jesli chcesz nietypowy priorytet celu, wtedy masz dwie opcje:
-
-1. nadpisac target lokalnie w swojej klasie
-2. zrobic w przyszlosci bardziej zaawansowany brain
-
-## 5. Przykladowy flow `update()`
-
-Typowy pattern dla combat entity:
+## Typowy `update`
 
 ```cpp
 void MyUnit::update(const float dt)
 {
-	if (isDying())
-	{
+	if (isDying()) {
 		Entity::update(dt);
 		return;
 	}
 
-	if (isDormant()) return;
+	if (isDormant())
+		return;
 
 	Entity::update(dt);
 	updateAbilities(dt);
 
-	if (!hasValidTarget())
-	{
+	if (!hasValidTarget()) {
 		playAnimation("idle");
 		return;
 	}
 
-	const float dist = getDistanceToTarget();
+	const float distance = getDistanceToTarget();
 	const Vector2 target_pos = getTargetPosition();
 
-	if (dist <= 1.5f)
-	{
+	if (distance <= ATTACK_RANGE) {
 		rotateTowardsCenter(target_pos.x, target_pos.y);
-		// cast / melee hit / state change
-	}
-	else
-	{
+		// cast ability albo zmiana stanu
+	} else {
 		moveTo(target_pos.x, target_pos.y);
 		updateMovement(dt);
 	}
 }
 ```
 
-## 6. `takeDamage()`, hit react i animacje
+## `takeDamage`
 
-W jednostkach bojowych bardzo czesto warto nadpisac `takeDamage(int dmg)`.
-
-Typowy pattern:
+Gdy jednostka ma reakcje na trafienie, nadpisz `takeDamage(...)`:
 
 ```cpp
-void MyEnemy::takeDamage(const int dmg)
+void MyEnemy::takeDamage(const int damage)
 {
-	Entity::takeDamage(dmg);
-	if (isDying()) return;
+	Entity::takeDamage(damage);
+	if (isDying())
+		return;
 
 	_state = State::GettingHit;
 	playAnimation("get_hit", false, true, 10, true);
@@ -164,104 +126,25 @@ void MyEnemy::takeDamage(const int dmg)
 }
 ```
 
-To daje trzy rzeczy:
+Najpierw zawsze wywolaj bazowe obrazenia, potem specjalna reakcje.
 
-- encja realnie traci HP
-- po smiertelnym ciosie przechodzi do dying i nie robi juz nic wiecej
-- po zwyklym ciosie mozna odpalic stagger / get hit / przerwanie ataku
+## Ruch i mapy
 
-W praktyce warto tez trzymac:
+`ActorInterface` daje dostep do `Map`, czyli mozna sprawdzac walkability i uzywac pathfindingu.
 
-- `_state_before_hit`
-- powrot do poprzedniego stanu po zakonczeniu animacji
+Do zwyklego chase czesto wystarcza:
 
-## 7. Map, walkability i ruch
+- `moveTo(...)`,
+- `updateMovement(dt)`,
+- `chaseTarget(dt)`.
 
-`EnemyInterface` i `AllyInterface` maja dostep do `_map`.
+Do decyzji bojowych i projectile uzywaj `getCenter()`, a nie tylko `getX()/getY()`.
 
-To przydaje sie do:
+## JSON i factory
 
-- sprawdzania `isWalkable(...)`
-- wybierania punktu retreat / chase
-- blokowania dasha przez sciane
+Jednostki tworzy `EntityFactory`, a dane przychodza z `assets/data/level_entities/*.json`.
 
 Przyklad:
-
-```cpp
-if (_map && !_map->isWalkable(next_x, next_y))
-{
-	// zmien stan albo przerwij ruch
-}
-```
-
-Jesli nie potrzebujesz specjalnego pathowania, w wielu przypadkach wystarczy:
-
-- `moveTo(...)`
-- `updateMovement(dt)`
-
-## 8. Pushing i fizyka actorow
-
-Jednostki bojowe sa odpychane automatycznie przez `EntityManager`.
-
-To oznacza, ze:
-
-- `Player`
-- `Enemy`
-- `Ally`
-
-nie powinny stac idealnie w tym samym miejscu.
-
-Zwykle nie trzeba pisac do tego zadnej dodatkowej logiki w klasie jednostki. Wyjatek to przypadki specjalne, jak dash albo teleport pozycji.
-
-## 9. Ability w jednostkach bojowych
-
-Jednostki bojowe dodaja skille przez:
-
-```cpp
-addAbility(std::make_shared<MyAbility>(...));
-```
-
-Potem w `update()`:
-
-- pobierasz ability przez `getAbility(index)`
-- sprawdzasz `isReady()`
-- uruchamiasz `cast(...)`
-
-Jesli ability tworzy efekt z opoznieniem albo przez animacje, zwykle sama wrzuci wynik do `pending spawns`.
-
-Przyklad obecny:
-
-- `SwordSlashAbility`
-- `KnifeThrowAbility`
-
-## 10. Kiedy dawac collider jednostce
-
-Wiele jednostek bojowych moze dzialac bez rozbudowanego collidera, ale collider nadal bywa przydatny, gdy:
-
-- chcesz miec lepszy pivot dla celu
-- dana encja jest triggerowana lub zderzana niestandardowo
-- specjalna mechanika potrzebuje konkretnego ksztaltu
-
-Przyklad:
-
-```cpp
-setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, 0.0f, 0.0f));
-```
-
-Najwazniejsze: nie myl collidera encji z colliderem efektu ataku. Melee i projectile zwykle powinny miec swoja wlasna geometrie w `AbilityEffect`.
-
-## 11. Spawning jednostek z JSON
-
-Jednostki bojowe powinny byc tworzone przez `EntityFactory`, a nie recznie w levelu.
-
-Aktualna sciezka:
-
-1. wpis w `assets/data/level_entities/...json`
-2. `SpawnManager` wczytuje definicje
-3. `EntityFactory::create(...)` buduje obiekt
-4. encja trafia do `EntityManager`
-
-Przyklad enemy:
 
 ```json
 {
@@ -276,95 +159,12 @@ Przyklad enemy:
 }
 ```
 
-Przyklad ally:
+Factory sklada obiekt i podpina assety. AI ma zostac w klasie aktora albo brainie.
 
-```json
-{
-    "location": "Demo Arena",
-    "type": "friend",
-    "name": "Friend",
-    "x": 9.0,
-    "y": 24.0,
-    "hp": 100,
-    "trigger_radius": 0
-}
-```
+## Dobre praktyki
 
-## 12. Dormant i lokacje
-
-Jednostki nie sa niszczone przy teleportach miedzy lokacjami. Zamiast tego sa zamrazane przez `setDormant(true)`.
-
-Wazne skutki:
-
-- dormant unit nie renderuje modelu
-- dormant unit nie aktualizuje AI
-- dormant unit nie ma healthbara w HUD
-- dormant unit nie bierze udzialu w kolizjach
-
-SpawnManager pamieta tez, czy jednostka byla juz aktywowana przed opuszczeniem lokacji. Dzieki temu po powrocie wraca do poprzedniego stanu aktywacji zamiast czekac drugi raz na proximity trigger.
-
-## 13. Jak w przyszlosci dodac AllyBrain
-
-`AllyBrain` ma byc miejscem na logike decyzyjna dla sojusznikow.
-
-Zalecany podzial odpowiedzialnosci:
-
-- klasa `MyAlly`:
-  - assety
-  - HP
-  - abilities
-  - animacje
-  - fallback behavior
-- klasa `MyAllyBrain`:
-  - decyzje
-  - priorytety celu
-  - wybieranie skilla
-  - ET / BT / FSM
-
-Minimalny przyklad braina:
-
-```cpp
-class SupportBrain : public AllyBrain {
-public:
-	void update(AllyInterface& ally, float dt) override;
-};
-```
-
-Podpiecie:
-
-```cpp
-auto ally = MyAllyBuilder()
-	.setName(name)
-	.setPosition({x, y})
-	.setMap(map)
-	.setMaxHp(100)
-	.setBrain(std::make_shared<SupportBrain>())
-	.build();
-```
-
-W samym `update()` ally najlepiej zostawic taki pattern:
-
-- jesli `getBrain()` zwraca obiekt -> oddaj sterowanie brainowi
-- w przeciwnym razie uzyj zachowania hardcoded
-
-To pozwala wdrazac nowe brainy stopniowo, bez przepisywania kazdej klasy ally od razu.
-
-## 14. Checklist przy dodawaniu nowej jednostki
-
-1. Dodaj klase `.h/.cpp`
-2. Ustaw frakcje, HP, model i animacje
-3. Zdecyduj, czy potrzeba collidera encji
-4. Dodaj `takeDamage()` / hit react, jesli jednostka ma reagowac na trafienie
-5. Dodaj ability, jesli potrzebne
-6. Dodaj builder
-7. Zarejestruj typ w `EntityFactory`
-8. Dodaj wpis w JSON levelu
-9. Jesli to ally, zdecyduj:
-   hardcoded fallback czy `AllyBrain`
-
-## 15. Powiazane pliki
-
-- `docs/guides/Entity_Guide.md`
-- `docs/guides/Ability_Guide.md`
-- `src/entity/actors/allies/AllyBrain.h`
-- `src/world/spawn/EntityFactory.cpp`
+- Nie duplikuj wyszukiwania celu w kazdej klasie.
+- Dla ally najpierw sprawdz, czy wystarczy fallback, a dopiero potem dodawaj brain.
+- Collider jednostki nie zastepuje collidera efektu ataku.
+- Stan animacji i stan AI trzymaj jawnie, gdy logika robi sie wieksza.
+- Nie mieszaj respawnu, lokacji i AI w jednej klasie.

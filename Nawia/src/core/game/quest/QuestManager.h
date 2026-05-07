@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Quest.h"
+#include <Quest.h>
 
 #include <map>
 #include <string>
 #include <vector>
-#include <functional>
 
 namespace Nawia::Core { class Engine; }
 
@@ -13,53 +12,95 @@ namespace Nawia::Game {
 
 	/**
 	 * @class QuestManager
-	 * @brief Manages all quests: loading from JSON, tracking progress, unlocking chains.
+	 * @brief Wczytuje questy, sledzi ich postep i obsluguje odblokowania lancuchow.
 	 */
 	class QuestManager {
 	public:
-		/// Load quest definitions from a JSON file
+		/**
+		 * @brief Wczytuje definicje questow z pliku JSON.
+		 */
 		void loadFromJson(const std::string& path);
 
-		/// Reset all quests to initial state (call on level enter)
+		/**
+		 * @brief Przywraca wszystkie questy do stanu poczatkowego.
+		 */
 		void resetAll();
 
-		/// Start a quest by ID (changes Available -> Active)
+		/**
+		 * @brief Uruchamia dostepny quest o podanym ID.
+		 */
 		bool startQuest(const std::string& id);
 
-		/// Force-complete a quest and give rewards
+		/**
+		 * @brief Wymusza ukonczenie questa i przyznaje nagrody.
+		 */
 		void completeQuest(const std::string& id, Core::Engine* engine);
 
-		/// Get quest by ID (nullptr if not found)
+		/**
+		 * @brief Zwraca quest po ID albo nullptr.
+		 */
 		[[nodiscard]] Quest* getQuest(const std::string& id);
 		[[nodiscard]] const Quest* getQuest(const std::string& id) const;
 
-		/// Set the current level name (called on level change)
+		/**
+		 * @brief Ustawia nazwe aktualnego poziomu dla filtrowania questow.
+		 */
 		void setCurrentLevel(const std::string& level_name);
 
-		/// Get quests filtered by state (only for current level)
+		/**
+		 * @brief Zwraca aktywne questy z aktualnego poziomu.
+		 */
 		[[nodiscard]] std::vector<Quest*> getActiveQuests();
+
+		/**
+		 * @brief Zwraca dostepne questy z aktualnego poziomu.
+		 */
 		[[nodiscard]] std::vector<Quest*> getAvailableQuests();
+
+		/**
+		 * @brief Zwraca ukonczone questy z aktualnego poziomu.
+		 */
 		[[nodiscard]] std::vector<Quest*> getCompletedQuests();
 
-		/// Get all quests assigned to a specific level
+		/**
+		 * @brief Zwraca questy przypisane do poziomu oraz questy globalne.
+		 */
 		[[nodiscard]] std::vector<Quest*> getQuestsForLevel(const std::string& level_name);
 
-		// --- Notification methods (call these when game events happen) ---
+		/**
+		 * @brief Informuje system o zabiciu przeciwnika.
+		 */
 		void notifyKill(const std::string& enemy_name);
+
+		/**
+		 * @brief Informuje system o zebraniu przedmiotu.
+		 */
 		void notifyItemCollected(int item_id);
+
+		/**
+		 * @brief Informuje system o oddaniu przedmiotu NPC.
+		 */
 		void notifyItemDelivered(int item_id, const std::string& npc_name);
+
+		/**
+		 * @brief Informuje system o dotarciu do checkpointa.
+		 */
 		void notifyCheckpointReached(const std::string& checkpoint_name);
+
+		/**
+		 * @brief Informuje system o rozmowie z NPC.
+		 */
 		void notifyNPCTalked(const std::string& npc_name);
 
-		/// Check quest states: unlock available, auto-complete finished quests
+		/**
+		 * @brief Odblokowuje dostepne questy i zamyka wykonane aktywne questy.
+		 */
 		void update(Core::Engine* engine);
 
 	private:
-		/// Check if all prerequisites of a quest are completed
 		[[nodiscard]] bool arePrerequisitesMet(const Quest& quest, Core::Engine* engine) const;
-
-		/// Check if a quest belongs to the current level (or is global)
 		[[nodiscard]] bool isQuestForCurrentLevel(const Quest& quest) const;
+		[[nodiscard]] std::vector<Quest*> getQuestsByState(QuestState state);
 
 		std::map<std::string, Quest> _quests;
 		std::string _current_level;

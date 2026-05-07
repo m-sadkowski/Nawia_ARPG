@@ -2,8 +2,12 @@
 
 #include <Engine.h>
 #include <Logger.h>
+#include <Map.h>
+#include <Player.h>
 
 namespace Nawia::World {
+
+	Level::~Level() = default;
 
 	void Level::onExit(Core::Engine* engine) {
 		if (engine)
@@ -18,10 +22,18 @@ namespace Nawia::World {
 		if (!player) return;
 
 		const Vector2 player_pos = {player->getX(), player->getY()};
-		const std::string current_loc = getCurrentLocationName();
+		const std::string current_location = getCurrentLocationName();
 
-		// Lightweight: just distance checks + dormant toggle
-		_spawn_manager.update(player_pos, current_loc);
+		// Lekka aktualizacja: tylko dystans do gracza i przelaczanie uspionych encji.
+		_spawn_manager.update(player_pos, current_location);
+	}
+
+	std::string Level::getCurrentLocationName() const {
+		const auto locations = getLocations();
+		if (_current_location_index < locations.size()) {
+			return locations[_current_location_index];
+		}
+		return locations.empty() ? "" : locations[0];
 	}
 
 	void Level::loadSpawns(Core::Engine* engine) {
@@ -29,16 +41,16 @@ namespace Nawia::World {
 		if (path.empty()) return;
 
 		_spawn_manager.reset();
-		const std::string initial_loc = getCurrentLocationName();
-		_spawn_manager.loadFromJson(path, engine, _map.get(), initial_loc);
+		const std::string initial_location = getCurrentLocationName();
+		_spawn_manager.loadFromJson(path, engine, _map.get(), initial_location);
 
-		// Set player position from JSON if available
+		// Ustawia gracza na pozycji startowej z JSON, jesli lokacja ja definiuje.
 		if (engine) {
 			const auto player = engine->getPlayer();
 			if (player) {
-				const std::string loc = getCurrentLocationName();
+				const std::string location = getCurrentLocationName();
 				Vector2 spawn_pos = {0.0f, 0.0f};
-				if (_spawn_manager.getPlayerSpawn(loc, spawn_pos)) {
+				if (_spawn_manager.getPlayerSpawn(location, spawn_pos)) {
 					player->respawn();
 					player->setX(spawn_pos.x);
 					player->setY(spawn_pos.y);
@@ -52,17 +64,16 @@ namespace Nawia::World {
 	}
 
 	void Level::changeLocation(Core::Engine* engine, const std::string& location_name) {
-		const auto locs = getLocations();
-		for (size_t i = 0; i < locs.size(); ++i) {
-			if (locs[i] == location_name) {
+		const auto locations = getLocations();
+		for (size_t i = 0; i < locations.size(); ++i) {
+			if (locations[i] == location_name) {
 				_current_location_index = i;
 				
 				Core::Logger::debugLog("Level: Zmiana lokacji na " + location_name);
 
-				// Update dormant states (freeze old location, wake up immediate new location)
+				// Zamraza stare encje i budzi natychmiastowe spawny nowej lokacji.
 				_spawn_manager.updateLocationChange(location_name);
 
-				// Teleport player to new location spawn
 				if (!engine)
 					return;
 

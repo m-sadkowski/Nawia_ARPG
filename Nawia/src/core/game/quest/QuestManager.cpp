@@ -4,347 +4,339 @@
 #include <Logger.h>
 
 #include <json.hpp>
+
 #include <fstream>
+#include <utility>
+
+using json = nlohmann::json;
 
 namespace Nawia::Game {
 
-	// ─── JSON Loading ─────────────────────────────────────
+	namespace {
 
-	static ObjectiveType parseObjectiveType(const std::string& type_str) {
-		if (type_str == "kill")				return ObjectiveType::Kill;
-		if (type_str == "collect_item")		return ObjectiveType::CollectItem;
-		if (type_str == "deliver_item")		return ObjectiveType::DeliverItem;
-		if (type_str == "reach_checkpoint")	return ObjectiveType::ReachCheckpoint;
-		if (type_str == "talk_to_npc")		return ObjectiveType::TalkToNPC;
+		ObjectiveType parseObjectiveType(const std::string& type_text) {
+			if (type_text == "kill") return ObjectiveType::Kill;
+			if (type_text == "collect_item") return ObjectiveType::CollectItem;
+			if (type_text == "deliver_item") return ObjectiveType::DeliverItem;
+			if (type_text == "reach_checkpoint") return ObjectiveType::ReachCheckpoint;
+			if (type_text == "talk_to_npc") return ObjectiveType::TalkToNPC;
 
-		Core::Logger::errorLog("QuestManager: Unknown objective type: " + type_str);
-		return ObjectiveType::Kill;
+			Core::Logger::errorLog("QuestManager: nieznany typ celu: " + type_text);
+			return ObjectiveType::Kill;
+		}
+
+		QuestState getInitialState(const Quest& quest) {
+			return (!quest.level_name.empty() || !quest.prerequisites.empty())
+				? QuestState::Locked
+				: QuestState::Available;
+		}
+
+		void loadPrerequisites(Quest& quest, const json& quest_json) {
+			if (!quest_json.contains("prerequisites"))
+				return;
+
+			for (const auto& prerequisite : quest_json["prerequisites"]) {
+				quest.prerequisites.push_back(prerequisite.get<std::string>());
+			}
+		}
+
+		void loadObjectives(Quest& quest, const json& quest_json) {
+			if (!quest_json.contains("objectives"))
+				return;
+
+			for (const auto& objective_json : quest_json["objectives"]) {
+				QuestObjective objective;
+				objective.type = parseObjectiveType(objective_json.value("type", "kill"));
+				objective.description = objective_json.value("description", "");
+				objective.target_name = objective_json.value("target_name", objective_json.value("target_npc", ""));
+				objective.item_id = objective_json.value("item_id", 0);
+				objective.required_count = objective_json.value("count", 1);
+				objective.current_count = 0;
+				quest.objectives.push_back(objective);
+			}
+		}
+
+		void loadRewards(Quest& quest, const json& quest_json) {
+			if (!quest_json.contains("rewards"))
+				return;
+
+			const auto& rewards_json = quest_json["rewards"];
+			if (rewards_json.contains("items")) {
+				for (const auto& item_id : rewards_json["items"]) {
+					quest.reward.item_ids.push_back(item_id.get<int>());
+				}
+			}
+			quest.reward.gold = rewards_json.value("gold", 0);
+			quest.reward.exp = rewards_json.value("exp", 0);
+		}
+
+		Quest parseQuest(const json& quest_json) {
+			Quest quest;
+			quest.id = quest_json.value("id", "");
+			quest.name = quest_json.value("name", "");
+			quest.description = quest_json.value("description", "");
+			quest.level_name = quest_json.value("level_name", "");
+			quest.auto_start = quest_json.value("auto_start", false);
+			quest.required_level = quest_json.value("required_level", 1);
+
+			loadPrerequisites(quest, quest_json);
+			loadObjectives(quest, quest_json);
+			loadRewards(quest, quest_json);
+			quest.state = getInitialState(quest);
+
+			return quest;
+		}
+
+		template <typename Predicate>
+		void progressMatchingObjectives(
+			std::map<std::string, Quest>& quests,
+			ObjectiveType objective_type,
+			Predicate predicate
+		) {
+			for (auto& [id, quest] : quests) {
+				if (!quest.isActive()) continue;
+
+				for (auto& objective : quest.objectives) {
+					if (objective.type == objective_type && !objective.isCompleted() && predicate(objective)) {
+						objective.progress();
+					}
+				}
+			}
+		}
+
 	}
 
 	void QuestManager::loadFromJson(const std::string& path) {
 		std::ifstream file(path);
 		if (!file.is_open()) {
-			Core::Logger::errorLog("QuestManager: Could not open " + path);
+			Core::Logger::errorLog("QuestManager: nie mozna otworzyc pliku: " + path);
 			return;
 		}
 
-		nlohmann::json data;
+		json data;
 		try {
 			file >> data;
-		}
-		catch (const nlohmann::json::parse_error& e) {
-			(void)e;
-			Core::Logger::errorLog("QuestManager: JSON parse error in " + path);
+		} catch (const json::parse_error&) {
+			Core::Logger::errorLog("QuestManager: blad parsowania JSON w pliku: " + path);
 			return;
 		}
 
-		if (!data.contains("quests")) {
-			Core::Logger::errorLog("QuestManager: No 'quests' array in " + path);
+		if (!data.contains("quests") || !data["quests"].is_array()) {
+			Core::Logger::errorLog("QuestManager: brak tablicy 'quests' w pliku: " + path);
 			return;
 		}
 
 		_quests.clear();
 
-		for (const auto& qj : data["quests"]) {
-			Quest quest;
-			quest.id = qj.value("id", "");
-			quest.name = qj.value("name", "");
-			quest.description = qj.value("description", "");
-			quest.level_name = qj.value("level_name", "");
-			quest.auto_start = qj.value("auto_start", false);
-			quest.required_level = qj.value("required_level", 1);
+		for (const auto& quest_json : data["quests"]) {
+			Quest quest = parseQuest(quest_json);
+			if (quest.id.empty())
+				continue;
 
-			// Prerequisites
-			if (qj.contains("prerequisites")) {
-				for (const auto& pre : qj["prerequisites"]) {
-					quest.prerequisites.push_back(pre.get<std::string>());
-				}
-			}
-
-			// Objectives
-			if (qj.contains("objectives")) {
-				for (const auto& oj : qj["objectives"]) {
-					QuestObjective obj;
-					obj.type = parseObjectiveType(oj.value("type", "kill"));
-					obj.description = oj.value("description", "");
-					obj.target_name = oj.value("target_name", oj.value("target_npc", ""));
-					obj.item_id = oj.value("item_id", 0);
-					obj.required_count = oj.value("count", 1);
-					obj.current_count = 0;
-					quest.objectives.push_back(obj);
-				}
-			}
-
-			// Rewards
-			if (qj.contains("rewards")) {
-				const auto& rj = qj["rewards"];
-				if (rj.contains("items")) {
-					for (const auto& item_id : rj["items"]) {
-						quest.reward.item_ids.push_back(item_id.get<int>());
-					}
-				}
-				quest.reward.gold = rj.value("gold", 0);
-				quest.reward.exp = rj.value("exp", 0);
-			}
-
-			// Initial state: quests with level_name start Locked (unlocked on level enter)
-			if (!quest.level_name.empty() || !quest.prerequisites.empty()) {
-				quest.state = QuestState::Locked;
-			} else {
-				quest.state = QuestState::Available;
-			}
-
-			if (!quest.id.empty()) {
-				_quests[quest.id] = quest;
-				Core::Logger::debugLog("QuestManager: Loaded quest '" + quest.id + "'");
-			}
+			const std::string quest_id = quest.id;
+			_quests[quest_id] = std::move(quest);
+			Core::Logger::debugLog("QuestManager: zaladowano quest '" + quest_id + "'");
 		}
 
-		Core::Logger::debugLog("QuestManager: Loaded " + std::to_string(_quests.size()) + " quests.");
+		Core::Logger::debugLog("QuestManager: zaladowano questy, liczba: " + std::to_string(_quests.size()));
 	}
-
-	// ─── Quest State Management ───────────────────────────
 
 	void QuestManager::resetAll() {
 		for (auto& [id, quest] : _quests) {
 			quest.reset();
-			if (!quest.level_name.empty() || !quest.prerequisites.empty()) {
-				quest.state = QuestState::Locked;
-			} else {
-				quest.state = QuestState::Available;
-			}
+			quest.state = getInitialState(quest);
 		}
 	}
 
 	void QuestManager::setCurrentLevel(const std::string& level_name) {
 		_current_level = level_name;
-		Core::Logger::debugLog("QuestManager: Current level set to '" + level_name + "'");
+		Core::Logger::debugLog("QuestManager: aktualny poziom to '" + level_name + "'");
 
-		// Immediately unlock and auto-start quests for this level
 		for (auto& [id, quest] : _quests) {
 			if (!isQuestForCurrentLevel(quest)) continue;
 
-			// Unlock locked quests whose prerequisites are met
 			if (quest.isLocked() && quest.prerequisites.empty()) {
 				quest.state = QuestState::Available;
-				Core::Logger::debugLog("QuestManager: Quest '" + id + "' unlocked for level '" + level_name + "'");
-
-				if (quest.auto_start) {
-					quest.start();
-					Core::Logger::debugLog("QuestManager: Auto-started quest '" + id + "'");
-				}
+				Core::Logger::debugLog("QuestManager: quest '" + id + "' odblokowany dla poziomu '" + level_name + "'");
 			}
-			// Also auto-start any already-available quests
-			else if (quest.isAvailable() && quest.auto_start) {
+
+			if (quest.isAvailable() && quest.auto_start) {
 				quest.start();
-				Core::Logger::debugLog("QuestManager: Auto-started quest '" + id + "'");
+				Core::Logger::debugLog("QuestManager: automatycznie wystartowano quest '" + id + "'");
 			}
 		}
 	}
 
 	bool QuestManager::isQuestForCurrentLevel(const Quest& quest) const {
-		// Empty level_name = global quest (available on all levels)
-		if (quest.level_name.empty()) return true;
-		return quest.level_name == _current_level;
+		return quest.level_name.empty() || quest.level_name == _current_level;
 	}
 
 	bool QuestManager::startQuest(const std::string& id) {
 		Quest* quest = getQuest(id);
-		if (!quest) return false;
-
-		if (quest->state != QuestState::Available) return false;
+		if (!quest || quest->state != QuestState::Available)
+			return false;
 
 		quest->start();
-		Core::Logger::debugLog("QuestManager: Started quest '" + id + "'");
+		Core::Logger::debugLog("QuestManager: wystartowano quest '" + id + "'");
 		return true;
 	}
 
 	void QuestManager::completeQuest(const std::string& id, Core::Engine* engine) {
 		Quest* quest = getQuest(id);
-		if (!quest || quest->state != QuestState::Active) return;
+		if (!quest || quest->state != QuestState::Active)
+			return;
 
 		quest->complete();
-		Core::Logger::debugLog("QuestManager: Completed quest '" + id + "'");
+		Core::Logger::debugLog("QuestManager: ukonczono quest '" + id + "'");
 
-		// Give rewards
-		if (engine) {
-			auto player = engine->getPlayer();
-			if (player) {
-				// Gold
-				if (quest->reward.gold > 0) {
-					player->addGold(quest->reward.gold);
-					std::cout << player->getGold();
-					std::cout << std::endl;
-				}
+		if (!engine)
+			return;
 
-				// Exp
-				if (quest->reward.exp > 0) {
-					player->addExp(quest->reward.exp);
-					std::cout << player->getExp();
-					std::cout << std::endl;
-				}
+		const auto player = engine->getPlayer();
+		if (!player)
+			return;
 
-				// Items
-				for (const int item_id : quest->reward.item_ids) {
-					if (auto item = engine->getItemDatabase().createItem(item_id)) {
-						player->getBackpack().addItem(item);
-					}
-				}
+		if (quest->reward.gold > 0)
+			player->addGold(quest->reward.gold);
 
-				// Notification
-				std::string notif = "Quest ukonczony: " + quest->name;
-				if (quest->reward.exp > 0) {
-					notif += " (+" + std::to_string(quest->reward.exp) + " XP)";
-				}
-				engine->getUIHandler().showNotification(notif, 4.0f);
+		if (quest->reward.exp > 0)
+			player->addExp(quest->reward.exp);
+
+		for (const int item_id : quest->reward.item_ids) {
+			if (auto item = engine->getItemDatabase().createItem(item_id)) {
+				player->getBackpack().addItem(item);
 			}
 		}
+
+		std::string notification = "Quest ukonczony: " + quest->name;
+		if (quest->reward.exp > 0)
+			notification += " (+" + std::to_string(quest->reward.exp) + " XP)";
+
+		engine->getUIHandler().showNotification(notification, 4.0f);
 	}
 
 	Quest* QuestManager::getQuest(const std::string& id) {
-		auto it = _quests.find(id);
-		return it != _quests.end() ? &it->second : nullptr;
+		const auto quest_it = _quests.find(id);
+		return quest_it != _quests.end() ? &quest_it->second : nullptr;
 	}
 
 	const Quest* QuestManager::getQuest(const std::string& id) const {
-		auto it = _quests.find(id);
-		return it != _quests.end() ? &it->second : nullptr;
+		const auto quest_it = _quests.find(id);
+		return quest_it != _quests.end() ? &quest_it->second : nullptr;
+	}
+
+	std::vector<Quest*> QuestManager::getQuestsByState(const QuestState state) {
+		std::vector<Quest*> result;
+		for (auto& [id, quest] : _quests) {
+			if (quest.state == state && isQuestForCurrentLevel(quest))
+				result.push_back(&quest);
+		}
+		return result;
 	}
 
 	std::vector<Quest*> QuestManager::getActiveQuests() {
-		std::vector<Quest*> result;
-		for (auto& [id, quest] : _quests) {
-			if (quest.isActive() && isQuestForCurrentLevel(quest)) result.push_back(&quest);
-		}
-		return result;
+		return getQuestsByState(QuestState::Active);
 	}
 
 	std::vector<Quest*> QuestManager::getAvailableQuests() {
-		std::vector<Quest*> result;
-		for (auto& [id, quest] : _quests) {
-			if (quest.isAvailable() && isQuestForCurrentLevel(quest)) result.push_back(&quest);
-		}
-		return result;
+		return getQuestsByState(QuestState::Available);
 	}
 
 	std::vector<Quest*> QuestManager::getCompletedQuests() {
-		std::vector<Quest*> result;
-		for (auto& [id, quest] : _quests) {
-			if (quest.isCompleted() && isQuestForCurrentLevel(quest)) result.push_back(&quest);
-		}
-		return result;
+		return getQuestsByState(QuestState::Completed);
 	}
 
 	std::vector<Quest*> QuestManager::getQuestsForLevel(const std::string& level_name) {
 		std::vector<Quest*> result;
 		for (auto& [id, quest] : _quests) {
-			if (quest.level_name.empty() || quest.level_name == level_name) {
+			if (quest.level_name.empty() || quest.level_name == level_name)
 				result.push_back(&quest);
-			}
 		}
 		return result;
 	}
 
-	// ─── Notification System ──────────────────────────────
-
 	void QuestManager::notifyKill(const std::string& enemy_name) {
-		for (auto& [id, quest] : _quests) {
-			if (!quest.isActive()) continue;
-			for (auto& obj : quest.objectives) {
-				if (obj.type == ObjectiveType::Kill && obj.target_name == enemy_name && !obj.isCompleted()) {
-					obj.progress();
-					Core::Logger::debugLog("QuestManager: Kill progress '" + enemy_name + "' for quest '" + id + "' (" + std::to_string(obj.current_count) + "/" + std::to_string(obj.required_count) + ")");
-				}
+		progressMatchingObjectives(
+			_quests,
+			ObjectiveType::Kill,
+			[&enemy_name](const QuestObjective& objective) {
+				return objective.target_name == enemy_name;
 			}
-		}
+		);
 	}
 
 	void QuestManager::notifyItemCollected(const int item_id) {
-		for (auto& [id, quest] : _quests) {
-			if (!quest.isActive()) continue;
-			for (auto& obj : quest.objectives) {
-				if (obj.type == ObjectiveType::CollectItem && obj.item_id == item_id && !obj.isCompleted()) {
-					obj.progress();
-				}
+		progressMatchingObjectives(
+			_quests,
+			ObjectiveType::CollectItem,
+			[item_id](const QuestObjective& objective) {
+				return objective.item_id == item_id;
 			}
-		}
+		);
 	}
 
 	void QuestManager::notifyItemDelivered(const int item_id, const std::string& npc_name) {
-		for (auto& [id, quest] : _quests) {
-			if (!quest.isActive()) continue;
-			for (auto& obj : quest.objectives) {
-				if (obj.type == ObjectiveType::DeliverItem && obj.item_id == item_id && obj.target_name == npc_name && !obj.isCompleted()) {
-					obj.progress();
-				}
+		progressMatchingObjectives(
+			_quests,
+			ObjectiveType::DeliverItem,
+			[item_id, &npc_name](const QuestObjective& objective) {
+				return objective.item_id == item_id && objective.target_name == npc_name;
 			}
-		}
+		);
 	}
 
 	void QuestManager::notifyCheckpointReached(const std::string& checkpoint_name) {
-		for (auto& [id, quest] : _quests) {
-			if (!quest.isActive()) continue;
-			for (auto& obj : quest.objectives) {
-				if (obj.type == ObjectiveType::ReachCheckpoint && obj.target_name == checkpoint_name && !obj.isCompleted()) {
-					obj.progress();
-				}
+		progressMatchingObjectives(
+			_quests,
+			ObjectiveType::ReachCheckpoint,
+			[&checkpoint_name](const QuestObjective& objective) {
+				return objective.target_name == checkpoint_name;
 			}
-		}
+		);
 	}
 
 	void QuestManager::notifyNPCTalked(const std::string& npc_name) {
-		for (auto& [id, quest] : _quests) {
-			if (!quest.isActive()) continue;
-			for (auto& obj : quest.objectives) {
-				if (obj.type == ObjectiveType::TalkToNPC && obj.target_name == npc_name && !obj.isCompleted()) {
-					obj.progress();
-				}
+		progressMatchingObjectives(
+			_quests,
+			ObjectiveType::TalkToNPC,
+			[&npc_name](const QuestObjective& objective) {
+				return objective.target_name == npc_name;
 			}
-		}
+		);
 	}
 
-	// ─── Update Loop ──────────────────────────────────────
-
 	bool QuestManager::arePrerequisitesMet(const Quest& quest, Core::Engine* engine) const {
-		for (const auto& pre_id : quest.prerequisites) {
-			const Quest* pre = getQuest(pre_id);
-			if (!pre || !pre->isCompleted()) return false;
-		}
-		
-		if (engine && engine->getPlayer()) {
-			if (engine->getPlayer()->getLevel() < quest.required_level) {
+		for (const auto& prerequisite_id : quest.prerequisites) {
+			const Quest* prerequisite = getQuest(prerequisite_id);
+			if (!prerequisite || !prerequisite->isCompleted())
 				return false;
-			}
 		}
+
+		if (engine && engine->getPlayer() && engine->getPlayer()->getLevel() < quest.required_level)
+			return false;
 
 		return true;
 	}
 
 	void QuestManager::update(Core::Engine* engine) {
 		for (auto& [id, quest] : _quests) {
-			// Only process quests for the current level (or global quests)
 			if (!isQuestForCurrentLevel(quest)) continue;
 
-			// Unlock locked quests whose prerequisites are now met
 			if (quest.isLocked() && arePrerequisitesMet(quest, engine)) {
 				quest.state = QuestState::Available;
-				Core::Logger::debugLog("QuestManager: Quest '" + id + "' is now available.");
+				Core::Logger::debugLog("QuestManager: quest '" + id + "' jest teraz dostepny.");
 
-				if (engine) {
+				if (engine)
 					engine->getUIHandler().showNotification("Nowy quest dostepny: " + quest.name, 3.0f);
-				}
 
-				// Auto-start if flagged
 				if (quest.auto_start) {
 					quest.start();
-					Core::Logger::debugLog("QuestManager: Auto-started quest '" + id + "'");
+					Core::Logger::debugLog("QuestManager: automatycznie wystartowano quest '" + id + "'");
 				}
 			}
 
-			// Auto-complete active quests with all objectives done
-			if (quest.isActive() && quest.areAllObjectivesComplete()) {
+			if (quest.isActive() && quest.areAllObjectivesComplete())
 				completeQuest(id, engine);
-			}
 		}
 	}
 

@@ -1,9 +1,10 @@
 #include "Devil.h"
-#include "Player.h"
-#include "Collider.h"
 
+#include <Collider.h>
 #include <Map.h>
 #include <MathUtils.h>
+#include <Player.h>
+
 #include <raymath.h>
 
 namespace Nawia::Entity {
@@ -12,12 +13,12 @@ namespace Nawia::Entity {
 		setScale(0.025f);
 		setFaction(Faction::Enemy);
 
-		loadModel("../assets/models/devil_idle.glb");
-		addAnimation("idle", "../assets/models/devil_idle.glb");
-		addAnimation("walk", "../assets/models/devil_walk.glb");
-		addAnimation("run", "../assets/models/devil_run.glb");
-		addAnimation("attack", "../assets/models/devil_attack.glb");
-		addAnimation("death", "../assets/models/devil_dead.glb");
+		loadModel("assets/models/devil_idle.glb");
+		addAnimation("idle", "assets/models/devil_idle.glb");
+		addAnimation("walk", "assets/models/devil_walk.glb");
+		addAnimation("run", "assets/models/devil_run.glb");
+		addAnimation("attack", "assets/models/devil_attack.glb");
+		addAnimation("death", "assets/models/devil_dead.glb");
 		setMovementSpeed(SPEED);
 	}
 
@@ -27,12 +28,12 @@ namespace Nawia::Entity {
 		setScale(0.025f);
 		setFaction(Faction::Enemy);
 
-		loadModel("../assets/models/devil_idle.glb");
-		addAnimation("idle", "../assets/models/devil_idle.glb");	
-		addAnimation("walk", "../assets/models/devil_walk.glb");
-		addAnimation("run", "../assets/models/devil_run.glb");
-		addAnimation("attack", "../assets/models/devil_attack.glb");
-		addAnimation("death", "../assets/models/devil_dead.glb");
+		loadModel("assets/models/devil_idle.glb");
+		addAnimation("idle", "assets/models/devil_idle.glb");	
+		addAnimation("walk", "assets/models/devil_walk.glb");
+		addAnimation("run", "assets/models/devil_run.glb");
+		addAnimation("attack", "assets/models/devil_attack.glb");
+		addAnimation("death", "assets/models/devil_dead.glb");
 
 		setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, 0.0f, 0.0f));
 		setMovementSpeed(SPEED);
@@ -94,7 +95,7 @@ namespace Nawia::Entity {
 
 	void Devil::handleChasingState(const float dt)
 	{
-		Entity::update(dt);  // Base update for animations
+		Entity::update(dt);  // Bazowa aktualizacja animacji.
 
 		auto target = _target.lock();
 		if (!target || target->isDead())
@@ -121,7 +122,7 @@ namespace Nawia::Entity {
 		}
 
 		
-		// Check if in attack range
+		// Sprawdzenie, czy cel jest w zasięgu ataku.
 		if (dist <= ATTACK_RANGE && _attack_cooldown_timer <= 0.0f)
 		{
 			_state = State::Attacking;
@@ -134,8 +135,7 @@ namespace Nawia::Entity {
 
 		const Vector2 target_pos = target->getCenter();
 
-		// Dash Trigger Logic
-		// Requirements: In range, cooldown ready, AND clear line of sight (walkable path)
+		// Logika doskoku: cel w zasięgu, czas odnowienia gotowy i trasa nie jest zablokowana.
 		if (dist <= DASH_TRIGGER_RANGE && dist > ATTACK_RANGE && _dash_cooldown_timer <= 0.0f)
 		{
 			_dash_target_pos = target_pos;
@@ -148,7 +148,7 @@ namespace Nawia::Entity {
 			return;
 		}
 		
-		// Normal Pathfinding Chase with timer
+		// Zwykły pościg z okresowym odświeżaniem celu ruchu.
 		_path_recalc_timer -= dt;
 		
 		if (_path_recalc_timer <= 0.0f || !_is_moving)
@@ -198,7 +198,7 @@ namespace Nawia::Entity {
 				const float dist_to_player = getDistanceToTarget();
 				if (dist_to_player <= DASH_HIT_RANGE)
 				{
-					// Try to knock down the player, otherwise just deal damage
+					// Gracza próbujemy powalić, pozostałym celom zadajemy zwykłe obrażenia.
 					if (target->getType() == EntityType::Player)
 						dynamic_cast<Player*>(target.get())->knockDown(static_cast<int>(DASH_DAMAGE * _damage_multiplier));
 					else
@@ -234,7 +234,7 @@ namespace Nawia::Entity {
 		
 		if (_map && !_map->isWalkable(next_center_x, next_center_y)) 
 		{
-			// Hit wall
+			// Doskok uderzył w ścianę lub niewalkowalny fragment mapy.
 			_dash_cooldown_timer = DASH_COOLDOWN;
 			_state = State::Recovering;
 			_stun_timer = DASH_STUN_DURATION;

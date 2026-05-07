@@ -1,9 +1,13 @@
 #pragma once
 
-#include "Item.h"
+#include <Item.h>
 
 namespace Nawia::Item {
 
+    /**
+     * @class Chestplate
+     * @brief Pancerz na klatke piersiowa dodajacy wytrzymalosc.
+     */
     class Chestplate : public Item {
 
     public:
@@ -14,9 +18,11 @@ namespace Nawia::Item {
             _stats.tenacity = defense;
         }
 
-        int getDefense() const { return _defense; }
+        /** @brief Zwraca wartosc obrony. */
+        [[nodiscard]] int getDefense() const { return _defense; }
 
-        std::shared_ptr<Item> clone() const override {
+        /** @brief Tworzy kopie pancerza z template'u. */
+        [[nodiscard]] std::shared_ptr<Item> clone() const override {
             return std::make_shared<Chestplate>(*this);
         }
 

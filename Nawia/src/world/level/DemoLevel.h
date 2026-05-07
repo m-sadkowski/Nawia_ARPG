@@ -1,29 +1,35 @@
 #pragma once
 
-#include "Level.h"
+#include <Level.h>
 
 namespace Nawia::World {
 
 	/**
 	 * @class DemoLevel
-	 * @brief Demo/test level showcasing core gameplay features.
+	 * @brief Poziom demonstracyjny pokazujacy glowne mechaniki gry.
 	 *
-	 * Contains a variety of entities (enemies, chests, NPCs, checkpoints)
-	 * defined in assets/data/spawns/demo_level.json.
-	 * Uses the "demo_map/demo.glb" map.
+	 * Zawiera kilka typow encji, spawny z `demo_level.json` oraz dwie lokacje
+	 * testowe oparte o istniejace modele map.
 	 */
 	class DemoLevel : public Level {
 	public:
+		/** @brief Wczytuje startowa mape demo, oswietlenie i spawny. */
 		void onEnter(Core::Engine* engine) override;
 
+		/** @brief Zwraca nazwe poziomu demo. */
 		[[nodiscard]] std::string getName() const override { return "DemoLevel"; }
+
+		/** @brief Zwraca plik JSON ze spawnami poziomu demo. */
 		[[nodiscard]] std::string getSpawnFilePath() const override {
-			return "../assets/data/level_entities/demo_level.json";
+			return "assets/data/level_entities/demo_level.json";
 		}
+
+		/** @brief Zwraca lokacje dostepne w poziomie demo. */
 		[[nodiscard]] std::vector<std::string> getLocations() const override {
 			return {"Demo Arena", "Inferno"};
 		}
 
+		/** @brief Przelacza geometrie mapy i deleguje teleportacje do Level. */
 		void changeLocation(Core::Engine* engine, const std::string& location_name) override;
 	};
 

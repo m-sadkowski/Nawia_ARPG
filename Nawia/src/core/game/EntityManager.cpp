@@ -1,45 +1,46 @@
 #include "EntityManager.h"
-#include "Logger.h"
-#include "Engine.h"
+
+#include <Engine.h>
+#include <Logger.h>
+#include <Map.h>
 
 #include <AbilityEffect.h>
-#include <EnemyInterface.h>
 #include <Collider.h>
+#include <Entity.h>
 #include <InteractiveTrigger.h>
 
 #include <raylib.h>
-#include <cmath>
+
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 namespace Nawia::Core {
 
-    void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity)
-    {
+    void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity) {
         _active_entities.push_back(std::move(new_entity));
     }
 
 	void EntityManager::clearNonPlayerEntities() {
-		std::vector<std::shared_ptr<Entity::Entity>> new_entities;
+		std::vector<std::shared_ptr<Entity::Entity>> retained_entities;
 		if (_player) 
         {
-			new_entities.push_back(_player);
+			retained_entities.push_back(_player);
 		} 
     	else 
     	{
 			for (const auto& entity : _active_entities) {
 				if (entity->getName() == "Player") {
-					new_entities.push_back(entity);
+					retained_entities.push_back(entity);
 					break;
 				}
 			}
 		}
-		_active_entities = std::move(new_entities);
+		_active_entities = std::move(retained_entities);
 	}
 
-    std::shared_ptr<Entity::Entity> EntityManager::getEntityAt(const float screen_x, const float screen_y, const Camera3D& camera) const
-    {
-        // Iterate backwards to click the "top-most" entity first
+    std::shared_ptr<Entity::Entity> EntityManager::getEntityAt(const float screen_x, const float screen_y, const Camera3D& camera) const {
+        // Iterujemy od konca, zeby najpierw lapac encje narysowane najwyzej.
         for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) {
             if ((*it)->isDormant()) continue;
             if ((*it)->isMouseOver(screen_x, screen_y, camera))
@@ -48,13 +49,10 @@ namespace Nawia::Core {
         return nullptr;
     }
 
-    void EntityManager::updateHoverState(const float screen_x, const float screen_y, const Camera3D& camera)
-    {
-        // 1. Reset hover state for all active entities
+    void EntityManager::updateHoverState(const float screen_x, const float screen_y, const Camera3D& camera) {
         for (const auto& entity : _active_entities)
             entity->setHovered(false);
 
-        // 2. Find the top-most entity under the cursor
         for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) 
         {
             if ((*it)->isDormant()) continue;
@@ -65,8 +63,7 @@ namespace Nawia::Core {
         }
     }
 
-    void EntityManager::renderEntities(const Camera3D& camera) const
-    {
+    void EntityManager::renderEntities(const Camera3D& camera) const {
         std::vector<Entity::Entity*> render_list;
         render_list.reserve(_active_entities.size());
 
@@ -76,7 +73,7 @@ namespace Nawia::Core {
                 render_list.push_back(entity.get());
         }
 
-		// Y-sorting
+		// Sortowanie po Y trzyma poprawna kolejnosc nakladania modeli.
         std::ranges::sort(render_list, {}, &Entity::Entity::getY);
 
         for (auto* entity : render_list) {
@@ -84,8 +81,7 @@ namespace Nawia::Core {
         }
     }
 
-    void EntityManager::updateEntities(const float delta_time)
-    {
+    void EntityManager::updateEntities(const float delta_time) {
         refreshCombatTargets();
 
         for (auto it = _active_entities.begin(); it != _active_entities.end();)
@@ -93,10 +89,17 @@ namespace Nawia::Core {
             const auto& entity = *it;
             entity->update(delta_time);
 
-            // Check if it's an expired spell
+            // Dociaga wysokosc encji do navmesha aktualnej mapy.
+            if (_engine && _engine->getCurrentMap()) {
+                const Vector3 current_position = { entity->getX(), entity->getAltitude(), entity->getY() };
+                const Vector3 snapped_position = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(current_position);
+                entity->setAltitude(snapped_position.y);
+            }
+
+            // Efekty umiejetnosci usuwamy po wygasnieciu.
             bool is_expired_spell = false;
-            if (const auto spell = dynamic_cast<Entity::AbilityEffect*>(entity.get()))
-                is_expired_spell = spell->isExpired();
+            if (const auto ability_effect = dynamic_cast<Entity::AbilityEffect*>(entity.get()))
+                is_expired_spell = ability_effect->isExpired();
 
             if (entity->isDead() || is_expired_spell) {
                 if (entity->isDead() && entity->getType() == Entity::EntityType::Enemy) {
@@ -171,8 +174,7 @@ namespace Nawia::Core {
 
     // --- Collision System ---
 
-    void EntityManager::handleEntitiesCollisions() const
-    {
+    void EntityManager::handleEntitiesCollisions() const {
         processAbilityCollisions();
         processTriggerCollisions();
         processPhysicalCollisions();
@@ -193,12 +195,12 @@ namespace Nawia::Core {
                 if (entity1 == entity2) continue;
                 if (entity2->isDormant()) continue;
 
-                Entity::EntityType targetType = entity2->getType();
+                const Entity::EntityType target_type = entity2->getType();
 
-                if (targetType == Entity::EntityType::Projectile ||
-                    targetType == Entity::EntityType::Chest ||
-                    targetType == Entity::EntityType::Trigger ||
-                    targetType == Entity::EntityType::NPCStatic) continue;
+                if (target_type == Entity::EntityType::Projectile ||
+                    target_type == Entity::EntityType::Chest ||
+                    target_type == Entity::EntityType::Trigger ||
+                    target_type == Entity::EntityType::NPCStatic) continue;
 
                 if (ability->checkCollision(entity2)) {
                     ability->onCollision(entity2);
@@ -252,86 +254,37 @@ namespace Nawia::Core {
         }
     }
 
-    bool EntityManager::isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& e) const
-    {
-        if (e->isDead()) return false;
-        if (e->isDormant()) return false;
+    bool EntityManager::isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& entity) const {
+        if (!entity) return false;
+        if (entity->isDead()) return false;
+        if (entity->isDormant()) return false;
 
-        const Entity::EntityType type = e->getType();
-        return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy || type == Entity::EntityType::Ally || type == Entity::EntityType::Wall);
+        const Entity::EntityType type = entity->getType();
+        return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy || type == Entity::EntityType::Ally);
     }
 
-    void EntityManager::resolveOverlap(const std::shared_ptr<Entity::Entity>& e1, const std::shared_ptr<Entity::Entity>& e2) const
-    {
-        const bool e1_wall = (e1->getType() == Entity::EntityType::Wall);
-        const bool e2_wall = (e2->getType() == Entity::EntityType::Wall);
-
-        // Wall vs Wall — no resolution needed
-        if (e1_wall && e2_wall) return;
-
-        // Wall vs Character — use AABB collision
-        if (e1_wall || e2_wall) {
-            const auto& wall = e1_wall ? e1 : e2;
-            const auto& character = e1_wall ? e2 : e1;
-
-            auto* rect = dynamic_cast<Entity::RectangleCollider*>(wall->getCollider());
-            if (!rect) return;
-
-            const Vector2 wall_center = rect->getPosition();
-            const float half_w = rect->getWidth() / 2.0f;
-            const float half_h = rect->getHeight() / 2.0f;
-
-            const float char_x = character->getX();
-            const float char_y = character->getY();
-            constexpr float char_radius = 0.4f;
-
-            // Find closest point on wall AABB to character
-            const float closest_x = std::clamp(char_x, wall_center.x - half_w, wall_center.x + half_w);
-            const float closest_y = std::clamp(char_y, wall_center.y - half_h, wall_center.y + half_h);
-
-            const float dx = char_x - closest_x;
-            const float dy = char_y - closest_y;
-            const float dist_sq = dx * dx + dy * dy;
-
-            if (dist_sq < char_radius * char_radius) {
-                if (dist_sq > 0.0001f) {
-                    const float dist = std::sqrt(dist_sq);
-                    const float overlap = char_radius - dist;
-                    const float push_x = (dx / dist) * overlap;
-                    const float push_y = (dy / dist) * overlap;
-                    character->setX(char_x + push_x);
-                    character->setY(char_y + push_y);
-                } else {
-                    // Character is exactly at closest point (inside wall) — push out along shortest axis
-                    const float pen_x = half_w - std::abs(char_x - wall_center.x) + char_radius;
-                    const float pen_y = half_h - std::abs(char_y - wall_center.y) + char_radius;
-                    if (pen_x < pen_y) {
-                        character->setX(char_x + (char_x < wall_center.x ? -pen_x : pen_x));
-                    } else {
-                        character->setY(char_y + (char_y < wall_center.y ? -pen_y : pen_y));
-                    }
-                }
-            }
-            return;
-        }
-
-        // Character vs Character — radial push
-        const float dx = e2->getX() - e1->getX();
-        const float dy = e2->getY() - e1->getY();
-        const float dist_sq = dx * dx + dy * dy;
+    void EntityManager::resolveOverlap(
+        const std::shared_ptr<Entity::Entity>& first_entity,
+        const std::shared_ptr<Entity::Entity>& second_entity
+    ) const {
+        // Prosta kolizja radialna blokuje przenikanie postaci bez laczenia z hitboxami ataku.
+        const float dx = second_entity->getX() - first_entity->getX();
+        const float dy = second_entity->getY() - first_entity->getY();
+        const float distance_sq = dx * dx + dy * dy;
         
-        constexpr float combined_radius = 0.8f; 
+        // Przyblizony promien fizyczny postaci wynosi 0.4.
+        const float combined_radius = 0.8f; 
         
-        if (dist_sq < combined_radius * combined_radius && dist_sq > 0.0001f) {
-            float dist = std::sqrt(dist_sq);
-            float overlap = combined_radius - dist;
-            float push_x = (dx / dist) * overlap * 0.5f;
-            float push_y = (dy / dist) * overlap * 0.5f;
+        if (distance_sq < combined_radius * combined_radius && distance_sq > 0.0001f) {
+            const float distance = std::sqrt(distance_sq);
+            const float overlap = combined_radius - distance;
+            const float push_x = (dx / distance) * overlap * 0.5f;
+            const float push_y = (dy / distance) * overlap * 0.5f;
             
-            e1->setX(e1->getX() - push_x);
-            e1->setY(e1->getY() - push_y);
-            e2->setX(e2->getX() + push_x);
-            e2->setY(e2->getY() + push_y);
+            first_entity->setX(first_entity->getX() - push_x);
+            first_entity->setY(first_entity->getY() - push_y);
+            second_entity->setX(second_entity->getX() + push_x);
+            second_entity->setY(second_entity->getY() + push_y);
         }
     }
 

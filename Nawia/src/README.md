@@ -1,32 +1,39 @@
-# Core - Game
+# Struktura `src`
 
-Map shall be created using **Tiled**.
+Ten katalog zawiera kod gry Nawia.
 
-## Tiles
+## Glowne moduly
 
-All tiles should be created in .tsx folder in **/tiled/tiles.tsx**. Textures should also be uploaded to **/assets/textures/**.
+- `core/` - petla silnika, kamera, mapa, input, resource manager, questy i systemy pomocnicze.
+- `entity/` - encje swiata, aktorzy, ability, collidery i interakcje.
+- `item/` - itemy, backpack, equipment, baza itemow i loottable.
+- `ui/` - HUD, inventory, chest, questbook, dialogi i menu.
+- `world/` - levele, spawn manager, factory i navmesh.
 
-Add a new tile:
-* Open the .tsx file
-* Click "plus" button
-* Select 128x64 texture
-* Add new un-standard properties, such as "isWalkable".
-* Export file
+## Runtime i assety
 
-Add new properties:
-* Add a new property in Tiled and export .tsx
-* Add a new property in **Tile.h** and create a setter
-* In Map.cpp, search for "PROPERTIES" and follow instructions
+Projekt docelowo uruchamiamy z:
 
-Loading a map:
-* Create a map in Tiled (orientation: iso; format: csv; order: right-bottom; size: infinite; width: 128; height: 64), save it as .tmx in /tiled/maps and export it as .json in /assets/maps
-* Use Map::loadMap function and pass a file, ex. loadMap("map1.json").
-* **REMEMBER TO USE THE SAME TILES (.TSX) FILE FOR ALL MAPS**
+```text
+Nawia/out/build/x64-Release
+```
 
-Create player default spawnpoint:
-* New layer -> Object layer
-* "Insert Point" tool on toolbar
-* Click on a desired point
-* In properties, set name to "playerspawn"
+Sciezki w danych powinny byc dopasowane do tego runtime, np.:
 
-## After any changes remember to export the file with .json format
+```text
+assets/textures/items/key.png
+assets/data/abilities.json
+assets/maps/demo_map/demo.glb
+```
+
+## Najwazniejsze przewodniki
+
+- `docs/guides/Coding_Standards.md`
+- `docs/guides/Entity_Guide.md`
+- `docs/guides/Enemy_Guide.md`
+- `docs/guides/Ability_Guide.md`
+- `docs/guides/AbilityEffect_Guide.md`
+- `docs/guides/Level_Guide.md`
+- `docs/guides/Interactive_Guide.md`
+- `docs/guides/Item_Guide.md`
+- `docs/guides/UI_Guide.md`

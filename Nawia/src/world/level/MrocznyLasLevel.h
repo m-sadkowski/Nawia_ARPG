@@ -1,30 +1,29 @@
 #pragma once
 
-#include "Level.h"
+#include <Level.h>
 
 namespace Nawia::World {
 
 	/**
 	 * @class MrocznyLasLevel
-	 * @brief Dark forest level with multiple cave sub-locations.
+	 * @brief Poziom mrocznego lasu z kilkoma podlokacjami.
 	 *
-	 * Locations:
-	 *  - Las (starting area)
-	 *  - Mala Jaskinia (small cave)
-	 *  - Gleboka Jaskinia (deep cave — boss area)
-	 *
-	 * Transitions between locations will use teleport portals (NYI).
-	 * Currently uses a placeholder map (demo_map/inferno.glb).
-	 * Spawn definitions in assets/data/spawns/mroczny_las.json.
+	 * Korzysta z `forest.glb`; spawny sa definiowane w `mroczny_las.json`.
 	 */
 	class MrocznyLasLevel : public Level {
 	public:
+		/** @brief Wczytuje mape lasu i spawny lokacji. */
 		void onEnter(Core::Engine* engine) override;
 
+		/** @brief Zwraca nazwe poziomu. */
 		[[nodiscard]] std::string getName() const override { return "Mroczny Las"; }
+
+		/** @brief Zwraca plik JSON ze spawnami lasu. */
 		[[nodiscard]] std::string getSpawnFilePath() const override {
-			return "../assets/data/level_entities/mroczny_las.json";
+			return "assets/data/level_entities/mroczny_las.json";
 		}
+
+		/** @brief Zwraca lokacje dostepne w lesie. */
 		[[nodiscard]] std::vector<std::string> getLocations() const override {
 			return {"Las", "Mala Jaskinia", "Gleboka Jaskinia"};
 		}

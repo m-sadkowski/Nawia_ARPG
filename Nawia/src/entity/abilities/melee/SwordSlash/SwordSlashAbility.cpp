@@ -1,97 +1,92 @@
 #include "SwordSlashAbility.h"
-#include "SwordSlashEffect.h"
-#include "Entity.h"
-#include "Player.h"
 
-#include <MathUtils.h>
-
-#include <iostream>
+#include <Entity.h>
+#include <Player.h>
+#include <SwordSlashEffect.h>
 
 namespace Nawia::Entity {
 
-	SwordSlashAbility::SwordSlashAbility(const std::shared_ptr<Texture2D>& slash_tex, const std::shared_ptr<Texture2D>& icon_tex)
-	    : Ability("Sword Slash", Entity::getAbilityStatsFromJson("Sword Slash"), AbilityTargetType::POINT, icon_tex), _slash_tex(slash_tex) {}
+	namespace {
+		constexpr float EFFECT_SPAWN_ANIMATION_RATIO = 0.6f;
+		constexpr float ENTITY_ANIMATION_BASE_FPS = 60.0f;
+	}
 
-	std::unique_ptr<Entity> SwordSlashAbility::cast(const float target_x, const float target_y) 
-	{
-		if (!isReady()) return nullptr;
+	SwordSlashAbility::SwordSlashAbility(const std::shared_ptr<Texture2D>& slash_tex,
+										 const std::shared_ptr<Texture2D>& icon_tex)
+		: Ability("Sword Slash", Entity::getAbilityStatsFromJson("Sword Slash"), AbilityTargetType::POINT, icon_tex),
+		  _slash_tex(slash_tex) {}
 
-		// Force rotation to target immediately
+	AbilitySpawn SwordSlashAbility::cast(const float target_x, const float target_y) {
+		if (!beginCast())
+			return nullptr;
+
+		// Od razu obracamy źródło użycia w stronę celu.
 		_caster->rotateTowardsCenter(target_x, target_y);
 
-
-
-		// Check if _caster is a instance of player in case of setting speed of animation
-		Player* player = dynamic_cast<Player*>(_caster);
-
-		if (player != nullptr) {
-			_caster->rotateTowardsCenter(target_x, target_y);
-			_caster->setAnimationSpeed(player->ATTACK_ANIM_BASE_SPEED*player->getStats().attack_speed);
-			_caster->playAnimation("attack", false, true); 
-		}
-		else {
-			
-			_caster->rotateTowardsCenter(target_x, target_y);
-			_caster->playAnimation("attack", false, true);
+		if (const auto player = dynamic_cast<Player*>(_caster)) {
+			// Gracz skaluje prędkość animacji ataku statystyką attack_speed.
+			_caster->setAnimationSpeed(Player::ATTACK_ANIM_BASE_SPEED * player->getStats().attack_speed);
 		}
 
-
-		startCooldown();
-		
 		_caster->playAnimation("attack", false, true);
 
-		// store target data and activate delayed spawn
+		// Zapisujemy stan opóźnionego utworzenia efektu.
 		_is_active = true;
 		_has_spawned = false;
 		_active_time = 0.0f;
-		_target_x = target_x;
-		_target_y = target_y;
+		_spawn_delay = calculateSpawnDelay();
 
-		// Calculate dynamic spawn delay based on animation duration
-		// Assuming 60 FPS update rate for animations as per Entity::updateAnimation
-		const int frames = _caster->getAnimationFrameCount("attack");
-		const float duration = (frames > 0) ? (frames / 60.0f) : 1.0f; 
-		
-		// Trigger hit at 60% of the animation (impact point)
-		_spawn_delay = duration * 0.6f;
-
-		// return nullptr because we aren't spawning the effect YET
 		return nullptr;
 	}
 
-	void SwordSlashAbility::update(const float dt)
-	{
+	void SwordSlashAbility::update(const float dt) {
 		Ability::update(dt);
 
-		if (_is_active)
-		{
-			_active_time += dt;
+		if (!_is_active || !_caster)
+			return;
 
-			// Spawn point: Calculated dynamic delay OR when animation ends (fallback)
-			bool should_spawn = !_has_spawned && (_active_time >= _spawn_delay || !_caster->isAnimationLocked());
+		_active_time += dt;
 
-			if (should_spawn)
-			{
-				_has_spawned = true;
+		// Utworzenie następuje po opóźnieniu albo awaryjnie po odblokowaniu animacji.
+		const bool should_spawn = !_has_spawned && (_active_time >= _spawn_delay || !_caster->isAnimationLocked());
+		if (should_spawn)
+			spawnSlashEffect();
 
-				const Vector2 caster_center = _caster->getCenter();
+		// Kończymy stan ability, gdy animacja przestaje blokować ruch.
+		if (!_caster->isAnimationLocked())
+			_is_active = false;
+	}
 
-				// This ensures that if the player rotated during the cast time (via PlayerController aiming), 
-				// the slash goes where the player is looking, not where the mouse WAS.
-				const float angle = _caster->getRotation();
-				const float spawn_x = caster_center.x;
-				const float spawn_y = caster_center.y;
+	float SwordSlashAbility::calculateSpawnDelay() const {
+		if (!_caster)
+			return 0.0f;
 
-				const auto slash = std::make_shared<SwordSlashEffect>(spawn_x, spawn_y, -angle, _slash_tex, _stats, _caster);
-				_caster->addPendingSpawn(slash);
-			}
+		const int frames = _caster->getAnimationFrameCount("attack");
+		const float duration = (frames > 0) ? (static_cast<float>(frames) / ENTITY_ANIMATION_BASE_FPS) : 1.0f;
 
-			// End ability state when animation is unlocked
-			if (!_caster->isAnimationLocked())
-			{
-				_is_active = false;
-			}
-		}
+		// Trafienie pojawia się w okolicy punktu impaktu animacji.
+		return duration * EFFECT_SPAWN_ANIMATION_RATIO;
+	}
+
+	void SwordSlashAbility::spawnSlashEffect() {
+		if (!_caster)
+			return;
+
+		_has_spawned = true;
+
+		const Vector2 caster_center = _caster->getCenter();
+		const float angle = _caster->getRotation();
+
+		const auto slash = std::make_shared<SwordSlashEffect>(
+			caster_center.x,
+			caster_center.y,
+			-angle,
+			_slash_tex,
+			_stats,
+			_caster);
+		slash->setAltitude(_caster->getAltitude());
+
+		_caster->addPendingSpawn(slash);
 	}
 
 } // namespace Nawia::Entity

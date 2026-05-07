@@ -1,75 +1,74 @@
-# Przewodnik po klasie AbilityEffect
+# Przewodnik po AbilityEffect
 
-Klasa `AbilityEffect` (`src/entity/abilities/AbilityEffect.h`) to wyspecjalizowana klasa `Entity` reprezentująca fizyczne efekty umiejętności, takie jak pociski, eksplozje, czy obszary działania (AoE) rzucane przez graczy lub przeciwników.
+`AbilityEffect` to encja tworzona przez umiejetnosc: pocisk, cios obszarowy, efekt trafienia albo krotki obiekt bojowy obecny w swiecie.
 
-## Czym różni się od zwykłego Entity?
-- Posiada `AbilityStats` (obrażenia, czas trwania).
-- Posiada wbudowaną obsługę czasu życia (`Lifetime`) i wygasa samoistnie po przeterminowaniu `duration`.
-- Filtruje zderzenia używając zaawansowanej, hybrydowej dwufazowej logiki 3D Mesh Collider (Broadphase + Narrowphase Mesh Intersection).
+## Odpowiedzialnosc
 
-## Jak stworzyć efekt (np. Pocisk Cudu Zniszczenia)?
+`AbilityEffect` rozszerza `Entity` o:
 
-Tworzymy klasę dziedziczącą po `Nawia::Entity::AbilityEffect`. To tutaj, w przeciwieństwie do potworów, nadal implementujemy bazowe, dwuwymiarowe obszary "Collider" ze starszych typów, gdyż to one rzutują czy trafiamy cel strefą wybuchu!
+- `AbilityStats`,
+- licznik czasu zycia,
+- liste juz trafionych encji,
+- bazowe sprawdzanie kolizji przez collider i bounding box.
 
-### Krok 1: Implementacja
+Efekt wygasa, gdy `isExpired()` zwroci `true`. Usuwa go `EntityManager` podczas aktualizacji.
+
+## Kolizje
+
+Domyslny flow `checkCollision(target)`:
+
+1. `canHitTarget(...)` odrzuca pusty cel, martwe/uspione encje, sam efekt i cele juz trafione.
+2. Collider efektu jest porownywany z bounding boxem celu.
+3. Jezeli szybki test przejdzie, collider robi dokladniejsze sprawdzenie z meshem celu.
+
+Efekty specjalne moga to nadpisac. `Projectile` uzywa wlasnego 3D hitboxa, a `ProjectileHitEffect` zwraca `false`, bo jest tylko wizualem.
+
+## Trafienie
+
+`onCollision(target)` powinno:
+
+1. sprawdzic, czy cel nadal istnieje,
+2. policzyc obrazenia,
+3. wywolac `target->takeDamage(...)`,
+4. zapisac trafienie przez `addHit(target)`,
+5. ewentualnie zakonczyc efekt przez `die()`.
+
+Przyklad:
 
 ```cpp
-#include "AbilityEffect.h"
-#include "Collider.h"
+void ShockWaveEffect::onCollision(const std::shared_ptr<Entity>& target) {
+	if (!target)
+		return;
 
-namespace Nawia::Entity {
-
-    class FireballEffect : public AbilityEffect {
-    public:
-        FireballEffect(float startX, float startY, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats, float targetX, float targetY)
-            : AbilityEffect("FireballEffect", startX, startY, tex, stats)
-        {
-            // Oś rotacji (obliczanie wektora kierunkowego do rzutu izometrycznego / perspektywy wektorowej na X-Z).
-            float angle = atan2(targetY - startY, targetX - startX);
-            float speed = stats.projectile_speed;
-            
-            setVelocity(cos(angle) * speed, sin(angle) * speed);
-
-            // Wymiar obszaru zadawania obrażeń pocisku. Koło wokół środka efektu.
-            setCollider(std::make_unique<CircleCollider>(this, stats.hitbox_radius, 0.0f, 0.0f));
-            
-            // Opcjonalne: Użycie zaawansowanego modelu na lecącej kuli
-            // loadModel("assets/models/fireball.glb");
-        }
-
-        void update(float dt) override {
-            AbilityEffect::update(dt); // WAŻNE: Obsługuje ruch i obniżanie czasu wygaśnięcia pocisku
-        }
-
-        // Obsługa trafienia
-        void onCollision(const std::shared_ptr<Entity>& target) override {
-            // Klasa bazowa dba by nie doliczać hitboxów po dziesięć razy dla jednej fazy cięcia mieczem
-            if (hasHit(target)) return;
-            
-            // Reakcja: Zadaj obrażenia
-            target->takeDamage(_stats.damage);
-            addHit(target); // Zapisz, że ten cel przyjął strzał
-            
-            // Ponieważ To fireball, ulegnie destrukcji
-            die();
-        }
-    };
+	target->takeDamage(getDamage());
+	addHit(target);
 }
 ```
 
-## Kluczowe Procesy Kolizji Walki: Dwuetapowa Weryfikacja
+## Frakcje
 
-Twoje efekty wyłapują interakcje ze wrogami korzystając z precyzyjnej mechaniki `checkCollision(target)`. Od migracji na natywny układ głębi 3D robimy to zaawansowanymi metodami silnika, unikając mylnych zderzeń z rogiem powietrza!
+Efekt powinien jawnie zdecydowac, kogo moze trafic:
 
-### 1. Krok: Broadphase (`BoundingBox` spięcie z `Colliderem`)
-Efekt w pierwszej fazie próbuje dociec, czy w ogóle zderzył się z animacyjnym polem brzegowym celu (Wbudowane pudło na modelach objętościowych potworów z Blendera). Jeżeli szeroki ConeCollider (Strefa miecza) chociaż ułamkiem musnęła Boxa Ogra, przechodzi do Narrowphase.
+- pociski ignoruja zrodlo uzycia i cele z tej samej frakcji,
+- melee zwykle ignoruje castera,
+- efekty wizualne ignoruja wszystko.
 
-### 2. Krok: Narrowphase (`Mesh Intersection Raycasting`)
-Wiązki punktów rzutowane są od epicentrum efektu w siatkę wroga (`getRayMeshCollision()`). Jeśli miecz uderzył celnie siatkę geometryczną przeciwnika na poprawnej wielkości osi, `checkCollision` zezwala wywołać reakcję zadania bólu!
+Nie zakladaj, ze `EntityManager` zrobi za efekt caly filtr friendly fire.
 
-### `onCollision(target)`
-Wywoływana przez silnik, gdy przejdą obie fazy sprawdzenia z wrogiem. Tutaj definiujesz konsekwencje (Obrażenia, efekty obezwładniania, eksplozje).
+## Debug
 
-## System Kolizji i Frakcji (Szczegóły)
-- Pamiętaj, aby ustawić Frakcję pocisku taką samą jak Castera przy wykluwaniu jego jajka w klasie macierzy umiejętności `SuperSlashBase->cast(...)` - tak unika rażenia przyjaciół (`Faction::Ally`).
-- Efekty mogą zadawać trafienia strefą koła (`CircleCollider`) wokół promienia rzutu dla pocisków, i strefą stożka (`ConeCollider`) idealnie pasującą pod frontowe ataki w walce wręcz!
+Do strojenia hitboxow wlacz:
+
+```cpp
+Nawia::Entity::Entity::DebugColliders = true;
+```
+
+Wtedy widac collidery i pomocnicze bounding boxy. To jest szczegolnie przydatne przy `SwordSlashEffect`, projectile i triggerach.
+
+## Dobre praktyki
+
+- Najpierw sprawdz `canHitTarget(target)`.
+- Po skutecznym trafieniu zawsze wolaj `addHit(target)`.
+- Nie dodawaj nowych encji bezposrednio do `EntityManager`.
+- Wizual bez obrazen powinien miec `checkCollision(...) == false`.
+- Collider efektu stroimy pod gameplay, nie pod idealny wyglad modelu.

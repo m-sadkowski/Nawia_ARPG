@@ -1,0 +1,25 @@
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+ColumnLimit: 120
+IndentWidth: 4
+TabWidth: 4
+UseTab: ForIndentation
+
+AccessModifierOffset: -4
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+BreakBeforeBraces: Attach
+IndentCaseLabels: true
+NamespaceIndentation: All
+PointerAlignment: Left
+
+# Include'y sortujemy ręcznie według docs/guides/Coding_Standards.md,
+# bo tylko własny nagłówek implementacji zostaje w cudzysłowie.
+SortIncludes: Never

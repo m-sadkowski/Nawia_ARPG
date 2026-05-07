@@ -1,18 +1,22 @@
 #pragma once
-#include "ResourceManager.h"
+
+#include <NavMesh.h>
 
 #include <raylib.h>
+
 #include <string>
 #include <vector>
 
 namespace Nawia::Core {
 
+	class ResourceManager;
+
 	/**
 	 * @class Map
-	 * @brief Loads and renders a 3D map model (.glb) or a procedural placeholder.
+	 * @brief Laduje, renderuje i odpytuje model mapy 3D.
 	 *
-	 * The map is a 3D model placed at origin. Entity movement happens on the XZ plane (Y=0).
-	 * Walkability and pathfinding will be added in a later phase.
+	 * Mapa przechowuje model Raylib oraz navmesh zbudowany z tej samej
+	 * geometrii. Ruch encji odbywa sie po plaszczyznie XZ.
 	 */
 	class Map {
 	public:
@@ -20,37 +24,47 @@ namespace Nawia::Core {
 		~Map();
 
 		/**
-		 * @brief Load a 3D map model from a .glb file.
-		 * @param filename Path relative to assets/maps/ (e.g. "demo_map.glb")
-		 * @param scale Optional scaling factor
-		 * @param offset Optional position offset for the model
-		 * @param rotation Optional rotation in degrees (Euler angles: X, Y, Z)
+		 * @brief Laduje model mapy z `assets/maps`.
 		 */
-		void loadMap(const std::string& filename, float scale = 1.0f, Vector3 offset = {0.0f, 0.0f, 0.0f}, Vector3 rotation = {0.0f, 0.0f, 0.0f});
+		void loadMap(
+			const std::string& filename,
+			float scale = 1.0f,
+			Vector3 offset = {0.0f, 0.0f, 0.0f},
+			Vector3 rotation = {0.0f, 0.0f, 0.0f}
+		);
 
 		/**
-		 * @brief Generate a placeholder ground plane (colored grid).
-		 * Use this when no .glb map is available.
+		 * @brief Laduje awaryjna plaska mape, gdy brakuje modelu.
 		 */
 		void loadPlaceholder();
 
 		/**
-		 * @brief Render the map in the current 3D mode context.
-		 * Must be called between BeginMode3D/EndMode3D.
+		 * @brief Renderuje mape w aktywnym trybie 3D.
 		 */
 		void render() const;
 
-		/// @brief Always returns true (walkability disabled for now)
+		/**
+		 * @brief Zwraca trafienie promienia w geometrie mapy.
+		 */
+		[[nodiscard]] RayCollision getRayCollision(Ray ray) const;
+
+		/**
+		 * @brief Sprawdza, czy punkt lezy blisko navmesha.
+		 */
 		[[nodiscard]] bool isWalkable(float world_x, float world_z) const;
 
-		/// @brief Returns empty path (pathfinding disabled for now)
-		[[nodiscard]] std::vector<Vector2> findPath(Vector2 start, Vector2 end) const;
+		/**
+		 * @brief Zwraca sciezke po navmeshu albo prosta sciezke awaryjna.
+		 */
+		[[nodiscard]] std::vector<Vector2> findPath(Vector3 start, Vector3 end) const;
 
 		[[nodiscard]] Vector2 getPlayerSpawnPos() const { return _player_spawn_pos; }
+		Model& getModel() { return _model; }
+		const World::NavMesh& getNavMesh() const { return _navmesh; }
 
 	private:
 		ResourceManager& _resource_manager;
-		
+
 		Model _model = {};
 		bool _model_loaded = false;
 		bool _is_placeholder = false;
@@ -60,6 +74,9 @@ namespace Nawia::Core {
 		Vector3 _rotation = {0.0f, 0.0f, 0.0f};
 
 		Vector2 _player_spawn_pos = {0.0f, 0.0f};
+
+		World::NavMesh _navmesh;
+		std::vector<BoundingBox> _mesh_bboxes;
 	};
 
 } // namespace Nawia::Core

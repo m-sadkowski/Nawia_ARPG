@@ -1,285 +1,321 @@
 #pragma once
 
-#include "AbilityStats.h"
+#include <AbilityStats.h>
 
 #include <raylib.h>
-#include <iostream>
-#include <string>
-#include <vector>
+
 #include <map>
 #include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace Nawia::Entity {
 	class Ability;
 	class Collider;
 
+	/**
+	 * @enum EntityType
+	 * @brief Określa główną kategorię encji w świecie gry.
+	 */
 	enum class EntityType {
 		None,
 		Player,
 		Enemy,
 		Ally,
 		NPCStatic,
-		Projectile, // AbilityEffect
-		Trigger, // Checkpoint
-		Chest, // Interactable
-		Item,
-		Wall
+		Projectile, ///< Efekt umiejętności działający jak encja.
+		Trigger,    ///< Obszar aktywujący logikę, np. checkpoint.
+		Chest,      ///< Interaktywny pojemnik z ekwipunkiem.
+		Item
 	};
 
 	/**
-	* @enum Faction
-	* @brief Determines friend/foe relationships for combat and AI.
-	*/
+	 * @enum Faction
+	 * @brief Określa relacje sojusz/wrogość używane w walce i AI.
+	 */
 	enum class Faction {
-		Player,   ///< Player-controlled entities
-		Enemy,    ///< Hostile to player
-		Neutral,  ///< Non-combatant
-		Ally,     ///< Friendly to player
-		None      ///< No faction (e.g., projectiles inherit caster's faction)
+		Player,  ///< Encje kontrolowane przez gracza.
+		Enemy,   ///< Encje wrogie wobec gracza i sojuszników.
+		Neutral, ///< Encje neutralne, zwykle poza walką.
+		Ally,    ///< Encje walczące po stronie gracza.
+		None     ///< Brak frakcji, np. obiekt bez udziału w walce.
 	};
 
 	/**
 	 * @class Entity
-	 * @brief Base class for all game objects in the world (players, enemies, projectiles, items).
-	 * 
-	 * Entity provides core functionality shared by all game objects:
-	 * - Position and movement in world coordinates (XZ plane, Y=0)
-	 * - Health and damage system
-	 * - 3D model rendering with animation support
-	 * - Collision detection via attached Collider
-	 * - Ability system for casting spells/attacks
-	 * - Faction system for friend/foe detection
-	 * 
-	 * @note Positions use Vector2{x, y} internally, which maps to 3D world as {x, 0, y}.
-	 *       getX() corresponds to world X, getY() corresponds to world Z.
+	 * @brief Bazowa klasa wszystkich obiektów świata gry.
+	 *
+	 * `Entity` zbiera wspólne mechanizmy: pozycję, ruch, HP, animacje, model 3D,
+	 * kolider, frakcję, wybieranie celu oraz listę umiejętności. Pozycja `Vector2`
+	 * mapuje się na płaszczyznę świata 3D jako `{x, wysokość, y}`.
 	 */
 	class Entity : public std::enable_shared_from_this<Entity> {
 	public:
 		/**
-		 * @brief Construct a new Entity.
-		 * @param name Display name of the entity
-		 * @param start_x Initial X position in world coordinates
-		 * @param start_y Initial Y (Z in 3D) position in world coordinates
-		 * @param texture Shared texture for rendering (fallback 2D)
-		 * @param max_hp Maximum (and initial) health points
+		 * @brief Tworzy encję z podstawowymi danymi używanymi przez świat gry.
+		 * @param name Nazwa encji wyświetlana i używana w logach.
+		 * @param start_x Początkowa pozycja X w świecie.
+		 * @param start_y Początkowa pozycja Y, mapowana na oś Z świata 3D.
+		 * @param texture Tekstura pomocnicza lub awaryjna tekstura 2D.
+		 * @param max_hp Maksymalne i początkowe HP.
 		 */
-		Entity(const std::string& name, float start_x, float start_y, const std::shared_ptr<Texture2D>& texture, int max_hp);
-		
+		Entity(
+			const std::string& name,
+			float start_x,
+			float start_y,
+			const std::shared_ptr<Texture2D>& texture,
+			int max_hp);
+
 		virtual ~Entity();
 
 		/**
-		 * @brief Update entity state each frame. Override for custom behavior.
-		 * @param delta_time Time elapsed since last frame (seconds)
+		 * @brief Aktualizuje bazowy ruch, animacje i stan śmierci encji.
+		 * @param delta_time Czas od poprzedniej klatki w sekundach.
 		 */
 		virtual void update(float delta_time);
-		
+
 		/**
-		 * @brief Render the entity in 3D space.
-		 * Must be called between BeginMode3D/EndMode3D.
-		 * @param camera The 3D camera (for debug rendering, hover effects, etc.)
+		 * @brief Renderuje model encji i diagnostyczne kolidery w trybie 3D.
+		 * @param camera Kamera używana do diagnostycznego renderowania koliderów.
 		 */
 		virtual void render(const Camera3D& camera);
 
-
-		// ═══════════════════════════════════════════════════════════════════════
-		// POSITION & COORDINATES
-		// ═══════════════════════════════════════════════════════════════════════
-		
-		/// @name Position Accessors
-		/// @{
+		// Pozycja i współrzędne.
 		[[nodiscard]] float getX() const { return _pos.x; }
 		[[nodiscard]] float getY() const { return _pos.y; }
+		[[nodiscard]] float getAltitude() const { return _altitude; }
 		void setX(float x) { _pos.x = x; }
 		void setY(float y) { _pos.y = y; }
+		void setAltitude(float altitude) { _altitude = altitude; }
 		[[nodiscard]] Vector2 getCenter() const;
-		/// @}
 
-		/// @name Coordinate Conversion
-		/// @{
-		
-		/** @brief Get 3D world position (on ground plane). Override for altitude. */
-		[[nodiscard]] virtual Vector3 getWorldPos3D() const { return { _pos.x, 0.0f, _pos.y }; }
+		/**
+		 * @brief Zwraca pozycję encji w świecie 3D.
+		 */
+		[[nodiscard]] virtual Vector3 getWorldPos3D() const { return {_pos.x, _altitude, _pos.y}; }
 
-		/** @brief Project entity world position to screen coordinates. */
+		/**
+		 * @brief Projektuje pozycję świata na współrzędne ekranu.
+		 */
 		[[nodiscard]] Vector2 getScreenPosition(const Camera3D& camera) const;
-		
-		/** @brief Check if mouse ray hits the entity's 3D bounding box. */
+
+		/**
+		 * @brief Sprawdza, czy promień myszy trafia w obszar kliknięcia encji.
+		 */
 		[[nodiscard]] virtual bool isMouseOver(float screen_x, float screen_y, const Camera3D& camera) const;
-		
-		/** @brief Get world-space axis-aligned bounding box of the 3D model. */
+
+		/**
+		 * @brief Zwraca pudełko ograniczające modelu w przestrzeni świata albo kształt awaryjny.
+		 */
 		[[nodiscard]] BoundingBox getBoundingBox() const;
 
-		/** @brief Build the world transform matrix used for rendering & collision. */
+		/**
+		 * @brief Buduje macierz transformacji używaną przy renderingu i testach promieniem.
+		 */
 		[[nodiscard]] Matrix getWorldTransformMatrix() const;
 
-		/** @brief Test if a ray hits this entity's 3D mesh (triangle-level). 
-		 *  @return true if any mesh triangle is hit */
+		/**
+		 * @brief Sprawdza, czy promień trafia w którąkolwiek siatkę modelu.
+		 */
 		[[nodiscard]] bool checkRayHitsMesh(const Ray& ray) const;
 
-		/** @brief Test if a ray hits this entity's 3D mesh and return collision info. */
+		/**
+		 * @brief Zwraca najbliższe trafienie promienia w siatkę modelu.
+		 */
 		[[nodiscard]] RayCollision getRayMeshCollision(const Ray& ray) const;
-		/// @}
 
-
-		// ═══════════════════════════════════════════════════════════════════════
-		// TRANSFORM & PHYSICS
-		// ═══════════════════════════════════════════════════════════════════════
-		
-		void setVelocity(const float x, const float y) { _velocity.x = x; _velocity.y = y; }
+		// Transformacja i ruch.
+		void setVelocity(float x, float y) { _velocity.x = x; _velocity.y = y; }
 		[[nodiscard]] Vector2 getVelocity() const { return _velocity; }
-		void setScale(const float scale) { _scale = scale; }
+		void setScale(float scale) { _scale = scale; }
 		[[nodiscard]] float getScale() const { return _scale; }
-		void setHovered(const bool hovered) { _hovered = hovered; }
+		void setHovered(bool hovered) { _hovered = hovered; }
 
-		// Movement control
+		/**
+		 * @brief Ustawia docelowy punkt ruchu encji.
+		 */
 		virtual void moveTo(float x, float y);
+
+		/**
+		 * @brief Przesuwa encję w stronę punktu ustawionego przez `moveTo`.
+		 */
 		virtual void updateMovement(float dt);
 
 		void setMovementSpeed(float speed) { _movement_speed = speed; }
 		[[nodiscard]] float getMovementSpeed() const { return _movement_speed; }
 
-		// Combat multipliers (used by boss phase system)
-		void setSpeedMultiplier(float m) { _speed_multiplier = m; }
-		[[nodiscard]] float getSpeedMultiplier() const { return _speed_multiplier; }
-		void setDamageMultiplier(float m) { _damage_multiplier = m; }
-		[[nodiscard]] float getDamageMultiplier() const { return _damage_multiplier; }
-
-		// ═══════════════════════════════════════════════════════════════════════
-		// HEALTH & DAMAGE
-		// ═══════════════════════════════════════════════════════════════════════
-		
+		// HP i obrażenia.
 		/**
-		 * @brief Apply damage to this entity. Override for custom damage handling.
-		 * @param dmg Amount of damage to apply
+		 * @brief Zadaje obrażenia i uruchamia sekwencję śmierci, jeśli HP spadnie do zera.
+		 * @param dmg Liczba punktów obrażeń.
 		 */
 		virtual void takeDamage(int dmg);
-		
-		/** @brief Trigger death sequence for this entity. */
+
+		/**
+		 * @brief Natychmiast oznacza encję jako martwą.
+		 */
 		void die();
-		
+
 		[[nodiscard]] bool isDead() const { return _hp <= 0; }
 		[[nodiscard]] bool isDying() const { return _is_dying; }
 		[[nodiscard]] bool isMoving() const { return _is_moving; }
 		[[nodiscard]] int getHP() const { return _hp; }
 		[[nodiscard]] int getMaxHP() const { return _max_hp; }
-		[[nodiscard]] std::string getName() const { return _name; }
+		[[nodiscard]] const std::string& getName() const { return _name; }
 		void setName(const std::string& name) { _name = name; }
 
-
-		// ═══════════════════════════════════════════════════════════════════════
-		// ANIMATION & 3D MODEL
-		// ═══════════════════════════════════════════════════════════════════════
-		
-		/** @brief Load a 3D model from file. */
-		void loadModel(const std::string& path, bool rotate_model = false);
-		
-		/** @brief Register an animation from file. */
-		void addAnimation(const std::string& name, const std::string& path);
-		
-		/** 
-		 * @brief Play a registered animation.
-		 * @param name Animation name (must be registered via addAnimation)
-		 * @param loop Whether to loop the animation
-		 * @param lock_movement If true, prevents movement during animation
+		// Model 3D i animacje.
+		/**
+		 * @brief Ładuje model 3D i rejestruje animację domyślną z tego pliku.
 		 */
-		void playAnimation(const std::string& name, bool loop = true, bool lock_movement = false, int start_frame = 0, bool force = false);
+		void loadModel(const std::string& path, bool rotate_model = false);
+
+		/**
+		 * @brief Rejestruje animację pod nazwą używaną później w `playAnimation`.
+		 */
+		void addAnimation(const std::string& name, const std::string& path);
+
+		/**
+		 * @brief Odtwarza zarejestrowaną animację.
+		 * @param name Nazwa animacji dodana przez `addAnimation`.
+		 * @param loop Czy animacja ma zapętlać się po dojściu do końca.
+		 * @param lock_movement Czy animacja blokuje ruch do czasu zakończenia.
+		 * @param start_frame Klatka startowa animacji.
+		 * @param force Czy wymusić restart nawet, gdy ta animacja już gra.
+		 */
+		void playAnimation(
+			const std::string& name,
+			bool loop = true,
+			bool lock_movement = false,
+			int start_frame = 0,
+			bool force = false);
 
 		void setAnimationSpeed(float multiplier) { _anim_speed_multiplier = multiplier; }
-		float getAnimationSpeed() const { return _anim_speed_multiplier; }
-		
+		[[nodiscard]] float getAnimationSpeed() const { return _anim_speed_multiplier; }
 		[[nodiscard]] int getAnimationFrameCount(const std::string& name) const;
 		[[nodiscard]] bool isAnimationLocked() const { return _anim_locked; }
 
-		void setRotation(const float angle) { _rotation = angle; }
+		void setRotation(float angle) { _rotation = angle; }
 		[[nodiscard]] float getRotation() const { return _rotation; }
 
-		/** @brief Visual offset (degrees) added ONLY when rendering the model.
-		 *  Use this to align the model's "front" with the math direction.
-		 *  Does NOT affect getRotation() or ability directions. */
-		void setModelFacingOffset(const float deg) { _model_facing_offset = deg; }
-		
-		/** @brief Rotate entity to face world coordinates. */
+		/**
+		 * @brief Ustawia wizualny offset modelu względem matematycznego kierunku patrzenia.
+		 */
+		void setModelFacingOffset(float deg) { _model_facing_offset = deg; }
+
+		/**
+		 * @brief Obraca encję w stronę punktu świata.
+		 */
 		void rotateTowards(float world_x, float world_y);
 
-
-		// ═══════════════════════════════════════════════════════════════════════
-		// COLLISION SYSTEM
-		// ═══════════════════════════════════════════════════════════════════════
-		
-		/** @brief Attach a collider for collision detection. */
+		// Kolidery.
+		/**
+		 * @brief Podpina kolider używany do kolizji, triggerów lub renderowania diagnostycznego.
+		 */
 		void setCollider(std::unique_ptr<Collider> collider);
-		
-		/** @brief Rotate to face world coordinates using collider center as pivot. */
+
+		/**
+		 * @brief Obraca encję w stronę punktu świata, licząc kierunek od środka encji.
+		 */
 		void rotateTowardsCenter(float world_x, float world_y);
-		
+
 		[[nodiscard]] Collider* getCollider() const { return _collider.get(); }
-		
-		/** @brief Global debug flag - when true, all colliders are rendered. */
+
+		/**
+		 * @brief Globalny przełącznik renderowania koliderów i pudełek ograniczających.
+		 */
 		static bool DebugColliders;
 
-
-		// ═══════════════════════════════════════════════════════════════════════
-		// ABILITY SYSTEM
-		// ═══════════════════════════════════════════════════════════════════════
-		
-		/** @brief Load ability stats from abilities.json by name. */
+		// Umiejętności.
+		/**
+		 * @brief Wczytuje statystyki umiejętności z `abilities.json`.
+		 */
 		static AbilityStats getAbilityStatsFromJson(const std::string& name);
-		
-		/** @brief Add an ability to this entity's ability list. */
+
+		/**
+		 * @brief Dodaje umiejętność i ustawia tę encję jako źródło użycia.
+		 */
 		void addAbility(const std::shared_ptr<Ability>& ability);
-		
-		/** @brief Get ability by slot index (0-based). */
+
+		/**
+		 * @brief Zwraca umiejętność z danego slotu albo `nullptr`.
+		 */
 		[[nodiscard]] std::shared_ptr<Ability> getAbility(int index);
-		
+
 		[[nodiscard]] const std::vector<std::shared_ptr<Ability>>& getAbilities() const { return _abilities; }
-		
-		/** @brief Update cooldowns and state for all abilities. */
+
+		/**
+		 * @brief Aktualizuje czasy odnowienia i stan wszystkich umiejętności.
+		 */
 		void updateAbilities(float dt) const;
 
+		// Encje tworzone w trakcie aktualizacji.
+		/**
+		 * @brief Dodaje encję, którą silnik ma dopiąć do świata po zakończeniu aktualizacji.
+		 */
+		void addPendingSpawn(std::shared_ptr<Entity> entity) {
+			if (entity)
+				_pending_spawns.push_back(std::move(entity));
+		}
 
-		// ═══════════════════════════════════════════════════════════════════════
-		// ENTITY SPAWNING
-		// ═══════════════════════════════════════════════════════════════════════
-		
-		void addPendingSpawn(const std::shared_ptr<Entity>& entity) { _pending_spawns.push_back(entity); }
-		[[nodiscard]] std::vector<std::shared_ptr<Entity>> getPendingSpawns() { return _pending_spawns; }
+		/**
+		 * @brief Zwraca listę encji oczekujących na dodanie do świata.
+		 */
+		[[nodiscard]] const std::vector<std::shared_ptr<Entity>>& getPendingSpawns() const { return _pending_spawns; }
+
+		/**
+		 * @brief Czyści listę encji oczekujących po ich odebraniu przez silnik.
+		 */
 		void clearPendingSpawns() { _pending_spawns.clear(); }
 
-
-		// ═══════════════════════════════════════════════════════════════════════
-		// FACTION SYSTEM
-		// ═══════════════════════════════════════════════════════════════════════
-
+		// Frakcje i wybieranie celu.
 		[[nodiscard]] Faction getFaction() const { return _faction; }
 		void setFaction(Faction faction) { _faction = faction; }
 
-		// ═══════════════════════════════════════════════════════════════════════
-		// TARGET TRACKING
-		// ═══════════════════════════════════════════════════════════════════════
-
+		/**
+		 * @brief Ustawia aktualny cel encji.
+		 */
 		virtual void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
+
+		/**
+		 * @brief Zwraca aktualny cel encji albo `nullptr`.
+		 */
+		[[nodiscard]] std::shared_ptr<Entity> getTarget() const { return _target.lock(); }
+
+		/**
+		 * @brief Zwraca odległość do celu albo bardzo dużą wartość, gdy celu nie ma.
+		 */
 		[[nodiscard]] float getDistanceToTarget() const;
+
+		/**
+		 * @brief Zwraca pozycję celu albo pozycję własną, gdy cel nie istnieje.
+		 */
 		[[nodiscard]] Vector2 getTargetPosition() const;
+
+		/**
+		 * @brief Sprawdza, czy cel istnieje i nie jest martwy.
+		 */
 		[[nodiscard]] bool hasValidTarget() const;
+
 		static constexpr float DEFAULT_PATH_RECALC_INTERVAL = 0.5f;
+
+		/**
+		 * @brief Przelicza cel ruchu co określony czas i podąża za wskazaną encją.
+		 */
 		void chaseTarget(float dt, float path_recalc_interval = DEFAULT_PATH_RECALC_INTERVAL);
 
-
-		EntityType getType() const { return _type; }
+		[[nodiscard]] EntityType getType() const { return _type; }
 		void setType(EntityType type) { _type = type; }
 		void setMaxHp(int max_hp);
 
-
-		// ═══════════════════════════════════════════════════════════════════════
-		// DORMANT SYSTEM
-		// ═══════════════════════════════════════════════════════════════════════
-
+		// Uśpienie.
 		/**
-		 * @brief Set dormant state. Dormant entities are invisible, frozen,
-		 *        and excluded from collisions/interactions.
+		 * @brief Ustawia stan uśpienia encji.
 		 *
-		 * Used by SpawnManager to pre-load entities at level start and
-		 * activate them when the player approaches (proximity trigger).
+		 * Uśpiona encja nie renderuje się, nie aktualizuje AI i jest pomijana przez
+		 * mechaniki aktywnych lokacji. Używa tego `SpawnManager` przy przełączaniu
+		 * lokacji oraz tworzeniu encji po zbliżeniu.
 		 */
 		void setDormant(bool dormant) { _dormant = dormant; }
 		[[nodiscard]] bool isDormant() const { return _dormant; }
@@ -289,105 +325,126 @@ namespace Nawia::Entity {
 		Entity();
 
 		Vector2 _pos = {0.0f, 0.0f};
+		float _altitude = 0.0f;
 		Vector2 _velocity = {0.0f, 0.0f};
 		float _scale = 1.0f;
 		std::shared_ptr<Texture2D> _texture;
 		EntityType _type = EntityType::None;
-		
+
 		std::unique_ptr<Collider> _collider;
-		
 		std::vector<std::shared_ptr<Entity>> _pending_spawns;
 
 		int _hp = 1;
 		int _max_hp = 1;
 
-		// 3D Model & Animation Data
-		Model _model;
+	public:
+		/**
+		 * @brief Zwraca model 3D do niskopoziomowych operacji raylib.
+		 */
+		[[nodiscard]] Model& getModel() { return _model; }
+
+		/**
+		 * @brief Sprawdza, czy encja ma poprawnie załadowany model 3D.
+		 */
+		[[nodiscard]] bool hasModelLoaded() const { return _model_loaded; }
+
+	protected:
+		// Dane modelu i animacji.
+		Model _model = {};
 		std::vector<ModelAnimation> _animations;
 		std::map<std::string, int> _animation_map;
-		
+
 		int _current_anim_index = 0;
 		float _anim_frame_counter = 0.0f;
 		float _anim_speed_multiplier = 1.0f;
 		float _anim_fps = 30.0f;
 		float _rotation = 0.0f;
-		float _model_facing_offset = 90.0f; // visual offset for model facing vs math angle
+		float _model_facing_offset = 90.0f; ///< Offset modelu względem kierunku matematycznego.
 		bool _model_loaded = false;
 		bool _anim_looping = true;
 		bool _anim_locked = false;
 		bool _hovered = false;
-		bool _dormant = false;  ///< When true, entity is invisible and frozen
-		
+		bool _dormant = false;
+
 		bool _is_dying = false;
 		std::string _death_anim_name = "death";
 
-		// Movement state
+		// Stan ruchu.
 		bool _is_moving = false;
 		float _movement_speed = 2.0f;
-		float _target_x = 0.0f, _target_y = 0.0f;
+		float _target_x = 0.0f;
+		float _target_y = 0.0f;
 
-		// Combat multipliers
-		float _speed_multiplier = 1.0f;
-		float _damage_multiplier = 1.0f;
-
-		// Target tracking
+		// Śledzenie celu.
 		std::weak_ptr<Entity> _target;
 		float _path_recalc_timer = 0.0f;
 
 		Faction _faction = Faction::None;
-
 		std::string _name;
 
 		void updateAnimation(float dt);
-		
+
 		std::vector<std::shared_ptr<Ability>> _abilities;
 	};
 
+	/**
+	 * @class EntityBuilder
+	 * @brief Bazowy builder ustawiający wspólne pola encji przed oddaniem obiektu.
+	 */
 	template <typename Derived>
 	class EntityBuilder {
 	public:
 		EntityBuilder() = default;
 
+		/** @brief Ustawia nazwę encji. */
 		Derived& setName(const std::string& name) {
 			_entity->_name = name;
 			return self();
 		}
 
-		Derived& setTexture(const std::shared_ptr<Texture> texture) {
+		/** @brief Ustawia awaryjną teksturę używaną przez encję. */
+		Derived& setTexture(const std::shared_ptr<Texture>& texture) {
 			_entity->_texture = texture;
 			return self();
 		}
 
+		/** @brief Ustawia bazową prędkość ruchu. */
 		Derived& setMovementSpeed(float speed) {
-			this->_entity->_movement_speed = speed;
-			return this->self();
+			_entity->_movement_speed = speed;
+			return self();
 		}
 
+		/** @brief Ustawia rotację encji w stopniach. */
 		Derived& setRotation(float rotation) {
 			_entity->_rotation = rotation;
 			return self();
 		}
 
-		Derived& setPosition(const Vector2 pos) {
+		/** @brief Ustawia pozycję logiczną encji. */
+		Derived& setPosition(Vector2 pos) {
 			_entity->_pos = pos;
 			return self();
 		}
 
-		Derived& setX(const float x) {
+		/** @brief Ustawia współrzędną X encji. */
+		Derived& setX(float x) {
 			_entity->_pos.x = x;
 			return self();
 		}
 
-		Derived& setY(const float y) {
+		/** @brief Ustawia współrzędną Y encji. */
+		Derived& setY(float y) {
 			_entity->_pos.y = y;
 			return self();
 		}
 
-		Derived& setMaxHp(const int max_hp) {
+		/** @brief Ustawia maksymalne HP i wyrównuje do niego obecne HP. */
+		Derived& setMaxHp(int max_hp) {
 			_entity->_max_hp = max_hp;
 			_entity->_hp = max_hp;
 			return self();
 		}
+
 	protected:
 		Entity* _entity = nullptr;
 

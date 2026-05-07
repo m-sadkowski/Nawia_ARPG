@@ -24,8 +24,9 @@ namespace Nawia::Core {
 	        
 	        fullscreen = j.value("fullscreen", false);
 	        ui_scale = j.value("ui_scale", 1.0f);
+	        texture_quality = static_cast<TextureQuality>(j.value("texture_quality", 1));
+	        show_fps = j.value("show_fps", false);
 	        
-	        // Clamp ui_scale to valid range
 	        if (ui_scale < UI_SCALE_MIN) ui_scale = UI_SCALE_MIN;
 	        if (ui_scale > UI_SCALE_MAX) ui_scale = UI_SCALE_MAX;
 	        
@@ -50,8 +51,10 @@ namespace Nawia::Core {
 	        j["resolution"]["height"] = resolution.height;
 	        j["fullscreen"] = fullscreen;
 	        j["ui_scale"] = ui_scale;
+	        j["texture_quality"] = static_cast<int>(texture_quality);
+	        j["show_fps"] = show_fps;
 	        
-	        file << j.dump(4); // Pretty print with 4-space indent
+	        file << j.dump(4);
 	        return true;
 	    } 
 		catch (...) 

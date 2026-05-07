@@ -1,13 +1,12 @@
 #pragma once
 
-#include "Entity.h"
+#include <Entity.h>
 
 namespace Nawia::Entity {
 
 	/**
 	 * @class StaticObject
-	 * @brief Represents static environmental objects like trees, rocks.
-	 * They do not move, and have a base texture and collision box.
+	 * @brief Reprezentuje statyczne obiekty otoczenia, np. drzewa albo skały.
 	 */
 	class StaticObject : public Entity {
 	public:

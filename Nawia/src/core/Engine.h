@@ -1,57 +1,66 @@
 #pragma once
 
-#include "Camera.h"
-#include "Constants.h"
-#include "EntityManager.h"
-#include "LevelManager.h"
-#include "ResourceManager.h"
-#include "Settings.h"
-
-#include <Player.h>
-#include <UIHandler.h>
-#include <ItemDatabase.h>
-#include <Loottable.h>
+#include <Camera.h>
+#include <Constants.h>
 #include <DialogueManager.h>
+#include <EntityManager.h>
+#include <ItemDatabase.h>
+#include <LevelManager.h>
+#include <LightingSystem.h>
+#include <Loottable.h>
+#include <Player.h>
 #include <QuestManager.h>
-#include <BossManager.h>
+#include <ResourceManager.h>
+#include <Settings.h>
+#include <UIHandler.h>
 
+#include <memory>
 #include <raylib.h>
 
 namespace Nawia::Core {
 
+	class Map;
 	class PlayerController;
 
 	/**
 	 * @class Engine
-	 * @brief Main game engine managing game loop, state, and subsystems.
+	 * @brief Glowny wlasciciel petli gry i najwazniejszych systemow.
+	 *
+	 * Systemy z cyklem zycia zaleznym od silnika sa trzymane przez `unique_ptr`
+	 * albo jako pola wartosciowe. Gracz jest `shared_ptr`, bo wspoldziela go
+	 * Engine, EntityManager i kontroler.
 	 */
 	class Engine {
 	public:
-		/// Game states
+		/**
+		 * @enum GameState
+		 * @brief Ekran albo tryb, w ktorym aktualnie znajduje sie gra.
+		 */
 		enum class GameState {
-			Menu,           ///< Main menu
-			SettingsMenu,   ///< Settings menu overlay
-			LevelSelect,    ///< Level Selection overlay
-			Playing,        ///< Gameplay
-			GameOver        ///< Player death
+			Menu,
+			SettingsMenu,
+			LevelSelect,
+			Playing,
+			GameOver
 		};
 
 		Engine();
 		~Engine();
 
+		/** @brief Uruchamia petle gry. */
 		void run();
+
+		/** @brief Sprawdza, czy okno i petla gry nadal dzialaja. */
 		[[nodiscard]] bool isRunning() const;
 
+		/** @brief Zwraca encje pod kursorem albo nullptr. */
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y) const;
-		void spawnEntity(const std::shared_ptr<Entity::Entity>& new_entity) const;
+
+		/** @brief Dodaje encje utworzona przez gameplay, np. efekt umiejetnosci. */
+		void spawnEntity(std::shared_ptr<Entity::Entity> new_entity) const;
 
 		UI::UIHandler& getUIHandler() const { return *_ui_handler; }
-		Map* getCurrentMap() const {
-			if (_level_manager && _level_manager->getCurrentLevel()) {
-				return _level_manager->getCurrentLevel()->getMap();
-			}
-			return nullptr;
-		}
+		Map* getCurrentMap() const;
 		Item::ItemDatabase& getItemDatabase() { return _item_database; }
 		Game::DialogueManager& getDialogueManager() { return _dialogue_manager; }
 		ResourceManager& getResourceManager() { return _resource_manager; }
@@ -60,23 +69,30 @@ namespace Nawia::Core {
 		std::shared_ptr<Entity::Player> getPlayer() const { return _player; }
 		const GameCamera& getCamera() const { return _camera; }
 		World::LevelManager& getLevelManager() const { return *_level_manager; }
+		System::Renderer::LightingSystem& getLightingSystem() { return _lighting_system; }
 		Game::QuestManager& getQuestManager() { return _quest_manager; }
-		Nawia::Game::BossManager& getBossManager() { return _boss_manager; }
-		const Nawia::Game::BossManager& getBossManager() const { return _boss_manager; }
+
 	private:
 		void update(float delta_time);
 		void render() const;
 		void handleInput();
-		
-		/// Apply new settings (resolution change, etc.)
+		void handleMenuInput();
+		void handleGameOverInput();
+		void handleSettingsInput();
+		void handleLevelSelectInput();
+		void handlePlayingInput();
+		void renderWorld() const;
+		void renderGameplay() const;
+		void collectPendingSpawns();
 		void applySettings(const Settings& new_settings);
 
-		bool _is_running;
-		GameState _game_state;
+		bool _is_running = false;
+		GameState _game_state = GameState::Menu;
 		bool _show_pause_menu = false;
 		GameState _previous_state = GameState::Menu;
 		Settings _settings;
 
+		System::Renderer::LightingSystem _lighting_system;
 		ResourceManager _resource_manager;
 		GameCamera _camera;
 		std::unique_ptr<World::LevelManager> _level_manager;

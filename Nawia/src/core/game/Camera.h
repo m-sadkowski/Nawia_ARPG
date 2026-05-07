@@ -1,50 +1,47 @@
 #pragma once
-#include "Constants.h"
 
-#include <Entity.h>
+#include <Constants.h>
+
 #include <raylib.h>
 
-namespace Nawia::Core
-{
+namespace Nawia::Entity { class Entity; }
+
+namespace Nawia::Core {
 
 	/**
 	 * @class GameCamera
-	 * @brief Wraps Raylib Camera3D with isometric-like follow behavior.
+	 * @brief Opakowuje Camera3D i prowadzi ja za wskazana encja.
 	 *
-	 * The camera looks down at an angle, following the player on the XZ plane.
-	 * Entity positions use Vector2{x, y} which maps to world 3D as {x, 0, y}.
+	 * Kamera nie posiada celu. `follow()` przyjmuje surowy wskaznik jako
+	 * nieposiadajacy widok encji, ktora zyje w EntityManagerze.
 	 */
-	struct GameCamera
-	{
-		Camera3D cam3d = {};
+	class GameCamera {
+	public:
+		GameCamera();
 
-		GameCamera()
-		{
-			cam3d.position = Vector3{ 0.0f, CAMERA_HEIGHT, CAMERA_DISTANCE };
-			cam3d.target = Vector3{ 0.0f, 0.0f, 0.0f };
-			cam3d.up = Vector3{ 0.0f, 1.0f, 0.0f };
-			cam3d.fovy = CAMERA_FOV;
-			cam3d.projection = CAMERA_PERSPECTIVE;
-		}
+		/**
+		 * @brief Obsluguje zoom kamery z kolka myszy.
+		 */
+		void handleInput();
 
-		void follow(const Entity::Entity* target)
-		{
-			if (!target) return;
+		/**
+		 * @brief Ustawia kamere nad wskazanym celem.
+		 */
+		void follow(const Entity::Entity* target);
 
-			const float world_x = target->getX();
-			const float world_z = target->getY(); // Entity Y maps to world Z
+		/**
+		 * @brief Zwraca kamere Raylib tylko do odczytu.
+		 */
+		[[nodiscard]] const Camera3D& get() const;
 
-			cam3d.target = Vector3{ world_x, 0.0f, world_z };
-			cam3d.position = Vector3{
-				world_x - CAMERA_DISTANCE * 0.7f,
-				CAMERA_HEIGHT,
-				world_z + CAMERA_DISTANCE * 0.7f
-			};
-		}
+		/**
+		 * @brief Zwraca modyfikowalna kamere Raylib.
+		 */
+		[[nodiscard]] Camera3D& get();
 
-		/// Get the underlying Camera3D for Raylib calls
-		[[nodiscard]] const Camera3D& get() const { return cam3d; }
-		[[nodiscard]] Camera3D& get() { return cam3d; }
+	private:
+		Camera3D _camera_3d = {};
+		float _zoom_factor = 1.0f;
 	};
 
 } // namespace Nawia::Core

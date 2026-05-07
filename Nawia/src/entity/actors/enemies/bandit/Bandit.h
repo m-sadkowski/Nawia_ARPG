@@ -1,73 +1,77 @@
 #pragma once
 
-#include "EnemyInterface.h"
+#include <EnemyInterface.h>
 
-#include <Map.h>
+#include <memory>
 
 namespace Nawia::Entity {
 
 	/**
 	 * @class Bandit
-	 * @brief Ranged enemy that throws knives at the player.
-	 * 
-	 * Bandits are hostile humanoids that keep their distance and throw knives.
-	 * They occasionally move to new positions to avoid being cornered.
-	 * 
-	 * ## States
-	 * - Idle: Standing still, watching for player
-	 * - Chasing: Moving toward player to get in range
-	 * - Casting: Throwing knife animation
-	 * - Dying: Death animation
-	 * 
-	 * ## Behavior
-	 * - Activates when player enters VISION_RANGE
-	 * - Throws knives when player is in ATTACK_RANGE and ability is ready
-	 * - Keeps distance, prefers ranged combat
+	 * @brief Dystansowy wróg rzucający nożami.
+	 *
+	 * Bandyta utrzymuje preferowany dystans, cofa się gdy cel podejdzie zbyt
+	 * blisko i odpala rzut nożem dopiero w odpowiedniej klatce animacji.
 	 */
 	class Bandit : public EnemyInterface {
 	public:
+		/** @brief Aktualizuje stan AI i animacji bandyty. */
 		void update(float dt) override;
+
+		/** @brief Obsługuje obrażenia oraz przejście do animacji trafienia. */
 		void takeDamage(int dmg) override;
 
 	private:
 		Bandit();
 		friend class BanditBuilder;
 
-		enum class State { Idle, Chasing, Casting, GettingHit };
+		enum class State {
+			Idle,
+			Chasing,
+			Casting,
+			GettingHit
+		};
+
 		State _state = State::Idle;
 		State _state_before_hit = State::Idle;
 
-		// Combat stats
+		// Statystyki walki.
 		static constexpr float VISION_RANGE = 14.0f;
-		static constexpr float ATTACK_RANGE = 9.0f;      // Preferred attack distance
-		static constexpr float MIN_DISTANCE = 5.0f;      // Try to keep at least this far
+		static constexpr float ATTACK_RANGE = 9.0f; // Preferowany dystans ataku.
+		static constexpr float MIN_DISTANCE = 5.0f; // Minimalny dystans, który bandyta próbuje utrzymać.
 		static constexpr float SPEED = 2.0f;
 		static constexpr float KNIFE_COOLDOWN = 3.0f;
-		
-		// Pathfinding for retreat
+
+		// Wyznaczanie ścieżki przy odwrocie.
 		static constexpr float PATH_RECALC_INTERVAL = 0.3f;
 		float _knife_cooldown_timer = 0.0f;
 		bool _is_retreating = false;
-		bool _knife_thrown_this_cast = false;  // tracks if knife was thrown during current cast
+		bool _knife_thrown_this_cast = false; // Czy nóż został już rzucony w obecnej sekwencji.
 
-		// State handlers
+		// Obsługa stanów.
 		void handleIdleState(float dt);
 		void handleChasingState(float dt);
 		void handleCastingState(float dt);
 		void handleGettingHitState(float dt);
 	};
 
+	/**
+	 * @class BanditBuilder
+	 * @brief Builder konfigurujący instancję `Bandit`.
+	 */
 	class BanditBuilder : public EnemyBuilder<BanditBuilder> {
 	public:
+		/** @brief Tworzy roboczą instancję bandyty. */
 		BanditBuilder() {
 			_bandit_ptr = std::unique_ptr<Bandit>(new Bandit());
-
 			this->_entity = _bandit_ptr.get();
 		}
 
+		/** @brief Oddaje gotową instancję bandyty. */
 		std::unique_ptr<Bandit> build() {
 			return std::move(_bandit_ptr);
 		}
+
 	private:
 		std::unique_ptr<Bandit> _bandit_ptr;
 	};
