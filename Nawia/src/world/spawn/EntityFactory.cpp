@@ -78,6 +78,7 @@ namespace Nawia::World {
 			.setMap(map)
 			.setMaxHp(hp)
 			.setTarget(player)
+			.setAudioManager(&engine->getAudioManager())
 			.build();
 
 		return devil;
@@ -99,6 +100,7 @@ namespace Nawia::World {
 			.setMap(map)
 			.setMaxHp(hp)
 			.setTarget(player)
+			.setAudioManager(&engine->getAudioManager())
 			.build();
 
 		if (data.contains("abilities")) {
@@ -130,6 +132,7 @@ namespace Nawia::World {
 			.setMap(map)
 			.setMaxHp(hp)
 			.setTarget(player)
+			.setAudioManager(&engine->getAudioManager())
 			.build();
 
 		return wd;
@@ -148,6 +151,7 @@ namespace Nawia::World {
 			.setPosition({x, y})
 			.setMap(map)
 			.setMaxHp(hp)
+			.setAudioManager(&engine->getAudioManager())
 			.build();
 
 		auto& rm = engine->getResourceManager();
@@ -168,6 +172,7 @@ namespace Nawia::World {
 		const auto texture = rm.getTexture("assets/textures/chest.png");
 
 		auto chest = std::make_shared<Entity::Chest>(name, x, y, texture);
+		chest->setAudioManager(&engine->getAudioManager());
 
 		if (data.contains("loottable")) {
 			const std::string loottable_name = data["loottable"].get<std::string>();
@@ -209,6 +214,7 @@ namespace Nawia::World {
 
 		if (npc_class == "cat") {
 			auto cat = std::make_shared<Entity::Cat>(name, x, y, texture);
+			cat->setAudioManager(&engine->getAudioManager());
 
 			engine->getDialogueManager().createCatDialogue(engine, cat.get());
 
@@ -259,6 +265,7 @@ namespace Nawia::World {
 			.setPosition({x, y})
 			.setMaxHp(hp)
 			.setTexture(texture)
+			.setAudioManager(&engine->getAudioManager())
 			.build();
 
 		return object;

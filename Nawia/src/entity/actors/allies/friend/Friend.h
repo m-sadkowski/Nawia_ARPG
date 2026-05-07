@@ -27,6 +27,7 @@ namespace Nawia::Entity {
 
 		/** @brief Obsługuje tymczasową, zaszytą w klasie logikę walki. */
 		void updateHardcodedBehavior(float dt);
+		void onDeathStarted() override;
 	};
 
 	/**

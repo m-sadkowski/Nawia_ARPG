@@ -13,6 +13,13 @@
 namespace Nawia::Entity {
 	class Ability;
 	class Collider;
+}
+
+namespace Nawia::Audio {
+	class AudioManager;
+}
+
+namespace Nawia::Entity {
 
 	/**
 	 * @enum EntityType
@@ -131,6 +138,7 @@ namespace Nawia::Entity {
 		void setScale(float scale) { _scale = scale; }
 		[[nodiscard]] float getScale() const { return _scale; }
 		void setHovered(bool hovered) { _hovered = hovered; }
+		void setAudioManager(Audio::AudioManager* audio_manager) { _audio_manager = audio_manager; }
 
 		/**
 		 * @brief Ustawia docelowy punkt ruchu encji.
@@ -330,6 +338,7 @@ namespace Nawia::Entity {
 		float _scale = 1.0f;
 		std::shared_ptr<Texture2D> _texture;
 		EntityType _type = EntityType::None;
+		Audio::AudioManager* _audio_manager = nullptr;
 
 		std::unique_ptr<Collider> _collider;
 		std::vector<std::shared_ptr<Entity>> _pending_spawns;
@@ -347,6 +356,9 @@ namespace Nawia::Entity {
 		 * @brief Sprawdza, czy encja ma poprawnie załadowany model 3D.
 		 */
 		[[nodiscard]] bool hasModelLoaded() const { return _model_loaded; }
+
+		void playSoundEffect(const std::string& id, float volume = 1.0f, bool restart_if_playing = true, float pitch = 1.0f) const;
+		void stopSoundEffect(const std::string& id) const;
 
 	protected:
 		// Dane modelu i animacji.
@@ -383,6 +395,10 @@ namespace Nawia::Entity {
 		std::string _name;
 
 		void updateAnimation(float dt);
+		void updateMovementSound(const std::string& path, bool should_play, float volume = 0.55f, float pitch = 1.0f);
+		virtual void onDeathStarted() {}
+
+		std::string _movement_sound_id;
 
 		std::vector<std::shared_ptr<Ability>> _abilities;
 	};
@@ -417,6 +433,12 @@ namespace Nawia::Entity {
 		/** @brief Ustawia rotację encji w stopniach. */
 		Derived& setRotation(float rotation) {
 			_entity->_rotation = rotation;
+			return self();
+		}
+
+		/** @brief Podpina manager audio do encji. */
+		Derived& setAudioManager(Audio::AudioManager* audio_manager) {
+			_entity->_audio_manager = audio_manager;
 			return self();
 		}
 

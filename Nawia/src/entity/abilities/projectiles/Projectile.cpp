@@ -6,6 +6,8 @@
 #include <MathUtils.h>
 #include <Player.h>
 #include <ProjectileHitEffect.h>
+#include <SoundIds.h>
+
 
 #include <raymath.h>
 
@@ -128,6 +130,9 @@ namespace Nawia::Entity {
 
 		target->takeDamage(final_damage);
 		addHit(target);
+
+		if (_name == "Fireball")
+			playSoundEffect(Audio::SoundId::FireballHit, 0.9f);
 
 		if (_hit_texture)
 			addPendingSpawn(std::make_shared<ProjectileHitEffect>(_pos.x, _pos.y, _hit_texture));

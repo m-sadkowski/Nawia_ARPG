@@ -5,6 +5,7 @@
 #include <KnifeThrowAbility.h>
 #include <Map.h>
 #include <MathUtils.h>
+#include <SoundIds.h>
 
 #include <raymath.h>
 
@@ -42,6 +43,7 @@ namespace Nawia::Entity {
 	{
 		if (isDying())
 		{
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			Entity::update(dt);
 			return;
 		}
@@ -93,6 +95,7 @@ namespace Nawia::Entity {
 			playAnimation("idle");
 			setVelocity(0, 0);
 			_is_moving = false;
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
 		}
 
@@ -103,6 +106,7 @@ namespace Nawia::Entity {
 			playAnimation("idle");
 			setVelocity(0, 0);
 			_is_moving = false;
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
 		}
 
@@ -117,6 +121,7 @@ namespace Nawia::Entity {
 					rotateTowards(target->getX(), target->getY());
 					setVelocity(0, 0);
 					_is_moving = false;
+					updateMovementSound(Audio::SoundPath::Footsteps, false);
 					return;
 				}
 			}
@@ -163,6 +168,7 @@ namespace Nawia::Entity {
 			
 			playAnimation("walk");
 			updateMovement(dt);
+			updateMovementSound(Audio::SoundPath::Footsteps, _is_moving, 0.42f, 1.08f);
 			rotateTowards(target->getX(), target->getY());  // Podczas odwrotu nadal patrzymy na cel.
 		}
 		// Cel jest za daleko, więc bandyta podchodzi.
@@ -179,6 +185,7 @@ namespace Nawia::Entity {
 			
 			playAnimation("walk");
 			updateMovement(dt);
+			updateMovementSound(Audio::SoundPath::Footsteps, _is_moving, 0.42f, 1.08f);
 		}
 		// Dystans jest dobry, więc bandyta stoi i celuje.
 		else 
@@ -186,6 +193,7 @@ namespace Nawia::Entity {
 			playAnimation("idle");
 			_is_moving = false;
 			_is_retreating = false;
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 		}
 		
 		rotateTowards(target->getX(), target->getY());
@@ -250,6 +258,12 @@ namespace Nawia::Entity {
 				break;
 			}
 		}
+	}
+
+	void Bandit::onDeathStarted()
+	{
+		updateMovementSound(Audio::SoundPath::Footsteps, false);
+		playSoundEffect(Audio::SoundId::HumanDeath, 0.85f);
 	}
 
 } // namespace Nawia::Entity

@@ -86,6 +86,7 @@ namespace Nawia::Core {
 		void renderWorld() const;
 		void renderGameplay() const;
 		void collectPendingSpawns();
+		void loadGameplaySounds();
 		void applySettings(const Settings& new_settings);
 
 		bool _is_running = false;
