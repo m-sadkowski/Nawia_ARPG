@@ -218,6 +218,9 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			if (_last_applied_anim_index != _current_anim_index || _last_applied_anim_frame != animation_frame)
 			{
 				UpdateModelAnimation(_model, _animations[_current_anim_index], animation_frame);
+				if (_equipment)
+					_equipment->updateAnimations(_animations[_current_anim_index], animation_frame);
+
 				_last_applied_anim_index = _current_anim_index;
 				_last_applied_anim_frame = animation_frame;
 			}
@@ -233,6 +236,9 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			const Vector3 pos3d = getWorldPos3D();
 			const float visual_rotation = _rotation + _model_facing_offset;
 			DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, WHITE);
+			if (_equipment) {
+				_equipment->draw(pos3d, _rotation, _scale);
+			}
 
 			if (_hovered)
 			{

@@ -144,7 +144,6 @@ namespace Nawia::Entity {
 		Vector2 _respawn_point = {0.0f, 0.0f};
 
 		std::unique_ptr<Item::Backpack> _backpack;
-		std::unique_ptr<Item::Equipment> _equipment;
 
 		Stats _base_stats;
 		Stats _current_stats;

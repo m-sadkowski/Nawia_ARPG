@@ -60,6 +60,7 @@ namespace Nawia::Item {
             const std::string description = entry.value("description", "");
             const std::string slot_name = entry.value("slot", "");
             const std::string texture_path = entry.value("texture", "");
+			const std::string model_path = entry.value("model_path", "");
 
             const auto icon = resource_manager.getTexture(texture_path);
             if (!icon) {
@@ -71,7 +72,7 @@ namespace Nawia::Item {
             std::shared_ptr<Item> item_template;
 
             if (slot == EquipmentSlot::Weapon) {
-                item_template = std::make_shared<Weapon>(id, name, description, slot, icon, readIntStat(entry, "damage"));
+                item_template = std::make_shared<Weapon>(id, name, description, slot, icon, model_path, readIntStat(entry, "damage"));
             } else if (slot == EquipmentSlot::OffHand) {
                 item_template = std::make_shared<Offhand>(
                     id,
@@ -79,31 +80,36 @@ namespace Nawia::Item {
                     description,
                     slot,
                     icon,
+					model_path,
                     readIntStat(entry, "damage"),
                     readIntStat(entry, "defense")
                 );
             } else if (slot == EquipmentSlot::Head) {
-                item_template = std::make_shared<Head>(id, name, description, slot, icon, readIntStat(entry, "defense"));
+				item_template = std::make_shared<Head>(id, name, description, slot, icon, model_path,
+				                                       readIntStat(entry, "defense"));
             } else if (slot == EquipmentSlot::Neck) {
-                item_template = std::make_shared<Necklace>(id, name, description, slot, icon, readIntStat(entry, "intelligence"));
+				item_template = std::make_shared<Necklace>(id, name, description, slot, icon, model_path,
+				                                           readIntStat(entry, "intelligence"));
             } else if (slot == EquipmentSlot::Chest) {
-                item_template = std::make_shared<Chestplate>(id, name, description, slot, icon, readIntStat(entry, "defense"));
+				item_template = std::make_shared<Chestplate>(id, name, description, slot, icon, model_path,
+				                                             readIntStat(entry, "defense"));
             } else if (slot == EquipmentSlot::Legs) {
-                item_template = std::make_shared<Legs>(id, name, description, slot, icon, readIntStat(entry, "defense"));
+				item_template = std::make_shared<Legs>(id, name, description, slot, icon, model_path,
+				                                       readIntStat(entry, "defense"));
             } else if (slot == EquipmentSlot::Feet) {
                 item_template = std::make_shared<Boots>(
                     id,
                     name,
                     description,
-                    slot,
-                    icon,
+                    slot, icon, model_path,
                     readIntStat(entry, "defense"),
                     readFloatStat(entry, "movement_speed")
                 );
             } else if (slot == EquipmentSlot::Ring) {
-                item_template = std::make_shared<Ring>(id, name, description, slot, icon, readIntStat(entry, "intelligence"));
+				item_template = std::make_shared<Ring>(id, name, description, slot, icon, model_path,
+				                                       readIntStat(entry, "intelligence"));
             } else {
-                item_template = std::make_shared<Item>(id, name, description, slot, icon);
+				item_template = std::make_shared<Item>(id, name, description, slot, icon, model_path);
             }
 
             _templates[id] = item_template;

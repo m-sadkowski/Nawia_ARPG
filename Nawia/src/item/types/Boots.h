@@ -10,9 +10,9 @@ namespace Nawia::Item {
      */
     class Boots : public Item {
     public:
-        Boots(const int id, const std::string& name, const std::string& desc, const EquipmentSlot slot, const std::shared_ptr<Texture2D>& icon,
+        Boots(const int id, const std::string& name, const std::string& desc, const EquipmentSlot slot, const std::shared_ptr<Texture2D>& icon, std::string model_path,
             const int defense, const float movement_speed = 0.0f)
-            : Item(id, name, desc, slot, icon), _defense(defense), _movement_speed(movement_speed) {
+            : Item(id, name, desc, slot, icon, model_path), _defense(defense), _movement_speed(movement_speed) {
             _stats.armor = defense;
             _stats.movement_speed = movement_speed;
         }

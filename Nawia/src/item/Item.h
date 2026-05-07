@@ -34,7 +34,8 @@ namespace Nawia::Item {
      */
     class Item {
     public:
-        Item(int id, std::string name, std::string description, EquipmentSlot type, const std::shared_ptr<Texture2D>& icon);
+		Item(int id, std::string name, std::string description, EquipmentSlot type,
+		     const std::shared_ptr<Texture2D>& icon, std::string model_path = "");
         virtual ~Item() = default;
 
         /** @brief Zwraca ID przedmiotu. */
@@ -58,6 +59,8 @@ namespace Nawia::Item {
         /** @brief Zwraca statystyki dawane przez przedmiot. */
         [[nodiscard]] const Entity::Stats& getStats() const { return _stats; }
 
+		[[nodiscard]] const std::string& getModelPath() const { return _model_path; }
+
         /** @brief Uzywa przedmiotu, jesli konkretny typ to wspiera. */
         virtual bool use() { return false; }
 
@@ -73,6 +76,7 @@ namespace Nawia::Item {
         EquipmentSlot _slot;
         std::shared_ptr<Texture2D> _icon;
         Entity::Stats _stats;
+		std::string _model_path;
     };
 
 } // namespace Nawia::Item

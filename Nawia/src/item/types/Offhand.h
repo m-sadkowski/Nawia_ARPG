@@ -11,8 +11,8 @@ namespace Nawia::Item {
     class Offhand : public Item {
     public:
         Offhand(const int id, const std::string& name, const std::string& desc, const EquipmentSlot slot,
-            const std::shared_ptr<Texture2D>& icon, const int damage, const int defense)
-            : Item(id, name, desc, slot, icon), _damage(damage), _defense(defense) {}
+            const std::shared_ptr<Texture2D>& icon, std::string model_path, const int damage, const int defense)
+            : Item(id, name, desc, slot, icon, model_path), _damage(damage), _defense(defense) {}
 
         /** @brief Zwraca bonus obrazen. */
         [[nodiscard]] int getDamage() const { return _damage; }

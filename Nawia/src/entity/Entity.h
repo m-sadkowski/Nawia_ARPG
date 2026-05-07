@@ -1,6 +1,7 @@
 #pragma once
 
 #include <AbilityStats.h>
+#include <Equipment.h>
 
 #include <raylib.h>
 
@@ -415,6 +416,8 @@ namespace Nawia::Entity {
 		std::string _movement_sound_id;
 
 		std::vector<std::shared_ptr<Ability>> _abilities;
+
+		std::unique_ptr<Item::Equipment> _equipment;
 	};
 
 	/**

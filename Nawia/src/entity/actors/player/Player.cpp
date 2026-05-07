@@ -136,7 +136,7 @@ namespace Nawia::Entity {
 
 		_backpack->removeItem(backpack_index);
 
-		if (const auto old_item = _equipment->equip(item)) 
+		if (const auto old_item = _equipment->equip(item, _engine->getResourceManager())) 
 			_backpack->addItem(old_item);
 
 		playSoundEffect(Audio::SoundId::ItemEquip, 0.85f);

@@ -11,8 +11,8 @@ namespace Nawia::Item {
     class Head : public Item {
     public:
         Head(const int id, const std::string& name, const std::string& desc, const EquipmentSlot slot, 
-            const std::shared_ptr<Texture2D>& icon, const int defense)
-            : Item(id, name, desc, slot, icon), _defense(defense) {}
+            const std::shared_ptr<Texture2D>& icon, std::string model_path, const int defense)
+            : Item(id, name, desc, slot, icon, model_path), _defense(defense) {}
 
         /** @brief Zwraca wartosc obrony. */
         [[nodiscard]] int getDefense() const { return _defense; }
