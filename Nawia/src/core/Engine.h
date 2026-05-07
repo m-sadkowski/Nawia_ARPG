@@ -1,5 +1,6 @@
 #pragma once
 
+#include <AudioManager.h>
 #include <Camera.h>
 #include <Constants.h>
 #include <DialogueManager.h>
@@ -71,6 +72,7 @@ namespace Nawia::Core {
 		World::LevelManager& getLevelManager() const { return *_level_manager; }
 		System::Renderer::LightingSystem& getLightingSystem() { return _lighting_system; }
 		Game::QuestManager& getQuestManager() { return _quest_manager; }
+		Audio::AudioManager& getAudioManager() { return _audio_manager; }
 
 	private:
 		void update(float delta_time);
@@ -92,6 +94,7 @@ namespace Nawia::Core {
 		GameState _previous_state = GameState::Menu;
 		Settings _settings;
 
+		Audio::AudioManager _audio_manager;
 		System::Renderer::LightingSystem _lighting_system;
 		ResourceManager _resource_manager;
 		GameCamera _camera;

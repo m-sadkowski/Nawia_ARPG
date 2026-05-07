@@ -21,6 +21,9 @@ namespace Nawia::UI {
         /** @brief Kategorie ustawien widoczne w panelu bocznym. */
         enum class Category { Graphics, Audio, Controls };
 
+        /** @brief Sposob prezentacji wartosci slidera. */
+        enum class SliderDisplay { Multiplier, Percent };
+
         explicit SettingsMenu(const Core::Settings& current_settings);
 
         /** @brief Rysuje panel ustawien. */
@@ -40,13 +43,13 @@ namespace Nawia::UI {
         int _selected_resolution_index;
         Category _current_category = Category::Graphics;
         bool _applied = false;
-        mutable bool _dragging_slider = false;
+        int _dragging_slider_index = -1;
 
         void drawSidebar(float x, float y, float width, float height, const UIHandler& ui) const;
         void drawSettingsContent(float x, float y, float width, float height, const UIHandler& ui) const;
         void drawSelector(float x, float y, float width, const char* label, const std::string& value, const UIHandler& ui, int* change_out) const;
         void drawToggle(float x, float y, float width, const char* label, bool enabled, const UIHandler& ui) const;
-        void drawSlider(float x, float y, float width, const char* label, float value, float min, float max, const UIHandler& ui) const;
+        void drawSlider(float x, float y, float width, const char* label, float value, float min, float max, const UIHandler& ui, SliderDisplay display) const;
     };
 
 } // namespace Nawia::UI

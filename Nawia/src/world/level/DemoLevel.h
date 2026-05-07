@@ -26,7 +26,7 @@ namespace Nawia::World {
 
 		/** @brief Zwraca lokacje dostepne w poziomie demo. */
 		[[nodiscard]] std::vector<std::string> getLocations() const override {
-			return {"Demo Arena", "Inferno"};
+			return {"Tajemniczy Las", "Lesna Dolina"};
 		}
 
 		/** @brief Przelacza geometrie mapy i deleguje teleportacje do Level. */
