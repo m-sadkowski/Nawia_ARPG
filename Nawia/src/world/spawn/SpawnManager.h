@@ -60,6 +60,11 @@ namespace Nawia::World {
 		void reset();
 
 		/**
+		 * @brief Recznie dodaje spawn do managera.
+		 */
+		void addSpawnPoint(const SpawnPoint& sp);
+
+		/**
 		 * @brief Pobiera pozycje startowa gracza dla lokacji.
 		 */
 		bool getPlayerSpawn(const std::string& location_name, Vector2& out_pos) const;

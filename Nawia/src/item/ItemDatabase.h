@@ -31,6 +31,11 @@ namespace Nawia::Item {
          */
         std::shared_ptr<Item> getItemTemplate(int id);
 
+        /**
+         * @brief Zwraca wszystkie template'y przedmiotow.
+         */
+        [[nodiscard]] const std::map<int, std::shared_ptr<Item>>& getAllTemplates() const { return _templates; }
+
     private:
         std::map<int, std::shared_ptr<Item>> _templates;
 
