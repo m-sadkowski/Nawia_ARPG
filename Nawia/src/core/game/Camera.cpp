@@ -10,15 +10,17 @@ namespace Nawia::Core {
 		constexpr float k_zoom_step = 0.1f;
 		constexpr float k_min_zoom_factor = 0.3f;
 		constexpr float k_max_zoom_factor = 2.0f;
+		constexpr float k_default_zoom_factor = 0.85f;
 		constexpr float k_target_height_offset = 1.2f;
 		constexpr float k_horizontal_follow_factor = 0.7f;
 	}
 
 	GameCamera::GameCamera() {
+		_zoom_factor = k_default_zoom_factor;
 		_camera_3d.position = Vector3{ 0.0f, CAMERA_HEIGHT, CAMERA_DISTANCE };
 		_camera_3d.target = Vector3{ 0.0f, 0.0f, 0.0f };
 		_camera_3d.up = Vector3{ 0.0f, 1.0f, 0.0f };
-		_camera_3d.fovy = CAMERA_FOV;
+		_camera_3d.fovy = CAMERA_FOV * _zoom_factor;
 		_camera_3d.projection = CAMERA_PERSPECTIVE;
 	}
 
@@ -29,6 +31,10 @@ namespace Nawia::Core {
 
 		_zoom_factor -= mouse_wheel_delta * k_zoom_step;
 		_zoom_factor = std::clamp(_zoom_factor, k_min_zoom_factor, k_max_zoom_factor);
+	}
+
+	void GameCamera::resetZoom() {
+		_zoom_factor = k_default_zoom_factor;
 	}
 
 	void GameCamera::follow(const Entity::Entity* target) {

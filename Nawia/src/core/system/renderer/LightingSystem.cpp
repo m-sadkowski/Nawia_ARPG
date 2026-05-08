@@ -150,6 +150,9 @@ namespace Nawia::Core::System::Renderer {
 		if (!_is_initialized || model.materialCount <= 0 || model.materials == nullptr)
 			return;
 
+		if (model.materials[0].shader.id == _shader.id)
+			return;
+
 		for (int i = 0; i < model.materialCount; i++) {
 			model.materials[i].shader = _shader;
 		}

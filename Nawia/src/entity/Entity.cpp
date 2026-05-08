@@ -50,7 +50,7 @@ namespace {
 
 namespace Nawia::Entity {
 
-bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxów.
+bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render hitboxow jest drogi.
 	
 	Entity::Entity() 
 		: _pos{0.0f, 0.0f}, _velocity{0.0f, 0.0f}, _scale(1.0f), 
@@ -90,6 +90,8 @@ bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxó
 			_model.transform = MatrixRotateX(-PI / 2.0f);
 
 		_model_loaded = true;
+		_local_model_bounding_box = GetModelBoundingBox(_model);
+		_local_model_bounding_box_valid = true;
 
 		// Plik modelu traktujemy też jako domyślne źródło animacji.
 		addAnimation("default", path);
@@ -128,6 +130,8 @@ bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxó
 				_anim_frame_counter = static_cast<float>(start_frame);
 				_anim_looping = loop;
 				_anim_locked = lock_movement;
+				_last_applied_anim_index = -1;
+				_last_applied_anim_frame = -1;
 			}
 		}
 	}
@@ -181,7 +185,13 @@ bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxó
 				}
 			}
 
-			UpdateModelAnimation(_model, _animations[_current_anim_index], static_cast<int>(_anim_frame_counter));
+			const int animation_frame = static_cast<int>(_anim_frame_counter);
+			if (_last_applied_anim_index != _current_anim_index || _last_applied_anim_frame != animation_frame)
+			{
+				UpdateModelAnimation(_model, _animations[_current_anim_index], animation_frame);
+				_last_applied_anim_index = _current_anim_index;
+				_last_applied_anim_frame = animation_frame;
+			}
 		}
 	}
 
@@ -253,6 +263,9 @@ bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxó
 		if (_model_loaded)
 		{
 			const Ray mouse_ray = GetScreenToWorldRay(Vector2{ screen_x, screen_y }, camera);
+			if (!GetRayCollisionBox(mouse_ray, getBoundingBox()).hit)
+				return false;
+
 			return checkRayHitsMesh(mouse_ray);
 		}
 
@@ -279,6 +292,8 @@ bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxó
 	bool Entity::checkRayHitsMesh(const Ray& ray) const
 	{
 		if (!_model_loaded) return false;
+		if (!GetRayCollisionBox(ray, getBoundingBox()).hit)
+			return false;
 
 		const Matrix world_transform = getWorldTransformMatrix();
 		for (int i = 0; i < _model.meshCount; i++)
@@ -297,6 +312,8 @@ bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxó
 		closest.distance = 1e30f;
 
 		if (!_model_loaded) return closest;
+		if (!GetRayCollisionBox(ray, getBoundingBox()).hit)
+			return closest;
 
 		const Matrix world_transform = getWorldTransformMatrix();
 		for (int i = 0; i < _model.meshCount; i++)
@@ -320,8 +337,8 @@ bool Entity::DebugColliders = true; // Włącza diagnostyczne rysowanie hitboxó
 			};
 		}
 
-		// Pudełko ograniczające z rayliba jest lokalne względem modelu.
-		const BoundingBox local_bb = GetModelBoundingBox(_model);
+		// Pudelko ograniczajace z rayliba jest lokalne wzgledem modelu.
+		const BoundingBox local_bb = _local_model_bounding_box_valid ? _local_model_bounding_box : GetModelBoundingBox(_model);
 		const Vector3 pos = getWorldPos3D();
 
 		// Skalujemy i przesuwamy pudełko do przestrzeni świata.

@@ -25,6 +25,11 @@ namespace Nawia::Core {
 		void handleInput();
 
 		/**
+		 * @brief Przywraca domyslny zoom uzywany poza trybem developerskim.
+		 */
+		void resetZoom();
+
+		/**
 		 * @brief Ustawia kamere nad wskazanym celem.
 		 */
 		void follow(const Entity::Entity* target);

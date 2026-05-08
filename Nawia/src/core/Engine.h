@@ -109,6 +109,8 @@ namespace Nawia::Core {
 		Item::Loottable _loottable;
 		Game::DialogueManager _dialogue_manager;
 		Game::QuestManager _quest_manager;
+		Vector2 _last_hover_mouse_pos = {-10000.0f, -10000.0f};
+		float _hover_update_timer = 0.0f;
 	};
 
 } // namespace Nawia::Core

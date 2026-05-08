@@ -17,6 +17,35 @@
 
 namespace Nawia::Core {
 
+    namespace {
+
+        constexpr float k_combat_target_refresh_interval = 0.25f;
+        constexpr float k_altitude_snap_interval = 0.10f;
+        constexpr float k_physical_collision_radius = 0.8f;
+
+        bool usesNavMeshAltitude(const std::shared_ptr<Entity::Entity>& entity) {
+            if (!entity || entity->isDead() || entity->isDormant())
+                return false;
+
+            const Entity::EntityType type = entity->getType();
+            return type == Entity::EntityType::Player ||
+                   type == Entity::EntityType::Enemy ||
+                   type == Entity::EntityType::Ally;
+        }
+
+        bool isAbilityTarget(const std::shared_ptr<Entity::Entity>& entity) {
+            if (!entity || entity->isDormant())
+                return false;
+
+            const Entity::EntityType type = entity->getType();
+            return type != Entity::EntityType::Projectile &&
+                   type != Entity::EntityType::Chest &&
+                   type != Entity::EntityType::Trigger &&
+                   type != Entity::EntityType::NPCStatic;
+        }
+
+    }
+
     void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity) {
         _active_entities.push_back(std::move(new_entity));
     }
@@ -37,6 +66,8 @@ namespace Nawia::Core {
 			}
 		}
 		_active_entities = std::move(retained_entities);
+        _combat_target_refresh_timer = 0.0f;
+        _altitude_snap_timer = 0.0f;
 	}
 
     std::shared_ptr<Entity::Entity> EntityManager::getEntityAt(const float screen_x, const float screen_y, const Camera3D& camera) const {
@@ -82,7 +113,16 @@ namespace Nawia::Core {
     }
 
     void EntityManager::updateEntities(const float delta_time) {
-        refreshCombatTargets();
+        _combat_target_refresh_timer -= delta_time;
+        if (_combat_target_refresh_timer <= 0.0f) {
+            refreshCombatTargets();
+            _combat_target_refresh_timer = k_combat_target_refresh_interval;
+        }
+
+        _altitude_snap_timer -= delta_time;
+        const bool should_snap_altitudes = _altitude_snap_timer <= 0.0f;
+        if (should_snap_altitudes)
+            _altitude_snap_timer = k_altitude_snap_interval;
 
         for (auto it = _active_entities.begin(); it != _active_entities.end();)
         {
@@ -90,7 +130,7 @@ namespace Nawia::Core {
             entity->update(delta_time);
 
             // Dociaga wysokosc encji do navmesha aktualnej mapy.
-            if (_engine && _engine->getCurrentMap()) {
+            if (should_snap_altitudes && _engine && _engine->getCurrentMap() && usesNavMeshAltitude(entity)) {
                 const Vector3 current_position = { entity->getX(), entity->getAltitude(), entity->getY() };
                 const Vector3 snapped_position = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(current_position);
                 entity->setAltitude(snapped_position.y);
@@ -182,6 +222,13 @@ namespace Nawia::Core {
 
     void EntityManager::processAbilityCollisions() const
     {
+        std::vector<std::shared_ptr<Entity::Entity>> targets;
+        targets.reserve(_active_entities.size());
+        for (const auto& entity : _active_entities) {
+            if (isAbilityTarget(entity))
+                targets.push_back(entity);
+        }
+
         for (auto& entity1 : _active_entities)
         {
             if (entity1->getType() != Entity::EntityType::Projectile) continue;
@@ -190,17 +237,9 @@ namespace Nawia::Core {
             auto ability = std::static_pointer_cast<Entity::AbilityEffect>(entity1);
             if (ability->isExpired()) continue;
 
-            for (auto& entity2 : _active_entities)
+            for (auto& entity2 : targets)
             {
                 if (entity1 == entity2) continue;
-                if (entity2->isDormant()) continue;
-
-                const Entity::EntityType target_type = entity2->getType();
-
-                if (target_type == Entity::EntityType::Projectile ||
-                    target_type == Entity::EntityType::Chest ||
-                    target_type == Entity::EntityType::Trigger ||
-                    target_type == Entity::EntityType::NPCStatic) continue;
 
                 if (ability->checkCollision(entity2)) {
                     ability->onCollision(entity2);
@@ -238,15 +277,26 @@ namespace Nawia::Core {
 
     void EntityManager::processPhysicalCollisions() const
     {
-        for (size_t i = 0; i < _active_entities.size(); ++i)
-        {
-            auto& e1 = _active_entities[i];
-            if (!isCollidablePhysicalEntity(e1)) continue;
+        std::vector<std::shared_ptr<Entity::Entity>> collidable_entities;
+        collidable_entities.reserve(_active_entities.size());
+        for (const auto& entity : _active_entities) {
+            if (isCollidablePhysicalEntity(entity))
+                collidable_entities.push_back(entity);
+        }
 
-            for (size_t j = i + 1; j < _active_entities.size(); ++j)
+        std::ranges::sort(collidable_entities, [](const auto& left, const auto& right) {
+            return left->getX() < right->getX();
+        });
+
+        for (size_t i = 0; i < collidable_entities.size(); ++i)
+        {
+            auto& e1 = collidable_entities[i];
+
+            for (size_t j = i + 1; j < collidable_entities.size(); ++j)
             {
-                auto& e2 = _active_entities[j];
-                if (!isCollidablePhysicalEntity(e2)) continue;
+                auto& e2 = collidable_entities[j];
+                if (e2->getX() - e1->getX() > k_physical_collision_radius)
+                    break;
 
                 resolveOverlap(e1, e2);
             }
@@ -272,7 +322,7 @@ namespace Nawia::Core {
         const float distance_sq = dx * dx + dy * dy;
         
         // Przyblizony promien fizyczny postaci wynosi 0.4.
-        const float combined_radius = 0.8f; 
+        const float combined_radius = k_physical_collision_radius;
         
         if (distance_sq < combined_radius * combined_radius && distance_sq > 0.0001f) {
             const float distance = std::sqrt(distance_sq);

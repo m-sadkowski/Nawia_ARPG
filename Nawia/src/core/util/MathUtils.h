@@ -12,4 +12,9 @@ namespace Nawia::Core {
 	 */
 	Vector2 screenToWorld(const Camera3D& camera, float screen_x, float screen_y);
 
+	/**
+	 * @brief Przelicza pozycje ekranu na punkt swiata na plaszczyznie o podanej wysokosci.
+	 */
+	Vector2 screenToWorldAtHeight(const Camera3D& camera, float screen_x, float screen_y, float world_y);
+
 } // namespace Nawia::Core

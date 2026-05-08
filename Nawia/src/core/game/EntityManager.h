@@ -65,6 +65,8 @@ namespace Nawia::Core {
 		Engine* _engine = nullptr;
 		std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
 		std::shared_ptr<Entity::Entity> _player;
+		float _combat_target_refresh_timer = 0.0f;
+		float _altitude_snap_timer = 0.0f;
 
 		friend class Engine;
 	};

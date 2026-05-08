@@ -39,6 +39,9 @@ namespace Nawia::World {
 		/** @brief Wczytuje mape developerska i przygotowuje stan kreatora. */
 		void onEnter(Core::Engine* engine) override;
 
+		/** @brief Sprzata tryb developerski po wyjsciu z poziomu. */
+		void onExit(Core::Engine* engine) override;
+
 		/** @brief Obsluguje input kreatora albo narzedzia edycji na mapie. */
 		void handleInput(Core::Engine* engine) override;
 

@@ -37,12 +37,7 @@ namespace Nawia::Entity {
 		if (!effect_collider)
 			return false;
 
-		// Szybki test wstępny: kolider efektu kontra pudełko ograniczające celu.
-		if (!effect_collider->checkCollision(target->getBoundingBox()))
-			return false;
-
-		// Faza dokładna: test z siatką modelu, podobny do hovera myszą.
-		return effect_collider->checkMeshCollision(target.get());
+		return effect_collider->checkCollision(target->getBoundingBox());
 	}
 
 	void AbilityEffect::onCollision(const std::shared_ptr<Entity>& target) {

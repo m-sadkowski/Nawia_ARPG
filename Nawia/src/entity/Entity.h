@@ -368,11 +368,15 @@ namespace Nawia::Entity {
 
 		int _current_anim_index = 0;
 		float _anim_frame_counter = 0.0f;
+		int _last_applied_anim_index = -1;
+		int _last_applied_anim_frame = -1;
 		float _anim_speed_multiplier = 1.0f;
 		float _anim_fps = 30.0f;
 		float _rotation = 0.0f;
 		float _model_facing_offset = 90.0f; ///< Offset modelu względem kierunku matematycznego.
 		bool _model_loaded = false;
+		BoundingBox _local_model_bounding_box = {};
+		bool _local_model_bounding_box_valid = false;
 		bool _anim_looping = true;
 		bool _anim_locked = false;
 		bool _hovered = false;

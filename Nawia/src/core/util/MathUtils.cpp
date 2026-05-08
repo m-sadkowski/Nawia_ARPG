@@ -7,12 +7,16 @@
 namespace Nawia::Core {
 
 	Vector2 screenToWorld(const Camera3D& camera, const float screen_x, const float screen_y) {
+		return screenToWorldAtHeight(camera, screen_x, screen_y, 0.0f);
+	}
+
+	Vector2 screenToWorldAtHeight(const Camera3D& camera, const float screen_x, const float screen_y, const float world_y) {
 		const Ray ray = GetScreenToWorldRay({screen_x, screen_y}, camera);
 
 		if (std::abs(ray.direction.y) < 0.0001f)
 			return {camera.target.x, camera.target.z};
 
-		const float distance_to_ground = -ray.position.y / ray.direction.y;
+		const float distance_to_ground = (world_y - ray.position.y) / ray.direction.y;
 
 		if (distance_to_ground < 0.0f)
 			return {camera.target.x, camera.target.z};

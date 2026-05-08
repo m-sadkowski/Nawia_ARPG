@@ -1,6 +1,7 @@
 #include "DevLevel.h"
 
 #include <Engine.h>
+#include <Entity.h>
 #include <EntityFactory.h>
 #include <ItemDatabase.h>
 #include <Logger.h>
@@ -132,6 +133,7 @@ namespace Nawia::World {
 
 	void DevLevel::onEnter(Core::Engine* engine) {
 		Core::Logger::debugLog("Ladowanie poziomu DevLevel (kreator poziomu)...");
+		Entity::Entity::DebugColliders = true;
 
 		loadLevelSettings();
 
@@ -156,6 +158,11 @@ namespace Nawia::World {
 		}
 
 		loadPlacedObjects();
+	}
+
+	void DevLevel::onExit(Core::Engine* engine) {
+		Entity::Entity::DebugColliders = false;
+		Level::onExit(engine);
 	}
 
 	void DevLevel::handleInput(Core::Engine* engine) {
