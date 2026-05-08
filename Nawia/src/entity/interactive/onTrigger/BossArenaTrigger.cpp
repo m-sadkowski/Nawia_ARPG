@@ -2,6 +2,7 @@
 #include <Engine.h>
 #include <BossManager.h>
 #include <Player.h>
+#include <Collider.h>
 
 namespace Nawia::Entity {
 

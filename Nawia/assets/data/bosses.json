@@ -5,16 +5,8 @@
             "name": "Devil Lord",
             "enemy_type": "Devil",
             "level_name": "DemoLevel",
-            "max_hp": 10,
+            "max_hp": 200,
             "scale": 0.03,
-            "arena": {
-                "x": -18.0,
-                "y": -4.0,
-                "width": 36.0,
-                "height": 28.0,
-                "wall_thickness": 2.0,
-                "wall_color": [180, 40, 40, 120]
-            },
             "spawn_pos": {
                 "x": 0.0,
                 "y": 10.0
@@ -25,30 +17,51 @@
                     "name": "Faza 1",
                     "speed_multiplier": 1.0,
                     "damage_multiplier": 1.0,
-                    "notification": "Devil Lord atakuje!"
+                    "notification": "Devil Lord atakuje!",
+                    "screen_flash": false
                 },
                 {
                     "hp_threshold": 0.5,
-                    "name": "Faza 2 — Wscieklosc",
+                    "name": "Faza 2 \u2014 Wscieklosc",
                     "speed_multiplier": 1.4,
                     "damage_multiplier": 1.3,
-                    "notification": "Devil Lord wpada w szal!",
+                    "notification": "Devil Lord wpada w szal! Przywoluje slugi!",
+                    "screen_flash": true,
+                    "flash_color": [255, 60, 0, 200],
                     "minions": [
                         {
                             "enemy_type": "WalkingDead",
-                            "count": 2,
-                            "hp": 60,
-                            "offset_x": 4.0,
+                            "count": 3,
+                            "hp": 50,
+                            "offset_x": 5.0,
+                            "offset_y": 5.0
+                        },
+                        {
+                            "enemy_type": "Bandit",
+                            "count": 1,
+                            "hp": 80,
+                            "offset_x": 3.0,
                             "offset_y": 3.0
                         }
                     ]
                 },
                 {
                     "hp_threshold": 0.2,
-                    "name": "Faza 3 — Ostatni oddech",
+                    "name": "Faza 3 \u2014 Ostatni oddech",
                     "speed_multiplier": 1.8,
                     "damage_multiplier": 1.6,
-                    "notification": "Devil Lord jest bliski smierci!"
+                    "notification": "Devil Lord jest bliski smierci! Wzywa ostatnia fale!",
+                    "screen_flash": true,
+                    "flash_color": [180, 0, 0, 220],
+                    "minions": [
+                        {
+                            "enemy_type": "WalkingDead",
+                            "count": 2,
+                            "hp": 40,
+                            "offset_x": 4.0,
+                            "offset_y": 4.0
+                        }
+                    ]
                 }
             ],
             "rewards": {

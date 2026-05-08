@@ -13,6 +13,7 @@
 #include <ResourceManager.h>
 #include <Settings.h>
 #include <UIHandler.h>
+#include <BossManager.h>
 
 #include <memory>
 #include <raylib.h>
@@ -71,6 +72,7 @@ namespace Nawia::Core {
 		World::LevelManager& getLevelManager() const { return *_level_manager; }
 		System::Renderer::LightingSystem& getLightingSystem() { return _lighting_system; }
 		Game::QuestManager& getQuestManager() { return _quest_manager; }
+		Game::BossManager& getBossManager() { return _boss_manager; }
 
 	private:
 		void update(float delta_time);

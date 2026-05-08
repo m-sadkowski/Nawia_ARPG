@@ -12,6 +12,12 @@ namespace Nawia::Entity {
 	 * `ActorInterface`, żeby nie duplikować tego samego kodu w ally i enemy.
 	 */
 	class EnemyInterface : public ActorInterface {
+	public:
+		void setSpeedMultiplier(float m) { _speed_multiplier = m; }
+		[[nodiscard]] float getSpeedMultiplier() const { return _speed_multiplier; }
+		void setDamageMultiplier(float m) { _damage_multiplier = m; }
+		[[nodiscard]] float getDamageMultiplier() const { return _damage_multiplier; }
+
 	protected:
 		template <typename T> friend class EnemyBuilder;
 		EnemyInterface() {
@@ -22,6 +28,9 @@ namespace Nawia::Entity {
 			: ActorInterface(name, x, y, texture, max_hp, map) {
 			_type = EntityType::Enemy;
 		}
+
+		float _speed_multiplier = 1.0f;
+		float _damage_multiplier = 1.0f;
 	};
 
 	/**

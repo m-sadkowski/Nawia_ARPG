@@ -4,11 +4,11 @@
 #include <Devil.h>
 #include <Bandit.h>
 #include <WalkingDead.h>
-#include <BossWall.h>
 #include <Collider.h>
 #include <json.hpp>
 #include <fstream>
 #include <iostream>
+#include <cmath>
 
 namespace Nawia::Game {
 
@@ -44,31 +44,6 @@ namespace Nawia::Game {
             boss.level_name = bj.value("level_name", "");
             boss.on_player_death = bj.value("on_player_death", "end_fight");
 
-            // Arena
-            if (bj.contains("arena")) {
-                const auto& aj = bj["arena"];
-                boss.arena = { 
-                    aj.value("x", 0.0f), 
-                    aj.value("y", 0.0f), 
-                    aj.value("width", 10.0f), 
-                    aj.value("height", 10.0f) 
-                };
-                
-                // Wall config
-                boss.wall_config.thickness = aj.value("wall_thickness", 2.0f);
-                if (aj.contains("wall_color")) {
-                    const auto& wc = aj["wall_color"];
-                    if (wc.is_array() && wc.size() >= 4) {
-                        boss.wall_config.color = {
-                            static_cast<unsigned char>(wc[0].get<int>()),
-                            static_cast<unsigned char>(wc[1].get<int>()),
-                            static_cast<unsigned char>(wc[2].get<int>()),
-                            static_cast<unsigned char>(wc[3].get<int>())
-                        };
-                    }
-                }
-            }
-
             // Spawn position
             if (bj.contains("spawn_pos")) {
                 const auto& sj = bj["spawn_pos"];
@@ -84,6 +59,19 @@ namespace Nawia::Game {
                     phase.speed_multiplier = pj.value("speed_multiplier", 1.0f);
                     phase.damage_multiplier = pj.value("damage_multiplier", 1.0f);
                     phase.notification = pj.value("notification", "");
+                    phase.screen_flash = pj.value("screen_flash", false);
+
+                    if (pj.contains("flash_color")) {
+                        const auto& fc = pj["flash_color"];
+                        if (fc.is_array() && fc.size() >= 4) {
+                            phase.flash_color = {
+                                static_cast<unsigned char>(fc[0].get<int>()),
+                                static_cast<unsigned char>(fc[1].get<int>()),
+                                static_cast<unsigned char>(fc[2].get<int>()),
+                                static_cast<unsigned char>(fc[3].get<int>())
+                            };
+                        }
+                    }
 
                     if (pj.contains("minions")) {
                         for (const auto& mj : pj["minions"]) {
@@ -135,10 +123,25 @@ namespace Nawia::Game {
 
         _fight_timer += dt;
 
+        // Decay phase flash timer
+        if (_phase_flash_timer > 0.0f) {
+            _phase_flash_timer -= dt;
+            if (_phase_flash_timer < 0.0f) _phase_flash_timer = 0.0f;
+        }
+
         // Check if boss died
         if (_active_boss_entity && _active_boss_entity->isDead()) {
             endBossFight(true, engine);
             return;
+        }
+
+        // Clean up dead minions from tracking list
+        for (auto it = _active_minions.begin(); it != _active_minions.end();) {
+            if (!*it || (*it)->isDead()) {
+                it = _active_minions.erase(it);
+            } else {
+                ++it;
+            }
         }
 
         // Check phase transitions
@@ -158,6 +161,7 @@ namespace Nawia::Game {
         _active_boss_data = &it->second;
         _current_phase_index = 0;
         _fight_timer = 0.0f;
+        _phase_flash_timer = 0.0f;
         Core::Logger::debugLog("BossManager: Starting boss fight: " + _active_boss_data->name);
 
         // Spawn boss entity based on type
@@ -186,13 +190,13 @@ namespace Nawia::Game {
             return false;
         }
 
+        // Preload minion models to prevent freezing mid-fight
+        preloadMinions(engine);
+
         // Apply initial phase
         if (!_active_boss_data->phases.empty()) {
             applyPhase(_active_boss_data->phases[0], engine);
         }
-
-        // Spawn arena walls
-        spawnWalls(_active_boss_data->arena, _active_boss_data->wall_config, engine);
 
         engine->getUIHandler().showNotification("BOSS FIGHT: " + _active_boss_data->name, 4.0f);
 
@@ -234,12 +238,13 @@ namespace Nawia::Game {
         }
 
         removeMinions(engine);
-        removeWalls(engine);
         
         _active_boss_data = nullptr;
         _active_boss_entity = nullptr;
         _current_phase_index = 0;
         _fight_timer = 0.0f;
+        _phase_flash_timer = 0.0f;
+        _minion_pools.clear();
     }
 
     void BossManager::checkPhaseTransition(Core::Engine* engine) {
@@ -273,47 +278,58 @@ namespace Nawia::Game {
             engine->getUIHandler().showNotification(phase.notification, 3.0f);
         }
 
+        // Trigger screen flash effect on phase transition
+        if (phase.screen_flash) {
+            _phase_flash_timer = 0.6f; // 0.6 second flash
+            _phase_flash_color = phase.flash_color;
+        }
+
         // Spawn minions
         if (!phase.minions.empty()) {
             spawnMinions(phase.minions, engine);
         }
     }
 
-    void BossManager::spawnWalls(const Rectangle& arena, const BossWallConfig& config, Core::Engine* engine) {
-        _active_walls.clear();
-        
-        float thickness = config.thickness;
-        Color color = config.color;
-        
-        // North wall
-        auto wallN = std::make_shared<Entity::BossWall>(arena.x + arena.width / 2.0f, arena.y, arena.width + thickness, thickness, color);
-        _active_walls.push_back(wallN);
-        engine->getEntityManager().addEntity(wallN);
-        
-        // South wall
-        auto wallS = std::make_shared<Entity::BossWall>(arena.x + arena.width / 2.0f, arena.y + arena.height, arena.width + thickness, thickness, color);
-        _active_walls.push_back(wallS);
-        engine->getEntityManager().addEntity(wallS);
-        
-        // West wall
-        auto wallW = std::make_shared<Entity::BossWall>(arena.x, arena.y + arena.height / 2.0f, thickness, arena.height, color);
-        _active_walls.push_back(wallW);
-        engine->getEntityManager().addEntity(wallW);
-        
-        // East wall
-        auto wallE = std::make_shared<Entity::BossWall>(arena.x + arena.width, arena.y + arena.height / 2.0f, thickness, arena.height, color);
-        _active_walls.push_back(wallE);
-        engine->getEntityManager().addEntity(wallE);
+    void BossManager::preloadMinions(Core::Engine* engine) {
+        if (!_active_boss_data) return;
 
-        Core::Logger::debugLog("BossManager: Spawned arena walls.");
-    }
-
-    void BossManager::removeWalls(Core::Engine* engine) {
-        for (auto& wall : _active_walls) {
-            wall->die();
+        std::map<std::string, int> minion_counts;
+        for (const auto& phase : _active_boss_data->phases) {
+            for (const auto& minion : phase.minions) {
+                minion_counts[minion.enemy_type] += minion.count;
+            }
         }
-        _active_walls.clear();
-        Core::Logger::debugLog("BossManager: Arena walls removed.");
+
+        auto player = engine->getPlayer();
+        auto* map = engine->getCurrentMap();
+
+        for (const auto& pair : minion_counts) {
+            const std::string& type = pair.first;
+            int count = pair.second;
+            auto& pool = _minion_pools[type];
+            for (int i = 0; i < count; ++i) {
+                std::shared_ptr<Entity::Entity> minion = nullptr;
+                if (type == "WalkingDead") {
+                    minion = std::shared_ptr<Entity::Entity>(Entity::WalkingDeadBuilder()
+                        .setName("Minion").setMap(map).setTarget(player).build());
+                } else if (type == "Bandit") {
+                    minion = std::shared_ptr<Entity::Entity>(Entity::BanditBuilder()
+                        .setName("Minion").setMap(map).setTarget(player).build());
+                } else if (type == "Devil") {
+                    minion = std::shared_ptr<Entity::Entity>(Entity::DevilBuilder()
+                        .setName("Minion").setMap(map).setTarget(player).build());
+                }
+
+                if (minion) {
+                    minion->setDormant(true);
+                    pool.push_back(minion);
+                }
+            }
+        }
+
+        if (!minion_counts.empty()) {
+            Core::Logger::debugLog("BossManager: Preloaded minions to avoid freezing.");
+        }
     }
 
     void BossManager::spawnMinions(const std::vector<MinionSpawnInfo>& minions, Core::Engine* engine) {
@@ -324,43 +340,38 @@ namespace Nawia::Game {
 
         for (const auto& info : minions) {
             for (int i = 0; i < info.count; ++i) {
-                // Alternate spawn positions around boss
-                float sign_x = (i % 2 == 0) ? 1.0f : -1.0f;
-                float sign_y = (i / 2 % 2 == 0) ? 1.0f : -1.0f;
+                // Spread minions in a circle pattern around the boss
+                float angle = (2.0f * 3.14159f / static_cast<float>(info.count)) * i;
                 Vector2 spawn_pos = {
-                    _active_boss_entity->getX() + info.offset_x * sign_x * (i + 1),
-                    _active_boss_entity->getY() + info.offset_y * sign_y
+                    _active_boss_entity->getX() + info.offset_x * std::cos(angle),
+                    _active_boss_entity->getY() + info.offset_y * std::sin(angle)
                 };
 
                 std::shared_ptr<Entity::Entity> minion = nullptr;
 
-                if (info.enemy_type == "WalkingDead") {
-                    auto built = Entity::WalkingDeadBuilder()
-                        .setName("Minion")
-                        .setPosition(spawn_pos)
-                        .setMap(map)
-                        .setMaxHp(info.hp)
-                        .setTarget(player)
-                        .build();
-                    minion = std::shared_ptr<Entity::Entity>(std::move(built));
-                } else if (info.enemy_type == "Bandit") {
-                    auto built = Entity::BanditBuilder()
-                        .setName("Minion")
-                        .setPosition(spawn_pos)
-                        .setMap(map)
-                        .setMaxHp(info.hp)
-                        .setTarget(player)
-                        .build();
-                    minion = std::shared_ptr<Entity::Entity>(std::move(built));
-                } else if (info.enemy_type == "Devil") {
-                    auto built = Entity::DevilBuilder()
-                        .setName("Minion")
-                        .setPosition(spawn_pos)
-                        .setMap(map)
-                        .setMaxHp(info.hp)
-                        .setTarget(player)
-                        .build();
-                    minion = std::shared_ptr<Entity::Entity>(std::move(built));
+                // Try to get from pool first to avoid freezing from model loading
+                if (_minion_pools.count(info.enemy_type) && !_minion_pools[info.enemy_type].empty()) {
+                    minion = _minion_pools[info.enemy_type].back();
+                    _minion_pools[info.enemy_type].pop_back();
+                    minion->setX(spawn_pos.x);
+                    minion->setY(spawn_pos.y);
+                    minion->setMaxHp(info.hp);
+                    minion->setDormant(false);
+                } else {
+                    // Fallback to building on the fly if pool is empty
+                    if (info.enemy_type == "WalkingDead") {
+                        auto built = Entity::WalkingDeadBuilder()
+                            .setName("Minion").setPosition(spawn_pos).setMap(map).setMaxHp(info.hp).setTarget(player).build();
+                        minion = std::shared_ptr<Entity::Entity>(std::move(built));
+                    } else if (info.enemy_type == "Bandit") {
+                        auto built = Entity::BanditBuilder()
+                            .setName("Minion").setPosition(spawn_pos).setMap(map).setMaxHp(info.hp).setTarget(player).build();
+                        minion = std::shared_ptr<Entity::Entity>(std::move(built));
+                    } else if (info.enemy_type == "Devil") {
+                        auto built = Entity::DevilBuilder()
+                            .setName("Minion").setPosition(spawn_pos).setMap(map).setMaxHp(info.hp).setTarget(player).build();
+                        minion = std::shared_ptr<Entity::Entity>(std::move(built));
+                    }
                 }
 
                 if (minion) {

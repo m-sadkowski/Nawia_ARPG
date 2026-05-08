@@ -9,8 +9,8 @@ namespace Nawia::World {
 	namespace {
 		constexpr const char* DEMO_ARENA_MAP = "forest.glb";
 		constexpr float DEMO_ARENA_SCALE = 2.0f;
-		constexpr const char* INFERNO_MAP = "mountain_valley.glb";
-		constexpr float INFERNO_SCALE = 2.0f;
+		constexpr const char* MOUNTAIN_VALLEY_MAP = "mountain_valley.glb";
+		constexpr float MOUNTAIN_VALLEY_SCALE = 2.0f;
 		constexpr const char* DEMO_LIGHTING_FILE = "assets/maps/forest_lighting.json";
 	}
 
@@ -31,8 +31,8 @@ namespace Nawia::World {
 		// Zmienia geometrie mapy przed przeniesieniem gracza.
 		if (location_name == "Demo Arena") {
 			_map->loadMap(DEMO_ARENA_MAP, DEMO_ARENA_SCALE);
-		} else if (location_name == "Inferno") {
-			_map->loadMap(INFERNO_MAP, INFERNO_SCALE);
+		} else if (location_name == "Mountain Valley") {
+			_map->loadMap(MOUNTAIN_VALLEY_MAP, MOUNTAIN_VALLEY_SCALE);
 		}
 
 		// Bazowa logika budzi/zamraza encje i teleportuje gracza.

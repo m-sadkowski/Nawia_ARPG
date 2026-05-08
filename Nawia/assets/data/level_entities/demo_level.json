@@ -1,11 +1,11 @@
 {
     "player_spawn": {
         "Demo Arena": { "x": -4.3, "y": 33.0 },
-        "Inferno": { "x": 0.0, "y": -5.0 }
+        "Mountain Valley": { "x": 0.0, "y": -5.0 }
     },
     "entities": [
         {
-            "location": "Inferno",
+            "location": "Mountain Valley",
             "type": "boss_trigger",
             "boss_id": "devil_lord",
             "x": 0.0, "y": 2.0,
@@ -83,13 +83,13 @@
         {
             "location": "Demo Arena",
             "type": "teleport",
-            "name": "Portal do Inferno",
-            "target_location": "Inferno",
+            "name": "Portal do Lonely Mountain",
+            "target_location": "Mountain Valley",
             "x": -10.0, "y": 30.0,
             "trigger_radius": 0
         },
         {
-            "location": "Inferno",
+            "location": "Mountain Valley",
             "type": "teleport",
             "name": "Portal Powrotny",
             "target_location": "Demo Arena",

@@ -48,6 +48,7 @@ namespace Nawia::Core {
 
 		_loottable.loadLootTables("assets/data/loottables.json", _item_database);
 		_quest_manager.loadFromJson("assets/data/quests.json");
+		_boss_manager.loadFromJson("assets/data/bosses.json");
 
 		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
 
@@ -292,6 +293,7 @@ namespace Nawia::Core {
 		_entity_manager->updateEntities(delta_time);
 		_entity_manager->handleEntitiesCollisions();
 		_quest_manager.update(this);
+		_boss_manager.update(this, delta_time);
 		collectPendingSpawns();
 	}
 
@@ -355,7 +357,7 @@ namespace Nawia::Core {
 
 		renderWorld();
 
-		if (_ui_handler) _ui_handler->render(_camera);
+		if (_ui_handler) _ui_handler->render(_camera, &_boss_manager);
 
 		if (_show_pause_menu && _ui_handler)
 			_ui_handler->renderPauseMenu();

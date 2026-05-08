@@ -10,6 +10,7 @@ namespace Nawia::Entity {
         void onTriggerEnter(Entity& other) override;
         void update(float dt) override;
         void render(const Camera3D& camera) override;
+        float getInteractionRange() override { return 0.0f; }
 
     private:
         std::string _boss_id;
