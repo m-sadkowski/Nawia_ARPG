@@ -10,7 +10,7 @@ namespace Nawia::Core {
 		constexpr float k_zoom_step = 0.1f;
 		constexpr float k_min_zoom_factor = 0.3f;
 		constexpr float k_max_zoom_factor = 2.0f;
-		constexpr float k_default_zoom_factor = 0.85f;
+		constexpr float k_default_zoom_factor = 0.75f;
 		constexpr float k_target_height_offset = 1.2f;
 		constexpr float k_horizontal_follow_factor = 0.7f;
 	}
