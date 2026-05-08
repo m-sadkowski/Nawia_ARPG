@@ -166,6 +166,10 @@ namespace Nawia::World {
 		_player_spawns.clear();
 	}
 
+	void SpawnManager::addSpawnPoint(const SpawnPoint& sp) {
+		_spawn_points.push_back(sp);
+	}
+
 	bool SpawnManager::getPlayerSpawn(const std::string& location_name, Vector2& out_pos) const {
 		const auto spawn_it = _player_spawns.find(location_name);
 		if (spawn_it != _player_spawns.end()) {

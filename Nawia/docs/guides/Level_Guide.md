@@ -156,7 +156,12 @@ Static objecty powinny byc ustawione na poziomie podlogi przez logike spawn/map,
 
 Poziom moze ladowac konfiguracje swiatla z JSON w `assets/maps/..._lighting.json`.
 
-`DevLevel` sluzy do szybkiego ustawiania swiatel i zapisu roboczej konfiguracji.
+## Kreator Poziomów (DevLevel)
+
+Zalecanym sposobem tworzenia danych dla nowych poziomów jest użycie wbudowanego **Kreatora Poziomów (`DevLevel`)**. 
+Pozwala on na wizualne rozstawianie obiektów, spawnerów i skrzyń bezpośrednio w świecie gry, co jest znacznie szybsze i bezpieczniejsze niż ręczna edycja plików JSON.
+
+Więcej szczegółów znajdziesz w: [Przewodnik po DevLevel](DevLevel_Guide.md).
 
 ## Dobre praktyki
 

@@ -61,6 +61,7 @@ namespace Nawia::Core {
 		void spawnEntity(std::shared_ptr<Entity::Entity> new_entity) const;
 
 		UI::UIHandler& getUIHandler() const { return *_ui_handler; }
+		[[nodiscard]] bool isPaused() const { return _show_pause_menu || _game_state != GameState::Playing; }
 		Map* getCurrentMap() const;
 		Item::ItemDatabase& getItemDatabase() { return _item_database; }
 		Game::DialogueManager& getDialogueManager() { return _dialogue_manager; }
