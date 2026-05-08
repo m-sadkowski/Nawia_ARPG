@@ -34,8 +34,7 @@ namespace Nawia::Entity {
 		Projectile, ///< Efekt umiejętności działający jak encja.
 		Trigger,    ///< Obszar aktywujący logikę, np. checkpoint.
 		Chest,      ///< Interaktywny pojemnik z ekwipunkiem.
-		Item,
-		Wall
+		Item
 	};
 
 	/**

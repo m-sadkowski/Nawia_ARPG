@@ -16,6 +16,7 @@
 #include <StaticObject.h>
 #include <Teleport.h>
 #include <WalkingDead.h>
+#include <BossArenaTrigger.h>
 
 #include <KnifeThrowAbility.h>
 #include <SwordSlashAbility.h>

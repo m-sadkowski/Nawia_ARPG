@@ -10,7 +10,6 @@
 namespace Nawia::Entity {
     class EnemyInterface;
     class Entity;
-    class BossWall;
 }
 
 namespace Nawia::Core {
@@ -40,11 +39,8 @@ namespace Nawia::Game {
         float damage_multiplier = 1.0f;
         std::string notification;
         std::vector<MinionSpawnInfo> minions;
-    };
-
-    struct BossWallConfig {
-        float thickness = 2.0f;
-        Color color = { 180, 40, 40, 120 };
+        bool screen_flash = false;          // Flash screen on phase enter
+        Color flash_color = { 255, 0, 0, 180 }; // Flash color
     };
 
     struct BossData {
@@ -54,11 +50,9 @@ namespace Nawia::Game {
         int max_hp = 1000;
         float scale = 1.0f;
         
-        Rectangle arena = { 0.0f, 0.0f, 10.0f, 10.0f };
         Vector2 spawn_pos = { 0.0f, 0.0f };
         
         std::vector<BossPhase> phases;
-        BossWallConfig wall_config;
         BossReward reward;
         std::string level_name;
         
@@ -86,6 +80,10 @@ namespace Nawia::Game {
 
         [[nodiscard]] const std::map<std::string, BossData>& getAllBosses() const { return _bosses; }
 
+        /// Phase transition screen flash effect. Returns remaining flash time, or 0 when inactive.
+        [[nodiscard]] float getPhaseFlashTimer() const { return _phase_flash_timer; }
+        [[nodiscard]] Color getPhaseFlashColor() const { return _phase_flash_color; }
+
     private:
         std::map<std::string, BossData> _bosses;
         
@@ -96,18 +94,19 @@ namespace Nawia::Game {
         int _current_phase_index = 0;
         float _fight_timer = 0.0f;
         
+        // Phase transition flash effect
+        float _phase_flash_timer = 0.0f;
+        Color _phase_flash_color = { 255, 0, 0, 180 };
+        
         void checkPhaseTransition(Core::Engine* engine);
         void applyPhase(const BossPhase& phase, Core::Engine* engine);
         
-        // Arena walls
-        void spawnWalls(const Rectangle& arena, const BossWallConfig& config, Core::Engine* engine);
-        void removeWalls(Core::Engine* engine);
-        std::vector<std::shared_ptr<Entity::BossWall>> _active_walls;
-        
         // Minions
+        void preloadMinions(Core::Engine* engine);
         void spawnMinions(const std::vector<MinionSpawnInfo>& minions, Core::Engine* engine);
         void removeMinions(Core::Engine* engine);
         std::vector<std::shared_ptr<Entity::Entity>> _active_minions;
+        std::map<std::string, std::vector<std::shared_ptr<Entity::Entity>>> _minion_pools;
         
         // Track defeated bosses so fights can't be re-triggered
         std::set<std::string> _defeated_bosses;

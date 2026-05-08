@@ -20,7 +20,6 @@ namespace Nawia::Entity {
             if (auto* player = dynamic_cast<Player*>(&other)) {
                 if (player->getEngine()) {
                     auto& boss_mgr = player->getEngine()->getBossManager();
-                    // Don't trigger if a fight is already active
                     if (boss_mgr.isFightActive()) return;
                     boss_mgr.startBossFight(_boss_id, player->getEngine());
                 }

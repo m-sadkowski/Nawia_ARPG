@@ -455,6 +455,11 @@ namespace Nawia::UI
         renderPlayerAbilityBar();
         renderCombatEntityHealthBars(camera);
         renderBossHealthBar(boss_manager);
+        if (boss_manager && boss_manager->getPhaseFlashTimer() > 0.0f)
+        {
+            const float flash_alpha = std::clamp(boss_manager->getPhaseFlashTimer() / 0.6f, 0.0f, 1.0f) * 0.5f;
+            DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(boss_manager->getPhaseFlashColor(), flash_alpha));
+        }
         renderLocationInfo();
         
         if (_damage_flash_timer > 0.0f)
