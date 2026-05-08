@@ -116,7 +116,7 @@ namespace Nawia::Entity {
 				if (knife->isReady()) {
 					_state = State::Casting;
 		_knife_thrown_this_cast = false;  // Reset flagi dla nowej sekwencji rzutu.
-					setAnimationSpeed(1.5f);
+					setAnimationSpeed(THROW_ANIMATION_SPEED);
 					playAnimation("throw", false, true);
 					rotateTowards(target->getX(), target->getY());
 					setVelocity(0, 0);
@@ -211,7 +211,9 @@ namespace Nawia::Entity {
 		}
 
 		// Nóż rzucamy tylko raz, w konkretnej fazie animacji.
-		if (_anim_frame_counter > 60 && !_knife_thrown_this_cast)
+		const int throw_frame_count = getAnimationFrameCount("throw");
+		const float throw_frame = static_cast<float>(throw_frame_count) * THROW_SPAWN_FRAME_RATIO;
+		if (!_knife_thrown_this_cast && throw_frame_count > 0 && _anim_frame_counter >= throw_frame)
 		{
 			if (const auto knife = getAbility(0))
 			{
@@ -232,9 +234,37 @@ namespace Nawia::Entity {
 		
 		if (!isAnimationLocked())
 		{
+			if (!_knife_thrown_this_cast)
+				tryThrowKnifeAtTarget();
+
+			setAnimationSpeed(1.0f);
 			_state = State::Chasing;
 			playAnimation("walk");
 		}
+	}
+
+	bool Bandit::tryThrowKnifeAtTarget()
+	{
+		if (_knife_thrown_this_cast)
+			return true;
+
+		const auto knife = getAbility(0);
+		const auto target = _target.lock();
+		if (!knife || !target || target->isDead())
+			return false;
+
+		const float tx = target->getCenter().x;
+		const float ty = target->getCenter().y;
+
+		if (auto effect = knife->cast(tx, ty))
+		{
+			addPendingSpawn(effect);
+			_knife_cooldown_timer = KNIFE_COOLDOWN;
+			_knife_thrown_this_cast = true;
+			return true;
+		}
+
+		return false;
 	}
 
 	void Bandit::handleGettingHitState(const float dt)
@@ -248,12 +278,18 @@ namespace Nawia::Entity {
 			switch (_state)
 			{
 			case State::Idle:
+				setAnimationSpeed(1.0f);
 				playAnimation("idle");
 				break;
 			case State::Chasing:
 			case State::Casting:
-				
+				_state = State::Chasing;
+				setAnimationSpeed(1.0f);
+				playAnimation("walk");
+				break;
 			default:
+				_state = State::Chasing;
+				setAnimationSpeed(1.0f);
 				playAnimation("idle");
 				break;
 			}

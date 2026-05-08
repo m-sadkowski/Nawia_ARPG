@@ -17,6 +17,7 @@ namespace Nawia::World {
 			"assets/audio/music/soundsbyamelia-slavic-war-dance-drums-stomps-amp-war-pipes-422949.mp3";
 		constexpr const char* DEMO_LIGHTING_FILE = "assets/maps/forest_lighting.json";
 		constexpr float LOCATION_MUSIC_VOLUME = 0.75f;
+		constexpr float DEMO_MIN_WALKABLE_HEIGHT = 0.0f;
 	}
 
 	void DemoLevel::onEnter(Core::Engine* engine) {
@@ -24,6 +25,7 @@ namespace Nawia::World {
 
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
 		_map->loadMap(MYSTERIOUS_FOREST_MAP, MYSTERIOUS_FOREST_SCALE);
+		_map->setNavMeshMinWalkableHeight(DEMO_MIN_WALKABLE_HEIGHT);
 		engine->getLightingSystem().loadLightingFromJson(DEMO_LIGHTING_FILE);
 
 		engine->getEntityManager().clearNonPlayerEntities();
@@ -38,9 +40,11 @@ namespace Nawia::World {
 		// Zmienia geometrie mapy przed przeniesieniem gracza.
 		if (location_name == "Tajemniczy Las") {
 			_map->loadMap(MYSTERIOUS_FOREST_MAP, MYSTERIOUS_FOREST_SCALE);
+			_map->setNavMeshMinWalkableHeight(DEMO_MIN_WALKABLE_HEIGHT);
 			engine->getAudioManager().playMusic(MYSTERIOUS_FOREST_MUSIC, true, LOCATION_MUSIC_VOLUME);
 		} else if (location_name == "Lesna Dolina") {
 			_map->loadMap(FOREST_VALLEY_MAP, FOREST_VALLEY_SCALE);
+			_map->setNavMeshMinWalkableHeight(DEMO_MIN_WALKABLE_HEIGHT);
 			engine->getAudioManager().playMusic(FOREST_VALLEY_MUSIC, true, LOCATION_MUSIC_VOLUME);
 		}
 

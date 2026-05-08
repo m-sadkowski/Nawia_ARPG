@@ -188,7 +188,7 @@ namespace Nawia::Entity {
 			_dash_hit_target = false;  
 			playSoundEffect(Audio::SoundId::DevilDash, 0.9f);
 			setAnimationSpeed(DEVIL_DASH_ANIMATION_SPEED);
-			playAnimation("run", false, false);  
+			playAnimation("run", true, false);
 		}
 	}
 

@@ -150,4 +150,14 @@ namespace Nawia::Core {
 		return _navmesh.findPath(start, end);
 	}
 
+	void Map::setNavMeshMinWalkableHeight(const float height) {
+		_navmesh.setMinWalkableHeight(height);
+
+		if (!_model_loaded)
+			return;
+
+		if (!_navmesh.buildFromModel(_model, _scale, _offset))
+			Logger::errorLog("Map::setNavMeshMinWalkableHeight - nie udalo sie przebudowac navmesha.");
+	}
+
 } // namespace Nawia::Core

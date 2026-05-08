@@ -104,7 +104,16 @@ namespace Nawia::World {
 		void handleEditingInput(Core::Engine* engine);
 
 		/** @brief Rysuje instrukcje i status narzedzi developerskich. */
-		void renderLightingOverlay(Core::Engine& engine) const;
+		void renderLightingOverlay(Core::Engine& engine);
+
+		/** @brief Rysuje plaszczyzne odcinajaca niska wode z navmesha. */
+		void renderWaterCutoffPlane(Core::Engine& engine) const;
+
+		/** @brief Obsluguje suwak minimalnej wysokosci navmesha. */
+		bool handleNavmeshHeightInput();
+
+		/** @brief Przebudowuje navmesh po zmianie progu wysokosci. */
+		void applyNavmeshHeight();
 
 		/** @brief Rysuje glowne menu kreatora. */
 		void renderMainMenu(Core::Engine* engine);
@@ -155,6 +164,10 @@ namespace Nawia::World {
 		std::string _trigger_radius_buffer = "15.0";
 		std::string _texture_path_buffer = "assets/textures/chest.png";
 		int _selected_field = 0;
+
+		float _navmesh_min_walkable_height = 0.0f;
+		bool _is_dragging_navmesh_height = false;
+		bool _navmesh_height_dirty = false;
 
 		std::vector<PlacedObject> _placed_objects;
 	};

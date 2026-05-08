@@ -3,6 +3,7 @@
 #include <Ability.h>
 #include <AllyBrain.h>
 #include <Collider.h>
+#include <Map.h>
 #include <SoundIds.h>
 
 namespace Nawia::Entity {
@@ -55,7 +56,7 @@ namespace Nawia::Entity {
 		const auto target = _target.lock();
 		if (!target || target->isDead() || target->isDying())
 		{
-			_is_moving = false;
+			stopPathMovement();
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			if (!isAnimationLocked())
 				playAnimation("default");
@@ -71,7 +72,7 @@ namespace Nawia::Entity {
 		const float dist = getDistanceToTarget();
 		if (dist > VISION_RANGE)
 		{
-			_is_moving = false;
+			stopPathMovement();
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			playAnimation("default");
 			return;
@@ -85,14 +86,19 @@ namespace Nawia::Entity {
 				const Vector2 target_pos = target->getCenter();
 				rotateTowardsCenter(target_pos.x, target_pos.y);
 				slash->cast(target_pos.x, target_pos.y);
-				_is_moving = false;
+				stopPathMovement();
 				return;
 			}
 		}
 
-		const Vector2 target_pos = target->getCenter();
-		moveTo(target_pos.x, target_pos.y);
-		updateMovement(dt);
+		_path_recalc_timer -= dt;
+		if (_path_recalc_timer <= 0.0f || (_current_path.empty() && !_is_moving))
+		{
+			rebuildPathToTarget(*target);
+			_path_recalc_timer = PATH_RECALC_INTERVAL;
+		}
+
+		updatePathMovement(dt);
 		updateMovementSound(Audio::SoundPath::Footsteps, _is_moving && !isAnimationLocked(), 0.42f, 1.04f);
 
 		if (_is_moving)
@@ -101,8 +107,60 @@ namespace Nawia::Entity {
 			playAnimation("default");
 	}
 
+	void Friend::stopPathMovement()
+	{
+		_current_path.clear();
+		_is_moving = false;
+		setVelocity(0.0f, 0.0f);
+	}
+
+	void Friend::rebuildPathToTarget(const Entity& target)
+	{
+		if (_map && _map->getNavMesh().isReady())
+		{
+			_current_path = _map->findPath(getWorldPos3D(), target.getWorldPos3D());
+			trimCurrentPathStart();
+		}
+		else
+		{
+			const Vector2 target_pos = target.getCenter();
+			_current_path = {{target_pos.x, target_pos.y}};
+		}
+
+		if (!_current_path.empty())
+			moveTo(_current_path.front().x, _current_path.front().y);
+		else
+			stopPathMovement();
+	}
+
+	void Friend::trimCurrentPathStart()
+	{
+		if (_current_path.empty())
+			return;
+
+		const Vector2 first_path_point = _current_path.front();
+		const float dx = first_path_point.x - getCenter().x;
+		const float dy = first_path_point.y - getCenter().y;
+		if (dx * dx + dy * dy < 0.1f)
+			_current_path.erase(_current_path.begin());
+	}
+
+	void Friend::updatePathMovement(const float dt)
+	{
+		if (!_is_moving && !_current_path.empty())
+		{
+			_current_path.erase(_current_path.begin());
+
+			if (!_current_path.empty())
+				moveTo(_current_path.front().x, _current_path.front().y);
+		}
+
+		updateMovement(dt);
+	}
+
 	void Friend::onDeathStarted()
 	{
+		stopPathMovement();
 		updateMovementSound(Audio::SoundPath::Footsteps, false);
 		playSoundEffect(Audio::SoundId::HumanDeath, 0.85f);
 	}

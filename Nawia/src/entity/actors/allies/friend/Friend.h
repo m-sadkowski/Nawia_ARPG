@@ -3,6 +3,7 @@
 #include <AllyInterface.h>
 
 #include <memory>
+#include <vector>
 
 namespace Nawia::Entity {
 
@@ -24,10 +25,17 @@ namespace Nawia::Entity {
 		static constexpr float VISION_RANGE = 16.0f;
 		static constexpr float ATTACK_RANGE_MULTIPLIER = 0.5f;
 		static constexpr float SPEED = 3.5f;
+		static constexpr float PATH_RECALC_INTERVAL = 0.35f;
 
 		/** @brief Obsługuje tymczasową, zaszytą w klasie logikę walki. */
 		void updateHardcodedBehavior(float dt);
+		void stopPathMovement();
+		void rebuildPathToTarget(const Entity& target);
+		void trimCurrentPathStart();
+		void updatePathMovement(float dt);
 		void onDeathStarted() override;
+
+		std::vector<Vector2> _current_path;
 	};
 
 	/**

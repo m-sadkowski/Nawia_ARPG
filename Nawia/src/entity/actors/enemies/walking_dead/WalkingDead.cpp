@@ -27,11 +27,18 @@ namespace Nawia::Entity {
 		Entity::takeDamage(dmg);
 		if (isDying()) return;
 
+		const bool should_interrupt = _state == State::Attacking
+			? GetRandomValue(1, 100) <= HIT_INTERRUPT_CHANCE
+			: true;
+		if (!should_interrupt)
+			return;
+
 		// Trafienie przerywa bieżącą akcję i odpala krótkie zachwianie.
 		if (_state != State::GettingHit)
 			_state_before_hit = _state;
 		
 		_state = State::GettingHit;
+		setAnimationSpeed(HIT_REACTION_ANIMATION_SPEED);
 		playAnimation("get_hit", false, true, 10, true);
 		
 		// Podczas zachwiania zatrzymujemy ruch.
@@ -121,6 +128,8 @@ namespace Nawia::Entity {
 		if (dist <= ATTACK_RANGE && _attack_cooldown_timer <= 0.0f)
 		{
 			_state = State::Attacking;
+			_attack_damage_applied = false;
+			setAnimationSpeed(ATTACK_ANIMATION_SPEED);
 			playAnimation("attack", false, true);
 			setVelocity(0, 0);
 			_is_moving = false;
@@ -132,6 +141,7 @@ namespace Nawia::Entity {
 		if (should_run != _is_running)
 		{
 			_is_running = should_run;
+			setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 			playAnimation(_is_running ? "run" : "walk");
 		}
 		
@@ -172,12 +182,29 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
+		if (const auto target = _target.lock())
+			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+
+		const int attack_frame_count = getAnimationFrameCount("attack");
+		const float damage_frame = static_cast<float>(attack_frame_count) * ATTACK_DAMAGE_FRAME_RATIO;
+		if (!_attack_damage_applied && attack_frame_count > 0 && _anim_frame_counter >= damage_frame)
+		{
+			if (const auto target = _target.lock())
+			{
+				if (getDistanceToTarget() <= ATTACK_RANGE * 1.7f)
+				{
+					target->takeDamage(ATTACK_DAMAGE);
+					_attack_damage_applied = true;
+				}
+			}
+		}
+
 		if (!isAnimationLocked())
 		{
 			// Po zakończeniu animacji ataku zadajemy obrażenia.
 			if (const auto target = _target.lock())
 			{
-				if (getDistanceToTarget() <= ATTACK_RANGE * 1.5f)
+				if (!_attack_damage_applied && getDistanceToTarget() <= ATTACK_RANGE * 1.7f)
 				{
 					target->takeDamage(ATTACK_DAMAGE);
 				}
@@ -185,6 +212,7 @@ namespace Nawia::Entity {
 			
 			_attack_cooldown_timer = ATTACK_COOLDOWN;
 			_state = State::Chasing;
+			setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 			playAnimation("walk");
 		}
 	}
@@ -215,20 +243,27 @@ namespace Nawia::Entity {
 			switch (_state)
 			{
 			case State::Idle:
+				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 				playAnimation("idle");
 				break;
 			case State::Chasing:
+				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 				playAnimation(_is_running ? "run" : "walk");
 				break;
 			case State::Attacking:
 				// Przerwany atak wraca do pościgu.
 				_state = State::Chasing;
+				_attack_cooldown_timer = ATTACK_COOLDOWN * 0.5f;
+				_attack_damage_applied = false;
+				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 				playAnimation(_is_running ? "run" : "walk");
 				break;
 			case State::Screaming:
+				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 				playAnimation("scream", false, true);
 				break;
 			default:
+				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 				playAnimation("idle");
 				break;
 			}
