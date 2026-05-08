@@ -1,18 +1,24 @@
 #include "DevLevel.h"
 
 #include <Engine.h>
+#include <EntityFactory.h>
+#include <ItemDatabase.h>
 #include <Logger.h>
 #include <Map.h>
 #include <MathUtils.h>
 #include <Player.h>
-#include <ItemDatabase.h>
-#include <EntityFactory.h>
 #include <UIHandler.h>
 
+#include <json.hpp>
 #include <raymath.h>
+
+#include <algorithm>
+#include <array>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
-#include <json.hpp>
+#include <limits>
+#include <string_view>
 
 using json = nlohmann::json;
 
@@ -20,13 +26,22 @@ namespace Nawia::World {
 
 	namespace {
 
-		constexpr const char* k_dev_map_file = "forest.glb";
-		constexpr float k_dev_map_scale = 2.0f;
-		constexpr float k_light_move_step = 1.0f;
-		constexpr int k_light_index = 0;
-		constexpr int k_overlay_margin = 10;
-		constexpr float k_overlay_background_alpha = 0.85f;
-		constexpr Vector2 k_dev_player_spawn = { -4.3f, 33.0f };
+		constexpr const char* MAP_FILE = "forest.glb";
+		constexpr float MAP_SCALE = 2.0f;
+		constexpr float LIGHT_MOVE_STEP = 1.0f;
+		constexpr int PRIMARY_LIGHT_INDEX = 0;
+		constexpr int OVERLAY_MARGIN = 10;
+		constexpr float OVERLAY_BACKGROUND_ALPHA = 0.85f;
+		constexpr Vector2 PLAYER_SPAWN = {-4.3f, 33.0f};
+		constexpr int MAX_VISIBLE_ITEMS = 11;
+
+		constexpr std::array<std::string_view, 5> OBJECT_CATEGORIES = {
+			"spawners",
+			"chests",
+			"npcs",
+			"props",
+			"teleports",
+		};
 
 		std::filesystem::path resolveAssetPath(const std::filesystem::path& relative_asset_path) {
 			return (std::filesystem::path("assets") / relative_asset_path).lexically_normal();
@@ -36,48 +51,85 @@ namespace Nawia::World {
 			return path.generic_string();
 		}
 
-		void DrawDevText(const Font& font, const char* text, float x, float y, float size, Color color) {
-			DrawTextEx(font, text, { x, y }, size, 1.0f, color);
+		void drawDevText(const Font& font, const char* text, float x, float y, float size, Color color) {
+			DrawTextEx(font, text, {x, y}, size, 1.0f, color);
 		}
 
-		bool DrawButton(const Font& font, const char* text, int x, int y, int width, int height, Color base_color) {
-			Rectangle rect = { (float)x, (float)y, (float)width, (float)height };
-			bool hovered = CheckCollisionPointRec(GetMousePosition(), rect);
+		bool drawButton(const Font& font, const char* text, int x, int y, int width, int height, Color base_color) {
+			const Rectangle rect = {
+				static_cast<float>(x),
+				static_cast<float>(y),
+				static_cast<float>(width),
+				static_cast<float>(height),
+			};
+			const bool hovered = CheckCollisionPointRec(GetMousePosition(), rect);
+
 			DrawRectangleRec(rect, hovered ? ColorAlpha(base_color, 0.8f) : base_color);
 			DrawRectangleLinesEx(rect, 2, LIGHTGRAY);
-			Vector2 text_size = MeasureTextEx(font, text, 20, 1.0f);
-			DrawDevText(font, text, x + width / 2 - text_size.x / 2, y + height / 2 - text_size.y / 2, 20, RAYWHITE);
+
+			const Vector2 text_size = MeasureTextEx(font, text, 20, 1.0f);
+			drawDevText(
+				font,
+				text,
+				x + width / 2.0f - text_size.x / 2.0f,
+				y + height / 2.0f - text_size.y / 2.0f,
+				20,
+				RAYWHITE
+			);
+
 			return hovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 		}
 
-		void DrawLabel(const Font& font, const char* text, int x, int y) {
-			DrawDevText(font, text, x, y, 18, LIGHTGRAY);
+		void drawLabel(const Font& font, const char* text, int x, int y) {
+			drawDevText(font, text, static_cast<float>(x), static_cast<float>(y), 18, LIGHTGRAY);
 		}
 
-		bool DrawTextInput(const Font& font, std::string& buffer, int x, int y, int width, int height, bool active) {
-			Rectangle rect = { (float)x, (float)y, (float)width, (float)height };
+		bool drawTextInput(const Font& font, std::string& buffer, int x, int y, int width, int height, bool active) {
+			const Rectangle rect = {
+				static_cast<float>(x),
+				static_cast<float>(y),
+				static_cast<float>(width),
+				static_cast<float>(height),
+			};
+
 			DrawRectangleRec(rect, active ? DARKGRAY : BLACK);
 			DrawRectangleLinesEx(rect, 2, active ? GREEN : GRAY);
-			DrawDevText(font, buffer.c_str(), x + 5, y + height / 2 - 10, 20, RAYWHITE);
+			drawDevText(font, buffer.c_str(), x + 5.0f, y + height / 2.0f - 10.0f, 20, RAYWHITE);
+
 			if (active) {
 				int key = GetCharPressed();
 				while (key > 0) {
-					if (key >= 32 && key <= 125) buffer += (char)key;
+					if (key >= 32 && key <= 125) {
+						buffer += static_cast<char>(key);
+					}
 					key = GetCharPressed();
 				}
-				if (IsKeyPressed(KEY_BACKSPACE) && !buffer.empty()) buffer.pop_back();
+
+				if (IsKeyPressed(KEY_BACKSPACE) && !buffer.empty()) {
+					buffer.pop_back();
+				}
 			}
+
 			return IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), rect);
 		}
 
-	}
+		Color getCategoryColor(const std::string& category) {
+			if (category == "spawners") return RED;
+			if (category == "chests") return GOLD;
+			if (category == "npcs") return SKYBLUE;
+			if (category == "props") return GREEN;
+			if (category == "teleports") return PURPLE;
+			return GRAY;
+		}
+
+	} // namespace
 
 	void DevLevel::onEnter(Core::Engine* engine) {
-		Core::Logger::debugLog("Ladowanie poziomu DevLevel (Kreator)...");
+		Core::Logger::debugLog("Ladowanie poziomu DevLevel (kreator poziomu)...");
 
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
-		_map->loadMap(k_dev_map_file, k_dev_map_scale, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f });
-		
+		_map->loadMap(MAP_FILE, MAP_SCALE, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
+
 		const auto lighting_file_path = resolveAssetPath("maps/forest_lighting.json");
 		engine->getLightingSystem().loadLightingFromJson(toPathString(lighting_file_path));
 
@@ -85,46 +137,16 @@ namespace Nawia::World {
 		entity_manager.clearNonPlayerEntities();
 
 		if (const auto player = engine->getPlayer()) {
-			const Vector3 snapped_spawn = _map->getNavMesh().getClosestWalkablePosition(
-				{ k_dev_player_spawn.x, 0.0f, k_dev_player_spawn.y });
+			const Vector3 snapped_spawn =
+				_map->getNavMesh().getClosestWalkablePosition({PLAYER_SPAWN.x, 0.0f, PLAYER_SPAWN.y});
 			player->setX(snapped_spawn.x);
 			player->setY(snapped_spawn.z);
 			player->setAltitude(snapped_spawn.y);
-			player->setRespawnPoint({ snapped_spawn.x, snapped_spawn.z });
+			player->setRespawnPoint({snapped_spawn.x, snapped_spawn.z});
 			player->stop();
 		}
 
-		// Wczytaj istniejace obiekty do sesji
-		_placed_objects.clear();
-		std::vector<std::string> categories = { "spawners", "chests", "npcs", "props", "teleports" };
-		for (const auto& cat : categories) {
-			const auto path = resolveAssetPath("data/dev/new_level_" + cat + ".json");
-			if (std::filesystem::exists(path)) {
-				std::ifstream file(path);
-				json data;
-				if (file.is_open()) try {
-					file >> data;
-					for (const auto& obj : data) {
-						PlacedObject po;
-						po.category = cat;
-						po.name = obj.value("name", "Unknown");
-						po.type = obj.value("type", "");
-						po.position = { obj.value("x", 0.0f), obj.value("y", 0.0f) };
-						po.spawn_radius = obj.value("spawn_radius", 0.0f);
-						po.trigger_radius = obj.value("trigger_radius", 0.0f);
-						po.count = obj.value("count", 1);
-						if (obj.contains("items")) {
-							for (const auto& item_id : obj["items"]) po.loot_ids.push_back(item_id.get<int>());
-						}
-						if (cat == "npcs") po.extra_string = obj.value("npc_class", "");
-						else if (cat == "props") po.extra_string = obj.value("texture", "");
-						else if (cat == "teleports") po.extra_string = obj.value("target_location", "");
-						
-						_placed_objects.push_back(po);
-					}
-				} catch(...) {}
-			}
-		}
+		loadPlacedObjects();
 	}
 
 	void DevLevel::handleInput(Core::Engine* engine) {
@@ -142,21 +164,24 @@ namespace Nawia::World {
 
 	void DevLevel::update(Core::Engine* engine, float dt) {
 		if (const auto player = engine->getPlayer()) {
-			float base_speed = 5.0f;
-			if (IsKeyDown(KEY_LEFT_SHIFT)) base_speed = 25.0f;
-			player->setMovementSpeed(base_speed);
+			float movement_speed = 5.0f;
+			if (IsKeyDown(KEY_LEFT_SHIFT)) {
+				movement_speed = 25.0f;
+			}
+
+			player->setMovementSpeed(movement_speed);
 
 			if (_current_mode == EditorMode::None) {
-				Vector2 move = { 0, 0 };
-				if (IsKeyDown(KEY_W)) move.y -= 1;
-				if (IsKeyDown(KEY_S)) move.y += 1;
-				if (IsKeyDown(KEY_A)) move.x -= 1;
-				if (IsKeyDown(KEY_D)) move.x += 1;
+				Vector2 movement = {0.0f, 0.0f};
+				if (IsKeyDown(KEY_W)) movement.y -= 1.0f;
+				if (IsKeyDown(KEY_S)) movement.y += 1.0f;
+				if (IsKeyDown(KEY_A)) movement.x -= 1.0f;
+				if (IsKeyDown(KEY_D)) movement.x += 1.0f;
 
-				if (move.x != 0 || move.y != 0) {
-					move = Vector2Normalize(move);
-					player->setX(player->getX() + move.x * base_speed * dt);
-					player->setY(player->getY() + move.y * base_speed * dt);
+				if (movement.x != 0.0f || movement.y != 0.0f) {
+					movement = Vector2Normalize(movement);
+					player->setX(player->getX() + movement.x * movement_speed * dt);
+					player->setY(player->getY() + movement.y * movement_speed * dt);
 				}
 			}
 		}
@@ -165,442 +190,748 @@ namespace Nawia::World {
 	}
 
 	void DevLevel::renderUI(Core::Engine* engine) {
-		if (!engine || engine->isPaused()) return;
+		if (!engine || engine->isPaused()) {
+			return;
+		}
 
 		renderPlacedObjects(engine);
 		renderLightingOverlay(*engine);
 
-		if (_current_mode != EditorMode::None) {
-			DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, k_overlay_background_alpha));
-			
-			switch (_current_mode) {
-				case EditorMode::MainMenu: renderMainMenu(engine); break;
-				case EditorMode::SpawnerType: renderSpawnerTypeMenu(engine); break;
-				case EditorMode::SpawnerDetails: renderSpawnerDetailsMenu(engine); break;
-				case EditorMode::ChestDetails: renderChestDetailsMenu(engine); break;
-				case EditorMode::NPCSelection: renderNPCSelectionMenu(engine); break;
-				case EditorMode::PropDetails: renderPropDetailsMenu(engine); break;
-				case EditorMode::TeleportDetails: renderTeleportDetailsMenu(engine); break;
-				case EditorMode::ItemSelection: renderItemSelectionMenu(engine); break;
-				default: break;
+		if (_current_mode == EditorMode::None) {
+			return;
+		}
+
+		DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, OVERLAY_BACKGROUND_ALPHA));
+
+		switch (_current_mode) {
+			case EditorMode::MainMenu:
+				renderMainMenu(engine);
+				break;
+			case EditorMode::SpawnerType:
+				renderSpawnerTypeMenu(engine);
+				break;
+			case EditorMode::SpawnerDetails:
+				renderSpawnerDetailsMenu(engine);
+				break;
+			case EditorMode::ChestDetails:
+				renderChestDetailsMenu(engine);
+				break;
+			case EditorMode::NPCSelection:
+				renderNPCSelectionMenu(engine);
+				break;
+			case EditorMode::PropDetails:
+				renderPropDetailsMenu(engine);
+				break;
+			case EditorMode::TeleportDetails:
+				renderTeleportDetailsMenu(engine);
+				break;
+			case EditorMode::ItemSelection:
+				renderItemSelectionMenu(engine);
+				break;
+			case EditorMode::None:
+				break;
+		}
+	}
+
+	void DevLevel::loadPlacedObjects() {
+		_placed_objects.clear();
+
+		for (const std::string_view category : OBJECT_CATEGORIES) {
+			const std::string category_name(category);
+			const auto file_path = getCategoryFilePath(category_name);
+			if (std::filesystem::exists(file_path)) {
+				loadPlacedObjectsFromFile(category_name, file_path);
 			}
 		}
 	}
 
+	void DevLevel::loadPlacedObjectsFromFile(const std::string& category, const std::filesystem::path& path) {
+		std::ifstream file(path);
+		if (!file.is_open()) {
+			Core::Logger::errorLog("DevLevel: nie mozna otworzyc pliku: " + toPathString(path));
+			return;
+		}
+
+		json data;
+		try {
+			file >> data;
+		} catch (const json::parse_error& error) {
+			Core::Logger::errorLog("DevLevel: blad parsowania JSON: " + std::string(error.what()));
+			return;
+		}
+
+		if (!data.is_array()) {
+			Core::Logger::errorLog("DevLevel: plik kategorii nie jest tablica: " + toPathString(path));
+			return;
+		}
+
+		for (const auto& entry : data) {
+			_placed_objects.push_back(parsePlacedObject(category, entry));
+		}
+	}
+
+	DevLevel::PlacedObject DevLevel::parsePlacedObject(const std::string& category, const json& data) const {
+		PlacedObject placed_object;
+		placed_object.category = category;
+		placed_object.name = data.value("name", "Unknown");
+		placed_object.type = data.value("type", "");
+		placed_object.position = {data.value("x", 0.0f), data.value("y", 0.0f)};
+		placed_object.spawn_radius = data.value("spawn_radius", 0.0f);
+		placed_object.trigger_radius = data.value("trigger_radius", 0.0f);
+		placed_object.count = data.value("count", 1);
+
+		if (data.contains("items") && data["items"].is_array()) {
+			for (const auto& item_id : data["items"]) {
+				placed_object.loot_ids.push_back(item_id.get<int>());
+			}
+		}
+
+		if (category == "npcs") {
+			placed_object.extra_value = data.value("npc_class", "");
+		} else if (category == "props") {
+			placed_object.extra_value = data.value("texture", "");
+		} else if (category == "teleports") {
+			placed_object.extra_value = data.value("target_location", "");
+		}
+
+		return placed_object;
+	}
+
+	json DevLevel::serializePlacedObject(const PlacedObject& object) const {
+		json data;
+		data["x"] = object.position.x;
+		data["y"] = object.position.y;
+		data["name"] = object.name;
+		data["type"] = object.type;
+
+		if (object.category == "spawners") {
+			data["count"] = object.count;
+			data["spawn_radius"] = object.spawn_radius;
+			data["trigger_radius"] = object.trigger_radius;
+		} else if (object.category == "chests") {
+			data["items"] = object.loot_ids;
+		} else if (object.category == "npcs") {
+			data["npc_class"] = object.extra_value;
+		} else if (object.category == "props") {
+			data["texture"] = object.extra_value;
+		} else if (object.category == "teleports") {
+			data["target_location"] = object.extra_value;
+		}
+
+		return data;
+	}
+
+	std::filesystem::path DevLevel::getCategoryFilePath(const std::string& category) const {
+		return resolveAssetPath(std::filesystem::path("data/dev") / ("new_level_" + category + ".json"));
+	}
+
 	void DevLevel::handleUIInput(Core::Engine* engine) {
-		if (IsKeyPressed(KEY_ESCAPE)) {
-			if (_current_mode == EditorMode::MainMenu) _current_mode = EditorMode::None;
-			else _current_mode = EditorMode::MainMenu;
+		(void)engine;
+
+		if (!IsKeyPressed(KEY_ESCAPE)) {
+			return;
+		}
+
+		if (_current_mode == EditorMode::MainMenu) {
+			_current_mode = EditorMode::None;
+		} else {
+			_current_mode = EditorMode::MainMenu;
 		}
 	}
 
 	void DevLevel::handleEditingInput(Core::Engine* engine) {
-		if (!engine) return;
+		if (!engine) {
+			return;
+		}
 
 		auto& lighting_system = engine->getLightingSystem();
 		if (!lighting_system.getLights().empty()) {
-			auto& primary_light = lighting_system.getLights()[k_light_index];
+			auto& primary_light = lighting_system.getLights()[PRIMARY_LIGHT_INDEX];
 			bool lighting_changed = false;
-			if (IsKeyDown(KEY_UP)) { primary_light.position.z -= k_light_move_step; lighting_changed = true; }
-			if (IsKeyDown(KEY_DOWN)) { primary_light.position.z += k_light_move_step; lighting_changed = true; }
-			if (IsKeyDown(KEY_LEFT)) { primary_light.position.x -= k_light_move_step; lighting_changed = true; }
-			if (IsKeyDown(KEY_RIGHT)) { primary_light.position.x += k_light_move_step; lighting_changed = true; }
-			if (IsKeyDown(KEY_PAGE_UP)) { primary_light.position.y += k_light_move_step; lighting_changed = true; }
-			if (IsKeyDown(KEY_PAGE_DOWN)) { primary_light.position.y -= k_light_move_step; lighting_changed = true; }
-			if (lighting_changed) lighting_system.updateLightValues(k_light_index);
+
+			if (IsKeyDown(KEY_UP)) {
+				primary_light.position.z -= LIGHT_MOVE_STEP;
+				lighting_changed = true;
+			}
+			if (IsKeyDown(KEY_DOWN)) {
+				primary_light.position.z += LIGHT_MOVE_STEP;
+				lighting_changed = true;
+			}
+			if (IsKeyDown(KEY_LEFT)) {
+				primary_light.position.x -= LIGHT_MOVE_STEP;
+				lighting_changed = true;
+			}
+			if (IsKeyDown(KEY_RIGHT)) {
+				primary_light.position.x += LIGHT_MOVE_STEP;
+				lighting_changed = true;
+			}
+			if (IsKeyDown(KEY_PAGE_UP)) {
+				primary_light.position.y += LIGHT_MOVE_STEP;
+				lighting_changed = true;
+			}
+			if (IsKeyDown(KEY_PAGE_DOWN)) {
+				primary_light.position.y -= LIGHT_MOVE_STEP;
+				lighting_changed = true;
+			}
+
+			if (lighting_changed) {
+				lighting_system.updateLightValues(PRIMARY_LIGHT_INDEX);
+			}
+
 			if (IsKeyPressed(KEY_S)) {
 				const auto lighting_file_path = resolveAssetPath("maps/forest_lighting.json");
 				lighting_system.saveLightingToJson(toPathString(lighting_file_path));
-				Core::Logger::debugLog("Zapisano oswietlenie.");
+				Core::Logger::debugLog("DevLevel: zapisano oswietlenie.");
 			}
 		}
 
-		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-			// Nie otwieraj menu, jesli klikasz nad otwartym UI (ekwipunek itp)
-			if (engine->getUIHandler().isMouseOverUI() || engine->getUIHandler().isInputBlocked()) {
-				return;
-			}
-
-			const Vector2 mouse_position = GetMousePosition();
-			const Ray ray = GetScreenToWorldRay(mouse_position, engine->getCamera().get());
-			
-			const RayCollision collision = _map->getRayCollision(ray);
-			if (collision.hit) {
-				_saved_world_position = { collision.point.x, collision.point.z };
-			} else {
-				_saved_world_position = Core::screenToWorld(engine->getCamera().get(), mouse_position.x, mouse_position.y);
-			}
-
-			_current_mode = EditorMode::MainMenu;
-			resetEditorState();
+		if (!IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+			return;
 		}
+
+		if (engine->getUIHandler().isMouseOverUI() || engine->getUIHandler().isInputBlocked()) {
+			return;
+		}
+
+		const Vector2 mouse_position = GetMousePosition();
+		const Ray ray = GetScreenToWorldRay(mouse_position, engine->getCamera().get());
+		const RayCollision collision = _map ? _map->getRayCollision(ray) : RayCollision{};
+
+		if (collision.hit) {
+			_saved_world_position = {collision.point.x, collision.point.z};
+		} else {
+			_saved_world_position = Core::screenToWorld(engine->getCamera().get(), mouse_position.x, mouse_position.y);
+		}
+
+		resetEditorState();
+		_current_mode = EditorMode::MainMenu;
 	}
 
 	void DevLevel::renderPlacedObjects(Core::Engine* engine) {
+		if (!engine || !_map) {
+			return;
+		}
+
 		const auto& camera = engine->getCamera().get();
 		const auto& font = engine->getUIHandler().getFont();
+
 		BeginMode3D(camera);
 
-		for (const auto& obj : _placed_objects) {
-			float terrain_y = _map->getNavMesh().getClosestWalkablePosition({obj.position.x, 0.0f, obj.position.y}).y;
-			Vector3 pos3D = { obj.position.x, terrain_y + 0.5f, obj.position.y };
-			
-			Color color = GRAY;
-			if (obj.category == "spawners") color = RED;
-			else if (obj.category == "chests") color = GOLD;
-			else if (obj.category == "npcs") color = SKYBLUE;
-			else if (obj.category == "props") color = GREEN;
-			else if (obj.category == "teleports") color = PURPLE;
+		for (const auto& object : _placed_objects) {
+			const Vector3 nav_position =
+				_map->getNavMesh().getClosestWalkablePosition({object.position.x, 0.0f, object.position.y});
+			const Vector3 marker_position = {object.position.x, nav_position.y + 0.5f, object.position.y};
+			const Color marker_color = getCategoryColor(object.category);
 
-			DrawCube(pos3D, 1.0f, 1.0f, 1.0f, color);
-			DrawCubeWires(pos3D, 1.1f, 1.1f, 1.1f, RAYWHITE);
+			DrawCube(marker_position, 1.0f, 1.0f, 1.0f, marker_color);
+			DrawCubeWires(marker_position, 1.1f, 1.1f, 1.1f, RAYWHITE);
 
-			if (obj.category == "spawners") {
-				Vector3 groundPos = { obj.position.x, terrain_y + 0.05f, obj.position.y };
-				
-				if (obj.spawn_radius > 0) {
-					DrawCircle3D(groundPos, obj.spawn_radius, { 1.0f, 0.0f, 0.0f }, 90.0f, ColorAlpha(YELLOW, 0.3f));
-					DrawCylinderWires(groundPos, obj.spawn_radius, obj.spawn_radius, 0.3f, 20, YELLOW);
+			if (object.category == "spawners") {
+				const Vector3 ground_position = {object.position.x, nav_position.y + 0.05f, object.position.y};
+
+				if (object.spawn_radius > 0.0f) {
+					DrawCircle3D(
+						ground_position,
+						object.spawn_radius,
+						{1.0f, 0.0f, 0.0f},
+						90.0f,
+						ColorAlpha(YELLOW, 0.3f)
+					);
+					DrawCylinderWires(ground_position, object.spawn_radius, object.spawn_radius, 0.3f, 20, YELLOW);
 				}
-				
-				if (obj.trigger_radius > 0) {
-					DrawCircle3D(groundPos, obj.trigger_radius, { 1.0f, 0.0f, 0.0f }, 90.0f, ColorAlpha(ORANGE, 0.2f));
-					DrawCylinderWires(groundPos, obj.trigger_radius, obj.trigger_radius, 0.6f, 20, ORANGE);
+
+				if (object.trigger_radius > 0.0f) {
+					DrawCircle3D(
+						ground_position,
+						object.trigger_radius,
+						{1.0f, 0.0f, 0.0f},
+						90.0f,
+						ColorAlpha(ORANGE, 0.2f)
+					);
+					DrawCylinderWires(
+						ground_position,
+						object.trigger_radius,
+						object.trigger_radius,
+						0.6f,
+						20,
+						ORANGE
+					);
 				}
 			}
 		}
 
 		EndMode3D();
 
-		for (const auto& obj : _placed_objects) {
-			float terrain_y = _map->getNavMesh().getClosestWalkablePosition({obj.position.x, 0.0f, obj.position.y}).y;
-			Vector2 screen_pos = GetWorldToScreen({ obj.position.x, terrain_y + 2.0f, obj.position.y }, camera);
-			std::string label = "[" + obj.category + "] " + obj.name;
-			Vector2 text_size = MeasureTextEx(font, label.c_str(), 14, 1.0f);
-			DrawRectangle(screen_pos.x - text_size.x / 2 - 2, screen_pos.y - 12, text_size.x + 4, 16, Fade(BLACK, 0.6f));
-			DrawDevText(font, label.c_str(), screen_pos.x - text_size.x / 2, screen_pos.y - 10, 14, RAYWHITE);
+		for (const auto& object : _placed_objects) {
+			const Vector3 nav_position =
+				_map->getNavMesh().getClosestWalkablePosition({object.position.x, 0.0f, object.position.y});
+			const Vector2 screen_position =
+				GetWorldToScreen({object.position.x, nav_position.y + 2.0f, object.position.y}, camera);
+			const std::string label = "[" + object.category + "] " + object.name;
+			const Vector2 text_size = MeasureTextEx(font, label.c_str(), 14, 1.0f);
+
+			DrawRectangle(
+				static_cast<int>(screen_position.x - text_size.x / 2.0f - 2.0f),
+				static_cast<int>(screen_position.y - 12.0f),
+				static_cast<int>(text_size.x + 4.0f),
+				16,
+				Fade(BLACK, 0.6f)
+			);
+			drawDevText(
+				font,
+				label.c_str(),
+				screen_position.x - text_size.x / 2.0f,
+				screen_position.y - 10.0f,
+				14,
+				RAYWHITE
+			);
 		}
 	}
 
 	void DevLevel::deleteNearestObject(Core::Engine* engine) {
-		if (_placed_objects.empty() || engine->getUIHandler().isMouseOverUI()) return;
+		if (_placed_objects.empty() || !engine || !_map || engine->getUIHandler().isMouseOverUI()) {
+			return;
+		}
 
 		const Ray ray = GetScreenToWorldRay(GetMousePosition(), engine->getCamera().get());
-		
-		int nearest_idx = -1;
-		float min_hit_dist = FLT_MAX;
+		int nearest_index = -1;
+		float nearest_hit_distance = std::numeric_limits<float>::max();
 
-		// 1. Najpierw sprawdzamy bezposrednie trafienie promieniem w "klocki" obiektow
-		for (int i = 0; i < (int)_placed_objects.size(); ++i) {
-			const auto& obj = _placed_objects[i];
-			float terrain_y = _map->getNavMesh().getClosestWalkablePosition({obj.position.x, 0.0f, obj.position.y}).y;
-			Vector3 pos3D = { obj.position.x, terrain_y + 0.5f, obj.position.y };
-			
-			BoundingBox box = { 
-				{ pos3D.x - 0.6f, pos3D.y - 0.6f, pos3D.z - 0.6f }, 
-				{ pos3D.x + 0.6f, pos3D.y + 0.6f, pos3D.z + 0.6f } 
+		for (int index = 0; index < static_cast<int>(_placed_objects.size()); ++index) {
+			const auto& object = _placed_objects[index];
+			const Vector3 nav_position =
+				_map->getNavMesh().getClosestWalkablePosition({object.position.x, 0.0f, object.position.y});
+			const Vector3 marker_position = {object.position.x, nav_position.y + 0.5f, object.position.y};
+			const BoundingBox marker_box = {
+				{marker_position.x - 0.6f, marker_position.y - 0.6f, marker_position.z - 0.6f},
+				{marker_position.x + 0.6f, marker_position.y + 0.6f, marker_position.z + 0.6f},
 			};
 
-			RayCollision hit = GetRayCollisionBox(ray, box);
-			if (hit.hit && hit.distance < min_hit_dist) {
-				min_hit_dist = hit.distance;
-				nearest_idx = i;
+			const RayCollision hit = GetRayCollisionBox(ray, marker_box);
+			if (hit.hit && hit.distance < nearest_hit_distance) {
+				nearest_hit_distance = hit.distance;
+				nearest_index = index;
 			}
 		}
 
-		// 2. Jesli nie trafilismy w klocki, sprawdzamy pozycje na ziemi (fallback)
-		if (nearest_idx == -1) {
-			Vector2 mouse_world;
+		if (nearest_index == -1) {
 			const RayCollision ground_hit = _map->getRayCollision(ray);
 			if (ground_hit.hit) {
-				mouse_world = { ground_hit.point.x, ground_hit.point.z };
-				float min_dist = 3.0f;
-				for (int i = 0; i < (int)_placed_objects.size(); ++i) {
-					float d = Vector2Distance(mouse_world, _placed_objects[i].position);
-					if (d < min_dist) {
-						min_dist = d;
-						nearest_idx = i;
+				const Vector2 mouse_world_position = {ground_hit.point.x, ground_hit.point.z};
+				float nearest_ground_distance = 3.0f;
+
+				for (int index = 0; index < static_cast<int>(_placed_objects.size()); ++index) {
+					const float distance = Vector2Distance(mouse_world_position, _placed_objects[index].position);
+					if (distance < nearest_ground_distance) {
+						nearest_ground_distance = distance;
+						nearest_index = index;
 					}
 				}
 			}
 		}
 
-		if (nearest_idx != -1) {
-			Core::Logger::debugLog("Usunieto obiekt: " + _placed_objects[nearest_idx].name);
-			_placed_objects.erase(_placed_objects.begin() + nearest_idx);
-			rewriteJsonFiles();
+		if (nearest_index == -1) {
+			return;
 		}
+
+		Core::Logger::debugLog("DevLevel: usunieto obiekt: " + _placed_objects[nearest_index].name);
+		_placed_objects.erase(_placed_objects.begin() + nearest_index);
+		rewriteJsonFiles();
 	}
 
 	void DevLevel::testLevel(Core::Engine* engine) {
-		if (!engine) return;
+		if (!engine) {
+			return;
+		}
 
 		auto& entity_manager = engine->getEntityManager();
 		entity_manager.clearNonPlayerEntities();
 		_spawn_manager.reset();
 
-		for (const auto& obj : _placed_objects) {
-			json data;
-			data["x"] = obj.position.x;
-			data["y"] = obj.position.y;
-			data["name"] = obj.name;
-			
-			if (obj.category == "spawners") {
-				for (int i = 0; i < obj.count; ++i) {
-					float angle = (float)i * (2.0f * PI / (float)obj.count);
-					float rx = std::cos(angle) * (obj.spawn_radius * 0.5f);
-					float ry = std::sin(angle) * (obj.spawn_radius * 0.5f);
-					
-					json spawn_data = data;
-					spawn_data["x"] = obj.position.x + rx;
-					spawn_data["y"] = obj.position.y + ry;
-					
-					auto entity = EntityFactory::create(obj.type, spawn_data, engine, _map.get());
-					if (entity) {
-						if (_map && _map->getNavMesh().isReady()) {
-							const Vector3 snapped = _map->getNavMesh().getClosestWalkablePosition({entity->getX(), 0, entity->getY()});
-							entity->setX(snapped.x); entity->setY(snapped.z); entity->setAltitude(snapped.y);
-						}
+		for (const auto& object : _placed_objects) {
+			json entity_data = serializePlacedObject(object);
 
-						SpawnPoint sp;
-						sp.location = "Dev Sandbox";
-						sp.entity_type = obj.type;
-						sp.entity_data = spawn_data;
-						sp.spawn_center = obj.position;
-						sp.trigger_radius = obj.trigger_radius;
-						sp.spawn_radius = obj.spawn_radius;
-						sp.entity = entity;
-						
-						bool should_be_active = (sp.trigger_radius <= 0.0f);
-						entity->setDormant(!should_be_active);
-						sp.activated = should_be_active;
-						
-						entity_manager.addEntity(entity);
-						_spawn_manager.addSpawnPoint(sp);
+			if (object.category == "spawners") {
+				const int spawn_count = std::max(1, object.count);
+				for (int index = 0; index < spawn_count; ++index) {
+					const float angle = static_cast<float>(index) * (2.0f * PI / static_cast<float>(spawn_count));
+					const float offset_x = std::cos(angle) * (object.spawn_radius * 0.5f);
+					const float offset_y = std::sin(angle) * (object.spawn_radius * 0.5f);
+
+					json spawn_data = entity_data;
+					spawn_data["x"] = object.position.x + offset_x;
+					spawn_data["y"] = object.position.y + offset_y;
+
+					auto entity = EntityFactory::create(object.type, spawn_data, engine, _map.get());
+					if (!entity) {
+						continue;
 					}
+
+					if (_map && _map->getNavMesh().isReady()) {
+						const Vector3 snapped_position =
+							_map->getNavMesh().getClosestWalkablePosition({entity->getX(), 0.0f, entity->getY()});
+						entity->setX(snapped_position.x);
+						entity->setY(snapped_position.z);
+						entity->setAltitude(snapped_position.y);
+					}
+
+					SpawnPoint spawn_point;
+					spawn_point.location = "Dev Sandbox";
+					spawn_point.entity_type = object.type;
+					spawn_point.entity_data = spawn_data;
+					spawn_point.spawn_center = object.position;
+					spawn_point.trigger_radius = object.trigger_radius;
+					spawn_point.spawn_radius = object.spawn_radius;
+					spawn_point.entity = entity;
+
+					const bool should_be_active = spawn_point.trigger_radius <= 0.0f;
+					entity->setDormant(!should_be_active);
+					spawn_point.activated = should_be_active;
+
+					entity_manager.addEntity(entity);
+					_spawn_manager.addSpawnPoint(spawn_point);
 				}
 			} else {
-				if (obj.category == "chests") data["items"] = obj.loot_ids;
-				else if (obj.category == "npcs") data["npc_class"] = obj.extra_string;
-				else if (obj.category == "props") data["texture"] = obj.extra_string;
-				else if (obj.category == "teleports") data["target_location"] = obj.extra_string;
-
-				auto entity = EntityFactory::create(obj.type, data, engine, _map.get());
+				auto entity = EntityFactory::create(object.type, entity_data, engine, _map.get());
 				if (entity) {
 					entity_manager.addEntity(entity);
 				}
 			}
 		}
 
-		Core::Logger::debugLog("Zespawnowano testowy poziom (z obsluga Trigger Radius).");
+		Core::Logger::debugLog("DevLevel: zespawnowano testowy poziom.");
 	}
 
 	void DevLevel::renderLightingOverlay(Core::Engine& engine) const {
 		const auto& font = engine.getUIHandler().getFont();
-		int x = k_overlay_margin;
+		int x = OVERLAY_MARGIN;
 		int y = 10;
+
 		DrawRectangle(5, 5, 450, 240, Fade(BLACK, 0.7f));
 		DrawRectangleLines(5, 5, 450, 240, DARKGRAY);
 
-		DrawDevText(font, "INSTRUKCJA KREATORA POZIOMU", x, y, 20, YELLOW); y += 30;
-		DrawDevText(font, "- Prawy Klik: Otwiera menu dodawania obiektu", x, y, 16, RAYWHITE); y += 20;
-		DrawDevText(font, "- SHIFT + WASD: Szybkie latanie po mapie", x, y, 16, RAYWHITE); y += 20;
-		DrawDevText(font, "- DELETE / X: Usuwa obiekt pod myszka", x, y, 16, RED); y += 20;
-		DrawDevText(font, "- S: Zapisuje oswietlenie mapy", x, y, 16, RAYWHITE); y += 20;
-		DrawDevText(font, "- Strzalki/PgUp/PgDn: Sterowanie swiatlem", x, y, 16, GRAY); y += 30;
-		
-		DrawDevText(font, "LEGENDA ZASIEGOW:", x, y, 18, YELLOW); y += 25;
-		DrawCircle(x + 10, y + 8, 8, ColorAlpha(YELLOW, 0.5f)); 
-		DrawDevText(font, "Spawn Range (zolty)", x + 25, y, 16, RAYWHITE); y += 20;
-		DrawCircle(x + 10, y + 8, 8, ColorAlpha(ORANGE, 0.5f)); 
-		DrawDevText(font, "Trigger Range (pomaranczowy)", x + 25, y, 16, RAYWHITE); y += 25;
+		drawDevText(font, "INSTRUKCJA KREATORA POZIOMU", x, y, 20, YELLOW);
+		y += 30;
+		drawDevText(font, "- Prawy klik: otwiera menu dodawania obiektu", x, y, 16, RAYWHITE);
+		y += 20;
+		drawDevText(font, "- SHIFT + WASD: szybkie poruszanie po mapie", x, y, 16, RAYWHITE);
+		y += 20;
+		drawDevText(font, "- DELETE / X: usuwa obiekt pod kursorem", x, y, 16, RED);
+		y += 20;
+		drawDevText(font, "- S: zapisuje oswietlenie mapy", x, y, 16, RAYWHITE);
+		y += 20;
+		drawDevText(font, "- Strzalki/PgUp/PgDn: sterowanie swiatlem", x, y, 16, GRAY);
+		y += 30;
 
-		DrawDevText(font, "Zapis do: assets/data/dev/new_level_*.json", x, y, 14, GREEN);
+		drawDevText(font, "LEGENDA ZASIEGOW:", x, y, 18, YELLOW);
+		y += 25;
+		DrawCircle(x + 10, y + 8, 8, ColorAlpha(YELLOW, 0.5f));
+		drawDevText(font, "Spawn Radius (zolty)", x + 25, y, 16, RAYWHITE);
+		y += 20;
+		DrawCircle(x + 10, y + 8, 8, ColorAlpha(ORANGE, 0.5f));
+		drawDevText(font, "Trigger Radius (pomaranczowy)", x + 25, y, 16, RAYWHITE);
+		y += 25;
+
+		drawDevText(font, "Zapis do: assets/data/dev/new_level_*.json", x, y, 14, GREEN);
 	}
 
 	void DevLevel::renderMainMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
-		int start_x = GetScreenWidth() / 2 - 150;
-		int start_y = GetScreenHeight() / 2 - 200;
-		DrawDevText(font, "Wybierz typ obiektu:", start_x, start_y - 40, 24, YELLOW);
-		if (DrawButton(font, "SPAWNER (Przeciwnicy)", start_x, start_y, 300, 50, DARKBLUE)) _current_mode = EditorMode::SpawnerType;
-		if (DrawButton(font, "SKRZYNIA (Loot)", start_x, start_y + 60, 300, 50, DARKBLUE)) {
-			_temp_entity_type = "chest"; _temp_name = "Skrzynia"; _current_mode = EditorMode::ChestDetails;
+		const int start_x = GetScreenWidth() / 2 - 150;
+		const int start_y = GetScreenHeight() / 2 - 200;
+
+		drawDevText(font, "Wybierz typ obiektu:", start_x, start_y - 40, 24, YELLOW);
+
+		if (drawButton(font, "SPAWNER (Przeciwnicy)", start_x, start_y, 300, 50, DARKBLUE)) {
+			_current_mode = EditorMode::SpawnerType;
 		}
-		if (DrawButton(font, "NPC (Rozmowa)", start_x, start_y + 120, 300, 50, DARKBLUE)) _current_mode = EditorMode::NPCSelection;
-		if (DrawButton(font, "PROP (Static Object)", start_x, start_y + 180, 300, 50, DARKBLUE)) {
-			_temp_entity_type = "static_object"; _temp_name = "Prop"; _current_mode = EditorMode::PropDetails;
+		if (drawButton(font, "SKRZYNIA (Loot)", start_x, start_y + 60, 300, 50, DARKBLUE)) {
+			_temp_entity_type = "chest";
+			_temp_name = "Skrzynia";
+			_current_mode = EditorMode::ChestDetails;
 		}
-		if (DrawButton(font, "TELEPORT", start_x, start_y + 240, 300, 50, DARKBLUE)) {
-			_temp_entity_type = "teleport"; _temp_name = "Teleport"; _current_mode = EditorMode::TeleportDetails;
+		if (drawButton(font, "NPC (Rozmowa)", start_x, start_y + 120, 300, 50, DARKBLUE)) {
+			_current_mode = EditorMode::NPCSelection;
 		}
-		
-		if (DrawButton(font, "TESTUJ POZIOM (Spawn)", start_x - 320, start_y, 300, 50, ORANGE)) {
+		if (drawButton(font, "PROP (Static Object)", start_x, start_y + 180, 300, 50, DARKBLUE)) {
+			_temp_entity_type = "static_object";
+			_temp_name = "Prop";
+			_current_mode = EditorMode::PropDetails;
+		}
+		if (drawButton(font, "TELEPORT", start_x, start_y + 240, 300, 50, DARKBLUE)) {
+			_temp_entity_type = "teleport";
+			_temp_name = "Teleport";
+			_current_mode = EditorMode::TeleportDetails;
+		}
+
+		if (drawButton(font, "TESTUJ POZIOM (Spawn)", start_x - 320, start_y, 300, 50, ORANGE)) {
 			testLevel(engine);
 			_current_mode = EditorMode::None;
 		}
-
-		if (DrawButton(font, "ZAPISZ SESJE", start_x - 320, start_y + 60, 300, 50, GREEN)) {
+		if (drawButton(font, "ZAPISZ SESJE", start_x - 320, start_y + 60, 300, 50, GREEN)) {
 			rewriteJsonFiles();
-			Core::Logger::debugLog("Sesja zapisana manualnie.");
+			Core::Logger::debugLog("DevLevel: sesja zapisana manualnie.");
 		}
-
-		if (DrawButton(font, "ANULUJ", start_x, start_y + 320, 300, 50, MAROON)) _current_mode = EditorMode::None;
+		if (drawButton(font, "ANULUJ", start_x, start_y + 320, 300, 50, MAROON)) {
+			_current_mode = EditorMode::None;
+		}
 	}
 
 	void DevLevel::renderSpawnerTypeMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
-		int start_x = GetScreenWidth() / 2 - 150;
-		int start_y = GetScreenHeight() / 2 - 150;
-		DrawDevText(font, "Typ przeciwnika:", start_x, start_y - 40, 24, YELLOW);
-		if (DrawButton(font, "Devil", start_x, start_y, 300, 40, BLUE)) { _temp_entity_type = "devil"; _current_mode = EditorMode::SpawnerDetails; }
-		if (DrawButton(font, "Bandit", start_x, start_y + 50, 300, 40, BLUE)) { _temp_entity_type = "bandit"; _current_mode = EditorMode::SpawnerDetails; }
-		if (DrawButton(font, "Walking Dead", start_x, start_y + 100, 300, 40, BLUE)) { _temp_entity_type = "walking_dead"; _current_mode = EditorMode::SpawnerDetails; }
-		if (DrawButton(font, "WSTECZ", start_x, start_y + 180, 300, 40, GRAY)) _current_mode = EditorMode::MainMenu;
+		const int start_x = GetScreenWidth() / 2 - 150;
+		const int start_y = GetScreenHeight() / 2 - 150;
+
+		drawDevText(font, "Typ przeciwnika:", start_x, start_y - 40, 24, YELLOW);
+
+		if (drawButton(font, "Devil", start_x, start_y, 300, 40, BLUE)) {
+			_temp_entity_type = "devil";
+			_current_mode = EditorMode::SpawnerDetails;
+		}
+		if (drawButton(font, "Bandit", start_x, start_y + 50, 300, 40, BLUE)) {
+			_temp_entity_type = "bandit";
+			_current_mode = EditorMode::SpawnerDetails;
+		}
+		if (drawButton(font, "Walking Dead", start_x, start_y + 100, 300, 40, BLUE)) {
+			_temp_entity_type = "walking_dead";
+			_current_mode = EditorMode::SpawnerDetails;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 180, 300, 40, GRAY)) {
+			_current_mode = EditorMode::MainMenu;
+		}
 	}
 
 	void DevLevel::renderSpawnerDetailsMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
-		int start_x = GetScreenWidth() / 2 - 200;
-		int start_y = GetScreenHeight() / 2 - 150;
-		DrawDevText(font, ("Szczegoly: " + _temp_entity_type).c_str(), start_x, start_y - 40, 24, YELLOW);
-		DrawLabel(font, "Liczba sztuk:", start_x, start_y);
-		if (DrawTextInput(font, _input_buffer, start_x, start_y + 20, 100, 40, _selected_field == 0)) _selected_field = 0;
-		DrawLabel(font, "Spawn Radius (obszar):", start_x + 120, start_y);
-		static std::string sr_buf = "5.0";
-		if (DrawTextInput(font, sr_buf, start_x + 120, start_y + 20, 120, 40, _selected_field == 1)) _selected_field = 1;
-		DrawLabel(font, "Trigger Radius (aktywacja):", start_x + 260, start_y);
-		static std::string tr_buf = "15.0";
-		if (DrawTextInput(font, tr_buf, start_x + 260, start_y + 20, 120, 40, _selected_field == 2)) _selected_field = 2;
-		if (DrawButton(font, "ZAPISZ SPAWNER", start_x, start_y + 100, 400, 50, GREEN)) {
+		const int start_x = GetScreenWidth() / 2 - 200;
+		const int start_y = GetScreenHeight() / 2 - 150;
+		const std::string title = "Szczegoly: " + _temp_entity_type;
+
+		drawDevText(font, title.c_str(), start_x, start_y - 40, 24, YELLOW);
+		drawLabel(font, "Liczba sztuk:", start_x, start_y);
+		if (drawTextInput(font, _count_buffer, start_x, start_y + 20, 100, 40, _selected_field == 0)) {
+			_selected_field = 0;
+		}
+
+		drawLabel(font, "Spawn Radius (obszar):", start_x + 120, start_y);
+		if (drawTextInput(font, _spawn_radius_buffer, start_x + 120, start_y + 20, 120, 40, _selected_field == 1)) {
+			_selected_field = 1;
+		}
+
+		drawLabel(font, "Trigger Radius (aktywacja):", start_x + 260, start_y);
+		if (drawTextInput(
+				font,
+				_trigger_radius_buffer,
+				start_x + 260,
+				start_y + 20,
+				120,
+				40,
+				_selected_field == 2
+			)) {
+			_selected_field = 2;
+		}
+
+		if (drawButton(font, "ZAPISZ SPAWNER", start_x, start_y + 100, 400, 50, GREEN)) {
 			try {
-				_temp_count = std::stoi(_input_buffer.empty() ? "1" : _input_buffer);
-				_temp_spawn_radius = std::stof(sr_buf);
-				_temp_trigger_radius = std::stof(tr_buf);
+				_temp_count = std::max(1, std::stoi(_count_buffer.empty() ? "1" : _count_buffer));
+				_temp_spawn_radius = std::max(0.0f, std::stof(_spawn_radius_buffer));
+				_temp_trigger_radius = std::max(0.0f, std::stof(_trigger_radius_buffer));
 				saveObject("spawners");
 				_current_mode = EditorMode::None;
-			} catch (...) { Core::Logger::errorLog("Bledne dane numeryczne w spawnerze!"); }
+			} catch (const std::exception& error) {
+				Core::Logger::errorLog("DevLevel: bledne dane numeryczne w spawnerze: " + std::string(error.what()));
+			}
 		}
-		if (DrawButton(font, "WSTECZ", start_x, start_y + 160, 400, 40, GRAY)) _current_mode = EditorMode::SpawnerType;
+		if (drawButton(font, "WSTECZ", start_x, start_y + 160, 400, 40, GRAY)) {
+			_current_mode = EditorMode::SpawnerType;
+		}
 	}
 
 	void DevLevel::renderChestDetailsMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
-		int start_x = GetScreenWidth() / 2 - 200;
-		int start_y = GetScreenHeight() / 2 - 150;
-		DrawDevText(font, "Konfiguracja Skrzyni:", start_x, start_y - 40, 24, YELLOW);
-		DrawLabel(font, "Nazwa:", start_x, start_y);
-		if (DrawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _selected_field == 0)) _selected_field = 0;
+		const int start_x = GetScreenWidth() / 2 - 200;
+		const int start_y = GetScreenHeight() / 2 - 150;
+
+		drawDevText(font, "Konfiguracja skrzyni:", start_x, start_y - 40, 24, YELLOW);
+		drawLabel(font, "Nazwa:", start_x, start_y);
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _selected_field == 0)) {
+			_selected_field = 0;
+		}
+
 		std::string loot_text = "Loot IDs: ";
-		for (int id : _temp_loot_ids) loot_text += std::to_string(id) + ", ";
-		DrawDevText(font, loot_text.c_str(), start_x, start_y + 70, 18, LIGHTGRAY);
-		if (DrawButton(font, "+ DODAJ PRZEDMIOT", start_x, start_y + 100, 400, 40, BLUE)) _current_mode = EditorMode::ItemSelection;
-		if (DrawButton(font, "ZAPISZ SKRZYNIE", start_x, start_y + 160, 400, 50, GREEN)) { saveObject("chests"); _current_mode = EditorMode::None; }
-		if (DrawButton(font, "WSTECZ", start_x, start_y + 220, 400, 40, GRAY)) _current_mode = EditorMode::MainMenu;
+		for (const int item_id : _temp_loot_ids) {
+			loot_text += std::to_string(item_id) + ", ";
+		}
+		drawDevText(font, loot_text.c_str(), start_x, start_y + 70, 18, LIGHTGRAY);
+
+		if (drawButton(font, "+ DODAJ PRZEDMIOT", start_x, start_y + 100, 400, 40, BLUE)) {
+			_current_mode = EditorMode::ItemSelection;
+		}
+		if (drawButton(font, "ZAPISZ SKRZYNIE", start_x, start_y + 160, 400, 50, GREEN)) {
+			saveObject("chests");
+			_current_mode = EditorMode::None;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 220, 400, 40, GRAY)) {
+			_current_mode = EditorMode::MainMenu;
+		}
 	}
 
 	void DevLevel::renderNPCSelectionMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
-		int start_x = GetScreenWidth() / 2 - 150;
-		int start_y = GetScreenHeight() / 2 - 100;
-		DrawDevText(font, "Wybierz NPC:", start_x, start_y - 40, 24, YELLOW);
-		if (DrawButton(font, "KOT (Cat)", start_x, start_y, 300, 50, BLUE)) {
-			_temp_entity_type = "npc"; _temp_name = "Kot"; _temp_target_location = "cat"; saveObject("npcs"); _current_mode = EditorMode::None;
+		const int start_x = GetScreenWidth() / 2 - 150;
+		const int start_y = GetScreenHeight() / 2 - 100;
+
+		drawDevText(font, "Wybierz NPC:", start_x, start_y - 40, 24, YELLOW);
+		if (drawButton(font, "KOT (Cat)", start_x, start_y, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Kot";
+			_temp_extra_value = "cat";
+			saveObject("npcs");
+			_current_mode = EditorMode::None;
 		}
-		if (DrawButton(font, "WSTECZ", start_x, start_y + 80, 300, 50, GRAY)) _current_mode = EditorMode::MainMenu;
+		if (drawButton(font, "WSTECZ", start_x, start_y + 80, 300, 50, GRAY)) {
+			_current_mode = EditorMode::MainMenu;
+		}
 	}
 
 	void DevLevel::renderPropDetailsMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
-		int start_x = GetScreenWidth() / 2 - 200;
-		int start_y = GetScreenHeight() / 2 - 150;
-		DrawDevText(font, "Konfiguracja Propa:", start_x, start_y - 40, 24, YELLOW);
-		DrawLabel(font, "Nazwa (ID w fabryce):", start_x, start_y);
-		if (DrawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _selected_field == 0)) _selected_field = 0;
-		DrawLabel(font, "Texture Path:", start_x, start_y + 70);
-		static std::string tex_path = "assets/textures/chest.png";
-		if (DrawTextInput(font, tex_path, start_x, start_y + 90, 400, 40, _selected_field == 1)) _selected_field = 1;
-		if (DrawButton(font, "ZAPISZ PROP", start_x, start_y + 150, 400, 50, GREEN)) { _temp_target_location = tex_path; saveObject("props"); _current_mode = EditorMode::None; }
-		if (DrawButton(font, "WSTECZ", start_x, start_y + 210, 400, 40, GRAY)) _current_mode = EditorMode::MainMenu;
+		const int start_x = GetScreenWidth() / 2 - 200;
+		const int start_y = GetScreenHeight() / 2 - 150;
+
+		drawDevText(font, "Konfiguracja propa:", start_x, start_y - 40, 24, YELLOW);
+		drawLabel(font, "Nazwa:", start_x, start_y);
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _selected_field == 0)) {
+			_selected_field = 0;
+		}
+
+		drawLabel(font, "Texture Path:", start_x, start_y + 70);
+		if (drawTextInput(font, _texture_path_buffer, start_x, start_y + 90, 400, 40, _selected_field == 1)) {
+			_selected_field = 1;
+		}
+
+		if (drawButton(font, "ZAPISZ PROP", start_x, start_y + 150, 400, 50, GREEN)) {
+			_temp_extra_value = _texture_path_buffer;
+			saveObject("props");
+			_current_mode = EditorMode::None;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 210, 400, 40, GRAY)) {
+			_current_mode = EditorMode::MainMenu;
+		}
 	}
 
 	void DevLevel::renderTeleportDetailsMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
-		int start_x = GetScreenWidth() / 2 - 200;
-		int start_y = GetScreenHeight() / 2 - 150;
-		DrawDevText(font, "Konfiguracja Teleportu:", start_x, start_y - 40, 24, YELLOW);
-		DrawLabel(font, "Nazwa:", start_x, start_y);
-		if (DrawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _selected_field == 0)) _selected_field = 0;
-		DrawLabel(font, "Target Location (nazwa mapy):", start_x, start_y + 70);
-		if (DrawTextInput(font, _temp_target_location, start_x, start_y + 90, 400, 40, _selected_field == 1)) _selected_field = 1;
-		if (DrawButton(font, "ZAPISZ TELEPORT", start_x, start_y + 150, 400, 50, GREEN)) { saveObject("teleports"); _current_mode = EditorMode::None; }
-		if (DrawButton(font, "WSTECZ", start_x, start_y + 210, 400, 40, GRAY)) _current_mode = EditorMode::MainMenu;
+		const int start_x = GetScreenWidth() / 2 - 200;
+		const int start_y = GetScreenHeight() / 2 - 150;
+
+		drawDevText(font, "Konfiguracja teleportu:", start_x, start_y - 40, 24, YELLOW);
+		drawLabel(font, "Nazwa:", start_x, start_y);
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _selected_field == 0)) {
+			_selected_field = 0;
+		}
+
+		drawLabel(font, "Target Location (nazwa mapy):", start_x, start_y + 70);
+		if (drawTextInput(font, _temp_extra_value, start_x, start_y + 90, 400, 40, _selected_field == 1)) {
+			_selected_field = 1;
+		}
+
+		if (drawButton(font, "ZAPISZ TELEPORT", start_x, start_y + 150, 400, 50, GREEN)) {
+			saveObject("teleports");
+			_current_mode = EditorMode::None;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 210, 400, 40, GRAY)) {
+			_current_mode = EditorMode::MainMenu;
+		}
 	}
 
 	void DevLevel::renderItemSelectionMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
-		int start_x = GetScreenWidth() / 2 - 250;
-		int start_y = GetScreenHeight() / 2 - 250;
-		DrawDevText(font, "Wybierz przedmiot do dodania:", start_x, start_y - 40, 24, YELLOW);
-		auto& db = engine->getItemDatabase();
-		int i = 0;
-		for (const auto& [id, item] : db.getAllTemplates()) {
-			std::string btn_text = std::to_string(id) + ": " + item->getName();
-			if (DrawButton(font, btn_text.c_str(), start_x, start_y + i * 45, 500, 40, DARKBLUE)) { _temp_loot_ids.push_back(id); _current_mode = EditorMode::ChestDetails; }
-			i++; if (i > 10) break;
+		const int start_x = GetScreenWidth() / 2 - 250;
+		const int start_y = GetScreenHeight() / 2 - 250;
+
+		drawDevText(font, "Wybierz przedmiot do dodania:", start_x, start_y - 40, 24, YELLOW);
+
+		int row = 0;
+		for (const auto& [item_id, item] : engine->getItemDatabase().getAllTemplates()) {
+			if (row >= MAX_VISIBLE_ITEMS) {
+				break;
+			}
+
+			const std::string button_text = std::to_string(item_id) + ": " + item->getName();
+			if (drawButton(font, button_text.c_str(), start_x, start_y + row * 45, 500, 40, DARKBLUE)) {
+				_temp_loot_ids.push_back(item_id);
+				_current_mode = EditorMode::ChestDetails;
+			}
+			++row;
 		}
-		if (DrawButton(font, "WSTECZ", start_x, start_y + 500, 500, 40, GRAY)) _current_mode = EditorMode::ChestDetails;
+
+		if (drawButton(font, "WSTECZ", start_x, start_y + 500, 500, 40, GRAY)) {
+			_current_mode = EditorMode::ChestDetails;
+		}
 	}
 
 	void DevLevel::resetEditorState() {
-		_temp_entity_type = ""; _temp_name = ""; _temp_count = 1; _temp_spawn_radius = 5.0f; _temp_trigger_radius = 15.0f; _temp_loot_ids.clear(); _temp_target_location = ""; _input_buffer = "1"; _selected_field = 0;
+		_temp_entity_type.clear();
+		_temp_name.clear();
+		_temp_count = 1;
+		_temp_spawn_radius = 5.0f;
+		_temp_trigger_radius = 15.0f;
+		_temp_loot_ids.clear();
+		_temp_extra_value.clear();
+
+		_count_buffer = "1";
+		_spawn_radius_buffer = "5.0";
+		_trigger_radius_buffer = "15.0";
+		_texture_path_buffer = "assets/textures/chest.png";
+		_selected_field = 0;
 	}
 
 	void DevLevel::saveObject(const std::string& category) {
-		PlacedObject po;
-		po.category = category;
-		po.name = _temp_name.empty() ? (_temp_entity_type.empty() ? category : _temp_entity_type) : _temp_name;
-		po.type = _temp_entity_type;
-		po.position = _saved_world_position;
-		po.spawn_radius = _temp_spawn_radius;
-		po.trigger_radius = _temp_trigger_radius;
-		po.count = _temp_count;
-		po.loot_ids = _temp_loot_ids;
-		po.extra_string = _temp_target_location;
-		_placed_objects.push_back(po);
+		PlacedObject placed_object;
+		placed_object.category = category;
+		placed_object.name = _temp_name.empty() ? (_temp_entity_type.empty() ? category : _temp_entity_type) : _temp_name;
+		placed_object.type = _temp_entity_type;
+		placed_object.position = _saved_world_position;
+		placed_object.spawn_radius = _temp_spawn_radius;
+		placed_object.trigger_radius = _temp_trigger_radius;
+		placed_object.count = _temp_count;
+		placed_object.loot_ids = _temp_loot_ids;
+		placed_object.extra_value = _temp_extra_value;
+
+		_placed_objects.push_back(std::move(placed_object));
 		rewriteJsonFiles();
 	}
 
 	void DevLevel::rewriteJsonFiles() {
-		std::vector<std::string> categories = { "spawners", "chests", "npcs", "props", "teleports" };
-		for (const auto& cat : categories) {
+		for (const std::string_view category : OBJECT_CATEGORIES) {
+			const std::string category_name(category);
 			json data = json::array();
-			for (const auto& obj : _placed_objects) {
-				if (obj.category != cat) continue;
-				json j;
-				j["x"] = obj.position.x;
-				j["y"] = obj.position.y;
-				j["name"] = obj.name;
-				j["type"] = obj.type;
-				if (cat == "spawners") {
-					j["count"] = obj.count;
-					j["spawn_radius"] = obj.spawn_radius;
-					j["trigger_radius"] = obj.trigger_radius;
-				} else if (cat == "chests") {
-					j["items"] = obj.loot_ids;
-				} else if (cat == "npcs") {
-					j["npc_class"] = obj.extra_string;
-				} else if (cat == "props") {
-					j["texture"] = obj.extra_string;
-				} else if (cat == "teleports") {
-					j["target_location"] = obj.extra_string;
+
+			for (const auto& object : _placed_objects) {
+				if (object.category == category_name) {
+					data.push_back(serializePlacedObject(object));
 				}
-				data.push_back(j);
 			}
-			const auto output_path = resolveAssetPath("data/dev/new_level_" + cat + ".json");
-			if (!output_path.parent_path().empty()) std::filesystem::create_directories(output_path.parent_path());
-			std::ofstream out(output_path);
-			if (out.is_open()) out << data.dump(4);
+
+			const auto output_path = getCategoryFilePath(category_name);
+
+			try {
+				if (!output_path.parent_path().empty()) {
+					std::filesystem::create_directories(output_path.parent_path());
+				}
+			} catch (const std::filesystem::filesystem_error& error) {
+				Core::Logger::errorLog("DevLevel: nie mozna utworzyc katalogu: " + std::string(error.what()));
+				continue;
+			}
+
+			std::ofstream output(output_path);
+			if (!output.is_open()) {
+				Core::Logger::errorLog("DevLevel: nie mozna zapisac pliku: " + toPathString(output_path));
+				continue;
+			}
+
+			output << data.dump(4);
 		}
 	}
 
