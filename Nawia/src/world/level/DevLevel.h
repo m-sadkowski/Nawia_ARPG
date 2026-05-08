@@ -88,6 +88,9 @@ namespace Nawia::World {
 		/** @brief Zwraca sciezke do roboczego pliku kategorii. */
 		[[nodiscard]] std::filesystem::path getCategoryFilePath(const std::string& category) const;
 
+		/** @brief Zwraca sciezke do roboczego pliku calego levelu. */
+		[[nodiscard]] std::filesystem::path getLevelFilePath() const;
+
 		/** @brief Rysuje markery i zasiegi postawionych obiektow. */
 		void renderPlacedObjects(Core::Engine* engine);
 
@@ -147,6 +150,12 @@ namespace Nawia::World {
 
 		/** @brief Nadpisuje robocze pliki JSON aktualna lista obiektow. */
 		void rewriteJsonFiles();
+
+		/** @brief Wczytuje ustawienia levelu zapisane przez DevLevel. */
+		void loadLevelSettings();
+
+		/** @brief Nadpisuje roboczy JSON calego levelu z ustawieniami navmesha. */
+		void rewriteLevelJsonFile();
 
 		EditorMode _current_mode = EditorMode::None;
 		Vector2 _saved_world_position = {0.0f, 0.0f};

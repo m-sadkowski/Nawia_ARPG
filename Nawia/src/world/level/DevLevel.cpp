@@ -39,6 +39,7 @@ namespace Nawia::World {
 		constexpr Rectangle NAVMESH_HEIGHT_SLIDER = {135.0f, 255.0f, 250.0f, 18.0f};
 		constexpr Rectangle NAVMESH_HEIGHT_APPLY_BUTTON = {315.0f, 285.0f, 105.0f, 28.0f};
 		constexpr float WATER_PLANE_HALF_SIZE = 90.0f;
+		constexpr const char* DEV_LOCATION_NAME = "Dev Sandbox";
 
 		constexpr std::array<std::string_view, 5> OBJECT_CATEGORIES = {
 			"spawners",
@@ -131,6 +132,8 @@ namespace Nawia::World {
 
 	void DevLevel::onEnter(Core::Engine* engine) {
 		Core::Logger::debugLog("Ladowanie poziomu DevLevel (kreator poziomu)...");
+
+		loadLevelSettings();
 
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
 		_map->loadMap(MAP_FILE, MAP_SCALE, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
@@ -330,6 +333,10 @@ namespace Nawia::World {
 
 	std::filesystem::path DevLevel::getCategoryFilePath(const std::string& category) const {
 		return resolveAssetPath(std::filesystem::path("data/dev") / ("new_level_" + category + ".json"));
+	}
+
+	std::filesystem::path DevLevel::getLevelFilePath() const {
+		return resolveAssetPath(std::filesystem::path("data/dev") / "new_level.json");
 	}
 
 	void DevLevel::handleUIInput(Core::Engine* engine) {
@@ -722,6 +729,7 @@ namespace Nawia::World {
 			_map->setNavMeshMinWalkableHeight(_navmesh_min_walkable_height);
 		}
 		_navmesh_height_dirty = false;
+		rewriteLevelJsonFile();
 	}
 
 	void DevLevel::renderMainMenu(Core::Engine* engine) {
@@ -1022,6 +1030,69 @@ namespace Nawia::World {
 
 			output << data.dump(4);
 		}
+
+		rewriteLevelJsonFile();
+	}
+
+	void DevLevel::loadLevelSettings() {
+		const auto input_path = getLevelFilePath();
+		if (!std::filesystem::exists(input_path))
+			return;
+
+		std::ifstream file(input_path);
+		if (!file.is_open()) {
+			Core::Logger::errorLog("DevLevel: nie mozna otworzyc ustawien levelu: " + toPathString(input_path));
+			return;
+		}
+
+		json data;
+		try {
+			file >> data;
+		} catch (const json::parse_error& error) {
+			Core::Logger::errorLog("DevLevel: blad parsowania ustawien levelu: " + std::string(error.what()));
+			return;
+		}
+
+		const auto navmesh_it = data.find("navmesh");
+		if (navmesh_it == data.end() || !navmesh_it->is_object())
+			return;
+
+		_navmesh_min_walkable_height = navmesh_it->value("min_walkable_height", _navmesh_min_walkable_height);
+	}
+
+	void DevLevel::rewriteLevelJsonFile() {
+		const auto output_path = getLevelFilePath();
+
+		try {
+			if (!output_path.parent_path().empty()) {
+				std::filesystem::create_directories(output_path.parent_path());
+			}
+		} catch (const std::filesystem::filesystem_error& error) {
+			Core::Logger::errorLog("DevLevel: nie mozna utworzyc katalogu levelu: " + std::string(error.what()));
+			return;
+		}
+
+		json data;
+		data["navmesh"]["min_walkable_height"] = _navmesh_min_walkable_height;
+		data["player_spawn"][DEV_LOCATION_NAME] = {
+			{"x", PLAYER_SPAWN.x},
+			{"y", PLAYER_SPAWN.y},
+		};
+		data["entities"] = json::array();
+
+		for (const auto& object : _placed_objects) {
+			json entity_data = serializePlacedObject(object);
+			entity_data["location"] = DEV_LOCATION_NAME;
+			data["entities"].push_back(std::move(entity_data));
+		}
+
+		std::ofstream output(output_path);
+		if (!output.is_open()) {
+			Core::Logger::errorLog("DevLevel: nie mozna zapisac pliku levelu: " + toPathString(output_path));
+			return;
+		}
+
+		output << data.dump(4);
 	}
 
 } // namespace Nawia::World

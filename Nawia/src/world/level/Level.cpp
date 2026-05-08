@@ -5,6 +5,10 @@
 #include <Map.h>
 #include <Player.h>
 
+#include <json.hpp>
+
+#include <fstream>
+
 namespace Nawia::World {
 
 	Level::~Level() = default;
@@ -61,6 +65,54 @@ namespace Nawia::World {
 		}
 
 		_current_location_index = 0;
+	}
+
+	void Level::applyNavMeshSettingsFromJson(const std::string& location_name) {
+		const std::string path = getSpawnFilePath();
+		if (path.empty() || !_map) return;
+
+		std::ifstream file(path);
+		if (!file.is_open()) {
+			Core::Logger::debugLog("Level: brak pliku ustawien navmesha: " + path);
+			return;
+		}
+
+		nlohmann::json root;
+		try {
+			file >> root;
+		} catch (const nlohmann::json::parse_error& error) {
+			Core::Logger::errorLog("Level: blad parsowania ustawien navmesha: " + std::string(error.what()));
+			return;
+		}
+
+		const auto navmesh_it = root.find("navmesh");
+		if (navmesh_it == root.end() || !navmesh_it->is_object())
+			return;
+
+		const nlohmann::json* navmesh_settings = &(*navmesh_it);
+		if (!location_name.empty()) {
+			const auto location_it = navmesh_it->find(location_name);
+			if (location_it != navmesh_it->end() && location_it->is_object())
+				navmesh_settings = &(*location_it);
+		}
+
+		const nlohmann::json* min_height_value = nullptr;
+		const auto min_height_it = navmesh_settings->find("min_walkable_height");
+		if (min_height_it != navmesh_settings->end())
+			min_height_value = &(*min_height_it);
+
+		if (!min_height_value && navmesh_settings != &(*navmesh_it)) {
+			const auto global_min_height_it = navmesh_it->find("min_walkable_height");
+			if (global_min_height_it != navmesh_it->end())
+				min_height_value = &(*global_min_height_it);
+		}
+
+		if (!min_height_value || !min_height_value->is_number())
+			return;
+
+		const float min_walkable_height = min_height_value->get<float>();
+		_map->setNavMeshMinWalkableHeight(min_walkable_height);
+		Core::Logger::debugLog("Level: zastosowano navmesh.min_walkable_height=" + std::to_string(min_walkable_height));
 	}
 
 	void Level::changeLocation(Core::Engine* engine, const std::string& location_name) {

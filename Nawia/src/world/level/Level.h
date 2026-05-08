@@ -96,6 +96,11 @@ namespace Nawia::World {
          */
         void loadSpawns(Core::Engine* engine);
 
+        /**
+         * @brief Wczytuje opcjonalne ustawienia navmesha z pliku spawn levelu.
+         */
+        void applyNavMeshSettingsFromJson(const std::string& location_name = "");
+
         std::unique_ptr<Core::Map> _map;
         size_t _current_location_index = 0;
         SpawnManager _spawn_manager;
