@@ -1,58 +1,73 @@
 # Boss Fight System
 
-The Boss Fight System is a data-driven framework for creating epic encounters in Nawia. It manages arena locking, boss spawning, UI progression, and rewards.
+The boss fight system is data-driven and centered around `BossManager`. Boss definitions live in `assets/data/bosses.json`, while level JSON files place `boss_trigger` entities that start a fight.
 
 ## Key Components
 
-### 1. BossManager
-The central hub for all boss encounters.
-- **Loading**: Loads boss definitions from `assets/data/bosses.json`.
-- **Fight Lifecycle**: Handles `startBossFight` and `endBossFight`.
-- **Arena Management**: Automatically spawns `BossWall` entities to lock the player in the arena.
-- **Entity Management**: Spawns the boss entity based on the `enemy_type` defined in JSON.
-- **Rewards**: Automatically distributes XP, gold, and items upon boss defeat.
+### BossManager
 
-### 2. BossData (JSON Schema)
-Bosses are defined in `bosses.json`.
+- Loads boss definitions from `assets/data/bosses.json`.
+- Preloads boss and minion entities for the active level through `preloadForLevel`.
+- Starts and ends boss fights, tracks defeated bosses, rewards the player, and notifies quests.
+- Applies phase multipliers, phase notifications, and optional screen flash effects.
+- Cleans up spawned minions after the fight.
+
+### BossArenaTrigger
+
+`BossArenaTrigger` is a rectangular trigger created from level entity JSON:
+
+```json
+{
+  "location": "Lesna Dolina",
+  "type": "boss_trigger",
+  "boss_id": "devil_lord",
+  "x": 0.0,
+  "y": 2.0,
+  "width": 10.0,
+  "height": 4.0,
+  "trigger_radius": 0
+}
+```
+
+The trigger starts the configured boss fight when the player enters it. It does not restart an already active fight, and `BossManager` prevents defeated bosses from being triggered again.
+
+### Teleport Blocking
+
+There are no dynamic arena wall entities in the current implementation. Teleports are blocked while a boss fight is active, so the player cannot leave the encounter through location transitions.
+
+### Boss UI
+
+`UIHandler` renders a boss health bar during an active fight. The bar shows the boss name, HP, phase markers, current phase name, and fight timer. Phase transitions can also trigger a short screen flash configured in `bosses.json`.
+
+## Boss JSON
+
+Boss phases can change speed and damage multipliers, show notifications, flash the screen, and spawn minions:
+
 ```json
 {
   "id": "devil_lord",
   "name": "Devil Lord",
   "enemy_type": "Devil",
   "level_name": "DemoLevel",
-  "max_hp": 1500,
-  "scale": 1.5,
-  "arena": {
-    "x": -10.0, "y": 5.0, "width": 20.0, "height": 15.0
-  },
-  "spawn_pos": {
-    "x": 0.0, "y": 12.0
-  },
+  "max_hp": 200,
+  "scale": 0.03,
+  "spawn_pos": { "x": 0.0, "y": 10.0 },
+  "phases": [
+    {
+      "hp_threshold": 1.0,
+      "name": "Faza 1",
+      "speed_multiplier": 1.0,
+      "damage_multiplier": 1.0,
+      "notification": "Devil Lord atakuje!"
+    }
+  ],
   "rewards": {
     "gold": 500,
     "exp": 1000,
     "items": [1, 2]
-  }
+  },
+  "on_player_death": "end_fight"
 }
 ```
 
-### 3. BossArenaTrigger
-A specialized trigger entity that starts the fight when the player enters.
-- Defined in level entity JSONs (e.g., `demo_level.json`).
-- Links to a specific `boss_id`.
-
-### 4. BossWall
-Invisible (in production) or debug-visible walls that use the `EntityType::Wall` to block movement.
-- Spawned dynamically by `BossManager`.
-- Cleaned up automatically after the fight.
-
-### 5. Boss UI
-A dedicated Boss Health Bar is rendered at the top of the screen when a fight is active.
-- Managed by `UIHandler`.
-- Displays boss name and precise HP values.
-
-## Implementation Details
-
-- **Collision**: `EntityManager` was updated to handle `Wall` entity collisions, preventing players and enemies from leaving the arena.
-- **Dynamic Spawning**: Bosses are spawned using Builders (e.g., `DevilBuilder`) to ensure they have the correct stats and scale.
-- **Thesis Interface**: The system is modular and decoupled. `BossManager` only interacts with `Engine` and `EntityManager`, making it easy to extend with new boss types or mechanics.
+`level_name` must match `Level::getName()`, because preloading is level-scoped.

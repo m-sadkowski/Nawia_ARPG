@@ -6,6 +6,7 @@
 #include <Constants.h>
 #include <Entity.h>
 #include <EntityManager.h>
+#include <EnemyInterface.h>
 #include <GlobalScaling.h>
 #include <InteractiveClickable.h>
 #include <LevelSelectMenu.h>
