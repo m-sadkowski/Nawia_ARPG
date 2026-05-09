@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <LevelManager.h>
 
 namespace Nawia::Game {
 
@@ -327,6 +328,10 @@ namespace Nawia::Game {
         _fight_timer = 0.0f;
         _phase_flash_timer = 0.0f;
         _minion_pools.clear();
+
+        if (!victory) {
+            preloadForLevel(engine->getLevelManager().getCurrentLevelName(), engine);
+        }
     }
 
     void BossManager::checkPhaseTransition(Core::Engine* engine) {
