@@ -60,6 +60,7 @@ namespace Nawia::Core {
 
 		_loottable.loadLootTables("assets/data/loottables.json", _item_database);
 		_quest_manager.loadFromJson("assets/data/quests.json");
+		_boss_manager.loadFromJson("assets/data/bosses.json");
 
 		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
 		_player->setAudioManager(&_audio_manager);
@@ -307,6 +308,9 @@ namespace Nawia::Core {
 			return;
 
 		if (_player->isDead()) {
+			if (_boss_manager.isFightActive()) {
+				_boss_manager.endBossFight(false, this);
+			}
 			_game_state = GameState::GameOver;
 			return;
 		}
@@ -320,6 +324,7 @@ namespace Nawia::Core {
 		_entity_manager->updateEntities(delta_time);
 		_entity_manager->handleEntitiesCollisions();
 		_quest_manager.update(this);
+		_boss_manager.update(this, delta_time);
 		collectPendingSpawns();
 	}
 
@@ -400,7 +405,7 @@ namespace Nawia::Core {
 
 		renderWorld();
 
-		if (_ui_handler) _ui_handler->render(_camera);
+		if (_ui_handler) _ui_handler->render(_camera, &_boss_manager);
 
 		if (_show_pause_menu && _ui_handler)
 			_ui_handler->renderPauseMenu();

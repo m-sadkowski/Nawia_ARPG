@@ -153,6 +153,11 @@ namespace Nawia::Entity {
 		void setMovementSpeed(float speed) { _movement_speed = speed; }
 		[[nodiscard]] float getMovementSpeed() const { return _movement_speed; }
 
+		void setSpeedMultiplier(float multiplier) { _speed_multiplier = multiplier; }
+		[[nodiscard]] float getSpeedMultiplier() const { return _speed_multiplier; }
+		void setDamageMultiplier(float multiplier) { _damage_multiplier = multiplier; }
+		[[nodiscard]] float getDamageMultiplier() const { return _damage_multiplier; }
+
 		// HP i obrażenia.
 		/**
 		 * @brief Zadaje obrażenia i uruchamia sekwencję śmierci, jeśli HP spadnie do zera.
@@ -390,6 +395,9 @@ namespace Nawia::Entity {
 		float _movement_speed = 2.0f;
 		float _target_x = 0.0f;
 		float _target_y = 0.0f;
+
+		float _speed_multiplier = 1.0f;
+		float _damage_multiplier = 1.0f;
 
 		// Śledzenie celu.
 		std::weak_ptr<Entity> _target;

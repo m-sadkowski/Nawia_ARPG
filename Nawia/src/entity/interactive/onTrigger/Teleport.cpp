@@ -6,6 +6,7 @@
 #include <LevelManager.h>
 #include <Logger.h>
 #include <Player.h>
+#include <BossManager.h>
 
 namespace Nawia::Entity {
 
@@ -20,6 +21,11 @@ namespace Nawia::Entity {
         if (isDormant()) return;
 
         if (other.getFaction() == Faction::Player) {
+            if (_engine && _engine->getBossManager().isFightActive()) {
+                Core::Logger::debugLog("Teleport zablokowany - trwa walka z bossem!");
+                return;
+            }
+
             Core::Logger::debugLog("Teleporting player to: " + _target_location);
             
             if (_engine) {

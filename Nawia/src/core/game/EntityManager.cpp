@@ -254,7 +254,8 @@ namespace Nawia::Core {
 
         for (auto& entity : _active_entities) 
         {
-            if (entity == _player) continue;
+            if (!entity || entity == _player) continue;
+            if (entity->isDormant()) continue;
 
             if (const auto trigger = dynamic_cast<Entity::InteractiveTrigger*>(entity.get())) 
             {
@@ -309,7 +310,9 @@ namespace Nawia::Core {
         if (entity->isDormant()) return false;
 
         const Entity::EntityType type = entity->getType();
-        return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy || type == Entity::EntityType::Ally);
+        return type == Entity::EntityType::Player ||
+               type == Entity::EntityType::Enemy ||
+               type == Entity::EntityType::Ally;
     }
 
     void EntityManager::resolveOverlap(

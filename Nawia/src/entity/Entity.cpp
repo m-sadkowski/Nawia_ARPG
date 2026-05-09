@@ -482,7 +482,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (distance > 0.001f)
 			rotateTowards(_target_x, _target_y);
 
-		const float speed = _movement_speed;
+		const float speed = _movement_speed * _speed_multiplier;
 		const float move_dist = speed * dt;
 
 		if (move_dist >= distance) 
