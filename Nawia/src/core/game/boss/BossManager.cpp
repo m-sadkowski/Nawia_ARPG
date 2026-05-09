@@ -4,23 +4,84 @@
 #include <Collider.h>
 #include <Devil.h>
 #include <Engine.h>
+#include <LevelManager.h>
 #include <Logger.h>
 #include <WalkingDead.h>
 #include <json.hpp>
 
 #include <cmath>
 #include <fstream>
-#include <LevelManager.h>
 
 namespace Nawia::Game {
 
     BossManager::BossManager() {}
     BossManager::~BossManager() {}
 
+    // -----------------------------------------------------------------------
+    // Helpery parsowania JSON (lokalne w jednostce kompilacji)
+    // -----------------------------------------------------------------------
+
+    namespace {
+
+        std::vector<MinionSpawnInfo> parseMinionList(const nlohmann::json& pj) {
+            std::vector<MinionSpawnInfo> result;
+            if (!pj.contains("minions")) return result;
+
+            for (const auto& mj : pj["minions"]) {
+                MinionSpawnInfo minion;
+                minion.enemy_type = mj.value("enemy_type", "WalkingDead");
+                minion.count = mj.value("count", 1);
+                minion.hp = mj.value("hp", 60);
+                minion.offset_x = mj.value("offset_x", 3.0f);
+                minion.offset_y = mj.value("offset_y", 2.0f);
+                result.push_back(minion);
+            }
+            return result;
+        }
+
+        BossPhase parseBossPhase(const nlohmann::json& pj) {
+            BossPhase phase;
+            phase.hp_threshold = pj.value("hp_threshold", 1.0f);
+            phase.name = pj.value("name", "");
+            phase.speed_multiplier = pj.value("speed_multiplier", 1.0f);
+            phase.damage_multiplier = pj.value("damage_multiplier", 1.0f);
+            phase.notification = pj.value("notification", "");
+            phase.screen_flash = pj.value("screen_flash", false);
+
+            if (pj.contains("flash_color")) {
+                const auto& fc = pj["flash_color"];
+                if (fc.is_array() && fc.size() >= 4) {
+                    phase.flash_color = {
+                        static_cast<unsigned char>(fc[0].get<int>()),
+                        static_cast<unsigned char>(fc[1].get<int>()),
+                        static_cast<unsigned char>(fc[2].get<int>()),
+                        static_cast<unsigned char>(fc[3].get<int>())
+                    };
+                }
+            }
+
+            phase.minions = parseMinionList(pj);
+            return phase;
+        }
+
+        BossReward parseBossReward(const nlohmann::json& rj) {
+            BossReward reward;
+            reward.gold = rj.value("gold", 0);
+            reward.exp = rj.value("exp", 0);
+            if (rj.contains("items")) {
+                for (const auto& item_id : rj["items"]) {
+                    reward.item_ids.push_back(item_id.get<int>());
+                }
+            }
+            return reward;
+        }
+
+    } // namespace anonimowa
+
     void BossManager::loadFromJson(const std::string& path) {
         std::ifstream file(path);
         if (!file.is_open()) {
-            Core::Logger::errorLog("BossManager: Could not open " + path);
+            Core::Logger::errorLog("BossManager: Nie udalo sie otworzyc " + path);
             return;
         }
 
@@ -29,7 +90,7 @@ namespace Nawia::Game {
             file >> data;
         }
         catch (const nlohmann::json::parse_error&) {
-            Core::Logger::errorLog("BossManager: JSON parse error in " + path);
+            Core::Logger::errorLog("BossManager: Blad parsowania JSON w " + path);
             return;
         }
 
@@ -46,85 +107,82 @@ namespace Nawia::Game {
             boss.level_name = bj.value("level_name", "");
             boss.on_player_death = bj.value("on_player_death", "end_fight");
 
-            // Spawn position
+            // Pozycja spawnu.
             if (bj.contains("spawn_pos")) {
                 const auto& sj = bj["spawn_pos"];
                 boss.spawn_pos = { sj.value("x", 0.0f), sj.value("y", 0.0f) };
             }
 
-            // Phases
+            // Fazy.
             if (bj.contains("phases")) {
                 for (const auto& pj : bj["phases"]) {
-                    BossPhase phase;
-                    phase.hp_threshold = pj.value("hp_threshold", 1.0f);
-                    phase.name = pj.value("name", "");
-                    phase.speed_multiplier = pj.value("speed_multiplier", 1.0f);
-                    phase.damage_multiplier = pj.value("damage_multiplier", 1.0f);
-                    phase.notification = pj.value("notification", "");
-                    phase.screen_flash = pj.value("screen_flash", false);
-
-                    if (pj.contains("flash_color")) {
-                        const auto& fc = pj["flash_color"];
-                        if (fc.is_array() && fc.size() >= 4) {
-                            phase.flash_color = {
-                                static_cast<unsigned char>(fc[0].get<int>()),
-                                static_cast<unsigned char>(fc[1].get<int>()),
-                                static_cast<unsigned char>(fc[2].get<int>()),
-                                static_cast<unsigned char>(fc[3].get<int>())
-                            };
-                        }
-                    }
-
-                    if (pj.contains("minions")) {
-                        for (const auto& mj : pj["minions"]) {
-                            MinionSpawnInfo minion;
-                            minion.enemy_type = mj.value("enemy_type", "WalkingDead");
-                            minion.count = mj.value("count", 1);
-                            minion.hp = mj.value("hp", 60);
-                            minion.offset_x = mj.value("offset_x", 3.0f);
-                            minion.offset_y = mj.value("offset_y", 2.0f);
-                            phase.minions.push_back(minion);
-                        }
-                    }
-
-                    boss.phases.push_back(phase);
+                    boss.phases.push_back(parseBossPhase(pj));
                 }
             }
 
-            // If no phases defined, create a default phase
+            // Domyslna faza, jesli zadna nie zostala zdefiniowana.
             if (boss.phases.empty()) {
                 BossPhase default_phase;
                 default_phase.hp_threshold = 1.0f;
-                default_phase.name = "Phase 1";
+                default_phase.name = "Faza 1";
                 default_phase.speed_multiplier = 1.0f;
                 default_phase.damage_multiplier = 1.0f;
                 boss.phases.push_back(default_phase);
             }
 
-            // Rewards
+            // Nagrody.
             if (bj.contains("rewards")) {
-                const auto& rj = bj["rewards"];
-                boss.reward.gold = rj.value("gold", 0);
-                boss.reward.exp = rj.value("exp", 0);
-                if (rj.contains("items")) {
-                    for (const auto& item_id : rj["items"]) {
-                        boss.reward.item_ids.push_back(item_id.get<int>());
-                    }
-                }
+                boss.reward = parseBossReward(bj["rewards"]);
             }
 
             if (!boss.id.empty()) {
                 _bosses[boss.id] = boss;
-                Core::Logger::debugLog("BossManager: Loaded boss '" + boss.id + "' with " + std::to_string(boss.phases.size()) + " phases");
+                Core::Logger::debugLog("BossManager: Zaladowano bossa '" + boss.id + "' z " + std::to_string(boss.phases.size()) + " fazami");
             }
         }
     }
+
+    // -----------------------------------------------------------------------
+    // Budowanie encji wroga (wspolne dla bossa i minionow)
+    // -----------------------------------------------------------------------
+
+    std::shared_ptr<Entity::Entity> BossManager::buildEnemyEntity(
+        const std::string& type, const std::string& name,
+        int max_hp, Core::Engine* engine)
+    {
+        auto player = engine->getPlayer();
+        auto* map = engine->getCurrentMap();
+
+        std::shared_ptr<Entity::Entity> entity = nullptr;
+
+        if (type == "Devil") {
+            entity = std::shared_ptr<Entity::Entity>(Entity::DevilBuilder()
+                .setName(name).setMap(map).setMaxHp(max_hp)
+                .setTarget(player).setAudioManager(&engine->getAudioManager())
+                .build());
+        } else if (type == "WalkingDead") {
+            entity = std::shared_ptr<Entity::Entity>(Entity::WalkingDeadBuilder()
+                .setName(name).setMap(map).setMaxHp(max_hp)
+                .setTarget(player).setAudioManager(&engine->getAudioManager())
+                .build());
+        } else if (type == "Bandit") {
+            entity = std::shared_ptr<Entity::Entity>(Entity::BanditBuilder()
+                .setName(name).setMap(map).setMaxHp(max_hp)
+                .setTarget(player).setAudioManager(&engine->getAudioManager())
+                .build());
+        }
+
+        return entity;
+    }
+
+    // -----------------------------------------------------------------------
+    // Preloadowanie
+    // -----------------------------------------------------------------------
 
     void BossManager::preloadForLevel(const std::string& level_name, Core::Engine* engine) {
         _minion_pools.clear();
         _boss_pool.clear();
 
-        auto player = engine->getPlayer();
         auto* map = engine->getCurrentMap();
         if (!map) return;
 
@@ -133,25 +191,15 @@ namespace Nawia::Game {
         for (const auto& [id, boss] : _bosses) {
             if (boss.level_name != level_name) continue;
 
-            // Preload boss entity
-            std::shared_ptr<Entity::Entity> boss_entity = nullptr;
-            if (boss.enemy_type == "Devil") {
-                boss_entity = std::shared_ptr<Entity::Entity>(Entity::DevilBuilder()
-                    .setName(boss.name)
-                    .setMap(map)
-                    .setMaxHp(boss.max_hp)
-                    .setTarget(player)
-                    .setAudioManager(&engine->getAudioManager())
-                    .build());
-            }
-
+            // Preladowanie encji bossa.
+            auto boss_entity = buildEnemyEntity(boss.enemy_type, boss.name, boss.max_hp, engine);
             if (boss_entity) {
                 boss_entity->setDormant(true);
                 _boss_pool[boss.id] = boss_entity;
                 preloaded_anything = true;
             }
 
-            // Preload minions
+            // Obliczenie lacznej liczby minionow na typ ze wszystkich faz.
             std::map<std::string, int> minion_counts;
             for (const auto& phase : boss.phases) {
                 for (const auto& minion : phase.minions) {
@@ -159,35 +207,11 @@ namespace Nawia::Game {
                 }
             }
 
-            for (const auto& pair : minion_counts) {
-                const std::string& type = pair.first;
-                int count = pair.second;
+            // Preladowanie puli minionow.
+            for (const auto& [type, count] : minion_counts) {
                 auto& pool = _minion_pools[type];
                 for (int i = 0; i < count; ++i) {
-                    std::shared_ptr<Entity::Entity> minion = nullptr;
-                    if (type == "WalkingDead") {
-                        minion = std::shared_ptr<Entity::Entity>(Entity::WalkingDeadBuilder()
-                            .setName("Minion")
-                            .setMap(map)
-                            .setTarget(player)
-                            .setAudioManager(&engine->getAudioManager())
-                            .build());
-                    } else if (type == "Bandit") {
-                        minion = std::shared_ptr<Entity::Entity>(Entity::BanditBuilder()
-                            .setName("Minion")
-                            .setMap(map)
-                            .setTarget(player)
-                            .setAudioManager(&engine->getAudioManager())
-                            .build());
-                    } else if (type == "Devil") {
-                        minion = std::shared_ptr<Entity::Entity>(Entity::DevilBuilder()
-                            .setName("Minion")
-                            .setMap(map)
-                            .setTarget(player)
-                            .setAudioManager(&engine->getAudioManager())
-                            .build());
-                    }
-
+                    auto minion = buildEnemyEntity(type, "Minion", 60, engine);
                     if (minion) {
                         minion->setDormant(true);
                         pool.push_back(minion);
@@ -198,28 +222,32 @@ namespace Nawia::Game {
         }
 
         if (preloaded_anything) {
-            Core::Logger::debugLog("BossManager: Preloaded boss fight resources for level '" + level_name + "'.");
+            Core::Logger::debugLog("BossManager: Preladowano zasoby walki z bossem dla poziomu '" + level_name + "'.");
         }
     }
+
+    // -----------------------------------------------------------------------
+    // Aktualizacja
+    // -----------------------------------------------------------------------
 
     void BossManager::update(Core::Engine* engine, float dt) {
         if (!isFightActive()) return;
 
         _fight_timer += dt;
 
-        // Decay phase flash timer
+        // Wygaszanie efektu blysku fazy.
         if (_phase_flash_timer > 0.0f) {
             _phase_flash_timer -= dt;
             if (_phase_flash_timer < 0.0f) _phase_flash_timer = 0.0f;
         }
 
-        // Check if boss died
+        // Sprawdzenie smierci bossa.
         if (_active_boss_entity && _active_boss_entity->isDead()) {
             endBossFight(true, engine);
             return;
         }
 
-        // Clean up dead minions from tracking list
+        // Czyszczenie martwych minionow z listy sledzenia.
         for (auto it = _active_minions.begin(); it != _active_minions.end();) {
             if (!*it || (*it)->isDead()) {
                 it = _active_minions.erase(it);
@@ -228,8 +256,61 @@ namespace Nawia::Game {
             }
         }
 
-        // Check phase transitions
+        // Sprawdzenie przejsc miedzy fazami.
         checkPhaseTransition(engine);
+    }
+
+    // -----------------------------------------------------------------------
+    // Startowanie walki
+    // -----------------------------------------------------------------------
+
+    bool BossManager::activateBossFromPool(const std::string& boss_id, Core::Engine* engine) {
+        auto pool_it = _boss_pool.find(boss_id);
+        if (pool_it == _boss_pool.end() || !pool_it->second) return false;
+
+        auto player = engine->getPlayer();
+        auto boss_entity = pool_it->second;
+        boss_entity->setX(_active_boss_data->spawn_pos.x);
+        boss_entity->setY(_active_boss_data->spawn_pos.y);
+        boss_entity->setMaxHp(_active_boss_data->max_hp);
+        boss_entity->setDormant(false);
+        boss_entity->setTarget(player);
+
+        auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(boss_entity);
+        if (!enemy) return false;
+
+        enemy->setScale(_active_boss_data->scale);
+        enemy->setCollider(std::make_unique<Entity::RectangleCollider>(enemy.get(), 1.2f, 1.4f, 0.0f, 0.0f));
+        _active_boss_entity = enemy;
+        engine->getEntityManager().addEntity(_active_boss_entity);
+        return true;
+    }
+
+    bool BossManager::buildAndActivateBoss(Core::Engine* engine) {
+        auto player = engine->getPlayer();
+        auto* map = engine->getCurrentMap();
+
+        if (_active_boss_data->enemy_type != "Devil") {
+            Core::Logger::errorLog("BossManager: Nieznany typ wroga '" + _active_boss_data->enemy_type + "'");
+            return false;
+        }
+
+        Entity::DevilBuilder builder;
+        builder.setPosition(_active_boss_data->spawn_pos)
+               .setName(_active_boss_data->name)
+               .setMaxHp(_active_boss_data->max_hp)
+               .setMap(map)
+               .setAudioManager(&engine->getAudioManager());
+
+        if (player)
+            builder.setTarget(player);
+
+        auto devil = builder.build();
+        devil->setScale(_active_boss_data->scale);
+        devil->setCollider(std::make_unique<Entity::RectangleCollider>(devil.get(), 1.2f, 1.4f, 0.0f, 0.0f));
+        _active_boss_entity = std::shared_ptr<Entity::EnemyInterface>(std::move(devil));
+        engine->getEntityManager().addEntity(_active_boss_entity);
+        return true;
     }
 
     bool BossManager::startBossFight(const std::string& boss_id, Core::Engine* engine) {
@@ -238,7 +319,7 @@ namespace Nawia::Game {
 
         auto it = _bosses.find(boss_id);
         if (it == _bosses.end()) {
-            Core::Logger::errorLog("BossManager: Boss '" + boss_id + "' not found.");
+            Core::Logger::errorLog("BossManager: Boss '" + boss_id + "' nie znaleziony.");
             return false;
         }
 
@@ -246,77 +327,48 @@ namespace Nawia::Game {
         _current_phase_index = 0;
         _fight_timer = 0.0f;
         _phase_flash_timer = 0.0f;
-        Core::Logger::debugLog("BossManager: Starting boss fight: " + _active_boss_data->name);
+        Core::Logger::debugLog("BossManager: Rozpoczecie walki z bossem: " + _active_boss_data->name);
 
-        auto player = engine->getPlayer();
-        auto* map = engine->getCurrentMap();
-
-        if (auto pool_it = _boss_pool.find(boss_id); pool_it != _boss_pool.end() && pool_it->second) {
-            auto boss_entity = pool_it->second;
-            boss_entity->setX(_active_boss_data->spawn_pos.x);
-            boss_entity->setY(_active_boss_data->spawn_pos.y);
-            boss_entity->setMaxHp(_active_boss_data->max_hp);
-            boss_entity->setDormant(false);
-            boss_entity->setTarget(player);
-
-            if (auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(boss_entity)) {
-                enemy->setScale(_active_boss_data->scale);
-                enemy->setCollider(std::make_unique<Entity::RectangleCollider>(enemy.get(), 1.2f, 1.4f, 0.0f, 0.0f));
-                _active_boss_entity = enemy;
-                engine->getEntityManager().addEntity(_active_boss_entity);
-            }
-        } else if (_active_boss_data->enemy_type == "Devil") {
-            Entity::DevilBuilder builder;
-            builder.setPosition(_active_boss_data->spawn_pos)
-                   .setName(_active_boss_data->name)
-                   .setMaxHp(_active_boss_data->max_hp)
-                   .setMap(map)
-                   .setAudioManager(&engine->getAudioManager());
-
-            if (player)
-                builder.setTarget(player);
-
-            auto devil = builder.build();
-            devil->setScale(_active_boss_data->scale);
-            devil->setCollider(std::make_unique<Entity::RectangleCollider>(devil.get(), 1.2f, 1.4f, 0.0f, 0.0f));
-            _active_boss_entity = std::shared_ptr<Entity::EnemyInterface>(std::move(devil));
-            engine->getEntityManager().addEntity(_active_boss_entity);
-        } else {
-            Core::Logger::errorLog("BossManager: Unknown enemy type '" + _active_boss_data->enemy_type + "'");
+        // Proba aktywacji z puli preladowanych encji, fallback na budowanie.
+        if (!activateBossFromPool(boss_id, engine) && !buildAndActivateBoss(engine)) {
             _active_boss_data = nullptr;
             return false;
         }
 
         if (!_active_boss_entity) {
-            Core::Logger::errorLog("BossManager: Could not spawn boss '" + boss_id + "'.");
+            Core::Logger::errorLog("BossManager: Nie udalo sie stworzyc bossa '" + boss_id + "'.");
             _active_boss_data = nullptr;
             return false;
         }
 
-        // Apply initial phase
+        // Zastosowanie poczatkowej fazy.
         if (!_active_boss_data->phases.empty()) {
             applyPhase(_active_boss_data->phases[0], engine);
         }
 
-        engine->getUIHandler().showNotification("BOSS FIGHT: " + _active_boss_data->name, 4.0f);
+        engine->getUIHandler().showNotification("WALKA Z BOSSEM: " + _active_boss_data->name, 4.0f);
 
         return true;
     }
+
+    // -----------------------------------------------------------------------
+    // Konczenie walki
+    // -----------------------------------------------------------------------
 
     void BossManager::endBossFight(bool victory, Core::Engine* engine) {
         if (!isFightActive()) return;
 
         if (victory) {
-            Core::Logger::debugLog("BossManager: Victory! Boss defeated: " + _active_boss_data->name);
+            Core::Logger::debugLog("BossManager: Zwyciestwo! Boss pokonany: " + _active_boss_data->name);
             engine->getUIHandler().showNotification("ZWYCIESTWO! Boss pokonany.", 5.0f);
 
-            // Mark boss as defeated so fight can't be re-triggered
+            // Oznaczenie bossa jako pokonanego.
             _defeated_bosses.insert(_active_boss_data->id);
 
-            // Notify quest system (use enemy_type as kill name for quest matching)
+            // Powiadomienie systemu questow.
             engine->getQuestManager().notifyKill(_active_boss_data->enemy_type);
 
-            // Give rewards
+            // Przyznanie nagrod.
             auto player = engine->getPlayer();
             if (player) {
                 player->addExp(_active_boss_data->reward.exp);
@@ -328,10 +380,10 @@ namespace Nawia::Game {
                 }
             }
         } else {
-            Core::Logger::debugLog("BossManager: Defeat. Boss fight ended.");
-            engine->getUIHandler().showNotification("Boss fight zakonczona.", 3.0f);
+            Core::Logger::debugLog("BossManager: Porazka. Walka z bossem zakonczona.");
+            engine->getUIHandler().showNotification("Walka z bossem zakonczona.", 3.0f);
 
-            // Kill the boss entity so the arena is clean after respawn
+            // Zabicie encji bossa, zeby arena byla czysta po respawnie.
             if (_active_boss_entity && !_active_boss_entity->isDead()) {
                 _active_boss_entity->die();
             }
@@ -351,6 +403,10 @@ namespace Nawia::Game {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Fazy
+    // -----------------------------------------------------------------------
+
     void BossManager::checkPhaseTransition(Core::Engine* engine) {
         if (!_active_boss_entity || !_active_boss_data) return;
         if (_active_boss_data->phases.empty()) return;
@@ -358,7 +414,7 @@ namespace Nawia::Game {
         float hp_pct = static_cast<float>(_active_boss_entity->getHP()) / 
                        static_cast<float>(_active_boss_entity->getMaxHP());
 
-        // Check if we should advance to a later phase
+        // Sprawdzenie, czy nalezy przejsc do pozniejszej fazy.
         for (int i = static_cast<int>(_active_boss_data->phases.size()) - 1; i > _current_phase_index; --i) {
             if (hp_pct <= _active_boss_data->phases[i].hp_threshold) {
                 _current_phase_index = i;
@@ -369,40 +425,41 @@ namespace Nawia::Game {
     }
 
     void BossManager::applyPhase(const BossPhase& phase, Core::Engine* engine) {
-        Core::Logger::debugLog("BossManager: Entering phase: " + phase.name);
+        Core::Logger::debugLog("BossManager: Wejscie w faze: " + phase.name);
 
-        // Apply stat multipliers to boss
+        // Zastosowanie mnoznikow statystyk bossa.
         if (_active_boss_entity) {
             _active_boss_entity->setSpeedMultiplier(phase.speed_multiplier);
             _active_boss_entity->setDamageMultiplier(phase.damage_multiplier);
         }
 
-        // Show notification
+        // Wyswietlenie powiadomienia.
         if (!phase.notification.empty()) {
             engine->getUIHandler().showNotification(phase.notification, 3.0f);
         }
 
-        // Trigger screen flash effect on phase transition
+        // Efekt blysku ekranu przy przejsciu fazy.
         if (phase.screen_flash) {
-            _phase_flash_timer = 0.6f; // 0.6 second flash
+            _phase_flash_timer = 0.6f;
             _phase_flash_color = phase.flash_color;
         }
 
-        // Spawn minions
+        // Przywolanie minionow.
         if (!phase.minions.empty()) {
             spawnMinions(phase.minions, engine);
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Miniony
+    // -----------------------------------------------------------------------
+
     void BossManager::spawnMinions(const std::vector<MinionSpawnInfo>& minions, Core::Engine* engine) {
-        auto player = engine->getPlayer();
-        auto* map = engine->getCurrentMap();
-        
         if (!_active_boss_entity) return;
 
         for (const auto& info : minions) {
             for (int i = 0; i < info.count; ++i) {
-                // Spread minions in a circle pattern around the boss
+                // Rozmieszczenie minionow w okregu wokol bossa.
                 float angle = (2.0f * 3.14159f / static_cast<float>(info.count)) * i;
                 Vector2 spawn_pos = {
                     _active_boss_entity->getX() + info.offset_x * std::cos(angle),
@@ -411,7 +468,7 @@ namespace Nawia::Game {
 
                 std::shared_ptr<Entity::Entity> minion = nullptr;
 
-                // Try to get from pool first to avoid freezing from model loading
+                // Proba pobrania z puli preladowanych encji.
                 if (_minion_pools.count(info.enemy_type) && !_minion_pools[info.enemy_type].empty()) {
                     minion = _minion_pools[info.enemy_type].back();
                     _minion_pools[info.enemy_type].pop_back();
@@ -420,19 +477,11 @@ namespace Nawia::Game {
                     minion->setMaxHp(info.hp);
                     minion->setDormant(false);
                 } else {
-                    // Fallback to building on the fly if pool is empty
-                    if (info.enemy_type == "WalkingDead") {
-                        auto built = Entity::WalkingDeadBuilder()
-                            .setName("Minion").setPosition(spawn_pos).setMap(map).setMaxHp(info.hp).setTarget(player).setAudioManager(&engine->getAudioManager()).build();
-                        minion = std::shared_ptr<Entity::Entity>(std::move(built));
-                    } else if (info.enemy_type == "Bandit") {
-                        auto built = Entity::BanditBuilder()
-                            .setName("Minion").setPosition(spawn_pos).setMap(map).setMaxHp(info.hp).setTarget(player).setAudioManager(&engine->getAudioManager()).build();
-                        minion = std::shared_ptr<Entity::Entity>(std::move(built));
-                    } else if (info.enemy_type == "Devil") {
-                        auto built = Entity::DevilBuilder()
-                            .setName("Minion").setPosition(spawn_pos).setMap(map).setMaxHp(info.hp).setTarget(player).setAudioManager(&engine->getAudioManager()).build();
-                        minion = std::shared_ptr<Entity::Entity>(std::move(built));
+                    // Budowanie w locie, jesli pula jest pusta.
+                    minion = buildEnemyEntity(info.enemy_type, "Minion", info.hp, engine);
+                    if (minion) {
+                        minion->setX(spawn_pos.x);
+                        minion->setY(spawn_pos.y);
                     }
                 }
 
@@ -443,7 +492,7 @@ namespace Nawia::Game {
             }
         }
 
-        Core::Logger::debugLog("BossManager: Spawned " + std::to_string(_active_minions.size()) + " minions.");
+        Core::Logger::debugLog("BossManager: Przywolano " + std::to_string(_active_minions.size()) + " minionow.");
     }
 
     void BossManager::removeMinions(Core::Engine* engine) {
@@ -453,7 +502,7 @@ namespace Nawia::Game {
             }
         }
         _active_minions.clear();
-        Core::Logger::debugLog("BossManager: Minions removed.");
+        Core::Logger::debugLog("BossManager: Miniony usuniete.");
     }
 
 } // namespace Nawia::Game

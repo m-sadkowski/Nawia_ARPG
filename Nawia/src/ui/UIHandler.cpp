@@ -561,6 +561,70 @@ namespace Nawia::UI
         _notifications.push_back({ text, duration, duration });
     }
 
+    namespace {
+        /**
+         * @brief Oblicza kolor paska HP bossa na podstawie procentu zycia.
+         *
+         * Wysoki procent daje zielonkawy odcien, sredni zoltawy, niski czerwony.
+         */
+        Color getBossBarColor(float hp_percent) {
+            if (hp_percent > 0.5f) {
+                const float t = (hp_percent - 0.5f) / 0.5f;
+                return {
+                    static_cast<unsigned char>(255.0f * (1.0f - t)),
+                    static_cast<unsigned char>(180.0f + 75.0f * t),
+                    30, 255
+                };
+            }
+            if (hp_percent > 0.2f) {
+                const float t = (hp_percent - 0.2f) / 0.3f;
+                return {
+                    255,
+                    static_cast<unsigned char>(100.0f + 80.0f * t),
+                    20, 255
+                };
+            }
+            return { 180, 32, 26, 255 };
+        }
+    }
+
+    void UIHandler::renderBossName(const std::string& name, float x, float y, float bar_width, float spacing) const
+    {
+        const float name_font_size = Core::GlobalScaling::scaled(26.0f);
+        const Vector2 name_size = MeasureTextEx(_font, name.c_str(), name_font_size, spacing);
+        const Vector2 name_position = {
+            x + (bar_width - name_size.x) * 0.5f,
+            y - name_size.y - Core::GlobalScaling::scaled(8.0f)
+        };
+        DrawTextEx(_font, name.c_str(), { name_position.x + 2.0f, name_position.y + 2.0f }, name_font_size, spacing, Fade(BLACK, 0.8f));
+        DrawTextEx(_font, name.c_str(), name_position, name_font_size, spacing, GOLD);
+    }
+
+    void UIHandler::renderBossPhaseMarkers(const Game::BossData& boss_data, float x, float y, float bar_width, float bar_height) const
+    {
+        for (size_t i = 1; i < boss_data.phases.size(); ++i)
+        {
+            const float marker_x = x + bar_width * std::clamp(boss_data.phases[i].hp_threshold, 0.0f, 1.0f);
+            DrawRectangle(static_cast<int>(marker_x) - 1, static_cast<int>(y), 3, static_cast<int>(bar_height), Fade(WHITE, 0.5f));
+        }
+    }
+
+    void UIHandler::renderBossFightInfo(const Game::BossManager* boss_manager, float x, float y, float bar_width, float bar_height, float spacing) const
+    {
+        const auto* boss_data = boss_manager->getActiveBossData();
+        const int phase_index = boss_manager->getCurrentPhaseIndex();
+        const float info_y = y + bar_height + Core::GlobalScaling::scaled(5.0f);
+        const float info_font_size = Core::GlobalScaling::scaled(14.0f);
+
+        if (boss_data && phase_index >= 0 && phase_index < static_cast<int>(boss_data->phases.size()))
+            DrawTextEx(_font, boss_data->phases[phase_index].name.c_str(), { x + 2.0f, info_y }, info_font_size, spacing, Fade(WHITE, 0.75f));
+
+        const float timer = boss_manager->getFightTimer();
+        const char* timer_text = TextFormat("%02d:%02d", static_cast<int>(timer) / 60, static_cast<int>(timer) % 60);
+        const Vector2 timer_size = MeasureTextEx(_font, timer_text, info_font_size, spacing);
+        DrawTextEx(_font, timer_text, { x + bar_width - timer_size.x - 2.0f, info_y }, info_font_size, spacing, Fade(WHITE, 0.75f));
+    }
+
     void UIHandler::renderBossHealthBar(const Game::BossManager* boss_manager) const
     {
         if (!boss_manager || !boss_manager->isFightActive())
@@ -571,6 +635,7 @@ namespace Nawia::UI
         if (!boss_data || !boss_entity || boss_entity->getMaxHP() <= 0)
             return;
 
+        // Wymiary i pozycja paska.
         const float screen_width = static_cast<float>(GetScreenWidth());
         const float bar_width = screen_width * 0.55f;
         const float bar_height = Core::GlobalScaling::scaled(28.0f);
@@ -581,9 +646,9 @@ namespace Nawia::UI
 
         const float hp_percent = std::clamp(
             static_cast<float>(boss_entity->getHP()) / static_cast<float>(boss_entity->getMaxHP()),
-            0.0f,
-            1.0f);
+            0.0f, 1.0f);
 
+        // Panel tla.
         const Rectangle panel = {
             x - padding,
             y - Core::GlobalScaling::scaled(40.0f),
@@ -593,49 +658,20 @@ namespace Nawia::UI
         DrawRectangleRec(panel, Fade(BLACK, 0.70f));
         DrawRectangleLinesEx(panel, Core::GlobalScaling::scaled(1.5f), Fade(GOLD, 0.45f));
 
-        const float name_font_size = Core::GlobalScaling::scaled(26.0f);
-        const Vector2 name_size = MeasureTextEx(_font, boss_data->name.c_str(), name_font_size, spacing);
-        const Vector2 name_position = {
-            x + (bar_width - name_size.x) * 0.5f,
-            y - name_size.y - Core::GlobalScaling::scaled(8.0f)
-        };
-        DrawTextEx(_font, boss_data->name.c_str(), { name_position.x + 2.0f, name_position.y + 2.0f }, name_font_size, spacing, Fade(BLACK, 0.8f));
-        DrawTextEx(_font, boss_data->name.c_str(), name_position, name_font_size, spacing, GOLD);
+        // Nazwa bossa.
+        renderBossName(boss_data->name, x, y, bar_width, spacing);
 
-        Color bar_color = { 180, 32, 26, 255 };
-        if (hp_percent > 0.5f)
-        {
-            const float t = (hp_percent - 0.5f) / 0.5f;
-            bar_color = {
-                static_cast<unsigned char>(255.0f * (1.0f - t)),
-                static_cast<unsigned char>(180.0f + 75.0f * t),
-                30,
-                255
-            };
-        }
-        else if (hp_percent > 0.2f)
-        {
-            const float t = (hp_percent - 0.2f) / 0.3f;
-            bar_color = {
-                255,
-                static_cast<unsigned char>(100.0f + 80.0f * t),
-                20,
-                255
-            };
-        }
-
+        // Pasek HP z kolorami i markerami faz.
+        const Color bar_color = getBossBarColor(hp_percent);
         DrawRectangleRec({ x, y, bar_width, bar_height }, { 20, 20, 20, 220 });
         DrawRectangleRec({ x, y, bar_width * hp_percent, bar_height }, bar_color);
         DrawRectangleRec({ x, y, bar_width * hp_percent, bar_height * 0.35f }, Fade(WHITE, 0.08f));
 
-        for (size_t i = 1; i < boss_data->phases.size(); ++i)
-        {
-            const float marker_x = x + bar_width * std::clamp(boss_data->phases[i].hp_threshold, 0.0f, 1.0f);
-            DrawRectangle(static_cast<int>(marker_x) - 1, static_cast<int>(y), 3, static_cast<int>(bar_height), Fade(WHITE, 0.5f));
-        }
+        renderBossPhaseMarkers(*boss_data, x, y, bar_width, bar_height);
 
         DrawRectangleLinesEx({ x, y, bar_width, bar_height }, Core::GlobalScaling::scaled(2.5f), GOLD);
 
+        // Tekst HP na pasku.
         const char* hp_text = TextFormat("%d / %d", boss_entity->getHP(), boss_entity->getMaxHP());
         const float hp_font_size = Core::GlobalScaling::scaled(16.0f);
         const Vector2 hp_size = MeasureTextEx(_font, hp_text, hp_font_size, spacing);
@@ -646,16 +682,8 @@ namespace Nawia::UI
         DrawTextEx(_font, hp_text, { hp_position.x + 1.0f, hp_position.y + 1.0f }, hp_font_size, spacing, Fade(BLACK, 0.6f));
         DrawTextEx(_font, hp_text, hp_position, hp_font_size, spacing, WHITE);
 
-        const int phase_index = boss_manager->getCurrentPhaseIndex();
-        const float info_y = y + bar_height + Core::GlobalScaling::scaled(5.0f);
-        const float info_font_size = Core::GlobalScaling::scaled(14.0f);
-        if (phase_index >= 0 && phase_index < static_cast<int>(boss_data->phases.size()))
-            DrawTextEx(_font, boss_data->phases[phase_index].name.c_str(), { x + 2.0f, info_y }, info_font_size, spacing, Fade(WHITE, 0.75f));
-
-        const float timer = boss_manager->getFightTimer();
-        const char* timer_text = TextFormat("%02d:%02d", static_cast<int>(timer) / 60, static_cast<int>(timer) % 60);
-        const Vector2 timer_size = MeasureTextEx(_font, timer_text, info_font_size, spacing);
-        DrawTextEx(_font, timer_text, { x + bar_width - timer_size.x - 2.0f, info_y }, info_font_size, spacing, Fade(WHITE, 0.75f));
+        // Informacje pod paskiem: nazwa fazy i timer.
+        renderBossFightInfo(boss_manager, x, y, bar_width, bar_height, spacing);
     }
 
     void UIHandler::handleInput()

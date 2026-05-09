@@ -1,20 +1,20 @@
-# Boss Fight System
+# System walk z bossami
 
-The boss fight system is data-driven and centered around `BossManager`. Boss definitions live in `assets/data/bosses.json`, while level JSON files place `boss_trigger` entities that start a fight.
+System walk z bossami jest oparty na danych i zarzadzany przez `BossManager`. Definicje bossow znajduja sie w `assets/data/bosses.json`, a pliki JSON poziomu umieszczaja encje `boss_trigger`, ktore rozpoczynaja walke.
 
-## Key Components
+## Glowne komponenty
 
 ### BossManager
 
-- Loads boss definitions from `assets/data/bosses.json`.
-- Preloads boss and minion entities for the active level through `preloadForLevel`.
-- Starts and ends boss fights, tracks defeated bosses, rewards the player, and notifies quests.
-- Applies phase multipliers, phase notifications, and optional screen flash effects.
-- Cleans up spawned minions after the fight.
+- Laduje definicje bossow z `assets/data/bosses.json`.
+- Preladowuje encje bossa i minionow dla aktywnego poziomu przez `preloadForLevel`.
+- Rozpoczyna i konczy walki z bossami, sledzi pokonanych bossow, przyznaje nagrody graczowi i powiadamia system questow.
+- Stosuje mnozniki faz, powiadomienia o fazach i opcjonalne efekty blysku ekranu.
+- Czysci przywolane miniony po zakonczeniu walki.
 
 ### BossArenaTrigger
 
-`BossArenaTrigger` is a rectangular trigger created from level entity JSON:
+`BossArenaTrigger` to prostokatny trigger tworzony z poziomu JSON encji:
 
 ```json
 {
@@ -29,19 +29,19 @@ The boss fight system is data-driven and centered around `BossManager`. Boss def
 }
 ```
 
-The trigger starts the configured boss fight when the player enters it. It does not restart an already active fight, and `BossManager` prevents defeated bosses from being triggered again.
+Trigger rozpoczyna skonfigurowana walke z bossem, gdy gracz wejdzie w jego obszar. Nie restartuje juz aktywnej walki, a `BossManager` uniemozliwia ponowne uruchomienie walki z pokonanym bossem.
 
-### Teleport Blocking
+### Blokowanie teleportow
 
-There are no dynamic arena wall entities in the current implementation. Teleports are blocked while a boss fight is active, so the player cannot leave the encounter through location transitions.
+Obecna implementacja nie posiada dynamicznych scian areny. Teleporty sa blokowane podczas aktywnej walki z bossem, wiec gracz nie moze opuscic starcia przez przejscia miedzy lokacjami.
 
-### Boss UI
+### UI bossa
 
-`UIHandler` renders a boss health bar during an active fight. The bar shows the boss name, HP, phase markers, current phase name, and fight timer. Phase transitions can also trigger a short screen flash configured in `bosses.json`.
+`UIHandler` renderuje pasek zdrowia bossa podczas aktywnej walki. Pasek wyswietla nazwe bossa, HP, markery faz, nazwe aktualnej fazy i timer walki. Przejscia miedzy fazami moga rowniez wywolac krotki blysk ekranu skonfigurowany w `bosses.json`.
 
-## Boss JSON
+## JSON bossa
 
-Boss phases can change speed and damage multipliers, show notifications, flash the screen, and spawn minions:
+Fazy bossa moga zmieniac mnozniki predkosci i obrazen, wyswietlac powiadomienia, wywolyac blysk ekranu i przywolyc minionow:
 
 ```json
 {
@@ -70,4 +70,4 @@ Boss phases can change speed and damage multipliers, show notifications, flash t
 }
 ```
 
-`level_name` must match `Level::getName()`, because preloading is level-scoped.
+`level_name` musi odpowiadac `Level::getName()`, poniewaz preladowywanie jest ograniczone do poziomu.
