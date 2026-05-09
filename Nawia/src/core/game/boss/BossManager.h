@@ -66,6 +66,7 @@ namespace Nawia::Game {
         ~BossManager();
 
         void loadFromJson(const std::string& path);
+        void preloadForLevel(const std::string& level_name, Core::Engine* engine);
         void update(Core::Engine* engine, float dt);
         
         bool startBossFight(const std::string& boss_id, Core::Engine* engine);
@@ -102,11 +103,11 @@ namespace Nawia::Game {
         void applyPhase(const BossPhase& phase, Core::Engine* engine);
         
         // Minions
-        void preloadMinions(Core::Engine* engine);
         void spawnMinions(const std::vector<MinionSpawnInfo>& minions, Core::Engine* engine);
         void removeMinions(Core::Engine* engine);
         std::vector<std::shared_ptr<Entity::Entity>> _active_minions;
         std::map<std::string, std::vector<std::shared_ptr<Entity::Entity>>> _minion_pools;
+        std::map<std::string, std::shared_ptr<Entity::Entity>> _boss_pool;
         
         // Track defeated bosses so fights can't be re-triggered
         std::set<std::string> _defeated_bosses;

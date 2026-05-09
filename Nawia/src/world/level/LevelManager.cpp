@@ -35,6 +35,7 @@ namespace Nawia::World {
 		// Informuje questy o aktualnym poziomie, zeby mogly odblokowac zadania.
 		if (engine) {
 			engine->getQuestManager().setCurrentLevel(_current_level->getName());
+            engine->getBossManager().preloadForLevel(_current_level->getName(), engine);
 		}
 
 		Core::Logger::debugLog("Zmieniono poziom na: " + name);
