@@ -538,6 +538,104 @@ namespace Nawia::UI
         return MenuAction::None;
     }
 
+    void UIHandler::renderBossHealthBar(const Nawia::Game::BossManager* boss_manager) const {
+        if (!boss_manager || !boss_manager->isFightActive()) return;
+
+        auto boss_data = boss_manager->getActiveBossData();
+        auto boss_entity = boss_manager->getActiveBossEntity();
+        if (!boss_data || !boss_entity) return;
+
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float bar_width = screen_width * 0.55f;
+        const float bar_height = Core::GlobalScaling::scaled(30.0f);
+        const float top_margin = Core::GlobalScaling::scaled(50.0f);
+
+        const float x = (screen_width - bar_width) / 2.0f;
+        const float y = top_margin;
+
+        const float hp_pct = std::clamp(static_cast<float>(boss_entity->getHP()) / static_cast<float>(boss_entity->getMaxHP()), 0.0f, 1.0f);
+        const float spacing = Core::GlobalScaling::scaled(1.5f);
+
+        // --- Dark panel background ---
+        const float panel_pad = Core::GlobalScaling::scaled(12.0f);
+        const float panel_x = x - panel_pad;
+        const float panel_y = y - Core::GlobalScaling::scaled(40.0f);
+        const float panel_w = bar_width + panel_pad * 2.0f;
+        const float panel_h = bar_height + Core::GlobalScaling::scaled(65.0f);
+        DrawRectangle(static_cast<int>(panel_x), static_cast<int>(panel_y), static_cast<int>(panel_w), static_cast<int>(panel_h), Fade(BLACK, 0.7f));
+        DrawRectangleLinesEx({ panel_x, panel_y, panel_w, panel_h }, Core::GlobalScaling::scaled(1.5f), Fade(GOLD, 0.4f));
+
+        // --- Boss name (centered above bar) ---
+        const float name_font_size = Core::GlobalScaling::scaled(26.0f);
+        Vector2 name_size = MeasureTextEx(_font, boss_data->name.c_str(), name_font_size, spacing);
+        const float name_x = x + (bar_width - name_size.x) / 2.0f;
+        const float name_y = y - name_size.y - Core::GlobalScaling::scaled(8.0f);
+        // Shadow
+        DrawTextEx(_font, boss_data->name.c_str(), { name_x + 2, name_y + 2 }, name_font_size, spacing, Fade(BLACK, 0.8f));
+        DrawTextEx(_font, boss_data->name.c_str(), { name_x, name_y }, name_font_size, spacing, GOLD);
+
+        // --- Health bar background ---
+        DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(bar_width), static_cast<int>(bar_height), Color{20, 20, 20, 220});
+
+        // --- Health bar fill with gradient color ---
+        Color bar_color;
+        if (hp_pct > 0.5f) {
+            // Green -> Yellow
+            float t = (hp_pct - 0.5f) / 0.5f;
+            bar_color = { static_cast<unsigned char>(255 * (1.0f - t)), static_cast<unsigned char>(180 + 75 * t), 30, 255 };
+        } else if (hp_pct > 0.2f) {
+            // Yellow -> Orange
+            float t = (hp_pct - 0.2f) / 0.3f;
+            bar_color = { 255, static_cast<unsigned char>(100 + 80 * t), 20, 255 };
+        } else {
+            // Orange -> Dark red
+            float t = hp_pct / 0.2f;
+            bar_color = { static_cast<unsigned char>(150 + 105 * t), static_cast<unsigned char>(30 + 70 * t), 20, 255 };
+        }
+
+        const float fill_width = bar_width * hp_pct;
+        DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(fill_width), static_cast<int>(bar_height), bar_color);
+
+        // --- Subtle shine on top of bar ---
+        DrawRectangle(static_cast<int>(x), static_cast<int>(y), static_cast<int>(fill_width), static_cast<int>(bar_height * 0.35f), Fade(WHITE, 0.08f));
+
+        // --- Phase threshold markers ---
+        for (size_t i = 1; i < boss_data->phases.size(); ++i) {
+            float threshold = boss_data->phases[i].hp_threshold;
+            float marker_x = x + bar_width * threshold;
+            DrawRectangle(static_cast<int>(marker_x) - 1, static_cast<int>(y), 3, static_cast<int>(bar_height), Fade(WHITE, 0.5f));
+        }
+
+        // --- Gold border ---
+        DrawRectangleLinesEx({ x, y, bar_width, bar_height }, Core::GlobalScaling::scaled(2.5f), GOLD);
+
+        // --- HP text (centered on bar) ---
+        const char* hp_text = TextFormat("%d / %d", boss_entity->getHP(), boss_entity->getMaxHP());
+        const float hp_font_size = Core::GlobalScaling::scaled(16.0f);
+        Vector2 hp_text_size = MeasureTextEx(_font, hp_text, hp_font_size, spacing);
+        DrawTextEx(_font, hp_text, { x + (bar_width - hp_text_size.x) / 2.0f + 1, y + (bar_height - hp_text_size.y) / 2.0f + 1 }, hp_font_size, spacing, Fade(BLACK, 0.6f));
+        DrawTextEx(_font, hp_text, { x + (bar_width - hp_text_size.x) / 2.0f, y + (bar_height - hp_text_size.y) / 2.0f }, hp_font_size, spacing, WHITE);
+
+        // --- Phase name and fight timer (below bar) ---
+        const float info_y = y + bar_height + Core::GlobalScaling::scaled(5.0f);
+        const float info_font_size = Core::GlobalScaling::scaled(14.0f);
+
+        // Phase name (left)
+        int phase_idx = boss_manager->getCurrentPhaseIndex();
+        if (phase_idx >= 0 && phase_idx < static_cast<int>(boss_data->phases.size())) {
+            const std::string& phase_name = boss_data->phases[phase_idx].name;
+            DrawTextEx(_font, phase_name.c_str(), { x + 2, info_y }, info_font_size, spacing, Fade(WHITE, 0.7f));
+        }
+
+        // Fight timer (right)
+        float timer = boss_manager->getFightTimer();
+        int minutes = static_cast<int>(timer) / 60;
+        int seconds = static_cast<int>(timer) % 60;
+        const char* timer_text = TextFormat("%02d:%02d", minutes, seconds);
+        Vector2 timer_size = MeasureTextEx(_font, timer_text, info_font_size, spacing);
+        DrawTextEx(_font, timer_text, { x + bar_width - timer_size.x - 2, info_y }, info_font_size, spacing, Fade(WHITE, 0.7f));
+    }
+
     void UIHandler::renderGameOverScreen() const
     {
         drawSharedMenuBackground();
