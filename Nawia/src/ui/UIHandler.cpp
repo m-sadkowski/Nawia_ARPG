@@ -454,7 +454,7 @@ namespace Nawia::UI
         renderPlayerExperienceBar();
         renderPlayerHealthBar();
         renderPlayerAbilityBar();
-        renderCombatEntityHealthBars(camera);
+        renderCombatEntityHealthBars(camera, boss_manager);
         renderBossHealthBar(boss_manager);
         if (boss_manager && boss_manager->getPhaseFlashTimer() > 0.0f)
         {
@@ -827,28 +827,38 @@ namespace Nawia::UI
         drawOrb(orb_center_x, orb_center_y, orb_radius, target_hp, _visual_hp_percent, 2.5f, orb_fill_bright, orb_fill_dark, orb_bg, health_text, _hp_orb_frame);
     }
 
-    void UIHandler::renderCombatEntityHealthBars(const Core::GameCamera& camera) const
+    void UIHandler::renderCombatEntityHealthBars(const Core::GameCamera& camera, const Game::BossManager* boss_manager) const
     {
+        // Pobranie encji bossa, zeby pominac ja w malych paskach HP.
+        std::shared_ptr<Entity::Entity> boss_entity = nullptr;
+        if (boss_manager && boss_manager->isFightActive()) {
+            boss_entity = boss_manager->getActiveBossEntity();
+        }
+
         for (const auto& entity : _entity_manager->getEntities())
         {
-            if (!entity->isDormant() && (entity->getFaction() == Entity::Faction::Enemy || entity->getFaction() == Entity::Faction::Ally) && entity->getHP() < entity->getMaxHP() && entity->getHP() > 0)
-            {
-                const BoundingBox bounding_box = entity->getBoundingBox();
-                const Vector3 bar_world_position = {
-                    (bounding_box.min.x + bounding_box.max.x) * 0.5f,
-                    bounding_box.max.y + 0.35f,
-                    (bounding_box.min.z + bounding_box.max.z) * 0.5f
-                };
-                const Vector2 screen_position = GetWorldToScreen(bar_world_position, camera.get());
-                const float bar_width = 40.0f;
-                const float bar_height = 6.0f;
-                const float pos_x = screen_position.x - bar_width / 2.0f;
-                const float pos_y = screen_position.y - bar_height / 2.0f;
-                
-                const float hp_percentage = std::clamp(static_cast<float>(entity->getHP()) / entity->getMaxHP(), 0.0f, 1.0f);
-                drawBar(pos_x, pos_y, bar_width, bar_height, hp_percentage, RED, DARKGRAY);
-                DrawRectangleLinesEx({ pos_x, pos_y, bar_width, bar_height }, 1.0f, BLACK);
-            }
+            if (entity->isDormant()) continue;
+            if (entity->getFaction() != Entity::Faction::Enemy && entity->getFaction() != Entity::Faction::Ally) continue;
+            if (entity->getHP() >= entity->getMaxHP() || entity->getHP() <= 0) continue;
+
+            // Boss ma wlasny duzy pasek HP — pomijamy maly.
+            if (boss_entity && entity == boss_entity) continue;
+
+            const BoundingBox bounding_box = entity->getBoundingBox();
+            const Vector3 bar_world_position = {
+                (bounding_box.min.x + bounding_box.max.x) * 0.5f,
+                bounding_box.max.y + 0.35f,
+                (bounding_box.min.z + bounding_box.max.z) * 0.5f
+            };
+            const Vector2 screen_position = GetWorldToScreen(bar_world_position, camera.get());
+            const float bar_width = 40.0f;
+            const float bar_height = 6.0f;
+            const float pos_x = screen_position.x - bar_width / 2.0f;
+            const float pos_y = screen_position.y - bar_height / 2.0f;
+            
+            const float hp_percentage = std::clamp(static_cast<float>(entity->getHP()) / entity->getMaxHP(), 0.0f, 1.0f);
+            drawBar(pos_x, pos_y, bar_width, bar_height, hp_percentage, RED, DARKGRAY);
+            DrawRectangleLinesEx({ pos_x, pos_y, bar_width, bar_height }, 1.0f, BLACK);
         }
     }
 
