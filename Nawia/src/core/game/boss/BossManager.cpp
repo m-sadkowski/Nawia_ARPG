@@ -118,6 +118,71 @@ namespace Nawia::Game {
         }
     }
 
+    void BossManager::preloadForLevel(const std::string& level_name, Core::Engine* engine) {
+        _minion_pools.clear();
+        _boss_pool.clear();
+
+        auto player = engine->getPlayer();
+        auto* map = engine->getCurrentMap();
+        if (!map) return;
+
+        bool preloaded_anything = false;
+
+        for (const auto& [id, boss] : _bosses) {
+            if (boss.level_name != level_name) continue;
+
+            // Preload boss entity
+            std::shared_ptr<Entity::Entity> boss_entity = nullptr;
+            if (boss.enemy_type == "Devil") {
+                boss_entity = std::shared_ptr<Entity::Entity>(Entity::DevilBuilder()
+                    .setName(boss.name).setMap(map).setMaxHp(boss.max_hp).setTarget(player).build());
+            }
+
+            if (boss_entity) {
+                boss_entity->setDormant(true);
+                _boss_pool[boss.id] = boss_entity;
+                preloaded_anything = true;
+            }
+
+            // Preload minions
+            std::map<std::string, int> minion_counts;
+            for (const auto& phase : boss.phases) {
+                for (const auto& minion : phase.minions) {
+                    minion_counts[minion.enemy_type] += minion.count;
+                }
+            }
+
+            for (const auto& pair : minion_counts) {
+                const std::string& type = pair.first;
+                int count = pair.second;
+                auto& pool = _minion_pools[type];
+                for (int i = 0; i < count; ++i) {
+                    std::shared_ptr<Entity::Entity> minion = nullptr;
+                    if (type == "WalkingDead") {
+                        minion = std::shared_ptr<Entity::Entity>(Entity::WalkingDeadBuilder()
+                            .setName("Minion").setMap(map).setTarget(player).build());
+                    } else if (type == "Bandit") {
+                        minion = std::shared_ptr<Entity::Entity>(Entity::BanditBuilder()
+                            .setName("Minion").setMap(map).setTarget(player).build());
+                    } else if (type == "Devil") {
+                        minion = std::shared_ptr<Entity::Entity>(Entity::DevilBuilder()
+                            .setName("Minion").setMap(map).setTarget(player).build());
+                    }
+
+                    if (minion) {
+                        minion->setDormant(true);
+                        pool.push_back(minion);
+                        preloaded_anything = true;
+                    }
+                }
+            }
+        }
+
+        if (preloaded_anything) {
+            Core::Logger::debugLog("BossManager: Preloaded boss fight resources for level '" + level_name + "'.");
+        }
+    }
+
     void BossManager::update(Core::Engine* engine, float dt) {
         if (!isFightActive()) return;
 
@@ -165,33 +230,50 @@ namespace Nawia::Game {
         Core::Logger::debugLog("BossManager: Starting boss fight: " + _active_boss_data->name);
 
         // Spawn boss entity based on type
-        if (_active_boss_data->enemy_type == "Devil") {
-            auto player = engine->getPlayer();
-            auto* map = engine->getCurrentMap();
-
-            Entity::DevilBuilder builder;
-            builder.setPosition(_active_boss_data->spawn_pos)
-                   .setName(_active_boss_data->name)
-                   .setMaxHp(_active_boss_data->max_hp)
-                   .setMap(map);
-
-            if (player) {
-                builder.setTarget(player);
-            }
+        if (_boss_pool.count(boss_id) && _boss_pool[boss_id]) {
+            auto boss_ent = _boss_pool[boss_id];
+            boss_ent->setX(_active_boss_data->spawn_pos.x);
+            boss_ent->setY(_active_boss_data->spawn_pos.y);
+            boss_ent->setDormant(false);
             
-            auto devil = builder.build();
-            devil->setScale(_active_boss_data->scale);
-            devil->setCollider(std::make_unique<Entity::RectangleCollider>(devil.get(), 1.2f, 1.4f, 0.0f, 0.0f));
-            _active_boss_entity = std::shared_ptr<Entity::EnemyInterface>(std::move(devil));
-            engine->getEntityManager().addEntity(_active_boss_entity);
-        } else {
-            Core::Logger::errorLog("BossManager: Unknown enemy type '" + _active_boss_data->enemy_type + "'");
-            _active_boss_data = nullptr;
-            return false;
-        }
+            // set target in case it changed
+            boss_ent->setTarget(engine->getPlayer());
 
-        // Preload minion models to prevent freezing mid-fight
-        preloadMinions(engine);
+            auto interface_ptr = std::dynamic_pointer_cast<Entity::EnemyInterface>(boss_ent);
+            if (interface_ptr) {
+                interface_ptr->setScale(_active_boss_data->scale);
+                // The rectangle collider bounds are specific to devil here, we might need a generic way but for now it's matching Devil.
+                interface_ptr->setCollider(std::make_unique<Entity::RectangleCollider>(interface_ptr.get(), 1.2f, 1.4f, 0.0f, 0.0f));
+                _active_boss_entity = interface_ptr;
+                engine->getEntityManager().addEntity(_active_boss_entity);
+            }
+        } else {
+            // Fallback if not preloaded
+            if (_active_boss_data->enemy_type == "Devil") {
+                auto player = engine->getPlayer();
+                auto* map = engine->getCurrentMap();
+
+                Entity::DevilBuilder builder;
+                builder.setPosition(_active_boss_data->spawn_pos)
+                       .setName(_active_boss_data->name)
+                       .setMaxHp(_active_boss_data->max_hp)
+                       .setMap(map);
+
+                if (player) {
+                    builder.setTarget(player);
+                }
+                
+                auto devil = builder.build();
+                devil->setScale(_active_boss_data->scale);
+                devil->setCollider(std::make_unique<Entity::RectangleCollider>(devil.get(), 1.2f, 1.4f, 0.0f, 0.0f));
+                _active_boss_entity = std::shared_ptr<Entity::EnemyInterface>(std::move(devil));
+                engine->getEntityManager().addEntity(_active_boss_entity);
+            } else {
+                Core::Logger::errorLog("BossManager: Unknown enemy type '" + _active_boss_data->enemy_type + "'");
+                _active_boss_data = nullptr;
+                return false;
+            }
+        }
 
         // Apply initial phase
         if (!_active_boss_data->phases.empty()) {
@@ -290,47 +372,7 @@ namespace Nawia::Game {
         }
     }
 
-    void BossManager::preloadMinions(Core::Engine* engine) {
-        if (!_active_boss_data) return;
 
-        std::map<std::string, int> minion_counts;
-        for (const auto& phase : _active_boss_data->phases) {
-            for (const auto& minion : phase.minions) {
-                minion_counts[minion.enemy_type] += minion.count;
-            }
-        }
-
-        auto player = engine->getPlayer();
-        auto* map = engine->getCurrentMap();
-
-        for (const auto& pair : minion_counts) {
-            const std::string& type = pair.first;
-            int count = pair.second;
-            auto& pool = _minion_pools[type];
-            for (int i = 0; i < count; ++i) {
-                std::shared_ptr<Entity::Entity> minion = nullptr;
-                if (type == "WalkingDead") {
-                    minion = std::shared_ptr<Entity::Entity>(Entity::WalkingDeadBuilder()
-                        .setName("Minion").setMap(map).setTarget(player).build());
-                } else if (type == "Bandit") {
-                    minion = std::shared_ptr<Entity::Entity>(Entity::BanditBuilder()
-                        .setName("Minion").setMap(map).setTarget(player).build());
-                } else if (type == "Devil") {
-                    minion = std::shared_ptr<Entity::Entity>(Entity::DevilBuilder()
-                        .setName("Minion").setMap(map).setTarget(player).build());
-                }
-
-                if (minion) {
-                    minion->setDormant(true);
-                    pool.push_back(minion);
-                }
-            }
-        }
-
-        if (!minion_counts.empty()) {
-            Core::Logger::debugLog("BossManager: Preloaded minions to avoid freezing.");
-        }
-    }
 
     void BossManager::spawnMinions(const std::vector<MinionSpawnInfo>& minions, Core::Engine* engine) {
         auto player = engine->getPlayer();
