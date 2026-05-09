@@ -11,6 +11,7 @@ Edytor jest dostępny jako specjalna klasa poziomu. Pozwala na swobodne poruszan
 - **Prawy Przycisk Myszy (PPM)**: Otwiera menu kontekstowe w miejscu wskazanym kursorem na ziemi.
 - **DELETE / X**: Usuwa obiekt znajdujący się bezpośrednio pod kursorem myszy (celuj w kolorowy sześcian).
 - **S**: Zapisuje aktualną konfigurację oświetlenia mapy.
+- **Lewy Przycisk Myszy (LPM) na suwaku NAVMESH WATER CUTOFF**: Ustawia minimalną wysokość powierzchni, po której można chodzić.
 - **ESC**: W menu edytora cofa lub zamyka okno; w grze otwiera menu pauzy.
 
 ## Dodawanie Obiektów
@@ -47,6 +48,28 @@ Dodatkowo spawnerzy posiadają trójwymiarowe "ściany" zasięgu:
 - **Żółta ścianka**: Zasięg spawnu.
 - **Pomarańczowa ścianka**: Zasięg aktywacji (Trigger).
 
+## Navmesh i Woda
+Overlay edytora zawiera sekcję **NAVMESH WATER CUTOFF**, która pozwala stroić minimalną wysokość chodliwej powierzchni navmesha.
+
+- **Min Y**: Aktualny próg wysokości. Trójkąty mapy poniżej tej wartości są pomijane przy budowaniu navmesha.
+- **Suwak**: Przesuwa próg w zakresie od `-15.0` do `5.0`.
+- **Niebieska płaszczyzna w świecie 3D**: Wizualizuje aktualny poziom odcięcia, żeby łatwiej dopasować go do tafli wody.
+- **Rebuild navmesha**: Następuje po puszczeniu suwaka albo po kliknięciu **APPLY**, gdy edytor pokazuje komunikat, że navmesh czeka na przebudowę.
+
+Ustaw próg tak, żeby płaszczyzna znajdowała się tuż nad wodą, ale nie przecinała chodliwych brzegów, mostów ani ścieżek.
+
+Wartość jest zapisywana w roboczym pliku `assets/data/dev/new_level.json`:
+
+```json
+{
+  "navmesh": {
+    "min_walkable_height": -1.25
+  }
+}
+```
+
+Docelowe poziomy mogą użyć tego samego pola w `assets/data/level_entities/*.json`. Jeżeli pole nie istnieje, poziom używa domyślnego navmesha bez odcięcia wysokości.
+
 ## Testowanie Poziomu
 W menu głównym edytora (PPM) znajduje się przycisk **TESTUJ POZIOM**.
 - **Działanie**: Natychmiastowo czyści świat i spawnuje wszystkie postawione obiekty jako prawdziwe encje gry.
@@ -57,6 +80,7 @@ System automatycznie wczytuje i zapisuje sesje w katalogu:
 `assets/data/dev/`
 
 Pliki są podzielone na kategorie:
+- `new_level.json` - zbiorczy eksport levelu, ustawienia navmesha i lista encji.
 - `new_level_spawners.json`
 - `new_level_chests.json`
 - `new_level_npcs.json`

@@ -17,6 +17,15 @@ namespace Nawia::World {
 	namespace {
 
 		constexpr float k_max_path_end_distance_sq = 1.5f;
+		constexpr float k_disabled_min_walkable_height = -9999.0f;
+
+		float getTriangleAverageHeight(const std::vector<float>& verts, const std::vector<int>& tris, const int triangle_index) {
+			const int tri_offset = triangle_index * 3;
+			const int vertex_a = tris[tri_offset] * 3 + 1;
+			const int vertex_b = tris[tri_offset + 1] * 3 + 1;
+			const int vertex_c = tris[tri_offset + 2] * 3 + 1;
+			return (verts[vertex_a] + verts[vertex_b] + verts[vertex_c]) / 3.0f;
+		}
 
 	}
 
@@ -127,6 +136,16 @@ namespace Nawia::World {
 
 		std::vector<unsigned char> triangle_areas(ntris, 0);
 		rcMarkWalkableTriangles(&ctx, cfg.walkableSlopeAngle, verts.data(), nverts, tris.data(), ntris, triangle_areas.data());
+		if (_min_walkable_height > k_disabled_min_walkable_height) {
+			for (int triangle_index = 0; triangle_index < ntris; ++triangle_index) {
+				if (triangle_areas[triangle_index] == RC_NULL_AREA)
+					continue;
+
+				if (getTriangleAverageHeight(verts, tris, triangle_index) < _min_walkable_height)
+					triangle_areas[triangle_index] = RC_NULL_AREA;
+			}
+		}
+
 		if (!rcRasterizeTriangles(&ctx, verts.data(), nverts, tris.data(), triangle_areas.data(), ntris, *solid, cfg.walkableClimb)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie zrasteryzowac trojkatow.");
 			return false;

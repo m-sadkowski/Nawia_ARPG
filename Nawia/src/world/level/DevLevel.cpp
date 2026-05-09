@@ -1,6 +1,7 @@
 #include "DevLevel.h"
 
 #include <Engine.h>
+#include <Entity.h>
 #include <EntityFactory.h>
 #include <ItemDatabase.h>
 #include <Logger.h>
@@ -34,6 +35,12 @@ namespace Nawia::World {
 		constexpr float OVERLAY_BACKGROUND_ALPHA = 0.85f;
 		constexpr Vector2 PLAYER_SPAWN = {-4.3f, 33.0f};
 		constexpr int MAX_VISIBLE_ITEMS = 11;
+		constexpr float NAVMESH_HEIGHT_MIN = -15.0f;
+		constexpr float NAVMESH_HEIGHT_MAX = 5.0f;
+		constexpr Rectangle NAVMESH_HEIGHT_SLIDER = {135.0f, 255.0f, 250.0f, 18.0f};
+		constexpr Rectangle NAVMESH_HEIGHT_APPLY_BUTTON = {315.0f, 285.0f, 105.0f, 28.0f};
+		constexpr float WATER_PLANE_HALF_SIZE = 90.0f;
+		constexpr const char* DEV_LOCATION_NAME = "Dev Sandbox";
 
 		constexpr std::array<std::string_view, 5> OBJECT_CATEGORIES = {
 			"spawners",
@@ -126,9 +133,13 @@ namespace Nawia::World {
 
 	void DevLevel::onEnter(Core::Engine* engine) {
 		Core::Logger::debugLog("Ladowanie poziomu DevLevel (kreator poziomu)...");
+		Entity::Entity::DebugColliders = true;
+
+		loadLevelSettings();
 
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
 		_map->loadMap(MAP_FILE, MAP_SCALE, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
+		_map->setNavMeshMinWalkableHeight(_navmesh_min_walkable_height);
 
 		const auto lighting_file_path = resolveAssetPath("maps/forest_lighting.json");
 		engine->getLightingSystem().loadLightingFromJson(toPathString(lighting_file_path));
@@ -147,6 +158,11 @@ namespace Nawia::World {
 		}
 
 		loadPlacedObjects();
+	}
+
+	void DevLevel::onExit(Core::Engine* engine) {
+		Entity::Entity::DebugColliders = false;
+		Level::onExit(engine);
 	}
 
 	void DevLevel::handleInput(Core::Engine* engine) {
@@ -195,6 +211,7 @@ namespace Nawia::World {
 		}
 
 		renderPlacedObjects(engine);
+		renderWaterCutoffPlane(*engine);
 		renderLightingOverlay(*engine);
 
 		if (_current_mode == EditorMode::None) {
@@ -325,6 +342,10 @@ namespace Nawia::World {
 		return resolveAssetPath(std::filesystem::path("data/dev") / ("new_level_" + category + ".json"));
 	}
 
+	std::filesystem::path DevLevel::getLevelFilePath() const {
+		return resolveAssetPath(std::filesystem::path("data/dev") / "new_level.json");
+	}
+
 	void DevLevel::handleUIInput(Core::Engine* engine) {
 		(void)engine;
 
@@ -341,6 +362,10 @@ namespace Nawia::World {
 
 	void DevLevel::handleEditingInput(Core::Engine* engine) {
 		if (!engine) {
+			return;
+		}
+
+		if (handleNavmeshHeightInput()) {
 			return;
 		}
 
@@ -602,13 +627,13 @@ namespace Nawia::World {
 		Core::Logger::debugLog("DevLevel: zespawnowano testowy poziom.");
 	}
 
-	void DevLevel::renderLightingOverlay(Core::Engine& engine) const {
+	void DevLevel::renderLightingOverlay(Core::Engine& engine) {
 		const auto& font = engine.getUIHandler().getFont();
 		int x = OVERLAY_MARGIN;
 		int y = 10;
 
-		DrawRectangle(5, 5, 450, 240, Fade(BLACK, 0.7f));
-		DrawRectangleLines(5, 5, 450, 240, DARKGRAY);
+		DrawRectangle(5, 5, 450, 320, Fade(BLACK, 0.7f));
+		DrawRectangleLines(5, 5, 450, 320, DARKGRAY);
 
 		drawDevText(font, "INSTRUKCJA KREATORA POZIOMU", x, y, 20, YELLOW);
 		y += 30;
@@ -633,6 +658,85 @@ namespace Nawia::World {
 		y += 25;
 
 		drawDevText(font, "Zapis do: assets/data/dev/new_level_*.json", x, y, 14, GREEN);
+		y += 28;
+
+		drawDevText(font, "NAVMESH WATER CUTOFF:", x, y, 18, YELLOW);
+		y += 24;
+		const std::string height_text = "Min Y: " + std::to_string(_navmesh_min_walkable_height).substr(0, 5);
+		drawDevText(font, height_text.c_str(), x, y, 16, RAYWHITE);
+
+		const float t = std::clamp(
+			(_navmesh_min_walkable_height - NAVMESH_HEIGHT_MIN) / (NAVMESH_HEIGHT_MAX - NAVMESH_HEIGHT_MIN),
+			0.0f,
+			1.0f
+		);
+		DrawRectangleRec(NAVMESH_HEIGHT_SLIDER, Fade(GRAY, 0.65f));
+		DrawRectangleLinesEx(NAVMESH_HEIGHT_SLIDER, 1, LIGHTGRAY);
+		DrawCircle(
+			static_cast<int>(NAVMESH_HEIGHT_SLIDER.x + NAVMESH_HEIGHT_SLIDER.width * t),
+			static_cast<int>(NAVMESH_HEIGHT_SLIDER.y + NAVMESH_HEIGHT_SLIDER.height * 0.5f),
+			8.0f,
+			_navmesh_height_dirty ? ORANGE : SKYBLUE
+		);
+
+		if (_navmesh_height_dirty) {
+			drawDevText(font, "Navmesh czeka na rebuild", x, y + 34, 14, ORANGE);
+			const bool hovered = CheckCollisionPointRec(GetMousePosition(), NAVMESH_HEIGHT_APPLY_BUTTON);
+			DrawRectangleRec(NAVMESH_HEIGHT_APPLY_BUTTON, hovered ? GREEN : DARKGREEN);
+			DrawRectangleLinesEx(NAVMESH_HEIGHT_APPLY_BUTTON, 1, LIGHTGRAY);
+			drawDevText(font, "APPLY", NAVMESH_HEIGHT_APPLY_BUTTON.x + 25.0f, NAVMESH_HEIGHT_APPLY_BUTTON.y + 5.0f, 16, RAYWHITE);
+		}
+	}
+
+	void DevLevel::renderWaterCutoffPlane(Core::Engine& engine) const {
+		if (!_map) {
+			return;
+		}
+
+		BeginMode3D(engine.getCamera().get());
+		const Vector3 center = {0.0f, _navmesh_min_walkable_height, 0.0f};
+		const Vector2 size = {WATER_PLANE_HALF_SIZE * 2.0f, WATER_PLANE_HALF_SIZE * 2.0f};
+		DrawPlane(center, size, Color{50, 160, 255, 45});
+		DrawCubeWires(center, size.x, 0.02f, size.y, Color{50, 190, 255, 160});
+		EndMode3D();
+	}
+
+	bool DevLevel::handleNavmeshHeightInput() {
+		const Vector2 mouse = GetMousePosition();
+		const bool mouse_over_slider = CheckCollisionPointRec(mouse, NAVMESH_HEIGHT_SLIDER);
+		const bool mouse_over_apply = CheckCollisionPointRec(mouse, NAVMESH_HEIGHT_APPLY_BUTTON);
+
+		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && mouse_over_slider) {
+			_is_dragging_navmesh_height = true;
+		}
+
+		if (_is_dragging_navmesh_height && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+			const float t = std::clamp((mouse.x - NAVMESH_HEIGHT_SLIDER.x) / NAVMESH_HEIGHT_SLIDER.width, 0.0f, 1.0f);
+			_navmesh_min_walkable_height = NAVMESH_HEIGHT_MIN + (NAVMESH_HEIGHT_MAX - NAVMESH_HEIGHT_MIN) * t;
+			_navmesh_height_dirty = true;
+			return true;
+		}
+
+		if (_is_dragging_navmesh_height && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+			_is_dragging_navmesh_height = false;
+			applyNavmeshHeight();
+			return true;
+		}
+
+		if (_navmesh_height_dirty && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && mouse_over_apply) {
+			applyNavmeshHeight();
+			return true;
+		}
+
+		return mouse_over_slider || (_navmesh_height_dirty && mouse_over_apply);
+	}
+
+	void DevLevel::applyNavmeshHeight() {
+		if (_map) {
+			_map->setNavMeshMinWalkableHeight(_navmesh_min_walkable_height);
+		}
+		_navmesh_height_dirty = false;
+		rewriteLevelJsonFile();
 	}
 
 	void DevLevel::renderMainMenu(Core::Engine* engine) {
@@ -933,6 +1037,69 @@ namespace Nawia::World {
 
 			output << data.dump(4);
 		}
+
+		rewriteLevelJsonFile();
+	}
+
+	void DevLevel::loadLevelSettings() {
+		const auto input_path = getLevelFilePath();
+		if (!std::filesystem::exists(input_path))
+			return;
+
+		std::ifstream file(input_path);
+		if (!file.is_open()) {
+			Core::Logger::errorLog("DevLevel: nie mozna otworzyc ustawien levelu: " + toPathString(input_path));
+			return;
+		}
+
+		json data;
+		try {
+			file >> data;
+		} catch (const json::parse_error& error) {
+			Core::Logger::errorLog("DevLevel: blad parsowania ustawien levelu: " + std::string(error.what()));
+			return;
+		}
+
+		const auto navmesh_it = data.find("navmesh");
+		if (navmesh_it == data.end() || !navmesh_it->is_object())
+			return;
+
+		_navmesh_min_walkable_height = navmesh_it->value("min_walkable_height", _navmesh_min_walkable_height);
+	}
+
+	void DevLevel::rewriteLevelJsonFile() {
+		const auto output_path = getLevelFilePath();
+
+		try {
+			if (!output_path.parent_path().empty()) {
+				std::filesystem::create_directories(output_path.parent_path());
+			}
+		} catch (const std::filesystem::filesystem_error& error) {
+			Core::Logger::errorLog("DevLevel: nie mozna utworzyc katalogu levelu: " + std::string(error.what()));
+			return;
+		}
+
+		json data;
+		data["navmesh"]["min_walkable_height"] = _navmesh_min_walkable_height;
+		data["player_spawn"][DEV_LOCATION_NAME] = {
+			{"x", PLAYER_SPAWN.x},
+			{"y", PLAYER_SPAWN.y},
+		};
+		data["entities"] = json::array();
+
+		for (const auto& object : _placed_objects) {
+			json entity_data = serializePlacedObject(object);
+			entity_data["location"] = DEV_LOCATION_NAME;
+			data["entities"].push_back(std::move(entity_data));
+		}
+
+		std::ofstream output(output_path);
+		if (!output.is_open()) {
+			Core::Logger::errorLog("DevLevel: nie mozna zapisac pliku levelu: " + toPathString(output_path));
+			return;
+		}
+
+		output << data.dump(4);
 	}
 
 } // namespace Nawia::World

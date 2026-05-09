@@ -24,6 +24,7 @@ namespace Nawia::World {
 
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
 		_map->loadMap(MYSTERIOUS_FOREST_MAP, MYSTERIOUS_FOREST_SCALE);
+		applyNavMeshSettingsFromJson(getCurrentLocationName());
 		engine->getLightingSystem().loadLightingFromJson(DEMO_LIGHTING_FILE);
 
 		engine->getEntityManager().clearNonPlayerEntities();
@@ -38,9 +39,11 @@ namespace Nawia::World {
 		// Zmienia geometrie mapy przed przeniesieniem gracza.
 		if (location_name == "Tajemniczy Las") {
 			_map->loadMap(MYSTERIOUS_FOREST_MAP, MYSTERIOUS_FOREST_SCALE);
+			applyNavMeshSettingsFromJson(location_name);
 			engine->getAudioManager().playMusic(MYSTERIOUS_FOREST_MUSIC, true, LOCATION_MUSIC_VOLUME);
 		} else if (location_name == "Lesna Dolina") {
 			_map->loadMap(FOREST_VALLEY_MAP, FOREST_VALLEY_SCALE);
+			applyNavMeshSettingsFromJson(location_name);
 			engine->getAudioManager().playMusic(FOREST_VALLEY_MUSIC, true, LOCATION_MUSIC_VOLUME);
 		}
 

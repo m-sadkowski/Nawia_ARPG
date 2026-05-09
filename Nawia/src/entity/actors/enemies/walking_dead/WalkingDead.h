@@ -46,9 +46,15 @@ namespace Nawia::Entity {
 		static constexpr float SPEED = 1.0f;
 		static constexpr float RUN_SPEED = 3.0f; // Prędkość biegu blisko gracza.
 		static constexpr int ATTACK_DAMAGE = 25;
-		static constexpr float ATTACK_COOLDOWN = 2.0f;
+		static constexpr float ATTACK_COOLDOWN = 1.2f;
+		static constexpr float ATTACK_ANIMATION_SPEED = 2.25f;
+		static constexpr float HIT_REACTION_ANIMATION_SPEED = 1.4f;
+		static constexpr float DEFAULT_ANIMATION_SPEED = 1.0f;
+		static constexpr float ATTACK_DAMAGE_FRAME_RATIO = 0.38f;
+		static constexpr int HIT_INTERRUPT_CHANCE = 45;
 
 		float _attack_cooldown_timer = 0.0f;
+		bool _attack_damage_applied = false;
 		bool _is_running = false; // Czy aktualnie odtwarzamy wariant biegu.
 		float _ambient_sound_timer = 0.0f;
 

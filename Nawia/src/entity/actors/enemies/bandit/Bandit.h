@@ -41,6 +41,8 @@ namespace Nawia::Entity {
 		static constexpr float MIN_DISTANCE = 5.0f; // Minimalny dystans, który bandyta próbuje utrzymać.
 		static constexpr float SPEED = 2.0f;
 		static constexpr float KNIFE_COOLDOWN = 3.0f;
+		static constexpr float THROW_ANIMATION_SPEED = 1.65f;
+		static constexpr float THROW_SPAWN_FRAME_RATIO = 0.45f;
 
 		// Wyznaczanie ścieżki przy odwrocie.
 		static constexpr float PATH_RECALC_INTERVAL = 0.3f;
@@ -53,6 +55,7 @@ namespace Nawia::Entity {
 		void handleChasingState(float dt);
 		void handleCastingState(float dt);
 		void handleGettingHitState(float dt);
+		bool tryThrowKnifeAtTarget();
 		void onDeathStarted() override;
 	};
 

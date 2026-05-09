@@ -103,14 +103,21 @@ namespace Nawia::World {
 			.setAudioManager(&engine->getAudioManager())
 			.build();
 
+		bool has_knife_throw = false;
 		if (data.contains("abilities")) {
 			for (const auto& ability_name : data["abilities"]) {
 				const std::string ability_id = ability_name.get<std::string>();
 				if (ability_id == "KnifeThrow") {
 					bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(
 						"assets/models/knife.glb", 0.05f, nullptr, nullptr, 180.0f));
+					has_knife_throw = true;
 				}
 			}
+		}
+
+		if (!has_knife_throw) {
+			bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(
+				"assets/models/knife.glb", 0.05f, nullptr, nullptr, 180.0f));
 		}
 
 		return bandit;

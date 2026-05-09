@@ -8,7 +8,11 @@ namespace Nawia::Core {
 	std::string Logger::_output_file_name = "logs.txt";
 
 	void Logger::debugLog(const char* message) {
+#if defined(NAWIA_ENABLE_DEBUG_LOGS)
 		internalLog("[DEBUG]", message);
+#else
+		(void)message;
+#endif
 	}
 
 	void Logger::errorLog(const char* message) {
@@ -29,10 +33,10 @@ namespace Nawia::Core {
 		std::cout << final_message << "\n";
 		_logs.push_back(final_message);
 
-		std::ofstream file(_output_file_name, std::ios::app);
+		static std::ofstream file(_output_file_name, std::ios::app);
 		if (file.is_open()) {
 			file << final_message << "\n";
-			file.close();
+			file.flush();
 		}
 	}
 

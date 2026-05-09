@@ -27,6 +27,8 @@ namespace Nawia::Core {
 
 		constexpr Vector2 k_initial_player_spawn = {0.0f, 0.0f};
 		constexpr const char* MENU_MUSIC_PATH = "assets/audio/music/soulfuljamtracks-slavic-folk-308126.mp3";
+		constexpr float k_hover_update_interval = 0.05f;
+		constexpr float k_hover_mouse_move_threshold_sq = 1.0f;
 
 	}
 
@@ -250,29 +252,42 @@ namespace Nawia::Core {
 		}
 
 		_ui_handler->handleInput();
-		_camera.handleInput();
+
+		const auto dev_level = dynamic_cast<World::DevLevel*>(_level_manager->getCurrentLevel());
+		if (dev_level)
+			_camera.handleInput();
+		else
+			_camera.resetZoom();
 
 		const Vector2 mouse_pos = GetMousePosition();
-		Vector3 mouse_world_pos;
+		const float cursor_plane_height = _player ? _player->getAltitude() : 0.0f;
+		const Vector2 fallback = screenToWorldAtHeight(_camera.get(), mouse_pos.x, mouse_pos.y, cursor_plane_height);
+		Vector3 mouse_world_pos = {fallback.x, cursor_plane_height, fallback.y};
+		const bool needs_precise_ground_hit =
+			IsMouseButtonPressed(MOUSE_BUTTON_LEFT) ||
+			IsKeyPressed(KEY_Q) ||
+			IsKeyPressed(KEY_W) ||
+			IsKeyPressed(KEY_E) ||
+			IsKeyPressed(KEY_R);
 
-		if (getCurrentMap()) {
+		if (needs_precise_ground_hit && getCurrentMap()) {
 			const Ray ray = GetMouseRay(mouse_pos, _camera.get());
 			const RayCollision collision = getCurrentMap()->getRayCollision(ray);
-			if (collision.hit) {
+			if (collision.hit)
 				mouse_world_pos = collision.point;
-			} else {
-				const Vector2 fallback = screenToWorld(_camera.get(), mouse_pos.x, mouse_pos.y);
-				mouse_world_pos = {fallback.x, 0.0f, fallback.y};
-			}
-		} else {
-			const Vector2 fallback = screenToWorld(_camera.get(), mouse_pos.x, mouse_pos.y);
-			mouse_world_pos = {fallback.x, 0.0f, fallback.y};
 		}
 
-		_entity_manager->updateHoverState(mouse_pos.x, mouse_pos.y, _camera.get());
+		_hover_update_timer -= GetFrameTime();
+		const float hover_dx = mouse_pos.x - _last_hover_mouse_pos.x;
+		const float hover_dy = mouse_pos.y - _last_hover_mouse_pos.y;
+		const bool hover_mouse_moved = hover_dx * hover_dx + hover_dy * hover_dy >= k_hover_mouse_move_threshold_sq;
+		if (hover_mouse_moved || _hover_update_timer <= 0.0f) {
+			_entity_manager->updateHoverState(mouse_pos.x, mouse_pos.y, _camera.get());
+			_last_hover_mouse_pos = mouse_pos;
+			_hover_update_timer = k_hover_update_interval;
+		}
 
 		_level_manager->handleInput(this);
-		const auto dev_level = dynamic_cast<World::DevLevel*>(_level_manager->getCurrentLevel());
 		if (dev_level && dev_level->isTyping())
 			return;
 
@@ -372,12 +387,8 @@ namespace Nawia::Core {
 		BeginMode3D(_camera.get());
 
 		_lighting_system.applyToModel(getCurrentMap()->getModel());
-		for (const auto& entity : _entity_manager->getEntities()) {
-			if (entity->hasModelLoaded())
-				_lighting_system.applyToModel(entity->getModel());
-		}
 
-		getCurrentMap()->render();
+		getCurrentMap()->render(_camera.get());
 		_entity_manager->renderEntities(_camera.get());
 
 		EndMode3D();

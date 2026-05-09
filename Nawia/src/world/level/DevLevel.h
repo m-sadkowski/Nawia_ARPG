@@ -39,6 +39,9 @@ namespace Nawia::World {
 		/** @brief Wczytuje mape developerska i przygotowuje stan kreatora. */
 		void onEnter(Core::Engine* engine) override;
 
+		/** @brief Sprzata tryb developerski po wyjsciu z poziomu. */
+		void onExit(Core::Engine* engine) override;
+
 		/** @brief Obsluguje input kreatora albo narzedzia edycji na mapie. */
 		void handleInput(Core::Engine* engine) override;
 
@@ -88,6 +91,9 @@ namespace Nawia::World {
 		/** @brief Zwraca sciezke do roboczego pliku kategorii. */
 		[[nodiscard]] std::filesystem::path getCategoryFilePath(const std::string& category) const;
 
+		/** @brief Zwraca sciezke do roboczego pliku calego levelu. */
+		[[nodiscard]] std::filesystem::path getLevelFilePath() const;
+
 		/** @brief Rysuje markery i zasiegi postawionych obiektow. */
 		void renderPlacedObjects(Core::Engine* engine);
 
@@ -104,7 +110,16 @@ namespace Nawia::World {
 		void handleEditingInput(Core::Engine* engine);
 
 		/** @brief Rysuje instrukcje i status narzedzi developerskich. */
-		void renderLightingOverlay(Core::Engine& engine) const;
+		void renderLightingOverlay(Core::Engine& engine);
+
+		/** @brief Rysuje plaszczyzne odcinajaca niska wode z navmesha. */
+		void renderWaterCutoffPlane(Core::Engine& engine) const;
+
+		/** @brief Obsluguje suwak minimalnej wysokosci navmesha. */
+		bool handleNavmeshHeightInput();
+
+		/** @brief Przebudowuje navmesh po zmianie progu wysokosci. */
+		void applyNavmeshHeight();
 
 		/** @brief Rysuje glowne menu kreatora. */
 		void renderMainMenu(Core::Engine* engine);
@@ -139,6 +154,12 @@ namespace Nawia::World {
 		/** @brief Nadpisuje robocze pliki JSON aktualna lista obiektow. */
 		void rewriteJsonFiles();
 
+		/** @brief Wczytuje ustawienia levelu zapisane przez DevLevel. */
+		void loadLevelSettings();
+
+		/** @brief Nadpisuje roboczy JSON calego levelu z ustawieniami navmesha. */
+		void rewriteLevelJsonFile();
+
 		EditorMode _current_mode = EditorMode::None;
 		Vector2 _saved_world_position = {0.0f, 0.0f};
 
@@ -155,6 +176,10 @@ namespace Nawia::World {
 		std::string _trigger_radius_buffer = "15.0";
 		std::string _texture_path_buffer = "assets/textures/chest.png";
 		int _selected_field = 0;
+
+		float _navmesh_min_walkable_height = 0.0f;
+		bool _is_dragging_navmesh_height = false;
+		bool _navmesh_height_dirty = false;
 
 		std::vector<PlacedObject> _placed_objects;
 	};

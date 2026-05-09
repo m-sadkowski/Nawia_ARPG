@@ -37,7 +37,7 @@ namespace Nawia::Entity {
 		State _state = State::Idle;
 
 		// Prędkości animacji.
-		static constexpr float DEVIL_DASH_ANIMATION_SPEED = 3.0f;
+		static constexpr float DEVIL_DASH_ANIMATION_SPEED = 0.85f;
 		static constexpr float DEVIL_WALK_ANIMATION_SPEED = 1.0f;
 		static constexpr float DEVIL_DEAD_ANIMATION_SPEED = 2.0f;
 		static constexpr float DEVIL_ATTACK_ANIMATION_SPEED = 1.0f;
