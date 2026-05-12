@@ -11,10 +11,7 @@
 #include <Level.h>
 #include <LevelManager.h>
 #include <Map.h>
-#include <MrocznyLasLevel.h>
-#include <PobojowiskoLevel.h>
 #include <SoundIds.h>
-#include <StarozytneLochyLevel.h>
 #include <SwordSlashAbility.h>
 
 #include <string>
@@ -82,9 +79,6 @@ namespace Nawia::Core {
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
-		_level_manager->registerLevel(std::make_shared<World::MrocznyLasLevel>());
-		_level_manager->registerLevel(std::make_shared<World::StarozytneLochyLevel>());
-		_level_manager->registerLevel(std::make_shared<World::PobojowiskoLevel>());
 
 		_ui_handler = std::make_unique<UI::UIHandler>();
 		_ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
