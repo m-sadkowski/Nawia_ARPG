@@ -210,7 +210,10 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				}
 				else {
 					_anim_frame_counter = 0;
-					playAnimation("default", true, false);
+					if (getAnimationFrameCount("Idle_Loop") > 0)
+						playAnimation("Idle_Loop", true, false, 0, true);
+					else
+						playAnimation("default", true, false, 0, true);
 				}
 			}
 
@@ -237,7 +240,8 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			const float visual_rotation = _rotation + _model_facing_offset;
 			DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, WHITE);
 			if (_equipment) {
-				_equipment->draw(pos3d, _rotation, _scale);
+				const ModelAnimation* current_anim = !_animations.empty() ? &_animations[_current_anim_index] : nullptr;
+				_equipment->draw(pos3d, _rotation, _scale, _model, current_anim, static_cast<int>(_anim_frame_counter));
 			}
 
 			if (_hovered)

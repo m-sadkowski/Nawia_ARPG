@@ -126,6 +126,7 @@ namespace Nawia::Entity {
 		friend class PlayerBuilder;
 		Player();
 		void onDeathStarted() override;
+		void attachEngine(Core::Engine* engine);
 
 		Core::Engine* _engine = nullptr;
 
@@ -163,7 +164,7 @@ namespace Nawia::Entity {
 		/** @brief Tworzy roboczego gracza dla podanego silnika. */
 		explicit PlayerBuilder(Core::Engine* engine) {
 			_player_ptr = std::unique_ptr<Player>(new Player());
-			_player_ptr->_engine = engine;
+			_player_ptr->attachEngine(engine);
 
 			this->_entity = _player_ptr.get();
 		}

@@ -61,6 +61,8 @@ namespace Nawia::Item {
             const std::string slot_name = entry.value("slot", "");
             const std::string texture_path = entry.value("texture", "");
 			const std::string model_path = entry.value("model_path", "");
+			if (!model_path.empty())
+				resource_manager.getModel(model_path);
 
             const auto icon = resource_manager.getTexture(texture_path);
             if (!icon) {

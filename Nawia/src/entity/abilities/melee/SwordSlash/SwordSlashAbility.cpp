@@ -10,6 +10,7 @@ namespace Nawia::Entity {
 	namespace {
 		constexpr float EFFECT_SPAWN_ANIMATION_RATIO = 0.6f;
 		constexpr float ENTITY_ANIMATION_BASE_FPS = 60.0f;
+		constexpr const char* PLAYER_SWORD_ATTACK_ANIM = "Sword_Regular_A";
 	}
 
 	SwordSlashAbility::SwordSlashAbility(const std::shared_ptr<Texture2D>& slash_tex,
@@ -29,7 +30,7 @@ namespace Nawia::Entity {
 			_caster->setAnimationSpeed(Player::ATTACK_ANIM_BASE_SPEED * player->getStats().attack_speed);
 		}
 
-		_caster->playAnimation("attack", false, true);
+		_caster->playAnimation(PLAYER_SWORD_ATTACK_ANIM, false, true, 0, true);
 		_caster->playSoundEffect(Audio::SoundId::SwordSlash, 0.85f);
 
 		// Zapisujemy stan opóźnionego utworzenia efektu.
@@ -63,7 +64,7 @@ namespace Nawia::Entity {
 		if (!_caster)
 			return 0.0f;
 
-		const int frames = _caster->getAnimationFrameCount("attack");
+		const int frames = _caster->getAnimationFrameCount(PLAYER_SWORD_ATTACK_ANIM);
 		const float duration = (frames > 0) ? (static_cast<float>(frames) / ENTITY_ANIMATION_BASE_FPS) : 1.0f;
 
 		// Trafienie pojawia się w okolicy punktu impaktu animacji.

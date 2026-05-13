@@ -19,16 +19,14 @@ namespace Nawia::Entity {
 		_scale = 1.5f;
 		_type = EntityType::Player;
 		_faction = Faction::Player;
-		loadModel("assets/models/player/player.glb");
+		loadModel("assets/models/player/player_head.glb");
 		loadAnimationBundle("assets/models/animations/anims.glb");
 		loadAnimationBundle("assets/models/animations/anims2.glb");
 		playAnimation("Idle_Loop");
 		setAnimationSpeed(1.0f);
 		_death_anim_name = "Death01";
 
-		// Inicjalizacja plecaka i ekwipunku.
 		_backpack = std::make_unique<Item::Backpack>(INIT_BACKPACK_SIZE);
-		_equipment = std::make_unique<Item::Equipment>();
 
 		_base_stats.max_hp = _max_hp;
 		_base_stats.damage = 10;
@@ -36,6 +34,15 @@ namespace Nawia::Entity {
 		_base_stats.movement_speed = 4.0f;
 		_base_stats.tenacity = 0;
 
+		_current_stats = _base_stats;
+		_movement_speed = _current_stats.movement_speed;
+	}
+
+	void Player::attachEngine(Core::Engine* engine) {
+		_engine = engine;
+		if (!_engine) return;
+
+		_equipment = std::make_unique<Item::Equipment>(_engine->getResourceManager());
 		recalculateStats();
 	}
 
@@ -136,7 +143,7 @@ namespace Nawia::Entity {
 
 		_backpack->removeItem(backpack_index);
 
-		if (const auto old_item = _equipment->equip(item, _engine->getResourceManager())) 
+		if (const auto old_item = _equipment->equip(item)) 
 			_backpack->addItem(old_item);
 
 		playSoundEffect(Audio::SoundId::ItemEquip, 0.85f);

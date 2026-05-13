@@ -5,7 +5,7 @@
         "description": "Stary, drewniany miecz.",
         "slot": "Weapon",
         "texture": "assets/textures/items/sword_wooden.png",
-        "model_path": "",
+        "model_path": "assets/models/items/sword.glb",
         "stats": {
             "damage": 5
         }
@@ -21,18 +21,18 @@
             "defense": 3
         }
     },
-  {
-    "id": 3,
-    "name": "Diamentowe buty",
-    "description": "Lekkie buty z diamentow. Pozwalaja szybciej sie poruszac.",
-    "slot": "Feet",
-    "texture": "assets/textures/items/boots_diamond.png",
-    "model_path": "assets/models/items/leather_boots.glb",
-    "stats": {
-      "defense": 2,
-      "movement_speed": 1.0
-    }
-  },
+    {
+        "id": 3,
+        "name": "Diamentowe buty",
+        "description": "Lekkie buty z diamentow. Pozwalaja szybciej sie poruszac.",
+        "slot": "Feet",
+        "texture": "assets/textures/items/boots_diamond.png",
+        "model_path": "assets/models/items/leather_boots.glb",
+        "stats": {
+            "defense": 2,
+            "movement_speed": 1.0
+        }
+    },
     {
         "id": 4,
         "name": "Zardzewialy klucz",
