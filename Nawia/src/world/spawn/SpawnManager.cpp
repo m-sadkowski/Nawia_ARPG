@@ -11,62 +11,28 @@
 
 #include <algorithm>
 #include <cmath>
-#include <fstream>
 #include <utility>
 
 using json = nlohmann::json;
 
 namespace Nawia::World {
 
-	bool SpawnManager::loadFromJson(
-		const std::string& path,
+	bool SpawnManager::loadEntities(
+		const std::vector<json>& entities,
 		Core::Engine* engine,
 		Core::Map* map,
-		const std::string& initial_location
-	) {
-		std::ifstream file(path);
-		if (!file.is_open()) {
-			Core::Logger::errorLog("SpawnManager: nie mozna otworzyc pliku: " + path);
-			return false;
-		}
-
-		json root;
-		try {
-			file >> root;
-		} catch (const json::parse_error& e) {
-			Core::Logger::errorLog("SpawnManager: blad parsowania JSON: " + std::string(e.what()));
-			return false;
-		}
-
-		return loadFromJsonData(root, engine, map, initial_location, path);
-	}
-
-	bool SpawnManager::loadFromJsonData(
-		const json& root,
-		Core::Engine* engine,
-		Core::Map* map,
-		const std::string& initial_location,
+		const std::string& current_location,
 		const std::string& source_label
 	) {
 		_spawn_points.clear();
-		_player_spawns.clear();
 
-		// Wczytuje pozycje startowe gracza dla poszczegolnych lokacji.
-		if (root.contains("player_spawn")) {
-			for (const auto& [location_name, position_data] : root["player_spawn"].items()) {
-				const float x = position_data.value("x", 0.0f);
-				const float y = position_data.value("y", 0.0f);
-				_player_spawns[location_name] = {x, y};
-			}
-		}
-
-		// Brak encji nie jest bledem; poziom moze miec tylko spawn gracza.
-		if (!root.contains("entities") || !root["entities"].is_array()) {
-			Core::Logger::debugLog("SpawnManager: brak tablicy 'entities' w pliku: " + source_label);
+		// Brak encji nie jest bledem; poziom moze miec tylko mape i spawn gracza.
+		if (entities.empty()) {
+			Core::Logger::debugLog("SpawnManager: brak encji w: " + source_label);
 			return true;
 		}
 
-		for (const auto& entry : root["entities"]) {
+		for (const auto& entry : entities) {
 			const std::string entity_type = entry.value("type", "");
 			if (entity_type.empty()) {
 				Core::Logger::errorLog("SpawnManager: spawn point bez 'type' - pominieto");
@@ -85,8 +51,6 @@ namespace Nawia::World {
 				spawn_point.spawn_center.y = entry.value("y", 0.0f);
 				spawn_point.trigger_radius = entry.value("trigger_radius", 0.0f);
 				spawn_point.spawn_radius = entry.value("spawn_radius", 0.0f);
-				spawn_point.respawnable = entry.value("respawnable", false);
-				spawn_point.respawn_cooldown = entry.value("respawn_cooldown", 0.0f);
 
 				json spawn_data = spawn_point.entity_data;
 
@@ -105,7 +69,7 @@ namespace Nawia::World {
 					continue;
 				}
 
-				const bool is_current_location = (spawn_point.location == initial_location);
+				const bool is_current_location = (spawn_point.location == current_location);
 				if (is_current_location && map && map->getNavMesh().isReady()) {
 					const Vector3 snapped_position = map->getNavMesh().getClosestWalkablePosition(
 						{entity->getX(), entity->getAltitude(), entity->getY()});
@@ -188,24 +152,11 @@ namespace Nawia::World {
 	}
 
 	void SpawnManager::reset() {
-		for (auto& spawn_point : _spawn_points) {
-			spawn_point.reset();
-		}
 		_spawn_points.clear();
-		_player_spawns.clear();
 	}
 
 	void SpawnManager::addSpawnPoint(const SpawnPoint& sp) {
 		_spawn_points.push_back(sp);
-	}
-
-	bool SpawnManager::getPlayerSpawn(const std::string& location_name, Vector2& out_pos) const {
-		const auto spawn_it = _player_spawns.find(location_name);
-		if (spawn_it != _player_spawns.end()) {
-			out_pos = spawn_it->second;
-			return true;
-		}
-		return false;
 	}
 
 } // namespace Nawia::World

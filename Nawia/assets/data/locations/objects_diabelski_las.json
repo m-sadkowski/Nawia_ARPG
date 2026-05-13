@@ -33,6 +33,9 @@
         },
         {
             "category": "npcs",
+            "items": [
+                5
+            ],
             "location": "Diabelski Las",
             "name": "Kot",
             "npc_class": "cat",

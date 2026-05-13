@@ -49,7 +49,7 @@ namespace Nawia::World {
 		SpawnerRadius,
 		TriggerRadius,
 		ObjectName,
-		PropTexture,
+		PropModel,
 		TeleportTarget,
 		BossTriggerWidth,
 		BossTriggerHeight,
@@ -269,7 +269,7 @@ namespace Nawia::World {
 		std::string _count_buffer = "1";
 		std::string _spawn_radius_buffer = "5.0";
 		std::string _trigger_radius_buffer = "15.0";
-		std::string _texture_path_buffer;
+		std::string _prop_model_path_buffer;
 		std::string _boss_width_buffer = "10.0";
 		std::string _boss_height_buffer = "4.0";
 		std::string _key_id_buffer = "-1";

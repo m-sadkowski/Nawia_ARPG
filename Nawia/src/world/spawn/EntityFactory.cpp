@@ -1,6 +1,5 @@
 #include "EntityFactory.h"
 
-#include <Backpack.h>
 #include <BossManager.h>
 #include <Engine.h>
 #include <Item.h>
@@ -26,6 +25,10 @@
 
 #include <json.hpp>
 
+#include <algorithm>
+#include <filesystem>
+#include <initializer_list>
+
 using json = nlohmann::json;
 
 namespace Nawia::World {
@@ -40,6 +43,41 @@ namespace Nawia::World {
 			if (loottable_name == "CAT") return Item::LOOTTABLE_TYPE::CAT;
 			if (loottable_name == "CHEST_NOOB") return Item::LOOTTABLE_TYPE::CHEST_NOOB;
 			return default_type;
+		}
+
+		std::string readStringAlias(const json& data, const std::initializer_list<const char*> keys) {
+			for (const char* key : keys) {
+				if (data.contains(key) && data[key].is_string())
+					return data[key].get<std::string>();
+			}
+
+			return "";
+		}
+
+		std::string resolveModelPath(std::string model_path) {
+			std::ranges::replace(model_path, '\\', '/');
+			if (model_path.empty() || model_path.rfind("assets/", 0) == 0)
+				return model_path;
+
+			if (std::filesystem::path(model_path).has_parent_path())
+				return model_path;
+
+			return "assets/models/" + model_path;
+		}
+
+		template <typename AddItem>
+		void addItemsFromJson(const json& data, Core::Engine* engine, AddItem add_item) {
+			if (!engine || !data.contains("items") || !data["items"].is_array())
+				return;
+
+			auto& item_database = engine->getItemDatabase();
+			for (const auto& item_id : data["items"]) {
+				if (!item_id.is_number_integer())
+					continue;
+
+				if (auto item = item_database.createItem(item_id.get<int>()))
+					add_item(item);
+			}
 		}
 
 	}
@@ -191,14 +229,9 @@ namespace Nawia::World {
 			);
 		}
 
-		if (data.contains("items")) {
-			auto& item_database = engine->getItemDatabase();
-			for (const auto& item_id : data["items"]) {
-				if (auto item = item_database.createItem(item_id.get<int>())) {
-					chest->addItem(item);
-				}
-			}
-		}
+		addItemsFromJson(data, engine, [&](const std::shared_ptr<Item::Item>& item) {
+			chest->addItem(item);
+		});
 
 		if (data.value("locked", false)) {
 			const int key_id = data.value("key_id", -1);
@@ -232,18 +265,9 @@ namespace Nawia::World {
 				);
 			}
 
-			constexpr int cat_key_id = 5;
-			if (cat->getInventory() && !cat->getInventory()->getItem(0)) {
-				if (const auto key = engine->getItemDatabase().createItem(cat_key_id))
-					cat->addItem(key);
-				else
-					cat->addItem(std::make_shared<Item::Item>(
-						cat_key_id,
-						"Klucz Kota",
-						"Klucz nalezacy do Kota Olgi.",
-						Item::EquipmentSlot::None,
-						nullptr));
-			}
+			addItemsFromJson(data, engine, [&](const std::shared_ptr<Item::Item>& item) {
+				cat->addItem(item);
+			});
 
 			return cat;
 		}
@@ -259,18 +283,24 @@ namespace Nawia::World {
 		const float y = data.value("y", 0.0f);
 		const int hp = data.value("hp", 9999);
 		const std::string name = data.value("name", "Obiekt");
-		const std::string texture_path = data.value("texture", "");
-
-		auto& rm = engine->getResourceManager();
-		const auto texture = texture_path.empty() ? nullptr : rm.getTexture(texture_path);
+		const std::string model_path = resolveModelPath(readStringAlias(data, {"model", "model_path", "texture"}));
 
 		auto object = Entity::StaticObjectBuilder()
 			.setName(name)
 			.setPosition({x, y})
 			.setMaxHp(hp)
-			.setTexture(texture)
 			.setAudioManager(&engine->getAudioManager())
 			.build();
+
+		if (!model_path.empty()) {
+			object->loadModel(model_path);
+			object->setScale(data.value("scale", 1.0f));
+
+			if (data.contains("rotation") && data["rotation"].is_number())
+				object->setRotation(data["rotation"].get<float>());
+		} else {
+			Core::Logger::errorLog("EntityFactory: static_object wymaga pola 'model'");
+		}
 
 		return object;
 	}

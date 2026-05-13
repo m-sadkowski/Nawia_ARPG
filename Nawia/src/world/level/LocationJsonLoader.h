@@ -18,10 +18,6 @@ namespace Nawia::World {
 			LocationDefinition& out_location
 		);
 
-		/**
-		 * @brief Buduje tymczasowy JSON w formacie zrozumialym dla SpawnManagera.
-		 */
-		[[nodiscard]] static nlohmann::json buildSpawnRoot(const LocationDefinition& location);
 	};
 
 } // namespace Nawia::World

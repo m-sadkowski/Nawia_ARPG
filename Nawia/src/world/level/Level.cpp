@@ -18,6 +18,18 @@ namespace Nawia::World {
 			return model_name.empty() || model_name == "placeholder";
 		}
 
+		std::vector<nlohmann::json> collectLocationEntities(const LocationDefinition& location) {
+			std::vector<nlohmann::json> entities;
+			entities.reserve(location.entities.size());
+
+			for (auto entity_data : location.entities) {
+				entity_data["location"] = location.name;
+				entities.push_back(std::move(entity_data));
+			}
+
+			return entities;
+		}
+
 	} // namespace
 
 	Level::~Level() = default;
@@ -37,7 +49,7 @@ namespace Nawia::World {
 			return locations;
 		}
 
-		return {"Domyslna"};
+		return {};
 	}
 
 	void Level::update(Core::Engine* engine, float dt) {
@@ -130,8 +142,13 @@ namespace Nawia::World {
 		if (reload_entities) {
 			engine->getEntityManager().clearNonPlayerEntities();
 			_spawn_manager.reset();
-			const nlohmann::json spawn_root = LocationJsonLoader::buildSpawnRoot(location);
-			_spawn_manager.loadFromJsonData(spawn_root, engine, _map.get(), location.name, location.source_path.generic_string());
+			_spawn_manager.loadEntities(
+				collectLocationEntities(location),
+				engine,
+				_map.get(),
+				location.name,
+				location.source_path.generic_string()
+			);
 		} else {
 			_spawn_manager.updateLocationChange(location.name, _map.get());
 		}
@@ -173,28 +190,19 @@ namespace Nawia::World {
 		if (!engine || !_map || _location_definitions.empty())
 			return;
 
-		nlohmann::json root;
-		root["player_spawn"] = nlohmann::json::object();
-		root["entities"] = nlohmann::json::array();
+		std::vector<nlohmann::json> entities;
 
 		for (const auto& location : _location_definitions) {
-			if (location.has_player_spawn) {
-				root["player_spawn"][location.name] = {
-					{"x", location.player_spawn.x},
-					{"y", location.player_spawn.y},
-				};
-			}
-
 			for (auto entity_data : location.entities) {
 				entity_data["location"] = location.name;
-				root["entities"].push_back(std::move(entity_data));
+				entities.push_back(std::move(entity_data));
 			}
 		}
 
 		engine->getBossManager().clearPreloadedBosses();
 		engine->getEntityManager().clearNonPlayerEntities();
 		_spawn_manager.reset();
-		_spawn_manager.loadFromJsonData(root, engine, _map.get(), getCurrentLocationName(), "all location json files");
+		_spawn_manager.loadEntities(entities, engine, _map.get(), getCurrentLocationName(), "all location json files");
 
 		if (const auto player = engine->getPlayer())
 			_spawn_manager.update({player->getX(), player->getY()}, getCurrentLocationName());

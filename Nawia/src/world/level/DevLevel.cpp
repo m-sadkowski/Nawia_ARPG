@@ -4,6 +4,7 @@
 #include <Entity.h>
 #include <EntityFactory.h>
 #include <ItemDatabase.h>
+#include <LocationJsonUtils.h>
 #include <Logger.h>
 #include <Map.h>
 #include <MathUtils.h>
@@ -49,7 +50,7 @@ namespace Nawia::World {
 		}
 
 		std::string toPathString(const std::filesystem::path& path) {
-			return path.generic_string();
+			return LocationJsonUtils::toPathString(path);
 		}
 
 		std::string formatFloat(const float value, const int precision = 2) {
@@ -59,24 +60,7 @@ namespace Nawia::World {
 		}
 
 		std::string displayNameFromStem(std::string stem) {
-			for (char& c : stem) {
-				if (c == '_' || c == '-')
-					c = ' ';
-			}
-
-			bool capitalize_next = true;
-			for (char& c : stem) {
-				if (std::isspace(static_cast<unsigned char>(c))) {
-					capitalize_next = true;
-					continue;
-				}
-
-				if (capitalize_next) {
-					c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
-					capitalize_next = false;
-				}
-			}
-			return stem;
+			return LocationJsonUtils::displayNameFromStem(std::move(stem));
 		}
 
 		std::string slugify(std::string text) {
@@ -126,20 +110,7 @@ namespace Nawia::World {
 		}
 
 		bool readJsonFile(const std::filesystem::path& path, json& output) {
-			std::ifstream file(path);
-			if (!file.is_open()) {
-				Core::Logger::errorLog("DevLevel: nie mozna otworzyc pliku JSON: " + toPathString(path));
-				return false;
-			}
-
-			try {
-				file >> output;
-			} catch (const json::parse_error& error) {
-				Core::Logger::errorLog("DevLevel: blad parsowania JSON " + toPathString(path) + ": " + error.what());
-				return false;
-			}
-
-			return true;
+			return LocationJsonUtils::readJsonFile(path, output, "DevLevel");
 		}
 
 		bool tryParseFloat(const std::string& text, float& output) {
@@ -163,48 +134,19 @@ namespace Nawia::World {
 		}
 
 		Vector2 parseVector2(const json& data, const Vector2 fallback = {0.0f, 0.0f}) {
-			if (!data.is_object())
-				return fallback;
-
-			return {
-				data.value("x", fallback.x),
-				data.value("y", fallback.y),
-			};
+			return LocationJsonUtils::parseVector2(data, fallback);
 		}
 
 		Vector3 parseVector3(const json& data, const Vector3 fallback = {0.0f, 0.0f, 0.0f}) {
-			if (data.is_object()) {
-				return {
-					data.value("x", fallback.x),
-					data.value("y", fallback.y),
-					data.value("z", fallback.z),
-				};
-			}
-
-			if (data.is_array() && data.size() >= 3) {
-				return {
-					data[0].get<float>(),
-					data[1].get<float>(),
-					data[2].get<float>(),
-				};
-			}
-
-			return fallback;
+			return LocationJsonUtils::parseVector3(data, fallback);
 		}
 
 		json vector2ToJson(const Vector2 value) {
-			return {
-				{"x", value.x},
-				{"y", value.y},
-			};
+			return LocationJsonUtils::vector2ToJson(value);
 		}
 
 		json vector3ToJson(const Vector3 value) {
-			return {
-				{"x", value.x},
-				{"y", value.y},
-				{"z", value.z},
-			};
+			return LocationJsonUtils::vector3ToJson(value);
 		}
 
 		bool isEnemyType(const std::string& type) {
@@ -433,14 +375,10 @@ namespace Nawia::World {
 			return changed;
 		}
 
-		float readNavmeshMinHeight(const json& root, const std::string& location_name, const float fallback) {
+		float readNavmeshMinHeight(const json& root, const float fallback) {
 			const auto navmesh_it = root.find("navmesh");
 			if (navmesh_it == root.end() || !navmesh_it->is_object())
 				return fallback;
-
-			const auto location_it = navmesh_it->find(location_name);
-			if (location_it != navmesh_it->end() && location_it->is_object())
-				return location_it->value("min_walkable_height", fallback);
 
 			return navmesh_it->value("min_walkable_height", fallback);
 		}
@@ -715,7 +653,7 @@ namespace Nawia::World {
 			if (root.contains("player_spawn") && root["player_spawn"].is_object())
 				_player_spawn = parseVector2(root["player_spawn"], _player_spawn);
 
-			_navmesh_min_walkable_height = readNavmeshMinHeight(root, _active_location_name, _navmesh_min_walkable_height);
+			_navmesh_min_walkable_height = readNavmeshMinHeight(root, _navmesh_min_walkable_height);
 			loadPlacedObjectsFromFile(option.objects_path, _active_location_name);
 		}
 
@@ -780,7 +718,12 @@ namespace Nawia::World {
 		if (placed_object.category == "npcs") {
 			placed_object.extra_value = data.value("npc_class", "");
 		} else if (placed_object.category == "props") {
-			placed_object.extra_value = data.value("texture", "");
+			if (data.contains("model") && data["model"].is_string())
+				placed_object.extra_value = data["model"].get<std::string>();
+			else if (data.contains("model_path") && data["model_path"].is_string())
+				placed_object.extra_value = data["model_path"].get<std::string>();
+			else
+				placed_object.extra_value = data.value("texture", "");
 		} else if (placed_object.category == "teleports") {
 			placed_object.extra_value = data.value("target_location", "");
 		} else if (placed_object.category == "boss_triggers") {
@@ -821,9 +764,11 @@ namespace Nawia::World {
 			data["npc_class"] = object.extra_value;
 		} else if (object.category == "props") {
 			if (object.extra_value.empty())
-				data.erase("texture");
+				data.erase("model");
 			else
-				data["texture"] = object.extra_value;
+				data["model"] = object.extra_value;
+			data.erase("model_path");
+			data.erase("texture");
 		} else if (object.category == "teleports") {
 			data["target_location"] = object.extra_value;
 		} else if (object.category == "boss_triggers") {
@@ -1776,12 +1721,12 @@ namespace Nawia::World {
 		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _active_text_field == EditorTextField::ObjectName))
 			_active_text_field = EditorTextField::ObjectName;
 
-		drawLabel(font, "Texture Path:", start_x, start_y + 70);
-		if (drawTextInput(font, _texture_path_buffer, start_x, start_y + 90, 400, 40, _active_text_field == EditorTextField::PropTexture))
-			_active_text_field = EditorTextField::PropTexture;
+		drawLabel(font, "Model:", start_x, start_y + 70);
+		if (drawTextInput(font, _prop_model_path_buffer, start_x, start_y + 90, 400, 40, _active_text_field == EditorTextField::PropModel))
+			_active_text_field = EditorTextField::PropModel;
 
 		if (drawButton(font, "ZAPISZ PROP", start_x, start_y + 150, 400, 50, GREEN)) {
-			_temp_extra_value = _texture_path_buffer;
+			_temp_extra_value = _prop_model_path_buffer;
 			saveObject("props");
 			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
@@ -1983,7 +1928,7 @@ namespace Nawia::World {
 		_count_buffer = "1";
 		_spawn_radius_buffer = "5.0";
 		_trigger_radius_buffer = "15.0";
-		_texture_path_buffer.clear();
+		_prop_model_path_buffer.clear();
 		_boss_width_buffer = "10.0";
 		_boss_height_buffer = "4.0";
 		_key_id_buffer = "-1";
