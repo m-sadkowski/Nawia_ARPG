@@ -22,7 +22,6 @@ namespace Nawia::Entity {
 		addAnimation("walk", "assets/models/bandit_walk_backwards3.glb");
 		addAnimation("throw", "assets/models/bandit_throw.glb");
 		addAnimation("death", "assets/models/bandit_death.glb");
-		addAnimation("get_hit", "assets/models/bandit_hit.glb");
 	}
 
 	void Bandit::takeDamage(const int dmg)
@@ -35,7 +34,6 @@ namespace Nawia::Entity {
 			_state_before_hit = _state;
 		
 		_state = State::GettingHit;
-		playAnimation("get_hit", false, true, 10, true);
 		setVelocity(0, 0);
 	}
 

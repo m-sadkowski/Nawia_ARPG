@@ -36,7 +36,7 @@ namespace Nawia::Item {
         [[nodiscard]] const std::map<EquipmentSlot, std::shared_ptr<Item>>& getSlots() const { return _slots; }
 
 		void updateAnimations(const ModelAnimation& current_anim, int frame);
-		void draw(Vector3 pos, float rotation_angle, float scale, const Model& owner_model,
+		void draw(Vector3 pos, float owner_visual_rotation, float owner_logical_rotation, float scale, const Model& owner_model,
 				  const ModelAnimation* current_anim, int frame);
 
     private:

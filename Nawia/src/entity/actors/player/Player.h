@@ -62,6 +62,9 @@ namespace Nawia::Entity {
 		/** @brief Zakłada przedmiot z plecaka, jeśli pasuje do slotu ekwipunku. */
 		void equipItemFromBackpack(int backpack_index);
 
+		/** @brief Zaklada podany przedmiot bezposrednio do ekwipunku. */
+		bool equipItem(const std::shared_ptr<Item::Item>& item);
+
 		/** @brief Zdejmuje przedmiot z wybranego slotu ekwipunku. */
 		void unequipItem(Item::EquipmentSlot slot);
 

@@ -12,25 +12,25 @@
     },
     {
         "id": 2,
-        "name": "Skorzana tunika",
-        "description": "Jakas kurtka ze skory.",
+        "name": "Skorzany pancerz",
+        "description": "Prosty skorzany pancerz.",
         "slot": "Chest",
-        "texture": "assets/textures/items/chest_leather.png",
-        "model_path": "",
+        "texture": "assets/textures/items/leather_chestplate.png",
+        "model_path": "assets/models/items/leather_chestplate.glb",
         "stats": {
-            "defense": 3
+            "defense": 5
         }
     },
     {
         "id": 3,
-        "name": "Diamentowe buty",
-        "description": "Lekkie buty z diamentow. Pozwalaja szybciej sie poruszac.",
+        "name": "Skorzane buty",
+        "description": "Lekkie skorzane buty.",
         "slot": "Feet",
-        "texture": "assets/textures/items/boots_diamond.png",
+        "texture": "assets/textures/items/leather_boots.png",
         "model_path": "assets/models/items/leather_boots.glb",
         "stats": {
             "defense": 2,
-            "movement_speed": 1.0
+            "movement_speed": 0.5
         }
     },
     {
@@ -63,9 +63,66 @@
         "description": "Miecz podarowany przez Kota. Pachnie ryba.",
         "slot": "Weapon",
         "texture": "assets/textures/items/cat_sword.png",
-        "model_path": "",
+        "model_path": "assets/models/items/sword.glb",
         "stats": {
             "damage": 50
         }
+    },
+    {
+        "id": 8,
+        "name": "Skorzane nogawice",
+        "description": "Proste skorzane nogawice.",
+        "slot": "Legs",
+        "texture": "assets/textures/items/leather_leggins.png",
+        "model_path": "assets/models/items/leather_leggins.glb",
+        "stats": {
+            "defense": 3
+        }
+    },
+    {
+        "id": 9,
+        "name": "Skorzany kaptur",
+        "description": "Lekki kaptur ze skory.",
+        "slot": "Head",
+        "texture": "assets/textures/items/leather_hood.png",
+        "model_path": "assets/models/items/leather_hood.glb",
+        "stats": {
+            "defense": 2
+        }
+    },
+    {
+        "id": 10,
+        "name": "Wzmocnione skorzane buty",
+        "description": "Lepsza para skorzanych butow.",
+        "slot": "Feet",
+        "texture": "assets/textures/items/leather_boots_2.png",
+        "model_path": "assets/models/items/leather_boots_2.glb",
+        "stats": {
+            "defense": 4,
+            "movement_speed": 0.75
+        }
+    },
+    {
+        "id": 11,
+        "name": "Wzmocniony skorzany pancerz",
+        "description": "Solidniejszy skorzany pancerz.",
+        "slot": "Chest",
+        "texture": "assets/textures/items/leather_chestplate_2.png",
+        "model_path": "assets/models/items/leather_chestplate_2.glb",
+        "stats": {
+            "defense": 8
+        }
+    },
+    {
+        "id": 12,
+        "name": "Wzmocnione skorzane nogawice",
+        "description": "Solidniejsze skorzane nogawice.",
+        "slot": "Legs",
+        "texture": "assets/textures/items/leather_leggins_2.png",
+        "model_path": "assets/models/items/leather_leggins_2.glb",
+        "stats": {
+            "defense": 5
+        }
     }
 ]
+

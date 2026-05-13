@@ -8,6 +8,7 @@
 #include <MathUtils.h>
 #include <SoundIds.h>
 
+#include <algorithm>
 #include <cmath>
 
 namespace Nawia::Entity {
@@ -32,7 +33,7 @@ namespace Nawia::Entity {
 		_base_stats.damage = 10;
 		_base_stats.attack_speed = 1.0f;
 		_base_stats.movement_speed = 4.0f;
-		_base_stats.tenacity = 0;
+		_base_stats.defense = 0;
 
 		_current_stats = _base_stats;
 		_movement_speed = _current_stats.movement_speed;
@@ -151,6 +152,18 @@ namespace Nawia::Entity {
 
 	}
 
+	bool Player::equipItem(const std::shared_ptr<Item::Item>& item)
+	{
+		if (!item || !_equipment)
+			return false;
+
+		if (const auto old_item = _equipment->equip(item))
+			_backpack->addItem(old_item);
+
+		recalculateStats();
+		return true;
+	}
+
 	void Player::unequipItem(const Item::EquipmentSlot slot) 
 	{
 		const auto item = _equipment->getItemAt(slot);
@@ -203,7 +216,6 @@ namespace Nawia::Entity {
 		_base_stats.damage = _base_stats.damage + 2;
 		_base_stats.attack_speed = _base_stats.attack_speed + 0.1f;
 		_base_stats.movement_speed = 4.0f;
-		_base_stats.tenacity = _base_stats.tenacity + 0.1f;
 		recalculateStats();
 	}
 
@@ -214,7 +226,12 @@ namespace Nawia::Entity {
 	void Player::takeDamage(const int dmg)
 	{
 		const bool was_dying = isDying();
-		Entity::takeDamage(dmg);
+		const float damage_reduction = std::clamp(static_cast<float>(_current_stats.defense) * 0.005f, 0.0f, 0.9f);
+		const int reduced_damage = dmg > 0
+			? std::max(1, static_cast<int>(std::round(static_cast<float>(dmg) * (1.0f - damage_reduction))))
+			: dmg;
+
+		Entity::takeDamage(reduced_damage);
 		if (!isDying()) playSoundEffect(Audio::SoundId::PlayerHurt, 0.85f);
 
 

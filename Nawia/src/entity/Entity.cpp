@@ -67,17 +67,35 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (!_movement_sound_id.empty())
 			stopSoundEffect(_movement_sound_id);
 
-		if (_model_loaded)
-		{
-			for (const auto& anim : _animations)
-				UnloadModelAnimation(anim);
+		unloadModelData();
+	}
 
+	void Entity::unloadModelData()
+	{
+		for (const auto& anim : _animations)
+			UnloadModelAnimation(anim);
+		_animations.clear();
+		_animation_map.clear();
+
+		if (_model_loaded)
 			UnloadModel(_model);
-		}
+
+		_model = {};
+		_model_loaded = false;
+		_local_model_bounding_box = {};
+		_local_model_bounding_box_valid = false;
+		_current_anim_index = 0;
+		_anim_frame_counter = 0.0f;
+		_last_applied_anim_index = -1;
+		_last_applied_anim_frame = -1;
+		_anim_looping = true;
+		_anim_locked = false;
 	}
 
 	void Entity::loadModel(const std::string& path, const bool rotate_model)
 	{
+		unloadModelData();
+
 		_model = LoadModel(path.c_str());
 		if (_model.meshCount == 0)
 		{
@@ -113,9 +131,10 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				_animations.push_back(anims[i]);
 
 			_animation_map[name] = start_index;
-
-			MemFree(anims);
 		}
+
+		if (anims != nullptr)
+			MemFree(anims);
 	}
 
 	void Entity::loadAnimationBundle(const std::string& path) {
@@ -143,8 +162,10 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				_animation_map[anim_name] = start_index + i;
 			}
 
-			MemFree(anims);
 		}
+
+		if (anims != nullptr)
+			MemFree(anims);
 	}
 
 	void Entity::playAnimation(const std::string& name, const bool loop, const bool lock_movement, const int start_frame, const bool force)
@@ -241,7 +262,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, WHITE);
 			if (_equipment) {
 				const ModelAnimation* current_anim = !_animations.empty() ? &_animations[_current_anim_index] : nullptr;
-				_equipment->draw(pos3d, _rotation, _scale, _model, current_anim, static_cast<int>(_anim_frame_counter));
+				_equipment->draw(pos3d, visual_rotation, _rotation, _scale, _model, current_anim, static_cast<int>(_anim_frame_counter));
 			}
 
 			if (_hovered)

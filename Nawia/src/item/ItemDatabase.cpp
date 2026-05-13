@@ -14,6 +14,7 @@
 #include <json.hpp>
 
 #include <fstream>
+#include <set>
 
 using json = nlohmann::json;
 
@@ -33,6 +34,25 @@ namespace Nawia::Item {
                 return fallback;
 
             return entry["stats"].value(name, fallback);
+        }
+
+        int readDefenseStat(const json& entry) {
+            if (!entry.contains("stats"))
+                return 0;
+
+            return entry["stats"].value("defense", 0);
+        }
+
+        void smoothItemIcon(const std::shared_ptr<Texture2D>& texture) {
+            static std::set<unsigned int> smoothed_textures;
+
+            if (!texture || texture->id <= 0)
+                return;
+
+            if (smoothed_textures.insert(texture->id).second) {
+                GenTextureMipmaps(texture.get());
+                SetTextureFilter(*texture, TEXTURE_FILTER_TRILINEAR);
+            }
         }
 
     }
@@ -69,6 +89,7 @@ namespace Nawia::Item {
                 Core::Logger::errorLog("ItemDatabase: pominieto przedmiot bez tekstury ID " + std::to_string(id));
                 continue;
             }
+            smoothItemIcon(icon);
 
             const EquipmentSlot slot = stringToSlot(slot_name);
             std::shared_ptr<Item> item_template;
@@ -83,28 +104,28 @@ namespace Nawia::Item {
                     slot,
                     icon,
 					model_path,
-                    readIntStat(entry, "damage"),
-                    readIntStat(entry, "defense")
+					readIntStat(entry, "damage"),
+                    readDefenseStat(entry)
                 );
             } else if (slot == EquipmentSlot::Head) {
 				item_template = std::make_shared<Head>(id, name, description, slot, icon, model_path,
-				                                       readIntStat(entry, "defense"));
+				                                       readDefenseStat(entry));
             } else if (slot == EquipmentSlot::Neck) {
 				item_template = std::make_shared<Necklace>(id, name, description, slot, icon, model_path,
 				                                           readIntStat(entry, "intelligence"));
             } else if (slot == EquipmentSlot::Chest) {
 				item_template = std::make_shared<Chestplate>(id, name, description, slot, icon, model_path,
-				                                             readIntStat(entry, "defense"));
+				                                             readDefenseStat(entry));
             } else if (slot == EquipmentSlot::Legs) {
 				item_template = std::make_shared<Legs>(id, name, description, slot, icon, model_path,
-				                                       readIntStat(entry, "defense"));
+				                                       readDefenseStat(entry));
             } else if (slot == EquipmentSlot::Feet) {
                 item_template = std::make_shared<Boots>(
                     id,
                     name,
                     description,
                     slot, icon, model_path,
-                    readIntStat(entry, "defense"),
+                    readDefenseStat(entry),
                     readFloatStat(entry, "movement_speed")
                 );
             } else if (slot == EquipmentSlot::Ring) {

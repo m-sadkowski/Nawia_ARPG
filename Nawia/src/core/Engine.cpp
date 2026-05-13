@@ -83,13 +83,14 @@ namespace Nawia::Core {
 		_ui_handler->setLevelManager(_level_manager.get());
 
 		if (_player) {
-			const auto sword = _item_database.createItem(1);
-			const auto chest = _item_database.createItem(2);
-			const auto boots = _item_database.createItem(3);
-
-			if (sword) _player->getBackpack().addItem(sword);
-			if (chest) _player->getBackpack().addItem(chest);
-			if (boots) _player->getBackpack().addItem(boots);
+			for (const int starter_item_id : {1, 2, 3, 8, 9}) {
+				if (const auto item = _item_database.createItem(starter_item_id))
+					_player->equipItem(item);
+			}
+			for (const int backpack_item_id : {4, 5, 6, 7, 10, 11, 12}) {
+				if (const auto item = _item_database.createItem(backpack_item_id))
+					_player->getBackpack().addItem(item);
+			}
 		}
 
 		_is_running = true;

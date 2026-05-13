@@ -25,6 +25,7 @@ namespace Nawia::Core {
 			for (auto& pair : _model_cache) {
 				UnloadModel(pair.second);
 			}
+			_model_cache.clear();
 		}
 
 		std::shared_ptr<Texture2D> getTexture(const std::string& filename);

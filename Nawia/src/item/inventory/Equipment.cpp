@@ -192,19 +192,25 @@ namespace Nawia::Item {
 		return true;
 	}
 
-	void Equipment::draw(const Vector3 pos, const float rotation_angle, const float scale, const Model& owner_model,
+	void Equipment::draw(const Vector3 pos, const float owner_visual_rotation, const float owner_logical_rotation,
+						 const float scale, const Model& owner_model,
 						 const ModelAnimation* current_anim, const int frame) {
-		const Matrix owner_world_transform = getOwnerWorldTransform(pos, rotation_angle, scale, owner_model);
+		const Matrix weapon_owner_transform = getOwnerWorldTransform(pos, owner_logical_rotation, scale, owner_model);
 		for (auto& pair : _models) {
 			if (pair.first == EquipmentSlot::Weapon || pair.first == EquipmentSlot::OffHand) {
 				if (current_anim != nullptr && tryDrawAttachedWeapon(*(pair.second), *current_anim, frame, owner_model,
-																	 owner_world_transform))
+																	 weapon_owner_transform))
 					continue;
 
 				continue;
 			}
 
-			DrawModelEx(*(pair.second), pos, {0, 1, 0}, rotation_angle, {scale, scale, scale}, WHITE);
+			const bool body_slot = pair.first == EquipmentSlot::Head
+				|| pair.first == EquipmentSlot::Chest
+				|| pair.first == EquipmentSlot::Legs
+				|| pair.first == EquipmentSlot::Feet;
+			const float draw_rotation = body_slot ? owner_logical_rotation : owner_visual_rotation;
+			DrawModelEx(*(pair.second), pos, {0, 1, 0}, draw_rotation, {scale, scale, scale}, WHITE);
 		}
 	}
 

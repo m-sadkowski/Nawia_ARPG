@@ -39,6 +39,7 @@ namespace Nawia::Core {
 			_model_cache[path] = model;
 			return &_model_cache[path];
 		}
+		Logger::errorLog("ResourceManager: nie udalo sie zaladowac modelu: " + path);
 		return nullptr;
 	}
 

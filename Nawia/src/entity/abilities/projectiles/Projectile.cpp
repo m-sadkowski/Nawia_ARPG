@@ -125,9 +125,6 @@ namespace Nawia::Entity {
 		if (const auto player = dynamic_cast<Player*>(_caster))
 			final_damage += player->getStats().power;
 
-		if (const auto player_target = std::dynamic_pointer_cast<Player>(target))
-			final_damage = std::max(0, final_damage - player_target->getStats().tenacity);
-
 		target->takeDamage(final_damage);
 		addHit(target);
 

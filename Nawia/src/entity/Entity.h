@@ -411,6 +411,7 @@ namespace Nawia::Entity {
 
 		void updateAnimation(float dt);
 		void updateMovementSound(const std::string& path, bool should_play, float volume = 0.55f, float pitch = 1.0f);
+		void unloadModelData();
 		virtual void onDeathStarted() {}
 
 		std::string _movement_sound_id;
