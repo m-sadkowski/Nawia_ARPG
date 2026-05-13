@@ -7,6 +7,7 @@ Ten katalog zawiera praktyczne przewodniki po aktualnej architekturze projektu.
 1. `Coding_Standards.md` - styl kodu, include'y, Doxygen, pointery i ownership.
 2. `Entity_Guide.md` - bazowy model encji, colliderow, targetowania i pending spawn.
 3. `Level_Guide.md` - level, mapa, navmesh, lokacje i JSON spawn.
+4. `Level_Creator_Workflow.md` - krok po kroku: klasa levelu, kreator lokacji, teleporty i JSON-y.
 
 ## Moduly gameplayowe
 

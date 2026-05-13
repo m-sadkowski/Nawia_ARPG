@@ -4,13 +4,8 @@
             "id": "devil_lord",
             "name": "Devil Lord",
             "enemy_type": "Devil",
-            "level_name": "DemoLevel",
             "max_hp": 200,
             "scale": 0.03,
-            "spawn_pos": {
-                "x": 0.0,
-                "y": 10.0
-            },
             "phases": [
                 {
                     "hp_threshold": 1.0,

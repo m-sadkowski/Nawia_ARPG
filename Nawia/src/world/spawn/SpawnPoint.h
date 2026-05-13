@@ -30,18 +30,6 @@ namespace Nawia::World {
 		float spawn_radius = 0.0f;     ///< Promien losowego przesuniecia od srodka spawnu.
 
 		bool activated = false;        ///< Czy encja zostala juz obudzona.
-		bool respawnable = false;      ///< Czy encja moze odrodzic sie po smierci.
-		float respawn_cooldown = 0.0f; ///< Czas odrodzenia w sekundach.
-		float respawn_timer = 0.0f;    ///< Aktualny licznik odrodzenia.
-
-		/**
-		 * @brief Zeruje stan runtime spawnu przed ponownym wczytaniem poziomu.
-		 */
-		void reset() {
-			activated = false;
-			respawn_timer = 0.0f;
-			entity.reset();
-		}
 	};
 
 } // namespace Nawia::World

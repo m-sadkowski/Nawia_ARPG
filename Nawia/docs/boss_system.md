@@ -7,7 +7,7 @@ System walk z bossami jest oparty na danych i zarzadzany przez `BossManager`. De
 ### BossManager
 
 - Laduje definicje bossow z `assets/data/bosses.json`.
-- Preladowuje encje bossa i minionow dla aktywnego poziomu przez `preloadForLevel`.
+- Preladowuje encje bossa i minionow, gdy loader lokacji tworzy `boss_trigger`.
 - Rozpoczyna i konczy walki z bossami, sledzi pokonanych bossow, przyznaje nagrody graczowi i powiadamia system questow.
 - Stosuje mnozniki faz, powiadomienia o fazach i opcjonalne efekty blysku ekranu.
 - Czysci przywolane miniony po zakonczeniu walki.
@@ -48,10 +48,8 @@ Fazy bossa moga zmieniac mnozniki predkosci i obrazen, wyswietlac powiadomienia,
   "id": "devil_lord",
   "name": "Devil Lord",
   "enemy_type": "Devil",
-  "level_name": "DemoLevel",
   "max_hp": 200,
   "scale": 0.03,
-  "spawn_pos": { "x": 0.0, "y": 10.0 },
   "phases": [
     {
       "hp_threshold": 1.0,
@@ -70,4 +68,5 @@ Fazy bossa moga zmieniac mnozniki predkosci i obrazen, wyswietlac powiadomienia,
 }
 ```
 
-`level_name` musi odpowiadac `Level::getName()`, poniewaz preladowywanie jest ograniczone do poziomu.
+Pozycja bossa nie jest czescia `bosses.json`. Boss spawnuje sie w srodku
+`boss_triggera`, na wysokosci gracza, a potem jest dosuwany do navmesha.

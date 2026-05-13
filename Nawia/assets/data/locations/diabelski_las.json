@@ -1,0 +1,26 @@
+{
+    "map": {
+        "model": "forest.glb",
+        "offset": {
+            "x": 0.0,
+            "y": 10.0,
+            "z": 0.0
+        },
+        "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "scale": 1.9927418231964111
+    },
+    "name": "Diabelski Las",
+    "navmesh": {
+        "min_walkable_height": -4.375
+    },
+    "objects_file": "objects_diabelski_las.json",
+    "player_spawn": {
+        "x": 0.12938499450683594,
+        "y": 10.272062301635742
+    },
+    "schema_version": 1
+}

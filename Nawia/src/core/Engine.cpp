@@ -11,10 +11,7 @@
 #include <Level.h>
 #include <LevelManager.h>
 #include <Map.h>
-#include <MrocznyLasLevel.h>
-#include <PobojowiskoLevel.h>
 #include <SoundIds.h>
-#include <StarozytneLochyLevel.h>
 #include <SwordSlashAbility.h>
 
 #include <string>
@@ -65,13 +62,11 @@ namespace Nawia::Core {
 		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
 		_player->setAudioManager(&_audio_manager);
 
-		const auto sword_slash_texture = _resource_manager.getTexture("assets/textures/sword_slash.png");
 		const auto sword_slash_icon = _resource_manager.getTexture("assets/textures/icons/sword_slash_icon.png");
-		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_texture, sword_slash_icon));
+		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(nullptr, sword_slash_icon));
 
-		const auto fireball_hit_texture = _resource_manager.getTexture("assets/textures/fireball_hit.png");
 		const auto fireball_icon = _resource_manager.getTexture("assets/textures/icons/fireball_icon.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>("assets/models/fireball.glb", 0.5f, fireball_hit_texture, fireball_icon));
+		_player->addAbility(std::make_shared<Entity::FireballAbility>("assets/models/fireball.glb", 0.5f, nullptr, fireball_icon));
 
 		_controller = std::make_unique<PlayerController>(this, _player);
 
@@ -82,9 +77,6 @@ namespace Nawia::Core {
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
-		_level_manager->registerLevel(std::make_shared<World::MrocznyLasLevel>());
-		_level_manager->registerLevel(std::make_shared<World::StarozytneLochyLevel>());
-		_level_manager->registerLevel(std::make_shared<World::PobojowiskoLevel>());
 
 		_ui_handler = std::make_unique<UI::UIHandler>();
 		_ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
@@ -181,6 +173,8 @@ namespace Nawia::Core {
 		if (action == UI::MenuAction::Respawn) {
 			_player->respawn();
 			_entity_manager->addEntity(_player);
+			if (_level_manager && _level_manager->getCurrentLevel())
+				_level_manager->getCurrentLevel()->prepareForRespawn(this);
 			_game_state = GameState::Playing;
 		} else if (action == UI::MenuAction::Exit) {
 			_audio_manager.playMusic(MENU_MUSIC_PATH, true, 0.45f);

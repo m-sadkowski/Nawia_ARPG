@@ -5,7 +5,6 @@
 
 #include <raylib.h>
 
-#include <map>
 #include <memory>
 
 namespace Nawia::Core {
@@ -26,7 +25,7 @@ namespace Nawia::UI {
         static constexpr float INV_WIDTH = 724.0f;
         static constexpr float INV_HEIGHT = 543.0f;
 
-        /** @brief Laduje grafiki zastepcze pustych slotow ekwipunku. */
+        /** @brief Laduje grafike panelu ekwipunku. */
         void loadResources(Core::ResourceManager& resource_manager);
 
         /** @brief Rysuje panel ekwipunku gracza i plecaka. */
@@ -43,7 +42,6 @@ namespace Nawia::UI {
         static constexpr float SLOT_SIZE = 52.0f;
         static constexpr float PADDING = 10.0f;
         static constexpr float SLOT_PADDING = 4.0f;
-        static constexpr float SLOT_PLACEHOLDER_PADDING = 8.0f;
         static constexpr float SLOT_SPACING = 6.0f;
         static constexpr int BACKPACK_COLUMNS = 4;
         static constexpr int BACKPACK_ROWS = 5;
@@ -58,7 +56,6 @@ namespace Nawia::UI {
         static constexpr float BP_START_TOP = 50.0f;
         static constexpr float GOLD_PADDING_BOTTOM = 30.0f;
 
-        std::map<Item::EquipmentSlot, std::shared_ptr<Texture2D>> _placeholders;
         std::shared_ptr<Texture2D> _background;
 
         /** @brief Oblicza prostokat panelu ekwipunku. */

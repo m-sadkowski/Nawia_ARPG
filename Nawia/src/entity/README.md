@@ -20,7 +20,7 @@ Nowe jednostki bojowe zwykle:
 2. maja prywatny konstruktor
 3. maja builder
 4. sa rejestrowane w `src/world/spawn/EntityFactory.cpp`
-5. sa spawnione przez JSON w `assets/data/level_entities/`
+5. sa spawnione przez JSON w `assets/data/locations/objects_*.json`
 
 ## Aktualny model AI
 

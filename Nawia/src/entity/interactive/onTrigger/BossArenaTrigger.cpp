@@ -21,7 +21,7 @@ namespace Nawia::Entity {
                 if (player->getEngine()) {
                     auto& boss_mgr = player->getEngine()->getBossManager();
                     if (boss_mgr.isFightActive()) return;
-                    boss_mgr.startBossFight(_boss_id, player->getEngine());
+                    boss_mgr.startBossFight(_boss_id, player->getEngine(), getCenter(), player->getAltitude());
                 }
             }
         }
@@ -38,7 +38,7 @@ namespace Nawia::Entity {
                 Vector2 center = rect_collider->getPosition();
                 float w = rect_collider->getWidth();
                 float h = rect_collider->getHeight();
-                DrawCubeWires(Vector3{center.x, 0.1f, center.y}, w, 0.2f, h, PURPLE);
+                DrawCubeWires(Vector3{center.x, getAltitude() + 0.1f, center.y}, w, 0.2f, h, PURPLE);
             }
         }
     }

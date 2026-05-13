@@ -6,10 +6,39 @@
 
 #include <cmath>
 #include <filesystem>
+#include <map>
+#include <memory>
 
 namespace Nawia::Core {
 
 	namespace {
+
+		std::map<std::string, std::shared_ptr<Model>> g_map_model_cache;
+
+		std::shared_ptr<Model> getCachedMapModel(const std::string& filename) {
+			const auto cached_model = g_map_model_cache.find(filename);
+			if (cached_model != g_map_model_cache.end())
+				return cached_model->second;
+
+			const std::string filepath = "assets/maps/" + filename;
+			if (!std::filesystem::exists(filepath)) {
+				Logger::errorLog("Map::loadMap - nie znaleziono pliku: " + filepath);
+				return nullptr;
+			}
+
+			Model model = LoadModel(filepath.c_str());
+			if (model.meshCount == 0) {
+				Logger::errorLog("Map::loadMap - nie udalo sie zaladowac modelu: " + filepath);
+				return nullptr;
+			}
+
+			auto loaded_model = std::shared_ptr<Model>(new Model(model), [](const Model* model_to_unload) {
+				UnloadModel(*model_to_unload);
+				delete model_to_unload;
+			});
+			g_map_model_cache[filename] = loaded_model;
+			return loaded_model;
+		}
 
 		BoundingBox transformBoundingBox(const BoundingBox& box, const Matrix& transform) {
 			const Vector3 corners[8] = {
@@ -79,36 +108,36 @@ namespace Nawia::Core {
 	}
 
 	Map::~Map() {
-		if (_model_loaded)
+		if (_model_loaded && _owns_model)
 			UnloadModel(_model);
 	}
 
-	void Map::loadMap(const std::string& filename, const float scale, const Vector3 offset, const Vector3 rotation) {
-		if (_model_loaded) {
-			UnloadModel(_model);
-			_model_loaded = false;
-		}
+	void Map::preloadMapModel(const std::string& filename) {
+		if (!filename.empty() && filename != "placeholder")
+			getCachedMapModel(filename);
+	}
 
-		const std::string filepath = "assets/maps/" + filename;
+	void Map::loadMap(const std::string& filename, const float scale, const Vector3 offset, const Vector3 rotation) {
+		if (_model_loaded && _owns_model) {
+			UnloadModel(_model);
+		}
+		_model_loaded = false;
+		_owns_model = false;
+
 		_scale = scale;
 		_offset = offset;
 		_rotation = rotation;
 
-		if (!std::filesystem::exists(filepath)) {
-			Logger::errorLog("Map::loadMap - nie znaleziono pliku: " + filepath + ", ladowanie placeholdera");
+		const auto cached_model = getCachedMapModel(filename);
+		if (!cached_model) {
+			Logger::errorLog("Map::loadMap - ladowanie placeholdera zamiast: " + filename);
 			loadPlaceholder();
 			return;
 		}
 
-		_model = LoadModel(filepath.c_str());
-
-		if (_model.meshCount == 0) {
-			Logger::errorLog("Map::loadMap - nie udalo sie zaladowac modelu: " + filepath + ", ladowanie placeholdera");
-			loadPlaceholder();
-			return;
-		}
-
+		_model = *cached_model;
 		_model_loaded = true;
+		_owns_model = false;
 		_is_placeholder = false;
 
 		const Matrix rotation_x = MatrixRotateX(_rotation.x * DEG2RAD);
@@ -141,13 +170,25 @@ namespace Nawia::Core {
 	}
 
 	void Map::loadPlaceholder() {
+		if (_model_loaded && _owns_model) {
+			UnloadModel(_model);
+		}
+		_model_loaded = false;
+		_owns_model = false;
+
+		_scale = 1.0f;
+		_offset = {0.0f, 0.0f, 0.0f};
+		_rotation = {0.0f, 0.0f, 0.0f};
+
 		const Mesh plane_mesh = GenMeshPlane(60.0f, 60.0f, 10, 10);
 		_model = LoadModelFromMesh(plane_mesh);
 		_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = Color{45, 55, 40, 255};
 
 		_model_loaded = true;
+		_owns_model = true;
 		_is_placeholder = true;
 		_model_transform = _model.transform;
+		_navmesh.buildFromModel(_model, _scale, _offset);
 
 		_mesh_bboxes.clear();
 		_world_mesh_bboxes.clear();

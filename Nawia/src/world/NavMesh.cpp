@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <memory>
 #include <string>
 
 namespace Nawia::World {
@@ -26,6 +27,26 @@ namespace Nawia::World {
 			const int vertex_c = tris[tri_offset + 2] * 3 + 1;
 			return (verts[vertex_a] + verts[vertex_b] + verts[vertex_c]) / 3.0f;
 		}
+
+		struct HeightfieldDeleter {
+			void operator()(rcHeightfield* value) const { rcFreeHeightField(value); }
+		};
+
+		struct CompactHeightfieldDeleter {
+			void operator()(rcCompactHeightfield* value) const { rcFreeCompactHeightfield(value); }
+		};
+
+		struct ContourSetDeleter {
+			void operator()(rcContourSet* value) const { rcFreeContourSet(value); }
+		};
+
+		struct PolyMeshDeleter {
+			void operator()(rcPolyMesh* value) const { rcFreePolyMesh(value); }
+		};
+
+		struct PolyMeshDetailDeleter {
+			void operator()(rcPolyMeshDetail* value) const { rcFreePolyMeshDetail(value); }
+		};
 
 	}
 
@@ -128,8 +149,8 @@ namespace Nawia::World {
 
 		rcContext ctx;
 
-		rcHeightfield* solid = rcAllocHeightfield();
-		if (!rcCreateHeightfield(&ctx, *solid, cfg.width, cfg.height, cfg.bmin, cfg.bmax, cfg.cs, cfg.ch)) {
+		std::unique_ptr<rcHeightfield, HeightfieldDeleter> solid(rcAllocHeightfield());
+		if (!solid || !rcCreateHeightfield(&ctx, *solid, cfg.width, cfg.height, cfg.bmin, cfg.bmax, cfg.cs, cfg.ch)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie stworzyc heightfield.");
 			return false;
 		}
@@ -155,12 +176,12 @@ namespace Nawia::World {
 		rcFilterLedgeSpans(&ctx, cfg.walkableHeight, cfg.walkableClimb, *solid);
 		rcFilterWalkableLowHeightSpans(&ctx, cfg.walkableHeight, *solid);
 
-		rcCompactHeightfield* chf = rcAllocCompactHeightfield();
-		if (!rcBuildCompactHeightfield(&ctx, cfg.walkableHeight, cfg.walkableClimb, *solid, *chf)) {
+		std::unique_ptr<rcCompactHeightfield, CompactHeightfieldDeleter> chf(rcAllocCompactHeightfield());
+		if (!chf || !rcBuildCompactHeightfield(&ctx, cfg.walkableHeight, cfg.walkableClimb, *solid, *chf)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie zbudowac compact heightfield.");
 			return false;
 		}
-		rcFreeHeightField(solid);
+		solid.reset();
 
 		if (!rcErodeWalkableArea(&ctx, cfg.walkableRadius, *chf)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie zwezyc obszaru chodzenia.");
@@ -177,25 +198,25 @@ namespace Nawia::World {
 			return false;
 		}
 
-		rcContourSet* cset = rcAllocContourSet();
-		if (!rcBuildContours(&ctx, *chf, cfg.maxSimplificationError, cfg.maxEdgeLen, *cset)) {
+		std::unique_ptr<rcContourSet, ContourSetDeleter> cset(rcAllocContourSet());
+		if (!cset || !rcBuildContours(&ctx, *chf, cfg.maxSimplificationError, cfg.maxEdgeLen, *cset)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie stworzyc konturow.");
 			return false;
 		}
 
-		rcPolyMesh* pmesh = rcAllocPolyMesh();
-		if (!rcBuildPolyMesh(&ctx, *cset, cfg.maxVertsPerPoly, *pmesh)) {
+		std::unique_ptr<rcPolyMesh, PolyMeshDeleter> pmesh(rcAllocPolyMesh());
+		if (!pmesh || !rcBuildPolyMesh(&ctx, *cset, cfg.maxVertsPerPoly, *pmesh)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie zbudowac poly mesh.");
 			return false;
 		}
 
-		rcPolyMeshDetail* dmesh = rcAllocPolyMeshDetail();
-		if (!rcBuildPolyMeshDetail(&ctx, *pmesh, *chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *dmesh)) {
+		std::unique_ptr<rcPolyMeshDetail, PolyMeshDetailDeleter> dmesh(rcAllocPolyMeshDetail());
+		if (!dmesh || !rcBuildPolyMeshDetail(&ctx, *pmesh, *chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *dmesh)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie zbudowac detail mesh.");
 			return false;
 		}
-		rcFreeCompactHeightfield(chf);
-		rcFreeContourSet(cset);
+		chf.reset();
+		cset.reset();
 
 		dtNavMeshCreateParams params;
 		memset(&params, 0, sizeof(params));
@@ -232,29 +253,38 @@ namespace Nawia::World {
 			return false;
 		}
 
-		_navMesh = dtAllocNavMesh();
-		if (!_navMesh) {
+		dtNavMesh* nav_mesh = dtAllocNavMesh();
+		if (!nav_mesh) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie zaalokowac Detour navmesh.");
 			dtFree(nav_data);
 			return false;
 		}
 
-		dtStatus status = _navMesh->init(nav_data, nav_data_size, DT_TILE_FREE_DATA);
+		dtStatus status = nav_mesh->init(nav_data, nav_data_size, DT_TILE_FREE_DATA);
 		if (dtStatusFailed(status)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie zainicjalizowac Detour navmesh.");
 			dtFree(nav_data);
+			dtFreeNavMesh(nav_mesh);
 			return false;
 		}
 
-		_navQuery = dtAllocNavMeshQuery();
-		status = _navQuery->init(_navMesh, 2048);
+		dtNavMeshQuery* nav_query = dtAllocNavMeshQuery();
+		if (!nav_query) {
+			Core::Logger::errorLog("NavMesh: nie udalo sie zaalokowac Detour navmesh query.");
+			dtFreeNavMesh(nav_mesh);
+			return false;
+		}
+
+		status = nav_query->init(nav_mesh, 2048);
 		if (dtStatusFailed(status)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie zainicjalizowac zapytan Detour.");
+			dtFreeNavMeshQuery(nav_query);
+			dtFreeNavMesh(nav_mesh);
 			return false;
 		}
 
-		rcFreePolyMesh(pmesh);
-		rcFreePolyMeshDetail(dmesh);
+		_navMesh = nav_mesh;
+		_navQuery = nav_query;
 
 		Core::Logger::debugLog("NavMesh: zbudowano pomyslnie. Poligony: " + std::to_string(params.polyCount));
 		return true;

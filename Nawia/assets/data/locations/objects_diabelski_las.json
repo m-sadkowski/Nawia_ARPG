@@ -1,0 +1,49 @@
+{
+    "entities": [
+        {
+            "category": "teleports",
+            "location": "Diabelski Las",
+            "name": "Teleport do Lesnej Doliny",
+            "target_location": "Lesna Dolina",
+            "type": "teleport",
+            "x": 12.243629455566406,
+            "y": -14.14736270904541
+        },
+        {
+            "category": "spawners",
+            "count": 2,
+            "location": "Diabelski Las",
+            "name": "Bandit",
+            "spawn_radius": 3.0,
+            "trigger_radius": 5.0,
+            "type": "bandit",
+            "x": 16.670940399169922,
+            "y": -6.161960601806641
+        },
+        {
+            "category": "spawners",
+            "count": 3,
+            "location": "Diabelski Las",
+            "name": "Walking Dead",
+            "spawn_radius": 5.0,
+            "trigger_radius": 5.0,
+            "type": "walking_dead",
+            "x": 11.646427154541016,
+            "y": 12.921245574951172
+        },
+        {
+            "category": "npcs",
+            "items": [
+                5
+            ],
+            "location": "Diabelski Las",
+            "name": "Kot",
+            "npc_class": "cat",
+            "type": "npc",
+            "x": 2.2180004119873047,
+            "y": -5.588050842285156
+        }
+    ],
+    "location": "Diabelski Las",
+    "schema_version": 1
+}

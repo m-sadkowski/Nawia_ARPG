@@ -28,15 +28,8 @@ namespace Nawia::UI
     void InventoryUI::loadResources(Core::ResourceManager& resource_manager)
     {
         _background = resource_manager.getTexture("assets/textures/ui/eq.png");
-        _placeholders[Item::EquipmentSlot::Head] = resource_manager.getTexture("assets/textures/ui/slot_head.png");
-        _placeholders[Item::EquipmentSlot::Chest] = resource_manager.getTexture("assets/textures/ui/slot_chest.png");
-        _placeholders[Item::EquipmentSlot::Legs] = resource_manager.getTexture("assets/textures/ui/slot_legs.png");
-        _placeholders[Item::EquipmentSlot::Feet] = resource_manager.getTexture("assets/textures/ui/slot_feet.png");
-        _placeholders[Item::EquipmentSlot::Weapon] = resource_manager.getTexture("assets/textures/ui/slot_weapon.png");
 
         smoothUiTexture(_background);
-        for (const auto& placeholder : _placeholders)
-            smoothUiTexture(placeholder.second);
     }
 
     Rectangle InventoryUI::getInventoryRect() const
@@ -167,7 +160,6 @@ namespace Nawia::UI
 
     void InventoryUI::drawSpecificSlot(const Item::EquipmentSlot slot_type, const Entity::Player& player, const Vector2 mouse_pos) const
     {
-        const float placeholder_padding = Core::GlobalScaling::scaled(SLOT_PLACEHOLDER_PADDING);
         const Rectangle slot_rect = getEquipmentSlotRect(slot_type);
         
         const auto item = player.getEquipment().getItemAt(slot_type);
@@ -176,22 +168,7 @@ namespace Nawia::UI
         drawSlot(-1, slot_rect, is_hovered, item);
 
         if (item == nullptr)
-        {
-            if (_placeholders.count(slot_type))
-            {
-                const auto tex_ptr = _placeholders.at(slot_type);
-                if (tex_ptr && tex_ptr->id > 0)
-                {
-                    const Rectangle dest = {
-                        slot_rect.x + placeholder_padding,
-                        slot_rect.y + placeholder_padding,
-                        slot_rect.width - (placeholder_padding * 2.0f),
-                        slot_rect.height - (placeholder_padding * 2.0f)
-                    };
-                    DrawTexturePro(*tex_ptr, { 0, 0, static_cast<float>(tex_ptr->width), static_cast<float>(tex_ptr->height) }, dest, { 0,0 }, 0.0f, withAlpha(WHITE, 0.2f));
-                }
-            }
-        }
+            DrawRectangleLinesEx(slot_rect, 1.0f, withAlpha(RAYWHITE, 0.10f));
     }
 
     void InventoryUI::drawSlot([[maybe_unused]] const int index, const Rectangle slot_rect, const bool is_hovered, const std::shared_ptr<Item::Item>& item) const

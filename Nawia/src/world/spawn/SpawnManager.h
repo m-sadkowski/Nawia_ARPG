@@ -3,7 +3,6 @@
 #include <SpawnPoint.h>
 
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace Nawia::Core {
@@ -26,22 +25,23 @@ namespace Nawia::World {
 		SpawnManager() = default;
 
 		/**
-		 * @brief Wczytuje definicje spawnow z JSON i tworzy encje poziomu.
+		 * @brief Tworzy encje poziomu z definicji wczytanych przez loader lokacji.
 		 *
 		 * Encje w aktualnej lokacji bez trigger_radius startuja aktywne, encje
 		 * dystansowe oraz encje z innych lokacji pozostaja uspione.
 		 *
-		 * @param path Sciezka do pliku JSON ze spawnami.
+		 * @param entities Lista encji z polem "location" dodanym przez poziom.
 		 * @param engine Silnik potrzebny do fabryki encji i EntityManagera.
 		 * @param map Aktualna mapa uzywana m.in. do navmesha.
-		 * @param initial_location Nazwa lokacji startowej gracza.
-		 * @return true, jesli plik zostal poprawnie obsluzony.
+		 * @param current_location Nazwa lokacji aktywnej przy tworzeniu puli.
+		 * @return true, jesli definicje zostaly poprawnie obsluzone.
 		 */
-		bool loadFromJson(
-			const std::string& path,
+		bool loadEntities(
+			const std::vector<nlohmann::json>& entities,
 			Core::Engine* engine,
 			Core::Map* map,
-			const std::string& initial_location
+			const std::string& current_location,
+			const std::string& source_label = "runtime"
 		);
 
 		/**
@@ -52,10 +52,10 @@ namespace Nawia::World {
 		/**
 		 * @brief Ustawia stany uspienia encji po zmianie lokacji.
 		 */
-		void updateLocationChange(const std::string& new_location);
+		void updateLocationChange(const std::string& new_location, Core::Map* map = nullptr);
 
 		/**
-		 * @brief Czysci wszystkie spawny i zapisane pozycje startowe.
+		 * @brief Czysci wszystkie spawny.
 		 */
 		void reset();
 
@@ -64,14 +64,8 @@ namespace Nawia::World {
 		 */
 		void addSpawnPoint(const SpawnPoint& sp);
 
-		/**
-		 * @brief Pobiera pozycje startowa gracza dla lokacji.
-		 */
-		bool getPlayerSpawn(const std::string& location_name, Vector2& out_pos) const;
-
 	private:
 		std::vector<SpawnPoint> _spawn_points;
-		std::unordered_map<std::string, Vector2> _player_spawns;
 	};
 
 } // namespace Nawia::World

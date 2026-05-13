@@ -142,7 +142,7 @@ Do decyzji bojowych i projectile uzywaj `getCenter()`, a nie tylko `getX()/getY(
 
 ## JSON i factory
 
-Jednostki tworzy `EntityFactory`, a dane przychodza z `assets/data/level_entities/*.json`.
+Jednostki tworzy `EntityFactory`, a dane przychodza z `assets/data/locations/objects_*.json`.
 
 Przyklad:
 
