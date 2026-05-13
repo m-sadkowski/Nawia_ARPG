@@ -6,7 +6,6 @@
 #include <PlayerController.h>
 
 #include <DemoLevel.h>
-#include <DemoLevel2.h>
 #include <DevLevel.h>
 #include <FireballAbility.h>
 #include <Level.h>
@@ -63,13 +62,11 @@ namespace Nawia::Core {
 		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
 		_player->setAudioManager(&_audio_manager);
 
-		const auto sword_slash_texture = _resource_manager.getTexture("assets/textures/sword_slash.png");
 		const auto sword_slash_icon = _resource_manager.getTexture("assets/textures/icons/sword_slash_icon.png");
-		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(sword_slash_texture, sword_slash_icon));
+		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(nullptr, sword_slash_icon));
 
-		const auto fireball_hit_texture = _resource_manager.getTexture("assets/textures/fireball_hit.png");
 		const auto fireball_icon = _resource_manager.getTexture("assets/textures/icons/fireball_icon.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>("assets/models/fireball.glb", 0.5f, fireball_hit_texture, fireball_icon));
+		_player->addAbility(std::make_shared<Entity::FireballAbility>("assets/models/fireball.glb", 0.5f, nullptr, fireball_icon));
 
 		_controller = std::make_unique<PlayerController>(this, _player);
 
@@ -79,7 +76,6 @@ namespace Nawia::Core {
 
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
-		_level_manager->registerLevel(std::make_shared<World::DemoLevel2>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
 
 		_ui_handler = std::make_unique<UI::UIHandler>();

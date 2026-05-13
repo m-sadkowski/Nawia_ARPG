@@ -24,8 +24,7 @@ namespace Nawia::World {
      * @brief Bazowa klasa grywalnego poziomu.
      *
      * Poziom posiada mape, liste logicznych lokacji i manager spawnow. Klasy
-     * pochodne odpowiadaja za wczytanie konkretnej mapy oraz wskazanie pliku
-     * JSON ze spawnami.
+     * pochodne wskazuja pliki lokacji zapisane Kreatorem leveli.
      */
     class Level {
     public:
@@ -72,11 +71,6 @@ namespace Nawia::World {
         [[nodiscard]] virtual std::vector<std::string> getLocations() const;
 
         /**
-         * @brief Zwraca sciezke do pliku JSON ze spawnami poziomu.
-         */
-        [[nodiscard]] virtual std::string getSpawnFilePath() const = 0;
-
-        /**
          * @brief Zwraca manager spawnow poziomu.
          */
         [[nodiscard]] SpawnManager& getSpawnManager() { return _spawn_manager; }
@@ -102,11 +96,6 @@ namespace Nawia::World {
         [[nodiscard]] size_t getCurrentLocationIndex() const { return _current_location_index; }
 
     protected:
-        /**
-         * @brief Wczytuje spawny i ustawia pozycje startowa gracza.
-         */
-        void loadSpawns(Core::Engine* engine);
-
         /**
          * @brief Wczytuje zestaw lokacji zapisanych przez kreator poziomow.
          */
@@ -135,11 +124,6 @@ namespace Nawia::World {
          * @brief Wstepnie laduje modele map z lokacji do cache.
          */
 		void preloadLocationMapModels() const;
-
-        /**
-         * @brief Wczytuje opcjonalne ustawienia navmesha z pliku spawn levelu.
-         */
-        void applyNavMeshSettingsFromJson(const std::string& location_name = "");
 
         std::unique_ptr<Core::Map> _map;
         size_t _current_location_index = 0;

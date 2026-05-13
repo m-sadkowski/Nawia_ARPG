@@ -25,6 +25,7 @@ namespace Nawia::World {
 		TeleportDetails,
 		BossTriggerDetails,
 		ItemSelection,
+		KeySelection,
 		ConfirmOverwrite
 	};
 
@@ -51,7 +52,8 @@ namespace Nawia::World {
 		PropTexture,
 		TeleportTarget,
 		BossTriggerWidth,
-		BossTriggerHeight
+		BossTriggerHeight,
+		ChestKeyId
 	};
 
 	/**
@@ -81,9 +83,6 @@ namespace Nawia::World {
 		/** @brief Zwraca nazwe kreatora widoczna w menu wyboru poziomu. */
 		[[nodiscard]] std::string getName() const override { return "Kreator leveli"; }
 
-		/** @brief DevLevel nie wczytuje standardowego pliku spawnow. */
-		[[nodiscard]] std::string getSpawnFilePath() const override { return ""; }
-
 		/** @brief Zwraca robocza lokacje edytora. */
 		[[nodiscard]] std::vector<std::string> getLocations() const override;
 
@@ -100,6 +99,8 @@ namespace Nawia::World {
 			float trigger_radius = 0.0f;
 			int count = 1;
 			std::vector<int> loot_ids;
+			bool locked = false;
+			int key_id = -1;
 			std::string extra_value;
 			nlohmann::json raw_data = nlohmann::json::object();
 		};
@@ -228,6 +229,9 @@ namespace Nawia::World {
 		/** @brief Rysuje wybor przedmiotow z bazy itemow. */
 		void renderItemSelectionMenu(Core::Engine* engine);
 
+		/** @brief Rysuje wybor przedmiotu uzywanego jako klucz do skrzyni. */
+		void renderKeySelectionMenu(Core::Engine* engine);
+
 		/** @brief Czysci stan tworzonego obiektu i formularzy. */
 		void resetEditorState();
 
@@ -258,14 +262,17 @@ namespace Nawia::World {
 		float _temp_spawn_radius = 5.0f;
 		float _temp_trigger_radius = 15.0f;
 		std::vector<int> _temp_loot_ids;
+		bool _temp_chest_locked = false;
+		int _temp_key_id = -1;
 		std::string _temp_extra_value;
 
 		std::string _count_buffer = "1";
 		std::string _spawn_radius_buffer = "5.0";
 		std::string _trigger_radius_buffer = "15.0";
-		std::string _texture_path_buffer = "assets/textures/chest.png";
+		std::string _texture_path_buffer;
 		std::string _boss_width_buffer = "10.0";
 		std::string _boss_height_buffer = "4.0";
+		std::string _key_id_buffer = "-1";
 		float _navmesh_min_walkable_height = 0.0f;
 
 		std::vector<std::string> _map_model_options;

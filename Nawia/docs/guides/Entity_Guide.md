@@ -132,7 +132,7 @@ addPendingSpawn(effect);
 1. Dodaj klase encji.
 2. Dodaj builder, jesli pasuje do istniejacego wzorca.
 3. Dodaj obsluge typu w `EntityFactory`.
-4. Dodaj wpis w `assets/data/level_entities/<level>.json`.
+4. Dodaj wpis w `assets/data/locations/objects_<lokacja>.json` albo ustaw encje w Kreatorze leveli.
 5. Sprawdz, czy encja dostaje mape, frakcje, model i HP.
 
 ## Dobre praktyki

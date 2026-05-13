@@ -63,13 +63,10 @@ namespace Nawia::Game {
         std::string enemy_type; ///< Typ wroga, np. "Devil".
         int max_hp = 1000;
         float scale = 1.0f;
-        
-        Vector2 spawn_pos = { 0.0f, 0.0f };
-        
+
         std::vector<BossPhase> phases;
         BossReward reward;
-        std::string level_name;
-        
+
         /// Strategia po smierci gracza: "end_fight" = koniec walki, "retry" = mozliwosc ponowienia.
         std::string on_player_death = "end_fight";
     };
@@ -78,7 +75,7 @@ namespace Nawia::Game {
      * @class BossManager
      * @brief Zarzadza definicjami bossow, cyklem walki, fazami i nagrodami.
      *
-     * Laduje dane bossow z JSON, preloaduje encje dla aktywnego poziomu,
+     * Laduje dane bossow z JSON, preloaduje encje wskazane przez boss trigger,
      * startuje i konczy walke, obsluguje przejscia miedzy fazami oraz
      * spawnowanie minionow.
      */
@@ -92,13 +89,6 @@ namespace Nawia::Game {
          * @param path Sciezka do pliku, np. "assets/data/bosses.json".
          */
         void loadFromJson(const std::string& path);
-
-        /**
-         * @brief Preladowuje encje bossa i minionow dla podanego poziomu.
-         * @param level_name Nazwa poziomu dopasowana do `Level::getName()`.
-         * @param engine Wskaznik na silnik do tworzenia encji.
-         */
-        void preloadForLevel(const std::string& level_name, Core::Engine* engine);
 
         /**
          * @brief Preloaduje konkretna walke z bossem, np. po wczytaniu boss triggera z lokacji.

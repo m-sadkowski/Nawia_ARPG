@@ -1,17 +1,6 @@
 {
     "entities": [
         {
-            "category": "chests",
-            "items": [
-                7
-            ],
-            "location": "Diabelski Las",
-            "name": "Skrzynia",
-            "type": "chest",
-            "x": 1.8533992767333984,
-            "y": -5.744951248168945
-        },
-        {
             "category": "teleports",
             "location": "Diabelski Las",
             "name": "Teleport do Lesnej Doliny",
@@ -41,6 +30,15 @@
             "type": "walking_dead",
             "x": 11.646427154541016,
             "y": 12.921245574951172
+        },
+        {
+            "category": "npcs",
+            "location": "Diabelski Las",
+            "name": "Kot",
+            "npc_class": "cat",
+            "type": "npc",
+            "x": 2.2180004119873047,
+            "y": -5.588050842285156
         }
     ],
     "location": "Diabelski Las",

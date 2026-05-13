@@ -178,10 +178,7 @@ namespace Nawia::World {
 		const float y = data.value("y", 0.0f);
 		const std::string name = data.value("name", "Skrzynia");
 
-		auto& rm = engine->getResourceManager();
-		const auto texture = rm.getTexture("assets/textures/chest.png");
-
-		auto chest = std::make_shared<Entity::Chest>(name, x, y, texture);
+		auto chest = std::make_shared<Entity::Chest>(name, x, y, nullptr);
 		chest->setAudioManager(&engine->getAudioManager());
 
 		if (data.contains("loottable")) {
@@ -219,11 +216,8 @@ namespace Nawia::World {
 		const float y = data.value("y", 0.0f);
 		const std::string name = data.value("name", "NPC");
 
-		auto& rm = engine->getResourceManager();
-		const auto texture = rm.getTexture("assets/textures/chest.png");
-
 		if (npc_class == "cat") {
-			auto cat = std::make_shared<Entity::Cat>(name, x, y, texture);
+			auto cat = std::make_shared<Entity::Cat>(name, x, y, nullptr);
 			cat->setAudioManager(&engine->getAudioManager());
 
 			engine->getDialogueManager().createCatDialogue(engine, cat.get());
@@ -265,10 +259,10 @@ namespace Nawia::World {
 		const float y = data.value("y", 0.0f);
 		const int hp = data.value("hp", 9999);
 		const std::string name = data.value("name", "Obiekt");
-		const std::string texture_path = data.value("texture", "assets/textures/chest.png");
+		const std::string texture_path = data.value("texture", "");
 
 		auto& rm = engine->getResourceManager();
-		const auto texture = rm.getTexture(texture_path);
+		const auto texture = texture_path.empty() ? nullptr : rm.getTexture(texture_path);
 
 		auto object = Entity::StaticObjectBuilder()
 			.setName(name)

@@ -1,17 +1,6 @@
 {
     "entities": [
         {
-            "category": "chests",
-            "items": [
-                4
-            ],
-            "location": "Lesna Dolina",
-            "name": "Skrzynia",
-            "type": "chest",
-            "x": 48.60032653808594,
-            "y": -22.788681030273438
-        },
-        {
             "category": "teleports",
             "location": "Lesna Dolina",
             "name": "Teleport do Diabelskiego Lasu",
@@ -30,6 +19,16 @@
             "width": 10.0,
             "x": 31.659385681152344,
             "y": -14.252614974975586
+        },
+        {
+            "category": "chests",
+            "key_id": 5,
+            "location": "Lesna Dolina",
+            "locked": true,
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 49.07087707519531,
+            "y": -23.130268096923828
         }
     ],
     "location": "Lesna Dolina",

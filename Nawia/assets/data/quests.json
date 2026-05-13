@@ -4,7 +4,7 @@
       "id": "talk_to_cat",
       "name": "Spotkanie z Olga",
       "description": "Idz pogadac z Kotem Olga. Moze potrzebuje pomocy?",
-      "level_name": "DemoLevel",
+      "level_name": "Demo",
       "prerequisites": [],
       "auto_start": true,
       "objectives": [
@@ -25,7 +25,7 @@
       "id": "get_fish",
       "name": "Rybka ze skrzyni",
       "description": "Olga potrzebuje rybki. Znajdz ja w skrzyni diabla.",
-      "level_name": "DemoLevel",
+      "level_name": "Demo",
       "prerequisites": ["talk_to_cat"],
       "auto_start": true,
       "objectives": [
@@ -46,7 +46,7 @@
       "id": "deliver_fish",
       "name": "Rybka dla Olgi",
       "description": "Zanies rybe do Kota Olgi.",
-      "level_name": "DemoLevel",
+      "level_name": "Demo",
       "prerequisites": ["get_fish"],
       "auto_start": true,
       "objectives": [
@@ -68,7 +68,7 @@
       "id": "kill_devil",
       "name": "Pogromca Diabla",
       "description": "Pokonaj diabla strzegacego skrzyni z rybka.",
-      "level_name": "DemoLevel",
+      "level_name": "Demo",
       "prerequisites": [],
       "auto_start": true,
       "objectives": [

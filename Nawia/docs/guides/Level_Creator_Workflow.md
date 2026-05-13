@@ -45,11 +45,6 @@ namespace Nawia::World {
 			};
 		}
 
-		// Stary system leveli nadal wymaga tej metody.
-		// Przy loaderze lokacji z kreatora zostawiamy pusty string.
-		[[nodiscard]] std::string getSpawnFilePath() const override {
-			return "";
-		}
 	};
 
 } // namespace Nawia::World
@@ -171,8 +166,9 @@ Przyklad ukladu:
 - w `Chata Czarownicy` stawiasz teleport powrotny do `Mokradla`,
 - w `Chata Czarownicy` stawiasz teleport do `Podziemia`.
 
-Po wejsciu w teleport runtime przeladuje model mapy, navmesh, spawn gracza i
-obiekty z pliku docelowej lokacji.
+Po wejsciu w teleport runtime przeladuje model mapy i navmesh, przeniesie
+gracza na spawn lokacji docelowej oraz aktywuje encje tej lokacji z puli
+zaladowanej przy starcie levelu.
 
 ## 6. Format plikow
 
@@ -226,9 +222,9 @@ Runtime loader czyta:
 - plik `objects_*.json`,
 - encje tworzone przez `EntityFactory`, w tym teleporty i boss triggery.
 
-Kazda zmiana lokacji laduje docelowa lokacje od nowa. To najprostszy wariant:
-nie przechowujemy jeszcze stanu opuszczonych lokacji, np. otwartych skrzyn albo
-zabitych przeciwnikow.
+Modele map oraz encje ze wszystkich lokacji levelu sa ladowane przy starcie.
+Przy zmianie lokacji przeladowywana jest geometria mapy, a encje sa tylko
+usypiane albo aktywowane.
 
 ## 8. Szybki checklist
 

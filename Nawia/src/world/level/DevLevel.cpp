@@ -152,6 +152,16 @@ namespace Nawia::World {
 			}
 		}
 
+		bool tryParseInt(const std::string& text, int& output) {
+			try {
+				size_t parsed_chars = 0;
+				output = std::stoi(text, &parsed_chars);
+				return parsed_chars > 0;
+			} catch (const std::exception&) {
+				return false;
+			}
+		}
+
 		Vector2 parseVector2(const json& data, const Vector2 fallback = {0.0f, 0.0f}) {
 			if (!data.is_object())
 				return fallback;
@@ -559,6 +569,9 @@ namespace Nawia::World {
 			case EditorMode::ItemSelection:
 				renderItemSelectionMenu(engine);
 				break;
+			case EditorMode::KeySelection:
+				renderKeySelectionMenu(engine);
+				break;
 			case EditorMode::ConfirmOverwrite:
 				renderConfirmOverwriteDialog();
 				break;
@@ -756,6 +769,8 @@ namespace Nawia::World {
 		placed_object.spawn_radius = data.value("spawn_radius", 0.0f);
 		placed_object.trigger_radius = data.value("trigger_radius", 0.0f);
 		placed_object.count = data.value("count", 1);
+		placed_object.locked = data.value("locked", false);
+		placed_object.key_id = data.value("key_id", -1);
 
 		if (data.contains("items") && data["items"].is_array()) {
 			for (const auto& item_id : data["items"])
@@ -792,10 +807,23 @@ namespace Nawia::World {
 		} else if (object.category == "chests") {
 			if (!object.loot_ids.empty())
 				data["items"] = object.loot_ids;
+			else
+				data.erase("items");
+
+			if (object.locked) {
+				data["locked"] = true;
+				data["key_id"] = object.key_id;
+			} else {
+				data.erase("locked");
+				data.erase("key_id");
+			}
 		} else if (object.category == "npcs") {
 			data["npc_class"] = object.extra_value;
 		} else if (object.category == "props") {
-			data["texture"] = object.extra_value;
+			if (object.extra_value.empty())
+				data.erase("texture");
+			else
+				data["texture"] = object.extra_value;
 		} else if (object.category == "teleports") {
 			data["target_location"] = object.extra_value;
 		} else if (object.category == "boss_triggers") {
@@ -1003,7 +1031,7 @@ namespace Nawia::World {
 		if (!IsKeyPressed(KEY_ESCAPE))
 			return;
 
-		if (_current_mode == EditorMode::ItemSelection) {
+		if (_current_mode == EditorMode::ItemSelection || _current_mode == EditorMode::KeySelection) {
 			_current_mode = EditorMode::ChestDetails;
 		} else {
 			_current_mode = EditorMode::None;
@@ -1650,28 +1678,71 @@ namespace Nawia::World {
 	void DevLevel::renderChestDetailsMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
 		const int start_x = GetScreenWidth() / 2 - 200;
-		const int start_y = GetScreenHeight() / 2 - 150;
+		const int start_y = GetScreenHeight() / 2 - 235;
 
 		drawDevText(font, "Konfiguracja skrzyni:", start_x, start_y - 40, 24, YELLOW);
 		drawLabel(font, "Nazwa:", start_x, start_y);
 		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _active_text_field == EditorTextField::ObjectName))
 			_active_text_field = EditorTextField::ObjectName;
 
+		const Color lock_color = _temp_chest_locked ? MAROON : DARKGREEN;
+		if (drawButton(font, _temp_chest_locked ? "Zamknieta: TAK" : "Zamknieta: NIE", start_x, start_y + 70, 190, 38, lock_color)) {
+			_temp_chest_locked = !_temp_chest_locked;
+			if (!_temp_chest_locked) {
+				_temp_key_id = -1;
+				_key_id_buffer = "-1";
+			}
+			_active_text_field = EditorTextField::None;
+		}
+
+		if (_temp_chest_locked) {
+			drawLabel(font, "ID klucza:", start_x + 215, start_y + 66);
+			if (drawTextInput(font, _key_id_buffer, start_x + 215, start_y + 88, 185, 34, _active_text_field == EditorTextField::ChestKeyId))
+				_active_text_field = EditorTextField::ChestKeyId;
+
+			int preview_key_id = -1;
+			const bool valid_key_id = tryParseInt(_key_id_buffer, preview_key_id);
+			const auto key_template = valid_key_id ? engine->getItemDatabase().getItemTemplate(preview_key_id) : nullptr;
+			const std::string key_text = valid_key_id
+				? "Klucz: " + std::to_string(preview_key_id) + " - " + (key_template ? key_template->getName() : "nieznany item")
+				: "Klucz: bledne ID";
+			drawDevText(font, key_text.c_str(), start_x, start_y + 130, 18, key_template ? LIGHTGRAY : ORANGE);
+
+			if (drawButton(font, "WYBIERZ KLUCZ Z BAZY", start_x, start_y + 156, 400, 38, BLUE)) {
+				_active_text_field = EditorTextField::None;
+				_current_mode = EditorMode::KeySelection;
+			}
+		} else {
+			drawDevText(font, "Skrzynia bez klucza.", start_x, start_y + 130, 18, LIGHTGRAY);
+		}
+
 		std::string loot_text = "Loot IDs: ";
 		for (const int item_id : _temp_loot_ids)
 			loot_text += std::to_string(item_id) + ", ";
-		drawDevText(font, loot_text.c_str(), start_x, start_y + 70, 18, LIGHTGRAY);
+		drawDevText(font, loot_text.c_str(), start_x, start_y + 208, 18, LIGHTGRAY);
 
-		if (drawButton(font, "+ DODAJ PRZEDMIOT", start_x, start_y + 100, 400, 40, BLUE)) {
+		if (drawButton(font, "+ DODAJ PRZEDMIOT", start_x, start_y + 238, 400, 40, BLUE)) {
 			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::ItemSelection;
 		}
-		if (drawButton(font, "ZAPISZ SKRZYNIE", start_x, start_y + 160, 400, 50, GREEN)) {
+		if (drawButton(font, "ZAPISZ SKRZYNIE", start_x, start_y + 298, 400, 50, GREEN)) {
+			if (_temp_chest_locked) {
+				int key_id = -1;
+				if (!tryParseInt(_key_id_buffer, key_id) || !engine->getItemDatabase().getItemTemplate(key_id)) {
+					_status_message = "Podaj poprawne ID klucza z bazy itemow.";
+					Core::Logger::errorLog("DevLevel: bledny key_id skrzyni: " + _key_id_buffer);
+					return;
+				}
+				_temp_key_id = key_id;
+			} else {
+				_temp_key_id = -1;
+			}
+
 			saveObject("chests");
 			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 220, 400, 40, GRAY)) {
+		if (drawButton(font, "WSTECZ", start_x, start_y + 358, 400, 40, GRAY)) {
 			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
 		}
@@ -1873,6 +1944,31 @@ namespace Nawia::World {
 			_current_mode = EditorMode::ChestDetails;
 	}
 
+	void DevLevel::renderKeySelectionMenu(Core::Engine* engine) {
+		const auto& font = engine->getUIHandler().getFont();
+		const int start_x = GetScreenWidth() / 2 - 250;
+		const int start_y = GetScreenHeight() / 2 - 250;
+
+		drawDevText(font, "Wybierz klucz do skrzyni:", start_x, start_y - 40, 24, YELLOW);
+
+		int row = 0;
+		for (const auto& [item_id, item] : engine->getItemDatabase().getAllTemplates()) {
+			if (row >= MAX_VISIBLE_ITEMS)
+				break;
+
+			const std::string button_text = std::to_string(item_id) + ": " + item->getName();
+			if (drawButton(font, button_text.c_str(), start_x, start_y + row * 45, 500, 40, DARKBLUE)) {
+				_temp_key_id = item_id;
+				_key_id_buffer = std::to_string(item_id);
+				_current_mode = EditorMode::ChestDetails;
+			}
+			++row;
+		}
+
+		if (drawButton(font, "WSTECZ", start_x, start_y + 500, 500, 40, GRAY))
+			_current_mode = EditorMode::ChestDetails;
+	}
+
 	void DevLevel::resetEditorState() {
 		_temp_entity_type.clear();
 		_temp_name.clear();
@@ -1880,14 +1976,17 @@ namespace Nawia::World {
 		_temp_spawn_radius = 5.0f;
 		_temp_trigger_radius = 15.0f;
 		_temp_loot_ids.clear();
+		_temp_chest_locked = false;
+		_temp_key_id = -1;
 		_temp_extra_value.clear();
 
 		_count_buffer = "1";
 		_spawn_radius_buffer = "5.0";
 		_trigger_radius_buffer = "15.0";
-		_texture_path_buffer = "assets/textures/chest.png";
+		_texture_path_buffer.clear();
 		_boss_width_buffer = "10.0";
 		_boss_height_buffer = "4.0";
+		_key_id_buffer = "-1";
 		_selected_teleport_target_index = 0;
 		_selected_boss_index = 0;
 		_teleport_target_dropdown_open = false;
@@ -1911,6 +2010,8 @@ namespace Nawia::World {
 		placed_object.trigger_radius = _temp_trigger_radius;
 		placed_object.count = _temp_count;
 		placed_object.loot_ids = _temp_loot_ids;
+		placed_object.locked = _temp_chest_locked;
+		placed_object.key_id = _temp_key_id;
 		placed_object.extra_value = _temp_extra_value;
 		placed_object.raw_data = json::object();
 

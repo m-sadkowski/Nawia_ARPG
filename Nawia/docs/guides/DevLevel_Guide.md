@@ -1,96 +1,74 @@
-# Kreator Poziomów (DevLevel)
+# Kreator leveli
 
-`DevLevel` to zaawansowane narzędzie wewnątrzsilnikowe służące do szybkiego projektowania poziomów, ustawiania oświetlenia oraz definiowania punktów spawnu encji bezpośrednio w świecie gry.
+`Kreator leveli` to specjalny level do ukladania lokacji, map, spawn pointow i
+obiektow bezposrednio w grze.
 
 ## Uruchomienie
-Edytor jest dostępny jako specjalna klasa poziomu. Pozwala na swobodne poruszanie się "kamerą gracza" z dużą prędkością w celu szybkiej inspekcji mapy.
 
-### Sterowanie ogólne
-- **WSAD**: Ruch postacią/kamerą.
-- **Lewy SHIFT (przytrzymanie)**: Szybki przelot (tryb turbo).
-- **Prawy Przycisk Myszy (PPM)**: Otwiera menu kontekstowe w miejscu wskazanym kursorem na ziemi.
-- **DELETE / X**: Usuwa obiekt znajdujący się bezpośrednio pod kursorem myszy (celuj w kolorowy sześcian).
-- **S**: Zapisuje aktualną konfigurację oświetlenia mapy.
-- **Lewy Przycisk Myszy (LPM) na suwaku NAVMESH WATER CUTOFF**: Ustawia minimalną wysokość powierzchni, po której można chodzić.
-- **ESC**: W menu edytora cofa lub zamyka okno; w grze otwiera menu pauzy.
+W menu wyboru levelu wybierz `Kreator leveli`. Edytor startuje na pustej
+lokacji z placeholderem mapy.
 
-## Dodawanie Obiektów
-Kliknięcie **PPM** na ziemi otwiera menu wyboru typu obiektu. Możesz dodać:
+## Lewy panel
 
-### 1. Spawner (Przeciwnicy)
-Pozwala na zdefiniowanie grupy przeciwników (np. Devil, Bandit).
-- **Liczba sztuk**: Ile encji ma się pojawić.
-- **Spawn Radius**: Obszar (żółty okrąg), w którym losowo rozstawione zostaną encje.
-- **Trigger Radius**: Odległość (pomarańczowy okrąg), po przekroczeniu której przeciwnicy zostaną "obudzeni".
+Lewy panel ustawia mape aktualnej lokacji:
 
-### 2. Skrzynia (Loot)
-- Możliwość nadania nazwy.
-- **Loot System**: Pozwala wybrać przedmioty z bazy danych gry (`ItemDatabase`), które znajdą się wewnątrz skrzyni.
+- model mapy,
+- skale,
+- offset,
+- obrot,
+- minimalna wysokosc NavMesh,
+- spawn gracza przez `Ustaw spawn`,
+- przeladowanie mapy przez `Przeladuj`.
 
-### 3. NPC / Rozmowy
-- Pozwala postawić postać niezależną (np. Kota) z przypisaną klasą logiki rozmowy.
+## Srodkowy panel
 
-### 4. Prop (Obiekt Statyczny)
-- Pozwala postawić dekoracje (drzewa, kamienie itp.) z podaniem ścieżki do tekstury/modelu.
+Srodkowy panel wybiera albo tworzy lokacje. `Zapisz` tworzy dwa pliki:
 
-### 5. Teleport
-- Definiuje punkt przejścia do innej mapy.
-
-## Wizualizacja i Debug
-W trybie edytora obiekty są reprezentowane przez kolorowe sześciany ułatwiające orientację:
-- **Czerwony**: Spawner.
-- **Złoty**: Skrzynia.
-- **Błękitny**: NPC.
-- **Zielony**: Prop.
-- **Fioletowy**: Teleport.
-
-Dodatkowo spawnerzy posiadają trójwymiarowe "ściany" zasięgu:
-- **Żółta ścianka**: Zasięg spawnu.
-- **Pomarańczowa ścianka**: Zasięg aktywacji (Trigger).
-
-## Navmesh i Woda
-Overlay edytora zawiera sekcję **NAVMESH WATER CUTOFF**, która pozwala stroić minimalną wysokość chodliwej powierzchni navmesha.
-
-- **Min Y**: Aktualny próg wysokości. Trójkąty mapy poniżej tej wartości są pomijane przy budowaniu navmesha.
-- **Suwak**: Przesuwa próg w zakresie od `-15.0` do `5.0`.
-- **Niebieska płaszczyzna w świecie 3D**: Wizualizuje aktualny poziom odcięcia, żeby łatwiej dopasować go do tafli wody.
-- **Rebuild navmesha**: Następuje po puszczeniu suwaka albo po kliknięciu **APPLY**, gdy edytor pokazuje komunikat, że navmesh czeka na przebudowę.
-
-Ustaw próg tak, żeby płaszczyzna znajdowała się tuż nad wodą, ale nie przecinała chodliwych brzegów, mostów ani ścieżek.
-
-Wartość jest zapisywana w roboczym pliku `assets/data/dev/new_level.json`:
-
-```json
-{
-  "navmesh": {
-    "min_walkable_height": -1.25
-  }
-}
+```text
+assets/data/locations/<lokacja>.json
+assets/data/locations/objects_<lokacja>.json
 ```
 
-Docelowe poziomy mogą użyć tego samego pola w `assets/data/level_entities/*.json`. Jeżeli pole nie istnieje, poziom używa domyślnego navmesha bez odcięcia wysokości.
+Przy nadpisywaniu istniejacych plikow edytor pyta o potwierdzenie.
 
-## Testowanie Poziomu
-W menu głównym edytora (PPM) znajduje się przycisk **TESTUJ POZIOM**.
-- **Działanie**: Natychmiastowo czyści świat i spawnuje wszystkie postawione obiekty jako prawdziwe encje gry.
-- **Logika**: Przeciwnicy będą uśpieni, dopóki nie wejdziesz w ich `Trigger Radius`, co pozwala sprawdzić balans poziomu bez restartu gry.
+## Prawy panel
 
-## Zapis i Struktura Danych
-System automatycznie wczytuje i zapisuje sesje w katalogu:
-`assets/data/dev/`
+Prawy panel dodaje obiekty w miejscu, w ktorym stoi gracz:
 
-Pliki są podzielone na kategorie:
-- `new_level.json` - zbiorczy eksport levelu, ustawienia navmesha i lista encji.
-- `new_level_spawners.json`
-- `new_level_chests.json`
-- `new_level_npcs.json`
-- `new_level_props.json`
-- `new_level_teleports.json`
+- spawner przeciwnikow,
+- skrzynie z lootem, opcjonalnym zamkiem i `key_id`,
+- NPC,
+- prop,
+- teleport,
+- checkpoint,
+- boss trigger.
 
-Po zakończeniu prac w edytorze, dane z tych plików można skopiować do docelowych plików definicji poziomu.
+Teleport wybiera lokacje docelowa z listy istniejacych lokacji. Boss trigger
+wybiera id bossa z `assets/data/bosses.json`.
 
-## Sterowanie Oświetleniem
-Możesz w czasie rzeczywistym przesuwać główne światło mapy:
-- **Strzałki (Góra/Dół/Lewo/Prawo)**: Przesunięcie w poziomie (X/Z).
-- **Page Up / Page Down**: Przesunięcie w pionie (Y).
-- **S**: Zapis do `assets/maps/forest_lighting.json`.
+Skrzynia moze byc otwarta albo zamknieta. Dla zamknietej skrzyni podajesz
+`key_id` recznie albo wybierasz item z bazy, a kreator pokazuje nazwe itemu
+przy ID. Zapis trafia do `objects_*.json` jako `locked: true` i `key_id`.
+
+## Testowanie
+
+`Testuj` tworzy runtime encje z aktualnie ulozonych obiektow. Po starcie testu
+przycisk zmienia sie w `Zakoncz test`, ktory usuwa testowe encje i wraca do
+edycji.
+
+## Pliki w buildzie i repo
+
+Kreator zapisuje wzgledem katalogu uruchomienia gry. Jezeli gra dziala z builda,
+pliki moga powstac w:
+
+```text
+Nawia/out/build/x64-Release/assets/data/locations/
+```
+
+Zeby zapisac lokacje w repozytorium, przenies oba pliki do:
+
+```text
+Nawia/assets/data/locations/
+```
+
+Nastepny build skopiuje je obok `Nawia.exe`.

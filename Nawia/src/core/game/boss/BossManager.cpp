@@ -5,7 +5,6 @@
 #include <Collider.h>
 #include <Devil.h>
 #include <Engine.h>
-#include <LevelManager.h>
 #include <Logger.h>
 #include <Map.h>
 #include <WalkingDead.h>
@@ -106,14 +105,7 @@ namespace Nawia::Game {
             boss.enemy_type = bj.value("enemy_type", "");
             boss.max_hp = bj.value("max_hp", 1000);
             boss.scale = bj.value("scale", 1.0f);
-            boss.level_name = bj.value("level_name", "");
             boss.on_player_death = bj.value("on_player_death", "end_fight");
-
-            // Pozycja spawnu.
-            if (bj.contains("spawn_pos")) {
-                const auto& sj = bj["spawn_pos"];
-                boss.spawn_pos = { sj.value("x", 0.0f), sj.value("y", 0.0f) };
-            }
 
             // Fazy.
             if (bj.contains("phases")) {
@@ -180,35 +172,6 @@ namespace Nawia::Game {
     // -----------------------------------------------------------------------
     // Preloadowanie
     // -----------------------------------------------------------------------
-
-    void BossManager::preloadForLevel(const std::string& level_name, Core::Engine* engine) {
-        auto* map = engine->getCurrentMap();
-        if (!map) return;
-
-        bool has_matching_boss = false;
-        for (const auto& [id, boss] : _bosses) {
-            if (boss.level_name == level_name) {
-                has_matching_boss = true;
-                break;
-            }
-        }
-
-        if (!has_matching_boss)
-            return;
-
-        clearPreloadedBosses();
-
-        bool preloaded_anything = false;
-
-        for (const auto& [id, boss] : _bosses) {
-            if (boss.level_name != level_name) continue;
-            preloaded_anything = preloadBossDefinition(boss, engine) || preloaded_anything;
-        }
-
-        if (preloaded_anything) {
-            Core::Logger::debugLog("BossManager: Preladowano zasoby walki z bossem dla poziomu '" + level_name + "'.");
-        }
-    }
 
     void BossManager::clearPreloadedBosses() {
         _minion_pools.clear();
@@ -386,8 +349,17 @@ namespace Nawia::Game {
         }
 
         _active_boss_data = &it->second;
-        _active_boss_spawn_pos = use_spawn_override ? spawn_pos : _active_boss_data->spawn_pos;
-        _active_boss_spawn_altitude = use_spawn_override ? spawn_altitude : 0.0f;
+        if (use_spawn_override) {
+            _active_boss_spawn_pos = spawn_pos;
+            _active_boss_spawn_altitude = spawn_altitude;
+        } else if (engine && engine->getPlayer()) {
+            const auto player = engine->getPlayer();
+            _active_boss_spawn_pos = {player->getX(), player->getY()};
+            _active_boss_spawn_altitude = player->getAltitude();
+        } else {
+            _active_boss_spawn_pos = {0.0f, 0.0f};
+            _active_boss_spawn_altitude = 0.0f;
+        }
         _current_phase_index = 0;
         _fight_timer = 0.0f;
         _phase_flash_timer = 0.0f;
@@ -490,9 +462,6 @@ namespace Nawia::Game {
         _phase_flash_timer = 0.0f;
         _minion_pools.clear();
 
-        if (!victory) {
-            preloadForLevel(engine->getLevelManager().getCurrentLevelName(), engine);
-        }
     }
 
     // -----------------------------------------------------------------------
