@@ -6,6 +6,7 @@
 #include <PlayerController.h>
 
 #include <DemoLevel.h>
+#include <DemoLevel2.h>
 #include <DevLevel.h>
 #include <FireballAbility.h>
 #include <Level.h>
@@ -78,6 +79,7 @@ namespace Nawia::Core {
 
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
+		_level_manager->registerLevel(std::make_shared<World::DemoLevel2>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
 
 		_ui_handler = std::make_unique<UI::UIHandler>();
@@ -175,6 +177,8 @@ namespace Nawia::Core {
 		if (action == UI::MenuAction::Respawn) {
 			_player->respawn();
 			_entity_manager->addEntity(_player);
+			if (_level_manager && _level_manager->getCurrentLevel())
+				_level_manager->getCurrentLevel()->prepareForRespawn(this);
 			_game_state = GameState::Playing;
 		} else if (action == UI::MenuAction::Exit) {
 			_audio_manager.playMusic(MENU_MUSIC_PATH, true, 0.45f);

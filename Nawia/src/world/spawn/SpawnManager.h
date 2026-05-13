@@ -45,6 +45,17 @@ namespace Nawia::World {
 		);
 
 		/**
+		 * @brief Wczytuje definicje spawnow z gotowego obiektu JSON.
+		 */
+		bool loadFromJsonData(
+			const nlohmann::json& root,
+			Core::Engine* engine,
+			Core::Map* map,
+			const std::string& initial_location,
+			const std::string& source_label = "runtime"
+		);
+
+		/**
 		 * @brief Sprawdza dystans gracza i aktywuje spawny w biezacej lokacji.
 		 */
 		void update(Vector2 player_pos, const std::string& current_location);
@@ -52,7 +63,7 @@ namespace Nawia::World {
 		/**
 		 * @brief Ustawia stany uspienia encji po zmianie lokacji.
 		 */
-		void updateLocationChange(const std::string& new_location);
+		void updateLocationChange(const std::string& new_location, Core::Map* map = nullptr);
 
 		/**
 		 * @brief Czysci wszystkie spawny i zapisane pozycje startowe.

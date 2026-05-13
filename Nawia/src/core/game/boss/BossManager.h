@@ -101,6 +101,16 @@ namespace Nawia::Game {
         void preloadForLevel(const std::string& level_name, Core::Engine* engine);
 
         /**
+         * @brief Preloaduje konkretna walke z bossem, np. po wczytaniu boss triggera z lokacji.
+         */
+        void preloadBossFight(const std::string& boss_id, Core::Engine* engine);
+
+        /**
+         * @brief Czyści preloadowane pule bossow i minionow.
+         */
+        void clearPreloadedBosses();
+
+        /**
          * @brief Aktualizuje stan walki: timer, smierc bossa, fazy.
          * @param engine Wskaznik na silnik.
          * @param dt Czas od poprzedniej klatki w sekundach.
@@ -114,6 +124,16 @@ namespace Nawia::Game {
          * @return true jesli walka zostala rozpoczeta.
          */
         bool startBossFight(const std::string& boss_id, Core::Engine* engine);
+
+        /**
+         * @brief Rozpoczyna walke z bossem w konkretnym punkcie swiata.
+         */
+        bool startBossFight(
+            const std::string& boss_id,
+            Core::Engine* engine,
+            Vector2 spawn_pos,
+            float spawn_altitude
+        );
 
         /**
          * @brief Konczy aktywna walke z bossem.
@@ -167,10 +187,23 @@ namespace Nawia::Game {
         // Helpery preloadowania.
         std::shared_ptr<Entity::Entity> buildEnemyEntity(const std::string& type, const std::string& name,
                                                           int max_hp, Core::Engine* engine);
+        bool preloadBossDefinition(const BossData& boss, Core::Engine* engine);
 
         // Helpery startowania walki.
         bool activateBossFromPool(const std::string& boss_id, Core::Engine* engine);
         bool buildAndActivateBoss(Core::Engine* engine);
+        bool startBossFightAt(
+            const std::string& boss_id,
+            Core::Engine* engine,
+            bool use_spawn_override,
+            Vector2 spawn_pos,
+            float spawn_altitude
+        );
+        [[nodiscard]] Vector3 resolveBossSpawnPosition(Core::Engine* engine) const;
+        void placeEntityAtBossSpawn(const std::shared_ptr<Entity::Entity>& entity, Core::Engine* engine) const;
+
+        Vector2 _active_boss_spawn_pos = {0.0f, 0.0f};
+        float _active_boss_spawn_altitude = 0.0f;
     };
 
 } // namespace Nawia::Game

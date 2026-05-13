@@ -252,7 +252,8 @@ namespace Nawia::Core {
     {
         if (!_player || _player->isDead()) return;
 
-        for (auto& entity : _active_entities) 
+        const auto entities_snapshot = _active_entities;
+        for (auto& entity : entities_snapshot)
         {
             if (!entity || entity == _player) continue;
             if (entity->isDormant()) continue;
@@ -270,6 +271,7 @@ namespace Nawia::Core {
 
                     if (collision) {
                         trigger->onTriggerEnter(*_player);
+                        return;
                     }
                 }
             }

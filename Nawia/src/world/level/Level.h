@@ -1,5 +1,6 @@
 #pragma once
 
+#include <LocationDefinition.h>
 #include <SpawnManager.h>
 
 #include <memory>
@@ -12,6 +13,11 @@ namespace Nawia::Core {
 }
 
 namespace Nawia::World {
+
+	struct LevelLocationFile {
+		std::string name;
+		std::string path;
+	};
 
     /**
      * @class Level
@@ -63,7 +69,7 @@ namespace Nawia::World {
         /**
          * @brief Zwraca nazwy lokacji dostepnych w poziomie.
          */
-        [[nodiscard]] virtual std::vector<std::string> getLocations() const { return {"Domyslna"}; }
+        [[nodiscard]] virtual std::vector<std::string> getLocations() const;
 
         /**
          * @brief Zwraca sciezke do pliku JSON ze spawnami poziomu.
@@ -86,6 +92,11 @@ namespace Nawia::World {
         virtual void changeLocation(Core::Engine* engine, const std::string& location_name);
 
         /**
+         * @brief Odbudowuje runtime levelu po odrodzeniu gracza.
+         */
+        virtual void prepareForRespawn(Core::Engine* engine);
+
+        /**
          * @brief Zwraca indeks aktualnej lokacji.
          */
         [[nodiscard]] size_t getCurrentLocationIndex() const { return _current_location_index; }
@@ -97,6 +108,35 @@ namespace Nawia::World {
         void loadSpawns(Core::Engine* engine);
 
         /**
+         * @brief Wczytuje zestaw lokacji zapisanych przez kreator poziomow.
+         */
+        void loadLocations(
+			Core::Engine* engine,
+			const std::vector<LevelLocationFile>& location_files,
+			const std::string& initial_location = ""
+		);
+
+        /**
+         * @brief Przeladowuje aktywna lokacje z definicji kreatora.
+         */
+		bool loadLocationDefinition(
+			Core::Engine* engine,
+			size_t location_index,
+			bool move_player_to_spawn,
+			bool reload_entities = true
+		);
+
+        /**
+         * @brief Wczytuje wszystkie encje lokacji jako dormant/aktywne bez przeladowania map.
+         */
+		void rebuildLocationEntityPool(Core::Engine* engine);
+
+        /**
+         * @brief Wstepnie laduje modele map z lokacji do cache.
+         */
+		void preloadLocationMapModels() const;
+
+        /**
          * @brief Wczytuje opcjonalne ustawienia navmesha z pliku spawn levelu.
          */
         void applyNavMeshSettingsFromJson(const std::string& location_name = "");
@@ -104,6 +144,8 @@ namespace Nawia::World {
         std::unique_ptr<Core::Map> _map;
         size_t _current_location_index = 0;
         SpawnManager _spawn_manager;
+		std::vector<LocationDefinition> _location_definitions;
+		bool _uses_location_files = false;
     };
 
 } // namespace Nawia::World

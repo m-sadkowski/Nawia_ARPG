@@ -1,0 +1,26 @@
+{
+    "map": {
+        "model": "forest_trap.glb",
+        "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "rotation": {
+            "x": 0.0,
+            "y": 210.0,
+            "z": 0.0
+        },
+        "scale": 1.354032039642334
+    },
+    "name": "Lesna Dolina",
+    "navmesh": {
+        "min_walkable_height": -12.96875
+    },
+    "objects_file": "objects_lesna_dolina.json",
+    "player_spawn": {
+        "x": 23.342763900756836,
+        "y": -10.2105712890625
+    },
+    "schema_version": 1
+}

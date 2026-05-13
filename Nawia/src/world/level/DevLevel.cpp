@@ -14,12 +14,13 @@
 #include <raymath.h>
 
 #include <algorithm>
-#include <array>
+#include <cctype>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <limits>
-#include <string_view>
+#include <sstream>
 
 using json = nlohmann::json;
 
@@ -27,28 +28,21 @@ namespace Nawia::World {
 
 	namespace {
 
-		constexpr const char* MAP_FILE = "forest.glb";
-		constexpr float MAP_SCALE = 2.0f;
+		constexpr const char* PLACEHOLDER_MODEL = "placeholder";
+		constexpr const char* DEFAULT_LIGHTING_FILE = "assets/maps/forest_lighting.json";
 		constexpr float LIGHT_MOVE_STEP = 1.0f;
 		constexpr int PRIMARY_LIGHT_INDEX = 0;
 		constexpr int OVERLAY_MARGIN = 10;
-		constexpr float OVERLAY_BACKGROUND_ALPHA = 0.85f;
-		constexpr Vector2 PLAYER_SPAWN = {-4.3f, 33.0f};
-		constexpr int MAX_VISIBLE_ITEMS = 11;
+		constexpr float MAP_SCALE_MIN = 0.05f;
+		constexpr float MAP_SCALE_MAX = 5.0f;
 		constexpr float NAVMESH_HEIGHT_MIN = -15.0f;
 		constexpr float NAVMESH_HEIGHT_MAX = 5.0f;
-		constexpr Rectangle NAVMESH_HEIGHT_SLIDER = {135.0f, 255.0f, 250.0f, 18.0f};
-		constexpr Rectangle NAVMESH_HEIGHT_APPLY_BUTTON = {315.0f, 285.0f, 105.0f, 28.0f};
 		constexpr float WATER_PLANE_HALF_SIZE = 90.0f;
-		constexpr const char* DEV_LOCATION_NAME = "Dev Sandbox";
+		constexpr int MAX_VISIBLE_ITEMS = 11;
 
-		constexpr std::array<std::string_view, 5> OBJECT_CATEGORIES = {
-			"spawners",
-			"chests",
-			"npcs",
-			"props",
-			"teleports",
-		};
+		constexpr Rectangle LEFT_PANEL = {20.0f, 20.0f, 330.0f, 430.0f};
+		constexpr Rectangle CENTER_PANEL = {0.0f, 20.0f, 360.0f, 310.0f};
+		constexpr Rectangle RIGHT_PANEL = {0.0f, 20.0f, 280.0f, 590.0f};
 
 		std::filesystem::path resolveAssetPath(const std::filesystem::path& relative_asset_path) {
 			return (std::filesystem::path("assets") / relative_asset_path).lexically_normal();
@@ -58,11 +52,182 @@ namespace Nawia::World {
 			return path.generic_string();
 		}
 
-		void drawDevText(const Font& font, const char* text, float x, float y, float size, Color color) {
+		std::string formatFloat(const float value, const int precision = 2) {
+			std::ostringstream stream;
+			stream << std::fixed << std::setprecision(precision) << value;
+			return stream.str();
+		}
+
+		std::string displayNameFromStem(std::string stem) {
+			for (char& c : stem) {
+				if (c == '_' || c == '-')
+					c = ' ';
+			}
+
+			bool capitalize_next = true;
+			for (char& c : stem) {
+				if (std::isspace(static_cast<unsigned char>(c))) {
+					capitalize_next = true;
+					continue;
+				}
+
+				if (capitalize_next) {
+					c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+					capitalize_next = false;
+				}
+			}
+			return stem;
+		}
+
+		std::string slugify(std::string text) {
+			std::string result;
+			result.reserve(text.size());
+
+			for (char c : text) {
+				const unsigned char uc = static_cast<unsigned char>(c);
+				if (std::isalnum(uc)) {
+					result.push_back(static_cast<char>(std::tolower(uc)));
+				} else if (std::isspace(uc) || c == '-' || c == '_') {
+					if (result.empty() || result.back() != '_')
+						result.push_back('_');
+				}
+			}
+
+			while (!result.empty() && result.back() == '_')
+				result.pop_back();
+
+			return result.empty() ? "nowa_lokacja" : result;
+		}
+
+		std::string sanitizeJsonFilename(const std::string& input, const std::string& fallback_stem) {
+			std::filesystem::path path(input.empty() ? fallback_stem : input);
+			std::string filename = path.filename().string();
+			if (filename.empty())
+				filename = fallback_stem;
+
+			std::string sanitized;
+			sanitized.reserve(filename.size());
+			for (char c : filename) {
+				const unsigned char uc = static_cast<unsigned char>(c);
+				if (std::isalnum(uc) || c == '_' || c == '-' || c == '.') {
+					sanitized.push_back(c);
+				} else if (std::isspace(uc)) {
+					sanitized.push_back('_');
+				}
+			}
+
+			if (sanitized.empty())
+				sanitized = fallback_stem;
+
+			if (std::filesystem::path(sanitized).extension() != ".json")
+				sanitized += ".json";
+
+			return sanitized;
+		}
+
+		bool readJsonFile(const std::filesystem::path& path, json& output) {
+			std::ifstream file(path);
+			if (!file.is_open()) {
+				Core::Logger::errorLog("DevLevel: nie mozna otworzyc pliku JSON: " + toPathString(path));
+				return false;
+			}
+
+			try {
+				file >> output;
+			} catch (const json::parse_error& error) {
+				Core::Logger::errorLog("DevLevel: blad parsowania JSON " + toPathString(path) + ": " + error.what());
+				return false;
+			}
+
+			return true;
+		}
+
+		bool tryParseFloat(const std::string& text, float& output) {
+			try {
+				size_t parsed_chars = 0;
+				output = std::stof(text, &parsed_chars);
+				return parsed_chars > 0;
+			} catch (const std::exception&) {
+				return false;
+			}
+		}
+
+		Vector2 parseVector2(const json& data, const Vector2 fallback = {0.0f, 0.0f}) {
+			if (!data.is_object())
+				return fallback;
+
+			return {
+				data.value("x", fallback.x),
+				data.value("y", fallback.y),
+			};
+		}
+
+		Vector3 parseVector3(const json& data, const Vector3 fallback = {0.0f, 0.0f, 0.0f}) {
+			if (data.is_object()) {
+				return {
+					data.value("x", fallback.x),
+					data.value("y", fallback.y),
+					data.value("z", fallback.z),
+				};
+			}
+
+			if (data.is_array() && data.size() >= 3) {
+				return {
+					data[0].get<float>(),
+					data[1].get<float>(),
+					data[2].get<float>(),
+				};
+			}
+
+			return fallback;
+		}
+
+		json vector2ToJson(const Vector2 value) {
+			return {
+				{"x", value.x},
+				{"y", value.y},
+			};
+		}
+
+		json vector3ToJson(const Vector3 value) {
+			return {
+				{"x", value.x},
+				{"y", value.y},
+				{"z", value.z},
+			};
+		}
+
+		bool isEnemyType(const std::string& type) {
+			return type == "devil" || type == "bandit" || type == "walking_dead";
+		}
+
+		std::string categoryFromEntityType(const std::string& type) {
+			if (isEnemyType(type)) return "spawners";
+			if (type == "chest") return "chests";
+			if (type == "npc") return "npcs";
+			if (type == "static_object") return "props";
+			if (type == "teleport") return "teleports";
+			if (type == "checkpoint") return "checkpoints";
+			if (type == "boss_trigger") return "boss_triggers";
+			return "props";
+		}
+
+		Color getCategoryColor(const std::string& category) {
+			if (category == "spawners") return RED;
+			if (category == "chests") return GOLD;
+			if (category == "npcs") return SKYBLUE;
+			if (category == "props") return GREEN;
+			if (category == "teleports") return PURPLE;
+			if (category == "checkpoints") return LIME;
+			if (category == "boss_triggers") return MAGENTA;
+			return GRAY;
+		}
+
+		void drawDevText(const Font& font, const char* text, const float x, const float y, const float size, const Color color) {
 			DrawTextEx(font, text, {x, y}, size, 1.0f, color);
 		}
 
-		bool drawButton(const Font& font, const char* text, int x, int y, int width, int height, Color base_color) {
+		bool drawButton(const Font& font, const char* text, const int x, const int y, const int width, const int height, const Color base_color) {
 			const Rectangle rect = {
 				static_cast<float>(x),
 				static_cast<float>(y),
@@ -71,8 +236,8 @@ namespace Nawia::World {
 			};
 			const bool hovered = CheckCollisionPointRec(GetMousePosition(), rect);
 
-			DrawRectangleRec(rect, hovered ? ColorAlpha(base_color, 0.8f) : base_color);
-			DrawRectangleLinesEx(rect, 2, LIGHTGRAY);
+			DrawRectangleRec(rect, hovered ? ColorAlpha(base_color, 0.82f) : base_color);
+			DrawRectangleLinesEx(rect, 2, ColorAlpha(RAYWHITE, 0.55f));
 
 			const Vector2 text_size = MeasureTextEx(font, text, 20, 1.0f);
 			drawDevText(
@@ -87,11 +252,19 @@ namespace Nawia::World {
 			return hovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 		}
 
-		void drawLabel(const Font& font, const char* text, int x, int y) {
-			drawDevText(font, text, static_cast<float>(x), static_cast<float>(y), 18, LIGHTGRAY);
+		void drawLabel(const Font& font, const char* text, const int x, const int y) {
+			drawDevText(font, text, static_cast<float>(x), static_cast<float>(y), 17, LIGHTGRAY);
 		}
 
-		bool drawTextInput(const Font& font, std::string& buffer, int x, int y, int width, int height, bool active) {
+		bool drawTextInput(
+			const Font& font,
+			std::string& buffer,
+			const int x,
+			const int y,
+			const int width,
+			const int height,
+			const bool active
+		) {
 			const Rectangle rect = {
 				static_cast<float>(x),
 				static_cast<float>(y),
@@ -99,65 +272,196 @@ namespace Nawia::World {
 				static_cast<float>(height),
 			};
 
-			DrawRectangleRec(rect, active ? DARKGRAY : BLACK);
-			DrawRectangleLinesEx(rect, 2, active ? GREEN : GRAY);
-			drawDevText(font, buffer.c_str(), x + 5.0f, y + height / 2.0f - 10.0f, 20, RAYWHITE);
+			DrawRectangleRec(rect, active ? Color{35, 42, 38, 245} : Color{8, 10, 9, 235});
+			DrawRectangleLinesEx(rect, 2, active ? ORANGE : ColorAlpha(RAYWHITE, 0.45f));
+
+			BeginScissorMode(x + 4, y + 1, std::max(1, width - 8), std::max(1, height - 2));
+			drawDevText(font, buffer.c_str(), x + 6.0f, y + height / 2.0f - 10.0f, 20, RAYWHITE);
+			EndScissorMode();
 
 			if (active) {
 				int key = GetCharPressed();
 				while (key > 0) {
-					if (key >= 32 && key <= 125) {
+					if (key >= 32 && key <= 125)
 						buffer += static_cast<char>(key);
-					}
 					key = GetCharPressed();
 				}
 
-				if (IsKeyPressed(KEY_BACKSPACE) && !buffer.empty()) {
+				if (IsKeyPressed(KEY_BACKSPACE) && !buffer.empty())
 					buffer.pop_back();
-				}
 			}
 
 			return IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), rect);
 		}
 
-		Color getCategoryColor(const std::string& category) {
-			if (category == "spawners") return RED;
-			if (category == "chests") return GOLD;
-			if (category == "npcs") return SKYBLUE;
-			if (category == "props") return GREEN;
-			if (category == "teleports") return PURPLE;
-			return GRAY;
+		int drawDropdown(
+			const Font& font,
+			const Rectangle rect,
+			const std::vector<std::string>& options,
+			const int selected_index,
+			bool& open,
+			const int max_visible_items
+		) {
+			const bool hovered = CheckCollisionPointRec(GetMousePosition(), rect);
+			DrawRectangleRec(rect, hovered ? Color{245, 245, 245, 255} : RAYWHITE);
+			DrawRectangleLinesEx(rect, 2, BLACK);
+
+			const std::string selected_text =
+				(selected_index >= 0 && selected_index < static_cast<int>(options.size())) ? options[selected_index] : "Brak";
+
+			BeginScissorMode(
+				static_cast<int>(rect.x + 6.0f),
+				static_cast<int>(rect.y + 1.0f),
+				static_cast<int>(rect.width - 38.0f),
+				static_cast<int>(rect.height - 2.0f)
+			);
+			drawDevText(font, selected_text.c_str(), rect.x + 8.0f, rect.y + rect.height / 2.0f - 11.0f, 22, BLACK);
+			EndScissorMode();
+
+			drawDevText(font, "v", rect.x + rect.width - 28.0f, rect.y + rect.height / 2.0f - 14.0f, 28, BLACK);
+
+			if (hovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+				open = !open;
+				return -1;
+			}
+
+			return -1;
+		}
+
+		int drawDropdownOptions(
+			const Font& font,
+			const Rectangle rect,
+			const std::vector<std::string>& options,
+			bool& open,
+			const int max_visible_items
+		) {
+			if (!open)
+				return -1;
+
+			const int visible_items = std::min(static_cast<int>(options.size()), max_visible_items);
+			for (int index = 0; index < visible_items; ++index) {
+				const Rectangle option_rect = {
+					rect.x,
+					rect.y + rect.height * static_cast<float>(index + 1),
+					rect.width,
+					rect.height,
+				};
+				const bool option_hovered = CheckCollisionPointRec(GetMousePosition(), option_rect);
+
+				DrawRectangleRec(option_rect, option_hovered ? Color{220, 235, 210, 255} : RAYWHITE);
+				DrawRectangleLinesEx(option_rect, 1, BLACK);
+
+				BeginScissorMode(
+					static_cast<int>(option_rect.x + 6.0f),
+					static_cast<int>(option_rect.y + 1.0f),
+					static_cast<int>(option_rect.width - 12.0f),
+					static_cast<int>(option_rect.height - 2.0f)
+				);
+				drawDevText(font, options[index].c_str(), option_rect.x + 8.0f, option_rect.y + 9.0f, 19, BLACK);
+				EndScissorMode();
+
+				if (option_hovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+					open = false;
+					return index;
+				}
+			}
+
+			return -1;
+		}
+
+		bool drawSlider(
+			const Font& font,
+			const Rectangle rect,
+			float& value,
+			const float min_value,
+			const float max_value,
+			EditorTextField& active_field,
+			const EditorTextField field,
+			const Color knob_color
+		) {
+			const Vector2 mouse = GetMousePosition();
+			const Rectangle hitbox = {rect.x - 8.0f, rect.y - 9.0f, rect.width + 16.0f, rect.height + 18.0f};
+			const bool hovered = CheckCollisionPointRec(mouse, hitbox);
+
+			bool changed = false;
+			if (hovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+				active_field = field;
+
+			if (active_field == field && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+				const float t = std::clamp((mouse.x - rect.x) / rect.width, 0.0f, 1.0f);
+				const float new_value = min_value + (max_value - min_value) * t;
+				if (std::abs(new_value - value) > 0.0001f) {
+					value = new_value;
+					changed = true;
+				}
+			}
+
+			if (active_field == field && IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+				active_field = EditorTextField::None;
+
+			const float t = std::clamp((value - min_value) / (max_value - min_value), 0.0f, 1.0f);
+			DrawRectangleRec(rect, Fade(GRAY, 0.65f));
+			DrawRectangleLinesEx(rect, 1, LIGHTGRAY);
+			DrawRectangle(
+				static_cast<int>(rect.x),
+				static_cast<int>(rect.y),
+				static_cast<int>(rect.width * t),
+				static_cast<int>(rect.height),
+				Fade(knob_color, 0.35f)
+			);
+			DrawCircle(
+				static_cast<int>(rect.x + rect.width * t),
+				static_cast<int>(rect.y + rect.height * 0.5f),
+				active_field == field ? 10.0f : 8.0f,
+				hovered || active_field == field ? ORANGE : knob_color
+			);
+
+			const std::string value_text = formatFloat(value, 2);
+			const Vector2 text_size = MeasureTextEx(font, value_text.c_str(), 17, 1.0f);
+			drawDevText(font, value_text.c_str(), rect.x + rect.width - text_size.x, rect.y + rect.height + 5.0f, 17, RAYWHITE);
+
+			return changed;
+		}
+
+		float readNavmeshMinHeight(const json& root, const std::string& location_name, const float fallback) {
+			const auto navmesh_it = root.find("navmesh");
+			if (navmesh_it == root.end() || !navmesh_it->is_object())
+				return fallback;
+
+			const auto location_it = navmesh_it->find(location_name);
+			if (location_it != navmesh_it->end() && location_it->is_object())
+				return location_it->value("min_walkable_height", fallback);
+
+			return navmesh_it->value("min_walkable_height", fallback);
 		}
 
 	} // namespace
 
+	std::vector<std::string> DevLevel::getLocations() const {
+		return {_active_location_name.empty() ? "Nowa lokacja" : _active_location_name};
+	}
+
+	bool DevLevel::isTyping() const {
+		return _current_mode != EditorMode::None ||
+			   isTextFieldActive() ||
+			   isAnyDropdownOpen() ||
+			   isMouseOverEditorUI();
+	}
+
 	void DevLevel::onEnter(Core::Engine* engine) {
-		Core::Logger::debugLog("Ladowanie poziomu DevLevel (kreator poziomu)...");
+		Core::Logger::debugLog("Ladowanie DevLevel jako kreatora poziomow...");
 		Entity::Entity::DebugColliders = true;
 
-		loadLevelSettings();
-
 		_map = std::make_unique<Core::Map>(engine->getResourceManager());
-		_map->loadMap(MAP_FILE, MAP_SCALE, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
-		_map->setNavMeshMinWalkableHeight(_navmesh_min_walkable_height);
 
-		const auto lighting_file_path = resolveAssetPath("maps/forest_lighting.json");
-		engine->getLightingSystem().loadLightingFromJson(toPathString(lighting_file_path));
+		loadAvailableMapModels();
+		loadAvailableLocations();
+		loadAvailableBossIds();
 
-		auto& entity_manager = engine->getEntityManager();
-		entity_manager.clearNonPlayerEntities();
+		engine->getLightingSystem().loadLightingFromJson(DEFAULT_LIGHTING_FILE);
+		engine->getEntityManager().clearNonPlayerEntities();
 
-		if (const auto player = engine->getPlayer()) {
-			const Vector3 snapped_spawn =
-				_map->getNavMesh().getClosestWalkablePosition({PLAYER_SPAWN.x, 0.0f, PLAYER_SPAWN.y});
-			player->setX(snapped_spawn.x);
-			player->setY(snapped_spawn.z);
-			player->setAltitude(snapped_spawn.y);
-			player->setRespawnPoint({snapped_spawn.x, snapped_spawn.z});
-			player->stop();
-		}
-
-		loadPlacedObjects();
+		initializeNewLocation(engine);
 	}
 
 	void DevLevel::onExit(Core::Engine* engine) {
@@ -171,8 +475,19 @@ namespace Nawia::World {
 			return;
 		}
 
-		if (IsKeyPressed(KEY_DELETE) || IsKeyPressed(KEY_X)) {
+		if (IsKeyPressed(KEY_ESCAPE)) {
+			_active_text_field = EditorTextField::None;
+			_map_dropdown_open = false;
+			_location_dropdown_open = false;
+			return;
+		}
+
+		if (isTextFieldActive() || isAnyDropdownOpen())
+			return;
+
+		if (!_is_testing_level && (IsKeyPressed(KEY_DELETE) || IsKeyPressed(KEY_X))) {
 			deleteNearestObject(engine);
+			return;
 		}
 
 		handleEditingInput(engine);
@@ -181,13 +496,12 @@ namespace Nawia::World {
 	void DevLevel::update(Core::Engine* engine, float dt) {
 		if (const auto player = engine->getPlayer()) {
 			float movement_speed = 5.0f;
-			if (IsKeyDown(KEY_LEFT_SHIFT)) {
+			if (IsKeyDown(KEY_LEFT_SHIFT))
 				movement_speed = 25.0f;
-			}
 
 			player->setMovementSpeed(movement_speed);
 
-			if (_current_mode == EditorMode::None) {
+			if (_current_mode == EditorMode::None && !isTextFieldActive()) {
 				Vector2 movement = {0.0f, 0.0f};
 				if (IsKeyDown(KEY_W)) movement.y -= 1.0f;
 				if (IsKeyDown(KEY_S)) movement.y += 1.0f;
@@ -206,24 +520,21 @@ namespace Nawia::World {
 	}
 
 	void DevLevel::renderUI(Core::Engine* engine) {
-		if (!engine || engine->isPaused()) {
+		if (!engine || engine->isPaused())
 			return;
-		}
 
-		renderPlacedObjects(engine);
+		if (!_is_testing_level)
+			renderPlacedObjects(engine);
+
 		renderWaterCutoffPlane(*engine);
-		renderLightingOverlay(*engine);
+		renderEditorHud(engine);
 
-		if (_current_mode == EditorMode::None) {
+		if (_current_mode == EditorMode::None)
 			return;
-		}
 
-		DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, OVERLAY_BACKGROUND_ALPHA));
+		DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.55f));
 
 		switch (_current_mode) {
-			case EditorMode::MainMenu:
-				renderMainMenu(engine);
-				break;
 			case EditorMode::SpawnerType:
 				renderSpawnerTypeMenu(engine);
 				break;
@@ -242,132 +553,471 @@ namespace Nawia::World {
 			case EditorMode::TeleportDetails:
 				renderTeleportDetailsMenu(engine);
 				break;
+			case EditorMode::BossTriggerDetails:
+				renderBossTriggerDetailsMenu(engine);
+				break;
 			case EditorMode::ItemSelection:
 				renderItemSelectionMenu(engine);
+				break;
+			case EditorMode::ConfirmOverwrite:
+				renderConfirmOverwriteDialog();
 				break;
 			case EditorMode::None:
 				break;
 		}
 	}
 
-	void DevLevel::loadPlacedObjects() {
-		_placed_objects.clear();
+	void DevLevel::loadAvailableMapModels() {
+		_map_model_options.clear();
+		_map_model_options.push_back(PLACEHOLDER_MODEL);
 
-		for (const std::string_view category : OBJECT_CATEGORIES) {
-			const std::string category_name(category);
-			const auto file_path = getCategoryFilePath(category_name);
-			if (std::filesystem::exists(file_path)) {
-				loadPlacedObjectsFromFile(category_name, file_path);
+		const std::filesystem::path maps_dir = resolveAssetPath("maps");
+		if (!std::filesystem::exists(maps_dir))
+			return;
+
+		for (const auto& entry : std::filesystem::directory_iterator(maps_dir)) {
+			if (!entry.is_regular_file())
+				continue;
+
+			const std::string extension = entry.path().extension().string();
+			if (extension == ".glb" || extension == ".gltf")
+				_map_model_options.push_back(entry.path().filename().string());
+		}
+
+		std::sort(_map_model_options.begin() + 1, _map_model_options.end());
+	}
+
+	void DevLevel::loadAvailableLocations() {
+		_location_options.clear();
+
+		const std::filesystem::path locations_dir = resolveAssetPath("data/locations");
+		if (std::filesystem::exists(locations_dir)) {
+			for (const auto& entry : std::filesystem::directory_iterator(locations_dir)) {
+				if (!entry.is_regular_file() || entry.path().extension() != ".json")
+					continue;
+
+				const std::string filename = entry.path().filename().string();
+				if (filename.rfind("objects_", 0) == 0)
+					continue;
+
+				json data;
+				if (!readJsonFile(entry.path(), data))
+					continue;
+
+				LocationOption option;
+				option.path = entry.path();
+				option.location_name = data.value("name", displayNameFromStem(entry.path().stem().string()));
+				option.display_name = option.location_name + " (" + filename + ")";
+
+				if (data.contains("objects_file") && data["objects_file"].is_string())
+					option.objects_path = locations_dir / data["objects_file"].get<std::string>();
+				else
+					option.objects_path = getObjectsFilePath(option.path);
+
+				_location_options.push_back(std::move(option));
 			}
 		}
 	}
 
-	void DevLevel::loadPlacedObjectsFromFile(const std::string& category, const std::filesystem::path& path) {
-		std::ifstream file(path);
-		if (!file.is_open()) {
-			Core::Logger::errorLog("DevLevel: nie mozna otworzyc pliku: " + toPathString(path));
+	void DevLevel::loadAvailableBossIds() {
+		_boss_id_options.clear();
+
+		json root;
+		if (readJsonFile(resolveAssetPath("data/bosses.json"), root) &&
+			root.contains("bosses") &&
+			root["bosses"].is_array()) {
+			for (const auto& boss : root["bosses"]) {
+				const std::string id = boss.value("id", "");
+				if (!id.empty())
+					_boss_id_options.push_back(id);
+			}
+		}
+
+		if (_boss_id_options.empty())
+			_boss_id_options.push_back("devil_lord");
+	}
+
+	void DevLevel::initializeNewLocation(Core::Engine* engine) {
+		stopTestLevel(engine);
+
+		_selected_location_index = static_cast<int>(_location_options.size());
+		_selected_map_model_index = 0;
+		_active_map_model = PLACEHOLDER_MODEL;
+		_active_map_scale = 1.0f;
+		_active_map_offset = {0.0f, 0.0f, 0.0f};
+		_active_map_rotation = {0.0f, 0.0f, 0.0f};
+		_navmesh_min_walkable_height = 0.0f;
+		_player_spawn = {0.0f, 0.0f};
+		_has_player_spawn = true;
+		_active_location_name = "Nowa lokacja";
+		_location_name_buffer = _active_location_name;
+		_location_file_buffer = "nowa_lokacja.json";
+		_placed_objects.clear();
+
+		applyLocationStateToBuffers();
+		reloadMapFromEditor(engine, true);
+		_status_message = "Pusta lokacja gotowa.";
+		_has_unsaved_changes = false;
+	}
+
+	void DevLevel::loadLocationFromOption(Core::Engine* engine, const int option_index) {
+		if (option_index < 0)
+			return;
+
+		if (option_index >= static_cast<int>(_location_options.size())) {
+			initializeNewLocation(engine);
 			return;
 		}
+
+		stopTestLevel(engine);
+
+		const LocationOption& option = _location_options[option_index];
+		_selected_location_index = option_index;
+		_placed_objects.clear();
+		_active_location_name = option.location_name;
+		_location_name_buffer = option.location_name;
+		_location_file_buffer = sanitizeJsonFilename(slugify(option.location_name), slugify(option.location_name));
+		_active_map_model = PLACEHOLDER_MODEL;
+		_active_map_scale = 1.0f;
+		_active_map_offset = {0.0f, 0.0f, 0.0f};
+		_active_map_rotation = {0.0f, 0.0f, 0.0f};
+		_navmesh_min_walkable_height = 0.0f;
+		_player_spawn = {0.0f, 0.0f};
+		_has_player_spawn = true;
+
+		json root;
+		if (readJsonFile(option.path, root)) {
+			_active_location_name = root.value("name", option.location_name);
+			_location_name_buffer = _active_location_name;
+			_location_file_buffer = option.path.filename().string();
+
+			if (root.contains("map") && root["map"].is_object()) {
+				const auto& map = root["map"];
+				_active_map_model = map.value("model", std::string(PLACEHOLDER_MODEL));
+				_active_map_scale = map.value("scale", 1.0f);
+				_active_map_offset = parseVector3(map.value("offset", json::object()), _active_map_offset);
+				_active_map_rotation = parseVector3(map.value("rotation", json::object()), _active_map_rotation);
+			}
+
+			if (root.contains("player_spawn") && root["player_spawn"].is_object())
+				_player_spawn = parseVector2(root["player_spawn"], _player_spawn);
+
+			_navmesh_min_walkable_height = readNavmeshMinHeight(root, _active_location_name, _navmesh_min_walkable_height);
+			loadPlacedObjectsFromFile(option.objects_path, _active_location_name);
+		}
+
+		_selected_map_model_index = 0;
+		for (int index = 0; index < static_cast<int>(_map_model_options.size()); ++index) {
+			if (_map_model_options[index] == _active_map_model) {
+				_selected_map_model_index = index;
+				break;
+			}
+		}
+
+		applyLocationStateToBuffers();
+		reloadMapFromEditor(engine, true);
+		_status_message = "Wczytano lokacje: " + _active_location_name;
+		_has_unsaved_changes = false;
+	}
+
+	void DevLevel::loadPlacedObjectsFromFile(const std::filesystem::path& path, const std::string& location_filter) {
+		if (path.empty() || !std::filesystem::exists(path))
+			return;
 
 		json data;
-		try {
-			file >> data;
-		} catch (const json::parse_error& error) {
-			Core::Logger::errorLog("DevLevel: blad parsowania JSON: " + std::string(error.what()));
+		if (!readJsonFile(path, data))
 			return;
+
+		const json* entities = nullptr;
+		if (data.is_array()) {
+			entities = &data;
+		} else if (data.is_object() && data.contains("entities") && data["entities"].is_array()) {
+			entities = &data["entities"];
 		}
 
-		if (!data.is_array()) {
-			Core::Logger::errorLog("DevLevel: plik kategorii nie jest tablica: " + toPathString(path));
+		if (!entities)
 			return;
-		}
 
-		for (const auto& entry : data) {
-			_placed_objects.push_back(parsePlacedObject(category, entry));
+		for (const auto& entry : *entities) {
+			if (!location_filter.empty() && entry.value("location", location_filter) != location_filter)
+				continue;
+
+			_placed_objects.push_back(parsePlacedObject(entry));
 		}
 	}
 
-	DevLevel::PlacedObject DevLevel::parsePlacedObject(const std::string& category, const json& data) const {
+	DevLevel::PlacedObject DevLevel::parsePlacedObject(const json& data) const {
 		PlacedObject placed_object;
-		placed_object.category = category;
-		placed_object.name = data.value("name", "Unknown");
+		placed_object.raw_data = data.is_object() ? data : json::object();
 		placed_object.type = data.value("type", "");
+		placed_object.category = data.value("category", categoryFromEntityType(placed_object.type));
+		placed_object.name = data.value("name", placed_object.type.empty() ? "Object" : placed_object.type);
 		placed_object.position = {data.value("x", 0.0f), data.value("y", 0.0f)};
 		placed_object.spawn_radius = data.value("spawn_radius", 0.0f);
 		placed_object.trigger_radius = data.value("trigger_radius", 0.0f);
 		placed_object.count = data.value("count", 1);
 
 		if (data.contains("items") && data["items"].is_array()) {
-			for (const auto& item_id : data["items"]) {
+			for (const auto& item_id : data["items"])
 				placed_object.loot_ids.push_back(item_id.get<int>());
-			}
 		}
 
-		if (category == "npcs") {
+		if (placed_object.category == "npcs") {
 			placed_object.extra_value = data.value("npc_class", "");
-		} else if (category == "props") {
+		} else if (placed_object.category == "props") {
 			placed_object.extra_value = data.value("texture", "");
-		} else if (category == "teleports") {
+		} else if (placed_object.category == "teleports") {
 			placed_object.extra_value = data.value("target_location", "");
+		} else if (placed_object.category == "boss_triggers") {
+			placed_object.extra_value = data.value("boss_id", "");
+			placed_object.spawn_radius = data.value("width", 10.0f);
+			placed_object.trigger_radius = data.value("height", 4.0f);
 		}
 
 		return placed_object;
 	}
 
 	json DevLevel::serializePlacedObject(const PlacedObject& object) const {
-		json data;
+		json data = object.raw_data.is_object() ? object.raw_data : json::object();
 		data["x"] = object.position.x;
 		data["y"] = object.position.y;
 		data["name"] = object.name;
 		data["type"] = object.type;
+		data["category"] = object.category;
 
 		if (object.category == "spawners") {
 			data["count"] = object.count;
 			data["spawn_radius"] = object.spawn_radius;
 			data["trigger_radius"] = object.trigger_radius;
 		} else if (object.category == "chests") {
-			data["items"] = object.loot_ids;
+			if (!object.loot_ids.empty())
+				data["items"] = object.loot_ids;
 		} else if (object.category == "npcs") {
 			data["npc_class"] = object.extra_value;
 		} else if (object.category == "props") {
 			data["texture"] = object.extra_value;
 		} else if (object.category == "teleports") {
 			data["target_location"] = object.extra_value;
+		} else if (object.category == "boss_triggers") {
+			data["boss_id"] = object.extra_value;
+			data["width"] = object.spawn_radius;
+			data["height"] = object.trigger_radius;
 		}
 
 		return data;
 	}
 
-	std::filesystem::path DevLevel::getCategoryFilePath(const std::string& category) const {
-		return resolveAssetPath(std::filesystem::path("data/dev") / ("new_level_" + category + ".json"));
+	void DevLevel::applyLocationStateToBuffers() {
+		_map_scale_buffer = formatFloat(_active_map_scale);
+		_offset_x_buffer = formatFloat(_active_map_offset.x);
+		_offset_y_buffer = formatFloat(_active_map_offset.y);
+		_offset_z_buffer = formatFloat(_active_map_offset.z);
+		_rotation_x_buffer = formatFloat(_active_map_rotation.x);
+		_rotation_y_buffer = formatFloat(_active_map_rotation.y);
+		_rotation_z_buffer = formatFloat(_active_map_rotation.z);
+		_navmesh_height_buffer = formatFloat(_navmesh_min_walkable_height);
 	}
 
-	std::filesystem::path DevLevel::getLevelFilePath() const {
-		return resolveAssetPath(std::filesystem::path("data/dev") / "new_level.json");
+	bool DevLevel::syncLocationStateFromBuffers() {
+		float offset_x = 0.0f;
+		float offset_y = 0.0f;
+		float offset_z = 0.0f;
+		float rotation_x = 0.0f;
+		float rotation_y = 0.0f;
+		float rotation_z = 0.0f;
+
+		if (!tryParseFloat(_offset_x_buffer, offset_x) ||
+			!tryParseFloat(_offset_y_buffer, offset_y) ||
+			!tryParseFloat(_offset_z_buffer, offset_z) ||
+			!tryParseFloat(_rotation_x_buffer, rotation_x) ||
+			!tryParseFloat(_rotation_y_buffer, rotation_y) ||
+			!tryParseFloat(_rotation_z_buffer, rotation_z)) {
+			_status_message = "Bledne dane liczbowe mapy.";
+			Core::Logger::errorLog("DevLevel: bledne dane liczbowe w ustawieniach mapy.");
+			return false;
+		}
+
+		_active_location_name = _location_name_buffer.empty() ? "Nowa lokacja" : _location_name_buffer;
+		_active_map_model =
+			(_selected_map_model_index >= 0 && _selected_map_model_index < static_cast<int>(_map_model_options.size()))
+				? _map_model_options[_selected_map_model_index]
+				: PLACEHOLDER_MODEL;
+		_active_map_scale = std::clamp(_active_map_scale, MAP_SCALE_MIN, MAP_SCALE_MAX);
+		_active_map_offset = {offset_x, offset_y, offset_z};
+		_active_map_rotation = {rotation_x, rotation_y, rotation_z};
+		_navmesh_min_walkable_height = std::clamp(_navmesh_min_walkable_height, NAVMESH_HEIGHT_MIN, NAVMESH_HEIGHT_MAX);
+		_map_scale_buffer = formatFloat(_active_map_scale);
+		_navmesh_height_buffer = formatFloat(_navmesh_min_walkable_height);
+
+		return true;
+	}
+
+	void DevLevel::reloadMapFromEditor(Core::Engine* engine, const bool move_player_to_spawn) {
+		if (!engine || !_map)
+			return;
+
+		if (!syncLocationStateFromBuffers())
+			return;
+
+		stopTestLevel(engine);
+
+		if (_active_map_model == PLACEHOLDER_MODEL) {
+			_map->loadPlaceholder();
+		} else {
+			_map->loadMap(_active_map_model, _active_map_scale, _active_map_offset, _active_map_rotation);
+		}
+
+		_map->setNavMeshMinWalkableHeight(_navmesh_min_walkable_height);
+
+		if (move_player_to_spawn && _has_player_spawn) {
+			if (const auto player = engine->getPlayer()) {
+				Vector3 snapped_spawn = {_player_spawn.x, 0.0f, _player_spawn.y};
+				if (_map->getNavMesh().isReady())
+					snapped_spawn = _map->getNavMesh().getClosestWalkablePosition(snapped_spawn);
+
+				player->setX(snapped_spawn.x);
+				player->setY(snapped_spawn.z);
+				player->setAltitude(snapped_spawn.y);
+				player->setRespawnPoint({snapped_spawn.x, snapped_spawn.z});
+				player->stop();
+			}
+		}
+
+		_has_unsaved_changes = true;
+		_status_message = "Mapa przeladowana.";
+	}
+
+	void DevLevel::setSpawnFromPlayer(Core::Engine* engine) {
+		_player_spawn = getPlayerPosition(engine);
+		_has_player_spawn = true;
+
+		if (const auto player = engine ? engine->getPlayer() : nullptr)
+			player->setRespawnPoint(_player_spawn);
+
+		_has_unsaved_changes = true;
+		_status_message = "Spawn ustawiony na pozycji gracza.";
+	}
+
+	Vector2 DevLevel::getPlayerPosition(Core::Engine* engine) const {
+		if (const auto player = engine ? engine->getPlayer() : nullptr)
+			return {player->getX(), player->getY()};
+
+		return _player_spawn;
+	}
+
+	std::filesystem::path DevLevel::getLocationFilePathFromBuffer() const {
+		const std::string fallback_stem = slugify(_location_name_buffer.empty() ? _active_location_name : _location_name_buffer);
+		const std::string filename = sanitizeJsonFilename(_location_file_buffer, fallback_stem);
+		return resolveAssetPath(std::filesystem::path("data/locations") / filename);
+	}
+
+	std::filesystem::path DevLevel::getObjectsFilePath(const std::filesystem::path& location_path) const {
+		const std::filesystem::path directory = location_path.parent_path();
+		const std::string stem = location_path.stem().string();
+		return directory / ("objects_" + stem + ".json");
+	}
+
+	void DevLevel::requestSaveLocation() {
+		if (!syncLocationStateFromBuffers())
+			return;
+
+		_pending_location_save_path = getLocationFilePathFromBuffer();
+		_pending_objects_save_path = getObjectsFilePath(_pending_location_save_path);
+
+		const bool overwrites_location = std::filesystem::exists(_pending_location_save_path);
+		const bool overwrites_objects = std::filesystem::exists(_pending_objects_save_path);
+
+		if (overwrites_location || overwrites_objects) {
+			_current_mode = EditorMode::ConfirmOverwrite;
+			return;
+		}
+
+		saveLocationFiles(_pending_location_save_path, _pending_objects_save_path);
+	}
+
+	void DevLevel::saveLocationFiles(const std::filesystem::path& location_path, const std::filesystem::path& objects_path) {
+		try {
+			std::filesystem::create_directories(location_path.parent_path());
+		} catch (const std::filesystem::filesystem_error& error) {
+			_status_message = "Nie mozna utworzyc katalogu zapisu.";
+			Core::Logger::errorLog("DevLevel: nie mozna utworzyc katalogu lokacji: " + std::string(error.what()));
+			return;
+		}
+
+		json location_data;
+		location_data["schema_version"] = 1;
+		location_data["name"] = _active_location_name;
+		location_data["map"] = {
+			{"model", _active_map_model},
+			{"scale", _active_map_scale},
+			{"offset", vector3ToJson(_active_map_offset)},
+			{"rotation", vector3ToJson(_active_map_rotation)},
+		};
+		location_data["navmesh"]["min_walkable_height"] = _navmesh_min_walkable_height;
+		location_data["player_spawn"] = vector2ToJson(_player_spawn);
+		location_data["objects_file"] = objects_path.filename().string();
+
+		std::ofstream location_output(location_path);
+		if (!location_output.is_open()) {
+			_status_message = "Nie mozna zapisac pliku lokacji.";
+			Core::Logger::errorLog("DevLevel: nie mozna zapisac lokacji: " + toPathString(location_path));
+			return;
+		}
+		location_output << location_data.dump(4);
+
+		json objects_data;
+		objects_data["schema_version"] = 1;
+		objects_data["location"] = _active_location_name;
+		objects_data["entities"] = json::array();
+
+		for (const auto& object : _placed_objects) {
+			json entity_data = serializePlacedObject(object);
+			entity_data["location"] = _active_location_name;
+			objects_data["entities"].push_back(std::move(entity_data));
+		}
+
+		std::ofstream objects_output(objects_path);
+		if (!objects_output.is_open()) {
+			_status_message = "Nie mozna zapisac pliku obiektow.";
+			Core::Logger::errorLog("DevLevel: nie mozna zapisac obiektow: " + toPathString(objects_path));
+			return;
+		}
+		objects_output << objects_data.dump(4);
+
+		_has_unsaved_changes = false;
+		_current_mode = EditorMode::None;
+		_status_message = "Zapisano: " + location_path.filename().string() + " + " + objects_path.filename().string();
+
+		loadAvailableLocations();
+		for (int index = 0; index < static_cast<int>(_location_options.size()); ++index) {
+			if (_location_options[index].path.filename() == location_path.filename()) {
+				_selected_location_index = index;
+				break;
+			}
+		}
 	}
 
 	void DevLevel::handleUIInput(Core::Engine* engine) {
 		(void)engine;
 
-		if (!IsKeyPressed(KEY_ESCAPE)) {
+		if (!IsKeyPressed(KEY_ESCAPE))
 			return;
+
+		if (_current_mode == EditorMode::ItemSelection) {
+			_current_mode = EditorMode::ChestDetails;
+		} else {
+			_current_mode = EditorMode::None;
 		}
 
-		if (_current_mode == EditorMode::MainMenu) {
-			_current_mode = EditorMode::None;
-		} else {
-			_current_mode = EditorMode::MainMenu;
-		}
+		_active_text_field = EditorTextField::None;
 	}
 
 	void DevLevel::handleEditingInput(Core::Engine* engine) {
-		if (!engine) {
+		if (!engine)
 			return;
-		}
 
-		if (handleNavmeshHeightInput()) {
+		if (isMouseOverEditorUI())
 			return;
-		}
 
 		auto& lighting_system = engine->getLightingSystem();
 		if (!lighting_system.getLights().empty()) {
@@ -399,43 +1049,19 @@ namespace Nawia::World {
 				lighting_changed = true;
 			}
 
-			if (lighting_changed) {
+			if (lighting_changed)
 				lighting_system.updateLightValues(PRIMARY_LIGHT_INDEX);
-			}
 
 			if (IsKeyPressed(KEY_S)) {
-				const auto lighting_file_path = resolveAssetPath("maps/forest_lighting.json");
-				lighting_system.saveLightingToJson(toPathString(lighting_file_path));
+				lighting_system.saveLightingToJson(DEFAULT_LIGHTING_FILE);
 				Core::Logger::debugLog("DevLevel: zapisano oswietlenie.");
 			}
 		}
-
-		if (!IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-			return;
-		}
-
-		if (engine->getUIHandler().isMouseOverUI() || engine->getUIHandler().isInputBlocked()) {
-			return;
-		}
-
-		const Vector2 mouse_position = GetMousePosition();
-		const Ray ray = GetScreenToWorldRay(mouse_position, engine->getCamera().get());
-		const RayCollision collision = _map ? _map->getRayCollision(ray) : RayCollision{};
-
-		if (collision.hit) {
-			_saved_world_position = {collision.point.x, collision.point.z};
-		} else {
-			_saved_world_position = Core::screenToWorld(engine->getCamera().get(), mouse_position.x, mouse_position.y);
-		}
-
-		resetEditorState();
-		_current_mode = EditorMode::MainMenu;
 	}
 
 	void DevLevel::renderPlacedObjects(Core::Engine* engine) {
-		if (!engine || !_map) {
+		if (!engine || !_map)
 			return;
-		}
 
 		const auto& camera = engine->getCamera().get();
 		const auto& font = engine->getUIHandler().getFont();
@@ -482,6 +1108,15 @@ namespace Nawia::World {
 						ORANGE
 					);
 				}
+			} else if (object.category == "boss_triggers") {
+				const Vector3 trigger_center = {object.position.x, nav_position.y + 0.15f, object.position.y};
+				DrawCubeWires(
+					trigger_center,
+					std::max(0.1f, object.spawn_radius),
+					0.3f,
+					std::max(0.1f, object.trigger_radius),
+					MAGENTA
+				);
 			}
 		}
 
@@ -514,9 +1149,8 @@ namespace Nawia::World {
 	}
 
 	void DevLevel::deleteNearestObject(Core::Engine* engine) {
-		if (_placed_objects.empty() || !engine || !_map || engine->getUIHandler().isMouseOverUI()) {
+		if (_placed_objects.empty() || !engine || !_map || engine->getUIHandler().isMouseOverUI() || isMouseOverEditorUI())
 			return;
-		}
 
 		const Ray ray = GetScreenToWorldRay(GetMousePosition(), engine->getCamera().get());
 		int nearest_index = -1;
@@ -555,19 +1189,18 @@ namespace Nawia::World {
 			}
 		}
 
-		if (nearest_index == -1) {
+		if (nearest_index == -1)
 			return;
-		}
 
 		Core::Logger::debugLog("DevLevel: usunieto obiekt: " + _placed_objects[nearest_index].name);
 		_placed_objects.erase(_placed_objects.begin() + nearest_index);
-		rewriteJsonFiles();
+		_has_unsaved_changes = true;
+		_status_message = "Usunieto obiekt. Zapisz lokacje, aby utrwalic zmiany.";
 	}
 
 	void DevLevel::testLevel(Core::Engine* engine) {
-		if (!engine) {
+		if (!engine || _is_testing_level)
 			return;
-		}
 
 		auto& entity_manager = engine->getEntityManager();
 		entity_manager.clearNonPlayerEntities();
@@ -575,6 +1208,7 @@ namespace Nawia::World {
 
 		for (const auto& object : _placed_objects) {
 			json entity_data = serializePlacedObject(object);
+			entity_data["location"] = _active_location_name;
 
 			if (object.category == "spawners") {
 				const int spawn_count = std::max(1, object.count);
@@ -588,9 +1222,8 @@ namespace Nawia::World {
 					spawn_data["y"] = object.position.y + offset_y;
 
 					auto entity = EntityFactory::create(object.type, spawn_data, engine, _map.get());
-					if (!entity) {
+					if (!entity)
 						continue;
-					}
 
 					if (_map && _map->getNavMesh().isReady()) {
 						const Vector3 snapped_position =
@@ -601,7 +1234,7 @@ namespace Nawia::World {
 					}
 
 					SpawnPoint spawn_point;
-					spawn_point.location = "Dev Sandbox";
+					spawn_point.location = _active_location_name;
 					spawn_point.entity_type = object.type;
 					spawn_point.entity_data = spawn_data;
 					spawn_point.spawn_center = object.position;
@@ -618,80 +1251,41 @@ namespace Nawia::World {
 				}
 			} else {
 				auto entity = EntityFactory::create(object.type, entity_data, engine, _map.get());
-				if (entity) {
+				if (entity)
 					entity_manager.addEntity(entity);
-				}
 			}
 		}
 
-		Core::Logger::debugLog("DevLevel: zespawnowano testowy poziom.");
+		_is_testing_level = true;
+		_status_message = "Test uruchomiony.";
+		Core::Logger::debugLog("DevLevel: zespawnowano testowa lokacje.");
+	}
+
+	void DevLevel::stopTestLevel(Core::Engine* engine) {
+		if (!engine || !_is_testing_level)
+			return;
+
+		engine->getEntityManager().clearNonPlayerEntities();
+		_spawn_manager.reset();
+		_is_testing_level = false;
+		_status_message = "Test zakonczony.";
 	}
 
 	void DevLevel::renderLightingOverlay(Core::Engine& engine) {
 		const auto& font = engine.getUIHandler().getFont();
-		int x = OVERLAY_MARGIN;
-		int y = 10;
+		const int x = OVERLAY_MARGIN;
+		const int y = GetScreenHeight() - 92;
 
-		DrawRectangle(5, 5, 450, 320, Fade(BLACK, 0.7f));
-		DrawRectangleLines(5, 5, 450, 320, DARKGRAY);
-
-		drawDevText(font, "INSTRUKCJA KREATORA POZIOMU", x, y, 20, YELLOW);
-		y += 30;
-		drawDevText(font, "- Prawy klik: otwiera menu dodawania obiektu", x, y, 16, RAYWHITE);
-		y += 20;
-		drawDevText(font, "- SHIFT + WASD: szybkie poruszanie po mapie", x, y, 16, RAYWHITE);
-		y += 20;
-		drawDevText(font, "- DELETE / X: usuwa obiekt pod kursorem", x, y, 16, RED);
-		y += 20;
-		drawDevText(font, "- S: zapisuje oswietlenie mapy", x, y, 16, RAYWHITE);
-		y += 20;
-		drawDevText(font, "- Strzalki/PgUp/PgDn: sterowanie swiatlem", x, y, 16, GRAY);
-		y += 30;
-
-		drawDevText(font, "LEGENDA ZASIEGOW:", x, y, 18, YELLOW);
-		y += 25;
-		DrawCircle(x + 10, y + 8, 8, ColorAlpha(YELLOW, 0.5f));
-		drawDevText(font, "Spawn Radius (zolty)", x + 25, y, 16, RAYWHITE);
-		y += 20;
-		DrawCircle(x + 10, y + 8, 8, ColorAlpha(ORANGE, 0.5f));
-		drawDevText(font, "Trigger Radius (pomaranczowy)", x + 25, y, 16, RAYWHITE);
-		y += 25;
-
-		drawDevText(font, "Zapis do: assets/data/dev/new_level_*.json", x, y, 14, GREEN);
-		y += 28;
-
-		drawDevText(font, "NAVMESH WATER CUTOFF:", x, y, 18, YELLOW);
-		y += 24;
-		const std::string height_text = "Min Y: " + std::to_string(_navmesh_min_walkable_height).substr(0, 5);
-		drawDevText(font, height_text.c_str(), x, y, 16, RAYWHITE);
-
-		const float t = std::clamp(
-			(_navmesh_min_walkable_height - NAVMESH_HEIGHT_MIN) / (NAVMESH_HEIGHT_MAX - NAVMESH_HEIGHT_MIN),
-			0.0f,
-			1.0f
-		);
-		DrawRectangleRec(NAVMESH_HEIGHT_SLIDER, Fade(GRAY, 0.65f));
-		DrawRectangleLinesEx(NAVMESH_HEIGHT_SLIDER, 1, LIGHTGRAY);
-		DrawCircle(
-			static_cast<int>(NAVMESH_HEIGHT_SLIDER.x + NAVMESH_HEIGHT_SLIDER.width * t),
-			static_cast<int>(NAVMESH_HEIGHT_SLIDER.y + NAVMESH_HEIGHT_SLIDER.height * 0.5f),
-			8.0f,
-			_navmesh_height_dirty ? ORANGE : SKYBLUE
-		);
-
-		if (_navmesh_height_dirty) {
-			drawDevText(font, "Navmesh czeka na rebuild", x, y + 34, 14, ORANGE);
-			const bool hovered = CheckCollisionPointRec(GetMousePosition(), NAVMESH_HEIGHT_APPLY_BUTTON);
-			DrawRectangleRec(NAVMESH_HEIGHT_APPLY_BUTTON, hovered ? GREEN : DARKGREEN);
-			DrawRectangleLinesEx(NAVMESH_HEIGHT_APPLY_BUTTON, 1, LIGHTGRAY);
-			drawDevText(font, "APPLY", NAVMESH_HEIGHT_APPLY_BUTTON.x + 25.0f, NAVMESH_HEIGHT_APPLY_BUTTON.y + 5.0f, 16, RAYWHITE);
-		}
+		DrawRectangle(5, y - 8, 450, 86, Fade(BLACK, 0.65f));
+		DrawRectangleLines(5, y - 8, 450, 86, DARKGRAY);
+		drawDevText(font, "DELETE/X: usun marker pod kursorem", x, y, 15, RAYWHITE);
+		drawDevText(font, "SHIFT+WASD: szybki ruch | Strzalki/PgUp/PgDn: swiatlo | S: zapisz swiatlo", x, y + 22, 15, LIGHTGRAY);
+		drawDevText(font, "Obiekty sa w pamieci do klikniecia Zapisz.", x, y + 44, 15, ORANGE);
 	}
 
 	void DevLevel::renderWaterCutoffPlane(Core::Engine& engine) const {
-		if (!_map) {
+		if (!_map)
 			return;
-		}
 
 		BeginMode3D(engine.getCamera().get());
 		const Vector3 center = {0.0f, _navmesh_min_walkable_height, 0.0f};
@@ -701,83 +1295,287 @@ namespace Nawia::World {
 		EndMode3D();
 	}
 
-	bool DevLevel::handleNavmeshHeightInput() {
-		const Vector2 mouse = GetMousePosition();
-		const bool mouse_over_slider = CheckCollisionPointRec(mouse, NAVMESH_HEIGHT_SLIDER);
-		const bool mouse_over_apply = CheckCollisionPointRec(mouse, NAVMESH_HEIGHT_APPLY_BUTTON);
-
-		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && mouse_over_slider) {
-			_is_dragging_navmesh_height = true;
-		}
-
-		if (_is_dragging_navmesh_height && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-			const float t = std::clamp((mouse.x - NAVMESH_HEIGHT_SLIDER.x) / NAVMESH_HEIGHT_SLIDER.width, 0.0f, 1.0f);
-			_navmesh_min_walkable_height = NAVMESH_HEIGHT_MIN + (NAVMESH_HEIGHT_MAX - NAVMESH_HEIGHT_MIN) * t;
-			_navmesh_height_dirty = true;
-			return true;
-		}
-
-		if (_is_dragging_navmesh_height && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-			_is_dragging_navmesh_height = false;
-			applyNavmeshHeight();
-			return true;
-		}
-
-		if (_navmesh_height_dirty && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && mouse_over_apply) {
-			applyNavmeshHeight();
-			return true;
-		}
-
-		return mouse_over_slider || (_navmesh_height_dirty && mouse_over_apply);
+	void DevLevel::renderEditorHud(Core::Engine* engine) {
+		renderMapPanel(engine);
+		renderLocationPanel(engine);
+		renderObjectPanel(engine);
+		renderLightingOverlay(*engine);
+		renderDropdownOverlays(engine);
 	}
 
-	void DevLevel::applyNavmeshHeight() {
-		if (_map) {
-			_map->setNavMeshMinWalkableHeight(_navmesh_min_walkable_height);
-		}
-		_navmesh_height_dirty = false;
-		rewriteLevelJsonFile();
-	}
-
-	void DevLevel::renderMainMenu(Core::Engine* engine) {
+	void DevLevel::renderMapPanel(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
-		const int start_x = GetScreenWidth() / 2 - 150;
-		const int start_y = GetScreenHeight() / 2 - 200;
+		const int x = static_cast<int>(LEFT_PANEL.x);
+		const int y = static_cast<int>(LEFT_PANEL.y);
 
-		drawDevText(font, "Wybierz typ obiektu:", start_x, start_y - 40, 24, YELLOW);
+		DrawRectangleRec(LEFT_PANEL, Fade(BLACK, 0.80f));
+		DrawRectangleLinesEx(LEFT_PANEL, 2, ColorAlpha(RAYWHITE, 0.35f));
+		drawDevText(font, "Model mapy", x + 18.0f, y + 16.0f, 28, RAYWHITE);
 
-		if (drawButton(font, "SPAWNER (Przeciwnicy)", start_x, start_y, 300, 50, DARKBLUE)) {
+		const bool was_map_dropdown_open = _map_dropdown_open;
+		drawDropdown(
+			font,
+			{LEFT_PANEL.x + 18.0f, LEFT_PANEL.y + 56.0f, 292.0f, 38.0f},
+			_map_model_options,
+			_selected_map_model_index,
+			_map_dropdown_open,
+			10
+		);
+		if (_map_dropdown_open && !was_map_dropdown_open) {
+			_location_dropdown_open = false;
+			_active_text_field = EditorTextField::None;
+		}
+
+		drawLabel(font, "Skala", x + 18, y + 110);
+		if (drawSlider(
+				font,
+				{LEFT_PANEL.x + 118.0f, LEFT_PANEL.y + 116.0f, 186.0f, 14.0f},
+				_active_map_scale,
+				MAP_SCALE_MIN,
+				MAP_SCALE_MAX,
+				_active_text_field,
+				EditorTextField::MapScale,
+				SKYBLUE
+			)) {
+			_map_scale_buffer = formatFloat(_active_map_scale);
+			_has_unsaved_changes = true;
+		}
+
+		drawLabel(font, "Offset", x + 18, y + 154);
+		if (drawTextInput(font, _offset_x_buffer, x + 118, y + 148, 58, 32, _active_text_field == EditorTextField::OffsetX))
+			_active_text_field = EditorTextField::OffsetX;
+		if (drawTextInput(font, _offset_y_buffer, x + 182, y + 148, 58, 32, _active_text_field == EditorTextField::OffsetY))
+			_active_text_field = EditorTextField::OffsetY;
+		if (drawTextInput(font, _offset_z_buffer, x + 246, y + 148, 58, 32, _active_text_field == EditorTextField::OffsetZ))
+			_active_text_field = EditorTextField::OffsetZ;
+
+		drawLabel(font, "Obrot", x + 18, y + 198);
+		if (drawTextInput(font, _rotation_x_buffer, x + 118, y + 192, 58, 32, _active_text_field == EditorTextField::RotationX))
+			_active_text_field = EditorTextField::RotationX;
+		if (drawTextInput(font, _rotation_y_buffer, x + 182, y + 192, 58, 32, _active_text_field == EditorTextField::RotationY))
+			_active_text_field = EditorTextField::RotationY;
+		if (drawTextInput(font, _rotation_z_buffer, x + 246, y + 192, 58, 32, _active_text_field == EditorTextField::RotationZ))
+			_active_text_field = EditorTextField::RotationZ;
+
+		drawLabel(font, "NavMesh min Y", x + 18, y + 242);
+		if (drawSlider(
+				font,
+				{LEFT_PANEL.x + 176.0f, LEFT_PANEL.y + 248.0f, 128.0f, 14.0f},
+				_navmesh_min_walkable_height,
+				NAVMESH_HEIGHT_MIN,
+				NAVMESH_HEIGHT_MAX,
+				_active_text_field,
+				EditorTextField::NavmeshMinHeight,
+				LIME
+			)) {
+			_navmesh_height_buffer = formatFloat(_navmesh_min_walkable_height);
+			_has_unsaved_changes = true;
+		}
+
+		const std::string spawn_text = "Spawn: " + formatFloat(_player_spawn.x, 1) + ", " + formatFloat(_player_spawn.y, 1);
+		drawDevText(font, spawn_text.c_str(), x + 18.0f, y + 288.0f, 16, LIGHTGRAY);
+
+		if (drawButton(font, "Ustaw spawn", x + 18, y + 314, 138, 40, ORANGE)) {
+			_active_text_field = EditorTextField::None;
+			setSpawnFromPlayer(engine);
+		}
+
+		if (drawButton(font, "Przeladuj", x + 172, y + 314, 138, 40, DARKGREEN)) {
+			_active_text_field = EditorTextField::None;
+			reloadMapFromEditor(engine, false);
+		}
+	}
+
+	void DevLevel::renderLocationPanel(Core::Engine* engine) {
+		const auto& font = engine->getUIHandler().getFont();
+		Rectangle panel = CENTER_PANEL;
+		panel.x = GetScreenWidth() / 2.0f - panel.width / 2.0f;
+
+		const int x = static_cast<int>(panel.x);
+		const int y = static_cast<int>(panel.y);
+
+		DrawRectangleRec(panel, Fade(BLACK, 0.82f));
+		DrawRectangleLinesEx(panel, 2, ColorAlpha(RAYWHITE, 0.35f));
+		drawDevText(font, "Lokacja", panel.x + 126.0f, panel.y + 16.0f, 30, RAYWHITE);
+
+		std::vector<std::string> labels;
+		labels.reserve(_location_options.size() + 1);
+		for (const auto& option : _location_options)
+			labels.push_back(option.display_name);
+		labels.push_back("Nowa lokacja");
+
+		const bool was_location_dropdown_open = _location_dropdown_open;
+		drawDropdown(
+			font,
+			{panel.x + 24.0f, panel.y + 62.0f, panel.width - 48.0f, 38.0f},
+			labels,
+			_selected_location_index,
+			_location_dropdown_open,
+			8
+		);
+		if (_location_dropdown_open && !was_location_dropdown_open) {
+			_map_dropdown_open = false;
+			_active_text_field = EditorTextField::None;
+		}
+
+		drawLabel(font, "Nazwa", x + 24, y + 118);
+		if (drawTextInput(font, _location_name_buffer, x + 96, y + 112, 230, 32, _active_text_field == EditorTextField::LocationName))
+			_active_text_field = EditorTextField::LocationName;
+
+		drawLabel(font, "Plik", x + 24, y + 162);
+		if (drawTextInput(font, _location_file_buffer, x + 96, y + 156, 230, 32, _active_text_field == EditorTextField::LocationFile))
+			_active_text_field = EditorTextField::LocationFile;
+
+		const std::filesystem::path location_path = getLocationFilePathFromBuffer();
+		const std::filesystem::path objects_path = getObjectsFilePath(location_path);
+		const std::string objects_label = "Obiekty: " + objects_path.filename().string();
+		drawDevText(font, objects_label.c_str(), panel.x + 24.0f, panel.y + 204.0f, 15, LIGHTGRAY);
+
+		if (drawButton(font, "Zapisz", x + 96, y + 226, 170, 48, GREEN)) {
+			_active_text_field = EditorTextField::None;
+			requestSaveLocation();
+		}
+
+		const std::string status = _has_unsaved_changes ? "* " + _status_message : _status_message;
+		drawDevText(font, status.c_str(), panel.x + 24.0f, panel.y + 286.0f, 14, _has_unsaved_changes ? ORANGE : LIME);
+	}
+
+	void DevLevel::renderDropdownOverlays(Core::Engine* engine) {
+		const auto& font = engine->getUIHandler().getFont();
+
+		if (_map_dropdown_open) {
+			const int selected_model = drawDropdownOptions(
+				font,
+				{LEFT_PANEL.x + 18.0f, LEFT_PANEL.y + 56.0f, 292.0f, 38.0f},
+				_map_model_options,
+				_map_dropdown_open,
+				10
+			);
+			if (selected_model >= 0) {
+				_selected_map_model_index = selected_model;
+				_has_unsaved_changes = true;
+				_active_text_field = EditorTextField::None;
+			}
+		}
+
+		if (_location_dropdown_open) {
+			Rectangle panel = CENTER_PANEL;
+			panel.x = GetScreenWidth() / 2.0f - panel.width / 2.0f;
+
+			std::vector<std::string> labels;
+			labels.reserve(_location_options.size() + 1);
+			for (const auto& option : _location_options)
+				labels.push_back(option.display_name);
+			labels.push_back("Nowa lokacja");
+
+			const int selected_location = drawDropdownOptions(
+				font,
+				{panel.x + 24.0f, panel.y + 62.0f, panel.width - 48.0f, 38.0f},
+				labels,
+				_location_dropdown_open,
+				8
+			);
+			if (selected_location >= 0) {
+				_active_text_field = EditorTextField::None;
+				loadLocationFromOption(engine, selected_location);
+			}
+		}
+	}
+
+	void DevLevel::renderObjectPanel(Core::Engine* engine) {
+		const auto& font = engine->getUIHandler().getFont();
+		Rectangle panel = RIGHT_PANEL;
+		panel.x = GetScreenWidth() - panel.width - 20.0f;
+
+		const int x = static_cast<int>(panel.x);
+		const int y = static_cast<int>(panel.y);
+
+		DrawRectangleRec(panel, Fade(BLACK, 0.72f));
+		DrawRectangleLinesEx(panel, 2, ColorAlpha(RAYWHITE, 0.30f));
+		drawDevText(font, "Obiekty", panel.x + 82.0f, panel.y + 16.0f, 30, RAYWHITE);
+
+		int button_y = y + 62;
+		if (drawButton(font, "Spawner", x + 28, button_y, 224, 42, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
 			_current_mode = EditorMode::SpawnerType;
 		}
-		if (drawButton(font, "SKRZYNIA (Loot)", start_x, start_y + 60, 300, 50, DARKBLUE)) {
+
+		button_y += 58;
+		if (drawButton(font, "Skrzynia", x + 28, button_y, 224, 42, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
 			_temp_entity_type = "chest";
 			_temp_name = "Skrzynia";
 			_current_mode = EditorMode::ChestDetails;
 		}
-		if (drawButton(font, "NPC (Rozmowa)", start_x, start_y + 120, 300, 50, DARKBLUE)) {
+
+		button_y += 58;
+		if (drawButton(font, "NPC", x + 28, button_y, 224, 42, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
 			_current_mode = EditorMode::NPCSelection;
 		}
-		if (drawButton(font, "PROP (Static Object)", start_x, start_y + 180, 300, 50, DARKBLUE)) {
+
+		button_y += 58;
+		if (drawButton(font, "Prop", x + 28, button_y, 224, 42, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
 			_temp_entity_type = "static_object";
 			_temp_name = "Prop";
 			_current_mode = EditorMode::PropDetails;
 		}
-		if (drawButton(font, "TELEPORT", start_x, start_y + 240, 300, 50, DARKBLUE)) {
+
+		button_y += 58;
+		if (drawButton(font, "Teleport", x + 28, button_y, 224, 42, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
 			_temp_entity_type = "teleport";
 			_temp_name = "Teleport";
 			_current_mode = EditorMode::TeleportDetails;
 		}
 
-		if (drawButton(font, "TESTUJ POZIOM (Spawn)", start_x - 320, start_y, 300, 50, ORANGE)) {
-			testLevel(engine);
+		button_y += 58;
+		if (drawButton(font, "Checkpoint", x + 28, button_y, 224, 42, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
+			_temp_entity_type = "checkpoint";
+			_temp_name = "Punkt Kontrolny";
+			saveObject("checkpoints");
 			_current_mode = EditorMode::None;
 		}
-		if (drawButton(font, "ZAPISZ SESJE", start_x - 320, start_y + 60, 300, 50, GREEN)) {
-			rewriteJsonFiles();
-			Core::Logger::debugLog("DevLevel: sesja zapisana manualnie.");
+
+		button_y += 58;
+		if (drawButton(font, "Boss Trigger", x + 28, button_y, 224, 42, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
+			_temp_entity_type = "boss_trigger";
+			_temp_name = "Boss Trigger";
+			_current_mode = EditorMode::BossTriggerDetails;
 		}
-		if (drawButton(font, "ANULUJ", start_x, start_y + 320, 300, 50, MAROON)) {
+
+		button_y += 74;
+		if (drawButton(font, _is_testing_level ? "Zakoncz test" : "Testuj", x + 28, button_y, 224, 48, ORANGE)) {
+			if (_is_testing_level)
+				stopTestLevel(engine);
+			else
+				testLevel(engine);
+		}
+	}
+
+	void DevLevel::renderConfirmOverwriteDialog() {
+		const auto& font = GetFontDefault();
+		const int width = 520;
+		const int height = 210;
+		const int x = GetScreenWidth() / 2 - width / 2;
+		const int y = GetScreenHeight() / 2 - height / 2;
+
+		DrawRectangle(x, y, width, height, Fade(BLACK, 0.92f));
+		DrawRectangleLinesEx({static_cast<float>(x), static_cast<float>(y), static_cast<float>(width), static_cast<float>(height)}, 2, ORANGE);
+
+		drawDevText(font, "Nadpisac pliki?", x + 34.0f, y + 28.0f, 28, ORANGE);
+		drawDevText(font, _pending_location_save_path.filename().string().c_str(), x + 34.0f, y + 76.0f, 20, RAYWHITE);
+		drawDevText(font, _pending_objects_save_path.filename().string().c_str(), x + 34.0f, y + 104.0f, 20, RAYWHITE);
+
+		if (drawButton(font, "Tak, nadpisz", x + 54, y + 150, 190, 40, MAROON))
+			saveLocationFiles(_pending_location_save_path, _pending_objects_save_path);
+
+		if (drawButton(font, "Anuluj", x + 276, y + 150, 190, 40, DARKGRAY)) {
 			_current_mode = EditorMode::None;
+			_status_message = "Zapis anulowany.";
 		}
 	}
 
@@ -790,64 +1588,62 @@ namespace Nawia::World {
 
 		if (drawButton(font, "Devil", start_x, start_y, 300, 40, BLUE)) {
 			_temp_entity_type = "devil";
+			_temp_name = "Devil";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
 		if (drawButton(font, "Bandit", start_x, start_y + 50, 300, 40, BLUE)) {
 			_temp_entity_type = "bandit";
+			_temp_name = "Bandit";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
 		if (drawButton(font, "Walking Dead", start_x, start_y + 100, 300, 40, BLUE)) {
 			_temp_entity_type = "walking_dead";
+			_temp_name = "Walking Dead";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
 		if (drawButton(font, "WSTECZ", start_x, start_y + 180, 300, 40, GRAY)) {
-			_current_mode = EditorMode::MainMenu;
+			_current_mode = EditorMode::None;
 		}
 	}
 
 	void DevLevel::renderSpawnerDetailsMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
-		const int start_x = GetScreenWidth() / 2 - 200;
+		const int start_x = GetScreenWidth() / 2 - 220;
 		const int start_y = GetScreenHeight() / 2 - 150;
 		const std::string title = "Szczegoly: " + _temp_entity_type;
 
 		drawDevText(font, title.c_str(), start_x, start_y - 40, 24, YELLOW);
-		drawLabel(font, "Liczba sztuk:", start_x, start_y);
-		if (drawTextInput(font, _count_buffer, start_x, start_y + 20, 100, 40, _selected_field == 0)) {
-			_selected_field = 0;
-		}
+		drawLabel(font, "Nazwa:", start_x, start_y);
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 420, 36, _active_text_field == EditorTextField::ObjectName))
+			_active_text_field = EditorTextField::ObjectName;
 
-		drawLabel(font, "Spawn Radius (obszar):", start_x + 120, start_y);
-		if (drawTextInput(font, _spawn_radius_buffer, start_x + 120, start_y + 20, 120, 40, _selected_field == 1)) {
-			_selected_field = 1;
-		}
+		drawLabel(font, "Liczba:", start_x, start_y + 72);
+		if (drawTextInput(font, _count_buffer, start_x, start_y + 94, 100, 36, _active_text_field == EditorTextField::SpawnerCount))
+			_active_text_field = EditorTextField::SpawnerCount;
 
-		drawLabel(font, "Trigger Radius (aktywacja):", start_x + 260, start_y);
-		if (drawTextInput(
-				font,
-				_trigger_radius_buffer,
-				start_x + 260,
-				start_y + 20,
-				120,
-				40,
-				_selected_field == 2
-			)) {
-			_selected_field = 2;
-		}
+		drawLabel(font, "Spawn Radius:", start_x + 122, start_y + 72);
+		if (drawTextInput(font, _spawn_radius_buffer, start_x + 122, start_y + 94, 130, 36, _active_text_field == EditorTextField::SpawnerRadius))
+			_active_text_field = EditorTextField::SpawnerRadius;
 
-		if (drawButton(font, "ZAPISZ SPAWNER", start_x, start_y + 100, 400, 50, GREEN)) {
+		drawLabel(font, "Trigger Radius:", start_x + 274, start_y + 72);
+		if (drawTextInput(font, _trigger_radius_buffer, start_x + 274, start_y + 94, 146, 36, _active_text_field == EditorTextField::TriggerRadius))
+			_active_text_field = EditorTextField::TriggerRadius;
+
+		if (drawButton(font, "ZAPISZ SPAWNER", start_x, start_y + 154, 420, 50, GREEN)) {
 			try {
 				_temp_count = std::max(1, std::stoi(_count_buffer.empty() ? "1" : _count_buffer));
-				_temp_spawn_radius = std::max(0.0f, std::stof(_spawn_radius_buffer));
-				_temp_trigger_radius = std::max(0.0f, std::stof(_trigger_radius_buffer));
+				_temp_spawn_radius = std::max(0.0f, std::stof(_spawn_radius_buffer.empty() ? "0" : _spawn_radius_buffer));
+				_temp_trigger_radius = std::max(0.0f, std::stof(_trigger_radius_buffer.empty() ? "0" : _trigger_radius_buffer));
 				saveObject("spawners");
+				_active_text_field = EditorTextField::None;
 				_current_mode = EditorMode::None;
 			} catch (const std::exception& error) {
 				Core::Logger::errorLog("DevLevel: bledne dane numeryczne w spawnerze: " + std::string(error.what()));
 			}
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 160, 400, 40, GRAY)) {
+		if (drawButton(font, "WSTECZ", start_x, start_y + 214, 420, 40, GRAY)) {
 			_current_mode = EditorMode::SpawnerType;
+			_active_text_field = EditorTextField::None;
 		}
 	}
 
@@ -858,25 +1654,26 @@ namespace Nawia::World {
 
 		drawDevText(font, "Konfiguracja skrzyni:", start_x, start_y - 40, 24, YELLOW);
 		drawLabel(font, "Nazwa:", start_x, start_y);
-		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _selected_field == 0)) {
-			_selected_field = 0;
-		}
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _active_text_field == EditorTextField::ObjectName))
+			_active_text_field = EditorTextField::ObjectName;
 
 		std::string loot_text = "Loot IDs: ";
-		for (const int item_id : _temp_loot_ids) {
+		for (const int item_id : _temp_loot_ids)
 			loot_text += std::to_string(item_id) + ", ";
-		}
 		drawDevText(font, loot_text.c_str(), start_x, start_y + 70, 18, LIGHTGRAY);
 
 		if (drawButton(font, "+ DODAJ PRZEDMIOT", start_x, start_y + 100, 400, 40, BLUE)) {
+			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::ItemSelection;
 		}
 		if (drawButton(font, "ZAPISZ SKRZYNIE", start_x, start_y + 160, 400, 50, GREEN)) {
 			saveObject("chests");
+			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
 		}
 		if (drawButton(font, "WSTECZ", start_x, start_y + 220, 400, 40, GRAY)) {
-			_current_mode = EditorMode::MainMenu;
+			_active_text_field = EditorTextField::None;
+			_current_mode = EditorMode::None;
 		}
 	}
 
@@ -894,7 +1691,7 @@ namespace Nawia::World {
 			_current_mode = EditorMode::None;
 		}
 		if (drawButton(font, "WSTECZ", start_x, start_y + 80, 300, 50, GRAY)) {
-			_current_mode = EditorMode::MainMenu;
+			_current_mode = EditorMode::None;
 		}
 	}
 
@@ -905,22 +1702,22 @@ namespace Nawia::World {
 
 		drawDevText(font, "Konfiguracja propa:", start_x, start_y - 40, 24, YELLOW);
 		drawLabel(font, "Nazwa:", start_x, start_y);
-		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _selected_field == 0)) {
-			_selected_field = 0;
-		}
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _active_text_field == EditorTextField::ObjectName))
+			_active_text_field = EditorTextField::ObjectName;
 
 		drawLabel(font, "Texture Path:", start_x, start_y + 70);
-		if (drawTextInput(font, _texture_path_buffer, start_x, start_y + 90, 400, 40, _selected_field == 1)) {
-			_selected_field = 1;
-		}
+		if (drawTextInput(font, _texture_path_buffer, start_x, start_y + 90, 400, 40, _active_text_field == EditorTextField::PropTexture))
+			_active_text_field = EditorTextField::PropTexture;
 
 		if (drawButton(font, "ZAPISZ PROP", start_x, start_y + 150, 400, 50, GREEN)) {
 			_temp_extra_value = _texture_path_buffer;
 			saveObject("props");
+			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
 		}
 		if (drawButton(font, "WSTECZ", start_x, start_y + 210, 400, 40, GRAY)) {
-			_current_mode = EditorMode::MainMenu;
+			_active_text_field = EditorTextField::None;
+			_current_mode = EditorMode::None;
 		}
 	}
 
@@ -929,23 +1726,126 @@ namespace Nawia::World {
 		const int start_x = GetScreenWidth() / 2 - 200;
 		const int start_y = GetScreenHeight() / 2 - 150;
 
+		std::vector<std::string> target_locations;
+		target_locations.reserve(_location_options.size() + 1);
+		for (const auto& option : _location_options)
+			target_locations.push_back(option.location_name);
+		if (std::find(target_locations.begin(), target_locations.end(), _active_location_name) == target_locations.end())
+			target_locations.push_back(_active_location_name);
+		if (target_locations.empty())
+			target_locations.push_back("Nowa lokacja");
+		_selected_teleport_target_index = std::clamp(
+			_selected_teleport_target_index,
+			0,
+			static_cast<int>(target_locations.size()) - 1
+		);
+
 		drawDevText(font, "Konfiguracja teleportu:", start_x, start_y - 40, 24, YELLOW);
 		drawLabel(font, "Nazwa:", start_x, start_y);
-		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _selected_field == 0)) {
-			_selected_field = 0;
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _active_text_field == EditorTextField::ObjectName))
+			_active_text_field = EditorTextField::ObjectName;
+
+		drawLabel(font, "Target Location:", start_x, start_y + 70);
+		const bool was_target_open = _teleport_target_dropdown_open;
+		drawDropdown(
+			font,
+			{static_cast<float>(start_x), static_cast<float>(start_y + 92), 400.0f, 40.0f},
+			target_locations,
+			_selected_teleport_target_index,
+			_teleport_target_dropdown_open,
+			8
+		);
+		if (_teleport_target_dropdown_open && !was_target_open) {
+			_boss_dropdown_open = false;
+			_active_text_field = EditorTextField::None;
 		}
 
-		drawLabel(font, "Target Location (nazwa mapy):", start_x, start_y + 70);
-		if (drawTextInput(font, _temp_extra_value, start_x, start_y + 90, 400, 40, _selected_field == 1)) {
-			_selected_field = 1;
-		}
-
-		if (drawButton(font, "ZAPISZ TELEPORT", start_x, start_y + 150, 400, 50, GREEN)) {
+		if (!_teleport_target_dropdown_open && drawButton(font, "ZAPISZ TELEPORT", start_x, start_y + 150, 400, 50, GREEN)) {
+			_temp_extra_value = target_locations[_selected_teleport_target_index];
 			saveObject("teleports");
+			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 210, 400, 40, GRAY)) {
-			_current_mode = EditorMode::MainMenu;
+		if (!_teleport_target_dropdown_open && drawButton(font, "WSTECZ", start_x, start_y + 210, 400, 40, GRAY)) {
+			_active_text_field = EditorTextField::None;
+			_current_mode = EditorMode::None;
+		}
+
+		if (_teleport_target_dropdown_open) {
+			const int selected_target = drawDropdownOptions(
+				font,
+				{static_cast<float>(start_x), static_cast<float>(start_y + 92), 400.0f, 40.0f},
+				target_locations,
+				_teleport_target_dropdown_open,
+				8
+			);
+			if (selected_target >= 0)
+				_selected_teleport_target_index = selected_target;
+		}
+	}
+
+	void DevLevel::renderBossTriggerDetailsMenu(Core::Engine* engine) {
+		const auto& font = engine->getUIHandler().getFont();
+		const int start_x = GetScreenWidth() / 2 - 200;
+		const int start_y = GetScreenHeight() / 2 - 165;
+
+		_selected_boss_index = std::clamp(_selected_boss_index, 0, static_cast<int>(_boss_id_options.size()) - 1);
+
+		drawDevText(font, "Konfiguracja Boss Triggera:", start_x, start_y - 40, 24, YELLOW);
+		drawLabel(font, "Nazwa:", start_x, start_y);
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _active_text_field == EditorTextField::ObjectName))
+			_active_text_field = EditorTextField::ObjectName;
+
+		drawLabel(font, "Boss:", start_x, start_y + 70);
+		const bool was_boss_open = _boss_dropdown_open;
+		drawDropdown(
+			font,
+			{static_cast<float>(start_x), static_cast<float>(start_y + 92), 400.0f, 40.0f},
+			_boss_id_options,
+			_selected_boss_index,
+			_boss_dropdown_open,
+			8
+		);
+		if (_boss_dropdown_open && !was_boss_open) {
+			_teleport_target_dropdown_open = false;
+			_active_text_field = EditorTextField::None;
+		}
+
+		drawLabel(font, "Szerokosc:", start_x, start_y + 142);
+		if (drawTextInput(font, _boss_width_buffer, start_x, start_y + 164, 180, 38, _active_text_field == EditorTextField::BossTriggerWidth))
+			_active_text_field = EditorTextField::BossTriggerWidth;
+
+		drawLabel(font, "Wysokosc:", start_x + 220, start_y + 142);
+		if (drawTextInput(font, _boss_height_buffer, start_x + 220, start_y + 164, 180, 38, _active_text_field == EditorTextField::BossTriggerHeight))
+			_active_text_field = EditorTextField::BossTriggerHeight;
+
+		if (!_boss_dropdown_open && drawButton(font, "ZAPISZ BOSS TRIGGER", start_x, start_y + 224, 400, 50, GREEN)) {
+			try {
+				_temp_extra_value = _boss_id_options[_selected_boss_index];
+				_temp_spawn_radius = std::max(0.1f, std::stof(_boss_width_buffer.empty() ? "10.0" : _boss_width_buffer));
+				_temp_trigger_radius = std::max(0.1f, std::stof(_boss_height_buffer.empty() ? "4.0" : _boss_height_buffer));
+				saveObject("boss_triggers");
+				_active_text_field = EditorTextField::None;
+				_current_mode = EditorMode::None;
+			} catch (const std::exception& error) {
+				Core::Logger::errorLog("DevLevel: bledne dane boss triggera: " + std::string(error.what()));
+			}
+		}
+		if (!_boss_dropdown_open && drawButton(font, "WSTECZ", start_x, start_y + 284, 400, 40, GRAY)) {
+			_active_text_field = EditorTextField::None;
+			_current_mode = EditorMode::None;
+		}
+
+		if (_boss_dropdown_open) {
+			const int selected_boss = drawDropdownOptions(
+				font,
+				{static_cast<float>(start_x), static_cast<float>(start_y + 92), 400.0f, 40.0f},
+				_boss_id_options,
+				_boss_dropdown_open,
+				8
+			);
+			if (selected_boss >= 0)
+				_selected_boss_index = selected_boss;
 		}
 	}
 
@@ -958,9 +1858,8 @@ namespace Nawia::World {
 
 		int row = 0;
 		for (const auto& [item_id, item] : engine->getItemDatabase().getAllTemplates()) {
-			if (row >= MAX_VISIBLE_ITEMS) {
+			if (row >= MAX_VISIBLE_ITEMS)
 				break;
-			}
 
 			const std::string button_text = std::to_string(item_id) + ": " + item->getName();
 			if (drawButton(font, button_text.c_str(), start_x, start_y + row * 45, 500, 40, DARKBLUE)) {
@@ -970,9 +1869,8 @@ namespace Nawia::World {
 			++row;
 		}
 
-		if (drawButton(font, "WSTECZ", start_x, start_y + 500, 500, 40, GRAY)) {
+		if (drawButton(font, "WSTECZ", start_x, start_y + 500, 500, 40, GRAY))
 			_current_mode = EditorMode::ChestDetails;
-		}
 	}
 
 	void DevLevel::resetEditorState() {
@@ -988,7 +1886,19 @@ namespace Nawia::World {
 		_spawn_radius_buffer = "5.0";
 		_trigger_radius_buffer = "15.0";
 		_texture_path_buffer = "assets/textures/chest.png";
-		_selected_field = 0;
+		_boss_width_buffer = "10.0";
+		_boss_height_buffer = "4.0";
+		_selected_teleport_target_index = 0;
+		_selected_boss_index = 0;
+		_teleport_target_dropdown_open = false;
+		_boss_dropdown_open = false;
+		_active_text_field = EditorTextField::None;
+	}
+
+	void DevLevel::prepareObjectPlacementAtPlayer(Core::Engine* engine) {
+		stopTestLevel(engine);
+		resetEditorState();
+		_saved_world_position = getPlayerPosition(engine);
 	}
 
 	void DevLevel::saveObject(const std::string& category) {
@@ -1002,104 +1912,30 @@ namespace Nawia::World {
 		placed_object.count = _temp_count;
 		placed_object.loot_ids = _temp_loot_ids;
 		placed_object.extra_value = _temp_extra_value;
+		placed_object.raw_data = json::object();
 
 		_placed_objects.push_back(std::move(placed_object));
-		rewriteJsonFiles();
+		_has_unsaved_changes = true;
+		_status_message = "Dodano obiekt. Kliknij Zapisz, aby zapisac pliki.";
 	}
 
-	void DevLevel::rewriteJsonFiles() {
-		for (const std::string_view category : OBJECT_CATEGORIES) {
-			const std::string category_name(category);
-			json data = json::array();
+	bool DevLevel::isMouseOverEditorUI() const {
+		const Vector2 mouse = GetMousePosition();
+		Rectangle center_panel = CENTER_PANEL;
+		center_panel.x = GetScreenWidth() / 2.0f - center_panel.width / 2.0f;
+		Rectangle right_panel = RIGHT_PANEL;
+		right_panel.x = GetScreenWidth() - right_panel.width - 20.0f;
 
-			for (const auto& object : _placed_objects) {
-				if (object.category == category_name) {
-					data.push_back(serializePlacedObject(object));
-				}
-			}
-
-			const auto output_path = getCategoryFilePath(category_name);
-
-			try {
-				if (!output_path.parent_path().empty()) {
-					std::filesystem::create_directories(output_path.parent_path());
-				}
-			} catch (const std::filesystem::filesystem_error& error) {
-				Core::Logger::errorLog("DevLevel: nie mozna utworzyc katalogu: " + std::string(error.what()));
-				continue;
-			}
-
-			std::ofstream output(output_path);
-			if (!output.is_open()) {
-				Core::Logger::errorLog("DevLevel: nie mozna zapisac pliku: " + toPathString(output_path));
-				continue;
-			}
-
-			output << data.dump(4);
+		if (CheckCollisionPointRec(mouse, LEFT_PANEL) ||
+			CheckCollisionPointRec(mouse, center_panel) ||
+			CheckCollisionPointRec(mouse, right_panel)) {
+			return true;
 		}
 
-		rewriteLevelJsonFile();
-	}
+		if (_current_mode != EditorMode::None)
+			return true;
 
-	void DevLevel::loadLevelSettings() {
-		const auto input_path = getLevelFilePath();
-		if (!std::filesystem::exists(input_path))
-			return;
-
-		std::ifstream file(input_path);
-		if (!file.is_open()) {
-			Core::Logger::errorLog("DevLevel: nie mozna otworzyc ustawien levelu: " + toPathString(input_path));
-			return;
-		}
-
-		json data;
-		try {
-			file >> data;
-		} catch (const json::parse_error& error) {
-			Core::Logger::errorLog("DevLevel: blad parsowania ustawien levelu: " + std::string(error.what()));
-			return;
-		}
-
-		const auto navmesh_it = data.find("navmesh");
-		if (navmesh_it == data.end() || !navmesh_it->is_object())
-			return;
-
-		_navmesh_min_walkable_height = navmesh_it->value("min_walkable_height", _navmesh_min_walkable_height);
-	}
-
-	void DevLevel::rewriteLevelJsonFile() {
-		const auto output_path = getLevelFilePath();
-
-		try {
-			if (!output_path.parent_path().empty()) {
-				std::filesystem::create_directories(output_path.parent_path());
-			}
-		} catch (const std::filesystem::filesystem_error& error) {
-			Core::Logger::errorLog("DevLevel: nie mozna utworzyc katalogu levelu: " + std::string(error.what()));
-			return;
-		}
-
-		json data;
-		data["navmesh"]["min_walkable_height"] = _navmesh_min_walkable_height;
-		data["player_spawn"][DEV_LOCATION_NAME] = {
-			{"x", PLAYER_SPAWN.x},
-			{"y", PLAYER_SPAWN.y},
-		};
-		data["entities"] = json::array();
-
-		for (const auto& object : _placed_objects) {
-			json entity_data = serializePlacedObject(object);
-			entity_data["location"] = DEV_LOCATION_NAME;
-			data["entities"].push_back(std::move(entity_data));
-		}
-
-		std::ofstream output(output_path);
-		if (!output.is_open()) {
-			Core::Logger::errorLog("DevLevel: nie mozna zapisac pliku levelu: " + toPathString(output_path));
-			return;
-		}
-
-		output << data.dump(4);
+		return false;
 	}
 
 } // namespace Nawia::World

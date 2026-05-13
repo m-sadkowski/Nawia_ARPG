@@ -1,6 +1,7 @@
 #include "EntityFactory.h"
 
 #include <Backpack.h>
+#include <BossManager.h>
 #include <Engine.h>
 #include <Item.h>
 #include <Logger.h>
@@ -58,7 +59,7 @@ namespace Nawia::World {
 		if (type == "static_object") return createStaticObject(data, engine);
 		if (type == "checkpoint")    return createCheckpoint(data);
 		if (type == "teleport")      return createTeleport(data, engine);
-		if (type == "boss_trigger")  return createBossTrigger(data);
+		if (type == "boss_trigger")  return createBossTrigger(data, engine);
 
 		Core::Logger::errorLog("EntityFactory: nieznany typ encji: " + type);
 		return nullptr;
@@ -304,7 +305,7 @@ namespace Nawia::World {
 		return std::make_shared<Entity::Teleport>(name, x, y, engine, target_location);
 	}
 
-	std::shared_ptr<Entity::Entity> EntityFactory::createBossTrigger(const json& data)
+	std::shared_ptr<Entity::Entity> EntityFactory::createBossTrigger(const json& data, Core::Engine* engine)
 	{
 		const float x = data.value("x", 0.0f);
 		const float y = data.value("y", 0.0f);
@@ -312,8 +313,11 @@ namespace Nawia::World {
 		const float height = data.value("height", 4.0f);
 		const std::string boss_id = data.value("boss_id", "");
 
-		if (boss_id.empty())
+		if (boss_id.empty()) {
 			Core::Logger::errorLog("EntityFactory: boss_trigger wymaga pola 'boss_id'");
+		} else if (engine) {
+			engine->getBossManager().preloadBossFight(boss_id, engine);
+		}
 
 		return std::make_shared<Entity::BossArenaTrigger>(boss_id, x, y, width, height);
 	}
