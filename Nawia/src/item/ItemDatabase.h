@@ -36,6 +36,8 @@ namespace Nawia::Item {
          */
         [[nodiscard]] const std::map<int, std::shared_ptr<Item>>& getAllTemplates() const { return _templates; }
 
+        void clear() { _templates.clear(); }
+
     private:
         std::map<int, std::shared_ptr<Item>> _templates;
 

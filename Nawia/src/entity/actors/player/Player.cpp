@@ -13,6 +13,11 @@
 
 namespace Nawia::Entity {
 
+	namespace {
+		constexpr const char* PLAYER_HEAD_MODEL = "assets/models/player/player_head.glb";
+		constexpr const char* PLAYER_HEAD_WITH_SWORD_MODEL = "assets/models/items/player_head_with_sword.glb";
+	}
+
 	Player::Player() {
 		_name = "Player";
 		_max_hp = 200;
@@ -20,7 +25,8 @@ namespace Nawia::Entity {
 		_scale = 1.5f;
 		_type = EntityType::Player;
 		_faction = Faction::Player;
-		loadModel("assets/models/player/player_head.glb");
+		_active_visual_model_path = PLAYER_HEAD_MODEL;
+		loadModel(_active_visual_model_path);
 		loadAnimationBundle("assets/models/animations/anims.glb");
 		loadAnimationBundle("assets/models/animations/anims2.glb");
 		playAnimation("Idle_Loop");
@@ -44,6 +50,7 @@ namespace Nawia::Entity {
 		if (!_engine) return;
 
 		_equipment = std::make_unique<Item::Equipment>(_engine->getResourceManager());
+		updateWeaponVisualModel();
 		recalculateStats();
 	}
 
@@ -147,6 +154,7 @@ namespace Nawia::Entity {
 		if (const auto old_item = _equipment->equip(item)) 
 			_backpack->addItem(old_item);
 
+		updateWeaponVisualModel();
 		playSoundEffect(Audio::SoundId::ItemEquip, 0.85f);
 		recalculateStats();
 
@@ -160,6 +168,7 @@ namespace Nawia::Entity {
 		if (const auto old_item = _equipment->equip(item))
 			_backpack->addItem(old_item);
 
+		updateWeaponVisualModel();
 		recalculateStats();
 		return true;
 	}
@@ -172,8 +181,24 @@ namespace Nawia::Entity {
 		if (_backpack->getRemainingCapacity() > 0) {
 			_backpack->addItem(item);
 			_equipment->unequip(slot);
+			updateWeaponVisualModel();
 			recalculateStats();
 		}
+	}
+
+	void Player::updateWeaponVisualModel()
+	{
+		if (!_equipment)
+			return;
+
+		const bool has_weapon = _equipment->getItemAt(Item::EquipmentSlot::Weapon) != nullptr;
+		const std::string target_model = has_weapon ? PLAYER_HEAD_WITH_SWORD_MODEL : PLAYER_HEAD_MODEL;
+		if (_active_visual_model_path == target_model)
+			return;
+
+		replaceModel(target_model);
+		if (_model_loaded)
+			_active_visual_model_path = target_model;
 	}
 
 	void Player::recalculateStats() 

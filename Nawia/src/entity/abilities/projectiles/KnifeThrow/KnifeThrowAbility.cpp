@@ -6,7 +6,8 @@ namespace Nawia::Entity {
 										 const float model_scale,
 										 const std::shared_ptr<Texture2D>& hit_tex,
 										 const std::shared_ptr<Texture2D>& icon_tex,
-										 const float facing_offset)
+										 const float facing_offset,
+										 Core::ResourceManager* resource_manager)
 		: ProjectileAbility(
 			  "Knife Throw",
 			  "KnifeThrow",
@@ -16,6 +17,7 @@ namespace Nawia::Entity {
 			  model_scale,
 			  hit_tex,
 			  icon_tex,
-			  facing_offset) {}
+			  facing_offset,
+			  resource_manager) {}
 
 } // namespace Nawia::Entity

@@ -27,6 +27,7 @@ namespace Nawia::Core {
 		 * @brief Laduje model mapy do cache bez przelaczania aktywnej mapy.
 		 */
 		static void preloadMapModel(const std::string& filename);
+		static void clearPreloadedMapModels();
 
 		/**
 		 * @brief Laduje model mapy z `assets/maps`.

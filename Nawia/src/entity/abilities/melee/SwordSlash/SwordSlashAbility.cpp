@@ -5,6 +5,8 @@
 #include <SoundIds.h>
 #include <SwordSlashEffect.h>
 
+#include <algorithm>
+
 namespace Nawia::Entity {
 
 	namespace {
@@ -30,7 +32,9 @@ namespace Nawia::Entity {
 			_caster->setAnimationSpeed(Player::ATTACK_ANIM_BASE_SPEED * player->getStats().attack_speed);
 		}
 
-		_caster->playAnimation(PLAYER_SWORD_ATTACK_ANIM, false, true, 0, true);
+		_caster->playAnimationPingPong(PLAYER_SWORD_ATTACK_ANIM, true, 0, true);
+		_stats.cooldown = calculateAnimationDuration() * 2.0f;
+		_cooldown_timer = _stats.cooldown;
 		_caster->playSoundEffect(Audio::SoundId::SwordSlash, 0.85f);
 
 		// Zapisujemy stan opóźnionego utworzenia efektu.
@@ -61,14 +65,20 @@ namespace Nawia::Entity {
 	}
 
 	float SwordSlashAbility::calculateSpawnDelay() const {
+		return calculateAnimationDuration() * EFFECT_SPAWN_ANIMATION_RATIO;
+	}
+
+	float SwordSlashAbility::calculateAnimationDuration() const {
 		if (!_caster)
 			return 0.0f;
 
 		const int frames = _caster->getAnimationFrameCount(PLAYER_SWORD_ATTACK_ANIM);
-		const float duration = (frames > 0) ? (static_cast<float>(frames) / ENTITY_ANIMATION_BASE_FPS) : 1.0f;
+		const float animation_speed = std::max(0.01f, _caster->getAnimationSpeed());
+		return (frames > 0)
+			? (static_cast<float>(frames) * Entity::ANIMATION_DURATION_SCALE / (ENTITY_ANIMATION_BASE_FPS * animation_speed))
+			: 1.0f;
 
 		// Trafienie pojawia się w okolicy punktu impaktu animacji.
-		return duration * EFFECT_SPAWN_ANIMATION_RATIO;
 	}
 
 	void SwordSlashAbility::spawnSlashEffect() {

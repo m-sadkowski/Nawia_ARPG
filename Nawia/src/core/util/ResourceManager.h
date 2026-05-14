@@ -21,15 +21,11 @@ namespace Nawia::Core {
 		/**
 		 * @brief Zwraca teksture z cache albo laduje ja z pliku.
 		 */
-		~ResourceManager() {
-			for (auto& pair : _model_cache) {
-				UnloadModel(pair.second);
-			}
-			_model_cache.clear();
-		}
+		~ResourceManager();
 
 		std::shared_ptr<Texture2D> getTexture(const std::string& filename);
 		Model* getModel(const std::string& path);
+		void clear();
 
 	private:
 		std::map<std::string, std::shared_ptr<Texture2D>> _textures;

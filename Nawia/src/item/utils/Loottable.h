@@ -47,6 +47,8 @@ namespace Nawia::Item {
          */
         std::vector<LootEntry> getLootTable(LOOTTABLE_TYPE loot_table);
 
+        void clear() { _loot_tables.clear(); }
+
     private:
         std::map<LOOTTABLE_TYPE, std::vector<LootEntry>> _loot_tables;
     };

@@ -24,7 +24,8 @@ namespace Nawia::Entity {
 						  float model_scale,
 						  const std::shared_ptr<Texture2D>& hit_tex,
 						  const std::shared_ptr<Texture2D>& icon_tex,
-						  float facing_offset = 0.0f);
+						  float facing_offset = 0.0f,
+						  Core::ResourceManager* resource_manager = nullptr);
 	};
 
 } // namespace Nawia::Entity

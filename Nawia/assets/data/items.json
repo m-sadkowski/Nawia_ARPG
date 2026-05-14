@@ -5,7 +5,7 @@
         "description": "Stary, drewniany miecz.",
         "slot": "Weapon",
         "texture": "assets/textures/items/sword_wooden.png",
-        "model_path": "assets/models/items/sword.glb",
+        "model_path": "",
         "stats": {
             "damage": 5
         }
@@ -63,7 +63,7 @@
         "description": "Miecz podarowany przez Kota. Pachnie ryba.",
         "slot": "Weapon",
         "texture": "assets/textures/items/cat_sword.png",
-        "model_path": "assets/models/items/sword.glb",
+        "model_path": "",
         "stats": {
             "damage": 50
         }

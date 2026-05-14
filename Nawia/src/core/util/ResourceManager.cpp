@@ -6,6 +6,18 @@
 
 namespace Nawia::Core {
 
+	ResourceManager::~ResourceManager() {
+		clear();
+	}
+
+	void ResourceManager::clear() {
+		for (auto& pair : _model_cache)
+			UnloadModel(pair.second);
+
+		_model_cache.clear();
+		_textures.clear();
+	}
+
 	std::shared_ptr<Texture2D> ResourceManager::getTexture(const std::string& filename) {
 		const auto cached_texture = _textures.find(filename);
 		if (cached_texture != _textures.end())
