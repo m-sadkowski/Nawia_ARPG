@@ -150,7 +150,7 @@ namespace Nawia::World {
 				const std::string ability_id = ability_name.get<std::string>();
 				if (ability_id == "KnifeThrow") {
 					bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(
-						"assets/models/knife.glb", 0.05f, nullptr, nullptr, 180.0f));
+						"assets/models/knife.glb", 0.05f, nullptr, nullptr, 180.0f, &engine->getResourceManager()));
 					has_knife_throw = true;
 				}
 			}
@@ -158,7 +158,7 @@ namespace Nawia::World {
 
 		if (!has_knife_throw) {
 			bandit->addAbility(std::make_shared<Entity::KnifeThrowAbility>(
-				"assets/models/knife.glb", 0.05f, nullptr, nullptr, 180.0f));
+				"assets/models/knife.glb", 0.05f, nullptr, nullptr, 180.0f, &engine->getResourceManager()));
 		}
 
 		return bandit;

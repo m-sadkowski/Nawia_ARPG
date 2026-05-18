@@ -1,6 +1,7 @@
 #pragma once
 
 #include <AbilityStats.h>
+#include <Equipment.h>
 
 #include <raylib.h>
 
@@ -47,6 +48,16 @@ namespace Nawia::Entity {
 		Neutral, ///< Encje neutralne, zwykle poza walką.
 		Ally,    ///< Encje walczące po stronie gracza.
 		None     ///< Brak frakcji, np. obiekt bez udziału w walce.
+	};
+
+	struct AnimationBundle {
+		std::vector<ModelAnimation> clips;
+		~AnimationBundle();
+	};
+
+	struct AnimationClipRef {
+		std::shared_ptr<const AnimationBundle> bundle;
+		int clip_index = 0;
 	};
 
 	/**
@@ -185,9 +196,26 @@ namespace Nawia::Entity {
 		void loadModel(const std::string& path, bool rotate_model = false);
 
 		/**
+		 * @brief Podmienia sam model, zostawiajac aktualnie zaladowane animacje.
+		 */
+		void replaceModel(const std::string& path, bool rotate_model = false);
+
+		/**
+		 * @brief Podpina wspolny, nieposiadany model z cache dla nieanimowanych encji.
+		 */
+		void useSharedModel(const Model& model);
+
+		/**
 		 * @brief Rejestruje animację pod nazwą używaną później w `playAnimation`.
 		 */
 		void addAnimation(const std::string& name, const std::string& path);
+
+		void loadAnimationBundle(const std::string& path);
+
+		/**
+		 * @brief Wczytuje dane animacji do wspolnego cache bez tworzenia encji.
+		 */
+		static void preloadAnimationData(const std::string& path);
 
 		/**
 		 * @brief Odtwarza zarejestrowaną animację.
@@ -203,11 +231,17 @@ namespace Nawia::Entity {
 			bool lock_movement = false,
 			int start_frame = 0,
 			bool force = false);
+		void playAnimationPingPong(
+			const std::string& name,
+			bool lock_movement = true,
+			int start_frame = 0,
+			bool force = false);
 
 		void setAnimationSpeed(float multiplier) { _anim_speed_multiplier = multiplier; }
 		[[nodiscard]] float getAnimationSpeed() const { return _anim_speed_multiplier; }
 		[[nodiscard]] int getAnimationFrameCount(const std::string& name) const;
 		[[nodiscard]] bool isAnimationLocked() const { return _anim_locked; }
+		static constexpr float ANIMATION_DURATION_SCALE = 1.5f;
 
 		void setRotation(float angle) { _rotation = angle; }
 		[[nodiscard]] float getRotation() const { return _rotation; }
@@ -368,22 +402,27 @@ namespace Nawia::Entity {
 	protected:
 		// Dane modelu i animacji.
 		Model _model = {};
-		std::vector<ModelAnimation> _animations;
+		std::vector<AnimationClipRef> _animations;
 		std::map<std::string, int> _animation_map;
+		std::map<std::string, int> _animation_path_map;
 
 		int _current_anim_index = 0;
 		float _anim_frame_counter = 0.0f;
 		int _last_applied_anim_index = -1;
 		int _last_applied_anim_frame = -1;
 		float _anim_speed_multiplier = 1.0f;
-		float _anim_fps = 30.0f;
+		float _anim_fps = 60.0f;
 		float _rotation = 0.0f;
 		float _model_facing_offset = 90.0f; ///< Offset modelu względem kierunku matematycznego.
 		bool _model_loaded = false;
+		bool _owns_model = false;
 		BoundingBox _local_model_bounding_box = {};
 		bool _local_model_bounding_box_valid = false;
 		bool _anim_looping = true;
 		bool _anim_locked = false;
+		bool _anim_ping_pong = false;
+		bool _anim_reverse_phase = false;
+		float _anim_direction = 1.0f;
 		bool _hovered = false;
 		bool _dormant = false;
 
@@ -408,11 +447,14 @@ namespace Nawia::Entity {
 
 		void updateAnimation(float dt);
 		void updateMovementSound(const std::string& path, bool should_play, float volume = 0.55f, float pitch = 1.0f);
+		void unloadModelData();
 		virtual void onDeathStarted() {}
 
 		std::string _movement_sound_id;
 
 		std::vector<std::shared_ptr<Ability>> _abilities;
+
+		std::unique_ptr<Item::Equipment> _equipment;
 	};
 
 	/**

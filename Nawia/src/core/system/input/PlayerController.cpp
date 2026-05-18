@@ -312,7 +312,7 @@ namespace Nawia::Core {
 		useAbility(_pending_action.ability_index, _pending_action.x, _pending_action.y);
 	}
 
-	void PlayerController::updateCombatMovement(const float distance_sq, const float attack_range) const {
+	void PlayerController::updateCombatMovement(const float distance_sq, const float attack_range) {
 		constexpr float hysteresis = 0.5f;
 		constexpr int auto_attack_index = 0;
 		const float hit_range = (attack_range * 0.5f) + hysteresis;
@@ -325,6 +325,7 @@ namespace Nawia::Core {
 		_player->rotateTowards(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		_player->stop();
 		useAbility(auto_attack_index, _target_enemy->getCenter().x, _target_enemy->getCenter().y);
+		_target_enemy = nullptr;
 	}
 
 	void PlayerController::updatePathMovement() {

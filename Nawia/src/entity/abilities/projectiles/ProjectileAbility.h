@@ -7,6 +7,8 @@
 #include <memory>
 #include <string>
 
+namespace Nawia::Core { class ResourceManager; }
+
 namespace Nawia::Entity {
 
 	/**
@@ -26,7 +28,8 @@ namespace Nawia::Entity {
 						  float model_scale,
 						  const std::shared_ptr<Texture2D>& hit_texture,
 						  const std::shared_ptr<Texture2D>& icon_texture,
-						  float facing_offset = 0.0f);
+						  float facing_offset = 0.0f,
+						  Core::ResourceManager* resource_manager = nullptr);
 
 		/**
 		 * @brief Tworzy pocisk lecący w stronę wskazanego punktu.
@@ -51,6 +54,7 @@ namespace Nawia::Entity {
 		float _model_scale = 1.0f;
 		std::shared_ptr<Texture2D> _hit_texture;
 		float _facing_offset = 0.0f;
+		Core::ResourceManager* _resource_manager = nullptr;
 	};
 
 } // namespace Nawia::Entity

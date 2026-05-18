@@ -4,19 +4,18 @@ namespace Nawia::Entity {
 
 	/**
 	 * @struct Stats
-	 * @brief Statystyki bojowe i ruchu używane przez gracza oraz wyposażenie.
+	 * @brief Statystyki bojowe i ruchu uzywane przez gracza oraz wyposazenie.
 	 */
 	struct Stats {
-		int max_hp = 0;              ///< Maksymalna liczba punktów życia.
-		int damage = 0;              ///< Bazowe obrażenia fizyczne.
-		int power = 0;               ///< Siła umiejętności.
-		float attack_speed = 0.0f;   ///< Mnożnik prędkości ataku.
-		float movement_speed = 0.0f; ///< Bonus do prędkości ruchu.
-		int tenacity = 0;            ///< Redukcja obrażeń lub odporność na efekty.
-		int armor = 0;               ///< Pancerz zmniejszający otrzymywane obrażenia.
+		int max_hp = 0;              ///< Maksymalna liczba punktow zycia.
+		int damage = 0;              ///< Bazowe obrazenia fizyczne.
+		int power = 0;               ///< Sila umiejetnosci.
+		float attack_speed = 0.0f;   ///< Mnoznik predkosci ataku.
+		float movement_speed = 0.0f; ///< Bonus do predkosci ruchu.
+		int defense = 0;             ///< Obrona zmniejszajaca otrzymywane obrazenia.
 
 		/**
-		 * @brief Zwraca sumę dwóch zestawów statystyk.
+		 * @brief Zwraca sume dwoch zestawow statystyk.
 		 */
 		Stats operator+(const Stats& other) const {
 			Stats result;
@@ -25,13 +24,12 @@ namespace Nawia::Entity {
 			result.attack_speed = attack_speed + other.attack_speed;
 			result.movement_speed = movement_speed + other.movement_speed;
 			result.power = power + other.power;
-			result.tenacity = tenacity + other.tenacity;
-			result.armor = armor + other.armor;
+			result.defense = defense + other.defense;
 			return result;
 		}
 
 		/**
-		 * @brief Dodaje drugi zestaw statystyk do bieżącego obiektu.
+		 * @brief Dodaje drugi zestaw statystyk do biezacego obiektu.
 		 */
 		Stats& operator+=(const Stats& other) {
 			max_hp += other.max_hp;
@@ -39,8 +37,7 @@ namespace Nawia::Entity {
 			attack_speed += other.attack_speed;
 			movement_speed += other.movement_speed;
 			power += other.power;
-			tenacity += other.tenacity;
-			armor += other.armor;
+			defense += other.defense;
 			return *this;
 		}
 	};

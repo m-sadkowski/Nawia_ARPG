@@ -32,6 +32,7 @@ namespace Nawia::Entity {
 	private:
 		/** @brief Wylicza moment pojawienia się hitboxa na podstawie animacji. */
 		[[nodiscard]] float calculateSpawnDelay() const;
+		[[nodiscard]] float calculateAnimationDuration() const;
 
     /** @brief Dodaje efekt cięcia do pending spawnów źródła użycia. */
 		void spawnSlashEffect();

@@ -13,7 +13,18 @@ namespace Nawia::Entity {
     Teleport::Teleport(const std::string& name, float x, float y, Core::Engine* engine, const std::string& target_location)
         : InteractiveTrigger(name, x, y, nullptr, 1), _engine(engine), _target_location(target_location)
     {
+        _type = EntityType::Trigger;
         setFaction(Faction::None);
+        loadModel("assets/models/fireball.glb");
+        setScale(0.45f);
+        setModelFacingOffset(0.0f);
+
+        if (_model_loaded) {
+            for (int i = 0; i < _model.materialCount; ++i) {
+                _model.materials[i].maps[MATERIAL_MAP_DIFFUSE].color = Color{45, 20, 80, 255};
+            }
+        }
+
         setCollider(std::make_unique<RectangleCollider>(this, 2.0f, 1.0f, 0.0f, 0.0f));
     }
 
@@ -37,12 +48,23 @@ namespace Nawia::Entity {
     }
 
     void Teleport::update(float delta_time) {
+        setRotation(getRotation() + 45.0f * delta_time);
         Entity::update(delta_time);
     }
 
     void Teleport::render(const Camera3D& camera) {
-		// Teleport jest niewidoczny w normalnej grze, widoczny tylko w trybie diagnostycznym.
-        if (DebugColliders && _collider) {
+        if (!isDormant() && _model_loaded) {
+            const Vector3 pos3d = getWorldPos3D();
+            DrawModelEx(
+                _model,
+                {pos3d.x, pos3d.y + 0.35f, pos3d.z},
+                {0.0f, 1.0f, 0.0f},
+                getRotation(),
+                {_scale, _scale, _scale},
+                Color{35, 18, 70, 235});
+        }
+
+		if (DebugColliders && _collider) {
             auto* rect_collider = dynamic_cast<RectangleCollider*>(_collider.get());
             if (rect_collider) {
                 Vector2 center = rect_collider->getPosition();

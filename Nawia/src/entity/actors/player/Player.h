@@ -6,6 +6,7 @@
 #include <Stats.h>
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace Nawia::Core {
@@ -61,6 +62,9 @@ namespace Nawia::Entity {
 
 		/** @brief Zakłada przedmiot z plecaka, jeśli pasuje do slotu ekwipunku. */
 		void equipItemFromBackpack(int backpack_index);
+
+		/** @brief Zaklada podany przedmiot bezposrednio do ekwipunku. */
+		bool equipItem(const std::shared_ptr<Item::Item>& item);
 
 		/** @brief Zdejmuje przedmiot z wybranego slotu ekwipunku. */
 		void unequipItem(Item::EquipmentSlot slot);
@@ -120,12 +124,14 @@ namespace Nawia::Entity {
 		// Stałe prędkości animacji.
 		static constexpr float DEFAULT_ANIMATION_SPEED = 1.0f;
 		static constexpr float WALK_ANIM_BASE_SPEED = 1.25f;
-		static constexpr float ATTACK_ANIM_BASE_SPEED = 2.0f;
+		static constexpr float ATTACK_ANIM_BASE_SPEED = 1.5f;
 
 	private:
 		friend class PlayerBuilder;
 		Player();
 		void onDeathStarted() override;
+		void attachEngine(Core::Engine* engine);
+		void updateWeaponVisualModel();
 
 		Core::Engine* _engine = nullptr;
 
@@ -144,7 +150,6 @@ namespace Nawia::Entity {
 		Vector2 _respawn_point = {0.0f, 0.0f};
 
 		std::unique_ptr<Item::Backpack> _backpack;
-		std::unique_ptr<Item::Equipment> _equipment;
 
 		Stats _base_stats;
 		Stats _current_stats;
@@ -153,6 +158,7 @@ namespace Nawia::Entity {
 		int _level = 1;
 		int _exp = 0;
 		int _exp_to_next_lvl = 100;
+		std::string _active_visual_model_path;
 	};
 
 	/**
@@ -164,7 +170,7 @@ namespace Nawia::Entity {
 		/** @brief Tworzy roboczego gracza dla podanego silnika. */
 		explicit PlayerBuilder(Core::Engine* engine) {
 			_player_ptr = std::unique_ptr<Player>(new Player());
-			_player_ptr->_engine = engine;
+			_player_ptr->attachEngine(engine);
 
 			this->_entity = _player_ptr.get();
 		}

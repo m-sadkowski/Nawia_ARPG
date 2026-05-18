@@ -32,7 +32,8 @@ namespace Nawia::Entity {
 						   Entity* caster,
 						   const float target_height,
 						   const std::shared_ptr<Texture2D>& hit_tex,
-						   const float facing_offset)
+						   const float facing_offset,
+						   const Model* shared_model)
 		: AbilityEffect(name, x, y, nullptr, stats),
 		  _speed(stats.projectile_speed),
 		  _hit_texture(hit_tex),
@@ -47,7 +48,12 @@ namespace Nawia::Entity {
 		configureMovement(target_x, target_y, facing_offset);
 		setAltitude(_caster ? _caster->getAltitude() : 0.0f);
 
-		loadModel(model_path);
+		if (shared_model) {
+			useSharedModel(*shared_model);
+			getModel().transform = MatrixIdentity();
+		} else {
+			loadModel(model_path);
+		}
 		setScale(model_scale);
 	}
 
@@ -124,9 +130,6 @@ namespace Nawia::Entity {
 
 		if (const auto player = dynamic_cast<Player*>(_caster))
 			final_damage += player->getStats().power;
-
-		if (const auto player_target = std::dynamic_pointer_cast<Player>(target))
-			final_damage = std::max(0, final_damage - player_target->getStats().tenacity);
 
 		target->takeDamage(final_damage);
 		addHit(target);

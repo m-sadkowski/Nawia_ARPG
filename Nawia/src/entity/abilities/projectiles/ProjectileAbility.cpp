@@ -2,6 +2,7 @@
 
 #include <Entity.h>
 #include <Projectile.h>
+#include <ResourceManager.h>
 #include <SoundIds.h>
 
 #include <utility>
@@ -23,13 +24,15 @@ namespace Nawia::Entity {
 										 const float model_scale,
 										 const std::shared_ptr<Texture2D>& hit_texture,
 										 const std::shared_ptr<Texture2D>& icon_texture,
-										 const float facing_offset)
+										 const float facing_offset,
+										 Core::ResourceManager* resource_manager)
 		: Ability(std::move(ability_name), Entity::getAbilityStatsFromJson(stats_key), target_type, icon_texture),
 		  _projectile_name(std::move(projectile_name)),
 		  _model_path(std::move(model_path)),
 		  _model_scale(model_scale),
 		  _hit_texture(hit_texture),
-		  _facing_offset(facing_offset) {}
+		  _facing_offset(facing_offset),
+		  _resource_manager(resource_manager) {}
 
 	AbilitySpawn ProjectileAbility::cast(const float target_x, const float target_y) {
 		if (!beginCast())
@@ -54,6 +57,10 @@ namespace Nawia::Entity {
 				_caster->playSoundEffect(Audio::SoundId::KnifeThrow, 0.8f);
 		}
 
+		const Model* shared_model = nullptr;
+		if (_resource_manager && !_model_path.empty())
+			shared_model = _resource_manager->getModel(_model_path);
+
 		return std::make_shared<Projectile>(
 			_projectile_name,
 			spawn_position.x,
@@ -66,7 +73,8 @@ namespace Nawia::Entity {
 			_caster,
 			target_height,
 			_hit_texture,
-			_facing_offset);
+			_facing_offset,
+			shared_model);
 	}
 
 	Vector2 ProjectileAbility::getSpawnPosition() const {

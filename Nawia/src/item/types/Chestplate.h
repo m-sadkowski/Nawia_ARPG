@@ -6,16 +6,16 @@ namespace Nawia::Item {
 
     /**
      * @class Chestplate
-     * @brief Pancerz na klatke piersiowa dodajacy wytrzymalosc.
+     * @brief Pancerz na klatke piersiowa dodajacy obrone.
      */
     class Chestplate : public Item {
 
     public:
         Chestplate(const int id, const std::string& name, const std::string& desc, const EquipmentSlot slot, 
-            const std::shared_ptr<Texture2D>& icon, const int defense)
-            : Item(id, name, desc, slot, icon), _defense(defense) 
+            const std::shared_ptr<Texture2D>& icon, std::string model_path, const int defense)
+            : Item(id, name, desc, slot, icon, model_path), _defense(defense) 
     	{
-            _stats.tenacity = defense;
+            _stats.defense = defense;
         }
 
         /** @brief Zwraca wartosc obrony. */

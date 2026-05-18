@@ -7,6 +7,7 @@
 
 #include <DemoLevel.h>
 #include <DevLevel.h>
+#include <Entity.h>
 #include <FireballAbility.h>
 #include <Level.h>
 #include <LevelManager.h>
@@ -14,6 +15,9 @@
 #include <SoundIds.h>
 #include <SwordSlashAbility.h>
 
+#include <filesystem>
+#include <fstream>
+#include <json.hpp>
 #include <string>
 #include <utility>
 #include <vector>
@@ -26,6 +30,85 @@ namespace Nawia::Core {
 		constexpr const char* MENU_MUSIC_PATH = "assets/audio/music/soulfuljamtracks-slavic-folk-308126.mp3";
 		constexpr float k_hover_update_interval = 0.05f;
 		constexpr float k_hover_mouse_move_threshold_sq = 1.0f;
+
+		void preloadCommonAnimationData() {
+			for (const char* path : {
+				"assets/models/animations/anims.glb",
+				"assets/models/animations/anims2.glb",
+				"assets/models/player/player_head.glb",
+				"assets/models/cat_bounce.glb",
+				"assets/models/fireball.glb",
+				"assets/models/knife.glb",
+				"assets/models/bandit_idle.glb",
+				"assets/models/bandit_walk_backwards3.glb",
+				"assets/models/bandit_throw.glb",
+				"assets/models/bandit_death.glb",
+				"assets/models/walking_dead_idle.glb",
+				"assets/models/walking_dead_walk.glb",
+				"assets/models/walking_dead_run.glb",
+				"assets/models/walking_dead_attack.glb",
+				"assets/models/walking_dead_death.glb",
+				"assets/models/walking_dead_scream.glb",
+				"assets/models/walking_dead_hit.glb",
+				"assets/models/devil_idle.glb",
+				"assets/models/devil_walk.glb",
+				"assets/models/devil_run.glb",
+				"assets/models/devil_attack.glb",
+				"assets/models/devil_dead.glb",
+				"assets/models/player_idle.glb",
+				"assets/models/player_walk.glb",
+				"assets/models/player_auto_attack.glb",
+				"assets/models/player_knocked.glb",
+				"assets/models/dummy_idle.glb",
+				"assets/models/dummy_walk.glb",
+				"assets/models/dummy_cast_fireball.glb",
+				"assets/models/dummy_death.glb"
+			}) {
+				Entity::Entity::preloadAnimationData(path);
+			}
+		}
+
+		void preloadCommonModelData(ResourceManager& resource_manager) {
+			for (const char* path : {
+				"assets/models/fireball.glb",
+				"assets/models/knife.glb"
+			}) {
+				resource_manager.getModel(path);
+			}
+		}
+
+		void preloadLocationMapData() {
+			const std::filesystem::path locations_dir = "assets/data/locations";
+			if (!std::filesystem::exists(locations_dir))
+				return;
+
+			for (const auto& entry : std::filesystem::directory_iterator(locations_dir)) {
+				if (!entry.is_regular_file() || entry.path().extension() != ".json")
+					continue;
+
+				const std::string filename = entry.path().filename().generic_string();
+				if (filename.rfind("objects_", 0) == 0)
+					continue;
+
+				std::ifstream file(entry.path());
+				if (!file.is_open())
+					continue;
+
+				nlohmann::json data;
+				try {
+					file >> data;
+				} catch (const nlohmann::json::parse_error&) {
+					continue;
+				}
+
+				if (!data.contains("map") || !data["map"].is_object())
+					continue;
+
+				const std::string model = data["map"].value("model", "");
+				if (!model.empty() && model != "placeholder")
+					Map::preloadMapModel(model);
+			}
+		}
 
 	}
 
@@ -47,6 +130,9 @@ namespace Nawia::Core {
 		_audio_manager.setMusicVolume(_settings.music_volume);
 		_audio_manager.setEffectsVolume(_settings.effects_volume);
 		loadGameplaySounds();
+		preloadCommonAnimationData();
+		preloadCommonModelData(_resource_manager);
+		preloadLocationMapData();
 
 		_audio_manager.playMusic(MENU_MUSIC_PATH, true, 1.f);
 
@@ -66,7 +152,7 @@ namespace Nawia::Core {
 		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(nullptr, sword_slash_icon));
 
 		const auto fireball_icon = _resource_manager.getTexture("assets/textures/icons/fireball_icon.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>("assets/models/fireball.glb", 0.5f, nullptr, fireball_icon));
+		_player->addAbility(std::make_shared<Entity::FireballAbility>("assets/models/fireball.glb", 0.5f, nullptr, fireball_icon, &_resource_manager));
 
 		_controller = std::make_unique<PlayerController>(this, _player);
 
@@ -83,19 +169,34 @@ namespace Nawia::Core {
 		_ui_handler->setLevelManager(_level_manager.get());
 
 		if (_player) {
-			const auto sword = _item_database.createItem(1);
-			const auto chest = _item_database.createItem(2);
-			const auto boots = _item_database.createItem(3);
-
-			if (sword) _player->getBackpack().addItem(sword);
-			if (chest) _player->getBackpack().addItem(chest);
-			if (boots) _player->getBackpack().addItem(boots);
+			for (const int starter_item_id : {1, 2, 3, 8, 9}) {
+				if (const auto item = _item_database.createItem(starter_item_id))
+					_player->equipItem(item);
+			}
+			for (const int backpack_item_id : {4, 5, 6, 7, 10, 11, 12}) {
+				if (const auto item = _item_database.createItem(backpack_item_id))
+					_player->getBackpack().addItem(item);
+			}
 		}
 
 		_is_running = true;
 	}
 
 	Engine::~Engine() {
+		if (_level_manager && _level_manager->getCurrentLevel())
+			_level_manager->getCurrentLevel()->onExit(this);
+
+		_ui_handler.reset();
+		_controller.reset();
+		_level_manager.reset();
+		_entity_manager.reset();
+		_player.reset();
+		_boss_manager.clearPreloadedBosses();
+		_loottable.clear();
+		_item_database.clear();
+		Map::clearPreloadedMapModels();
+		_resource_manager.clear();
+
 		CloseWindow();
 	}
 

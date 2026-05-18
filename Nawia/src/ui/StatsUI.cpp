@@ -87,6 +87,6 @@ namespace Nawia::UI
         draw_stat_row("SILA", TextFormat("%d", stats.damage), COLOR_SLAVIC_ORANGE);
         draw_stat_row("PREDKOSC ATAKU", TextFormat("%.2f", stats.attack_speed), COLOR_GOLDEN_TEXT);
         draw_stat_row("PREDKOSC", TextFormat("%.2f", stats.movement_speed), COLOR_SLAVIC_BLUE);
-        draw_stat_row("NIEUSTEPLIWOSC", TextFormat("%d", stats.tenacity), DARKGRAY);
+        draw_stat_row("OBRONA", TextFormat("%d", stats.defense), DARKGRAY);
     }
 } // namespace Nawia::UI

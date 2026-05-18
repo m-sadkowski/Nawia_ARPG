@@ -21,7 +21,8 @@ namespace Nawia::Entity {
 		FireballAbility(const std::string& model_path,
 						float model_scale,
 						const std::shared_ptr<Texture2D>& hit_tex,
-						const std::shared_ptr<Texture2D>& icon_tex);
+						const std::shared_ptr<Texture2D>& icon_tex,
+						Core::ResourceManager* resource_manager = nullptr);
 
 	protected:
 		/**

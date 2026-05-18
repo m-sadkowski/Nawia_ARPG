@@ -117,6 +117,10 @@ namespace Nawia::Core {
 			getCachedMapModel(filename);
 	}
 
+	void Map::clearPreloadedMapModels() {
+		g_map_model_cache.clear();
+	}
+
 	void Map::loadMap(const std::string& filename, const float scale, const Vector3 offset, const Vector3 rotation) {
 		if (_model_loaded && _owns_model) {
 			UnloadModel(_model);

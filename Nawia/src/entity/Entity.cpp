@@ -13,6 +13,8 @@
 #include <cstdint>
 #include <fstream>
 #include <limits>
+#include <map>
+#include <memory>
 
 namespace {
 	constexpr const char* ABILITIES_PATH = "assets/data/abilities.json";
@@ -50,6 +52,51 @@ namespace {
 
 namespace Nawia::Entity {
 
+namespace {
+	std::map<std::string, std::shared_ptr<const AnimationBundle>> g_animation_cache;
+
+	std::shared_ptr<const AnimationBundle> getCachedAnimationBundle(const std::string& path)
+	{
+		const auto cached_animation = g_animation_cache.find(path);
+		if (cached_animation != g_animation_cache.end())
+			return cached_animation->second;
+
+		int count = 0;
+		ModelAnimation* anims = LoadModelAnimations(path.c_str(), &count);
+
+		auto bundle = std::make_shared<AnimationBundle>();
+		if (count > 0 && anims != nullptr)
+		{
+			bundle->clips.reserve(count);
+			for (int i = 0; i < count; i++)
+				bundle->clips.push_back(anims[i]);
+		}
+
+		if (anims != nullptr)
+			MemFree(anims);
+
+		g_animation_cache[path] = bundle;
+		return bundle;
+	}
+
+	const ModelAnimation* resolveAnimation(const AnimationClipRef& animation)
+	{
+		if (!animation.bundle)
+			return nullptr;
+
+		if (animation.clip_index < 0 || static_cast<size_t>(animation.clip_index) >= animation.bundle->clips.size())
+			return nullptr;
+
+		return &animation.bundle->clips[animation.clip_index];
+	}
+}
+
+	AnimationBundle::~AnimationBundle()
+	{
+		for (const auto& anim : clips)
+			UnloadModelAnimation(anim);
+	}
+
 bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render hitboxow jest drogi.
 	
 	Entity::Entity() 
@@ -67,20 +114,59 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (!_movement_sound_id.empty())
 			stopSoundEffect(_movement_sound_id);
 
-		if (_model_loaded)
-		{
-			for (const auto& anim : _animations)
-				UnloadModelAnimation(anim);
+		unloadModelData();
+	}
 
+	void Entity::unloadModelData()
+	{
+		_animations.clear();
+		_animation_map.clear();
+		_animation_path_map.clear();
+
+		if (_model_loaded && _owns_model)
 			UnloadModel(_model);
-		}
+
+		_model = {};
+		_model_loaded = false;
+		_owns_model = false;
+		_local_model_bounding_box = {};
+		_local_model_bounding_box_valid = false;
+		_current_anim_index = 0;
+		_anim_frame_counter = 0.0f;
+		_last_applied_anim_index = -1;
+		_last_applied_anim_frame = -1;
+		_anim_looping = true;
+		_anim_locked = false;
+		_anim_ping_pong = false;
+		_anim_reverse_phase = false;
+		_anim_direction = 1.0f;
 	}
 
 	void Entity::loadModel(const std::string& path, const bool rotate_model)
 	{
+		unloadModelData();
+
+		replaceModel(path, rotate_model);
+		if (!_model_loaded)
+			return;
+
+		// Plik modelu traktujemy teĹĽ jako domyĹ›lne ĹşrĂłdĹ‚o animacji.
+		addAnimation("default", path);
+	}
+
+	void Entity::replaceModel(const std::string& path, const bool rotate_model)
+	{
+		if (_model_loaded && _owns_model)
+			UnloadModel(_model);
+
 		_model = LoadModel(path.c_str());
 		if (_model.meshCount == 0)
 		{
+			_model = {};
+			_model_loaded = false;
+			_owns_model = false;
+			_local_model_bounding_box = {};
+			_local_model_bounding_box_valid = false;
 			Core::Logger::errorLog("Nie udało się załadować modelu: " + path);
 			return;
 		}
@@ -90,11 +176,26 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			_model.transform = MatrixRotateX(-PI / 2.0f);
 
 		_model_loaded = true;
+		_owns_model = true;
 		_local_model_bounding_box = GetModelBoundingBox(_model);
 		_local_model_bounding_box_valid = true;
 
-		// Plik modelu traktujemy też jako domyślne źródło animacji.
-		addAnimation("default", path);
+		_last_applied_anim_index = -1;
+		_last_applied_anim_frame = -1;
+	}
+
+	void Entity::useSharedModel(const Model& model)
+	{
+		unloadModelData();
+
+		if (model.meshCount == 0)
+			return;
+
+		_model = model;
+		_model_loaded = true;
+		_owns_model = false;
+		_local_model_bounding_box = GetModelBoundingBox(_model);
+		_local_model_bounding_box_valid = true;
 	}
 
 	void Entity::addAnimation(const std::string& name, const std::string& path)
@@ -102,20 +203,54 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (!_model_loaded)
 			return;
 
-		int count = 0;
-		ModelAnimation* anims = LoadModelAnimations(path.c_str(), &count);
-
-		if (count > 0)
+		if (const auto cached_path = _animation_path_map.find(path); cached_path != _animation_path_map.end())
 		{
-			const int start_index = static_cast<int>(_animations.size());
-
-			for (int i = 0; i < count; i++)
-				_animations.push_back(anims[i]);
-
-			_animation_map[name] = start_index;
-
-			MemFree(anims);
+			_animation_map[name] = cached_path->second;
+			return;
 		}
+
+		const auto bundle = getCachedAnimationBundle(path);
+		if (!bundle || bundle->clips.empty())
+			return;
+
+		const int start_index = static_cast<int>(_animations.size());
+
+		for (int i = 0; i < static_cast<int>(bundle->clips.size()); i++)
+			_animations.push_back({bundle, i});
+
+		_animation_map[name] = start_index;
+		_animation_path_map[path] = start_index;
+	}
+
+	void Entity::loadAnimationBundle(const std::string& path) {
+		if (!_model_loaded)
+			return;
+
+		const auto bundle = getCachedAnimationBundle(path);
+		if (!bundle || bundle->clips.empty())
+			return;
+
+		const int start_index = static_cast<int>(_animations.size());
+
+		for (int i = 0; i < static_cast<int>(bundle->clips.size()); i++) {
+			_animations.push_back({bundle, i});
+
+			std::string anim_name = bundle->clips[i].name;
+
+			if (anim_name.empty()) {
+				anim_name = "anim_" + std::to_string(start_index + i);
+			}
+
+			_animation_map[anim_name] = start_index + i;
+		}
+
+		_animation_path_map[path] = start_index;
+	}
+
+	void Entity::preloadAnimationData(const std::string& path)
+	{
+		if (!path.empty())
+			getCachedAnimationBundle(path);
 	}
 
 	void Entity::playAnimation(const std::string& name, const bool loop, const bool lock_movement, const int start_frame, const bool force)
@@ -130,10 +265,29 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				_anim_frame_counter = static_cast<float>(start_frame);
 				_anim_looping = loop;
 				_anim_locked = lock_movement;
+				_anim_ping_pong = false;
+				_anim_reverse_phase = false;
+				_anim_direction = 1.0f;
 				_last_applied_anim_index = -1;
 				_last_applied_anim_frame = -1;
 			}
 		}
+	}
+
+	void Entity::playAnimationPingPong(
+		const std::string& name,
+		const bool lock_movement,
+		const int start_frame,
+		const bool force)
+	{
+		playAnimation(name, false, lock_movement, start_frame, force);
+
+		if (_animation_map.find(name) == _animation_map.end())
+			return;
+
+		_anim_ping_pong = true;
+		_anim_reverse_phase = false;
+		_anim_direction = 1.0f;
 	}
 
 	int Entity::getAnimationFrameCount(const std::string& name) const
@@ -146,7 +300,8 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (index < 0 || static_cast<size_t>(index) >= _animations.size())
 			return 0;
 
-		return _animations[index].frameCount;
+		const ModelAnimation* animation = resolveAnimation(_animations[index]);
+		return animation ? animation->frameCount : 0;
 	}
 
 	void Entity::update(const float delta_time)
@@ -171,24 +326,62 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	{
 		if (_model_loaded && !_animations.empty())
 		{
-			_anim_frame_counter += dt * _anim_fps * _anim_speed_multiplier;
+			if (_current_anim_index < 0 || static_cast<size_t>(_current_anim_index) >= _animations.size())
+				return;
 
-			if (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
+			const ModelAnimation* current_animation = resolveAnimation(_animations[_current_anim_index]);
+			if (!current_animation || current_animation->frameCount <= 0)
+				return;
+
+			_anim_frame_counter += dt * _anim_fps * _anim_speed_multiplier * _anim_direction / ANIMATION_DURATION_SCALE;
+
+			if (_anim_frame_counter >= current_animation->frameCount)
 			{
 				if (_anim_looping) {
-					while (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
-						_anim_frame_counter -= _animations[_current_anim_index].frameCount;
+					while (_anim_frame_counter >= current_animation->frameCount)
+						_anim_frame_counter -= current_animation->frameCount;
+				}
+				else if (_anim_ping_pong && !_anim_reverse_phase) {
+					_anim_reverse_phase = true;
+					_anim_direction = -1.0f;
+					_anim_frame_counter = static_cast<float>(current_animation->frameCount - 1);
 				}
 				else {
 					_anim_frame_counter = 0;
-					playAnimation("default", true, false);
+					if (getAnimationFrameCount("Idle_Loop") > 0)
+						playAnimation("Idle_Loop", true, false, 0, true);
+					else
+						playAnimation("default", true, false, 0, true);
+
+					current_animation = resolveAnimation(_animations[_current_anim_index]);
+					if (!current_animation || current_animation->frameCount <= 0)
+						return;
 				}
+			}
+			else if (_anim_frame_counter <= 0.0f && _anim_direction < 0.0f)
+			{
+				_anim_frame_counter = 0.0f;
+				_anim_ping_pong = false;
+				_anim_reverse_phase = false;
+				_anim_direction = 1.0f;
+
+				if (getAnimationFrameCount("Idle_Loop") > 0)
+					playAnimation("Idle_Loop", true, false, 0, true);
+				else
+					playAnimation("default", true, false, 0, true);
+
+				current_animation = resolveAnimation(_animations[_current_anim_index]);
+				if (!current_animation || current_animation->frameCount <= 0)
+					return;
 			}
 
 			const int animation_frame = static_cast<int>(_anim_frame_counter);
 			if (_last_applied_anim_index != _current_anim_index || _last_applied_anim_frame != animation_frame)
 			{
-				UpdateModelAnimation(_model, _animations[_current_anim_index], animation_frame);
+				UpdateModelAnimation(_model, *current_animation, animation_frame);
+				if (_equipment)
+					_equipment->updateAnimations(*current_animation, animation_frame);
+
 				_last_applied_anim_index = _current_anim_index;
 				_last_applied_anim_frame = animation_frame;
 			}
@@ -204,6 +397,9 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			const Vector3 pos3d = getWorldPos3D();
 			const float visual_rotation = _rotation + _model_facing_offset;
 			DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, WHITE);
+			if (_equipment) {
+				_equipment->draw(pos3d, visual_rotation, _rotation, _scale);
+			}
 
 			if (_hovered)
 			{

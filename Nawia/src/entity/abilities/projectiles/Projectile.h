@@ -30,7 +30,8 @@ namespace Nawia::Entity {
 				   Entity* caster,
 				   float target_height,
 				   const std::shared_ptr<Texture2D>& hit_tex = nullptr,
-				   float facing_offset = 0.0f);
+				   float facing_offset = 0.0f,
+				   const Model* shared_model = nullptr);
 
 		/** @brief Aktualizuje pozycje pocisku i czas zycia. */
 		void update(float dt) override;
