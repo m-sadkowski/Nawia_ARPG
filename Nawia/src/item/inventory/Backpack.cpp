@@ -24,6 +24,19 @@ namespace Nawia::Item {
             _items[index] = nullptr;
     }
 
+    bool Backpack::setItem(const int index, const std::shared_ptr<Item>& item) {
+        if (index < 0 || index >= _capacity)
+            return false;
+
+        _items[index] = item;
+        return true;
+    }
+
+    void Backpack::clear() {
+        for (auto& item : _items)
+            item = nullptr;
+    }
+
     std::shared_ptr<Item> Backpack::getItem(const int index) const {
         if (index >= 0 && index < _capacity)
             return _items[index];

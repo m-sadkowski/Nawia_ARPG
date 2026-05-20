@@ -56,6 +56,10 @@ namespace Nawia::Entity {
 
 		/** @brief Podmienia drzewo dialogowe kota. */
 		void setDialogue(const Game::DialogueTree& dialogue) { _dialogue_tree = dialogue; }
+		void setOpen(bool open) { _is_open = open; }
+		void setQuestCompleted(bool completed) { _quest_completed = completed; }
+		[[nodiscard]] bool isOpen() const { return _is_open; }
+		[[nodiscard]] bool isQuestCompleted() const { return _quest_completed; }
 
 		using InteractiveClickable::canInteract;
 

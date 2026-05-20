@@ -13,6 +13,7 @@
 #include <QuestManager.h>
 #include <BossManager.h>
 #include <ResourceManager.h>
+#include <SaveGameManager.h>
 #include <Settings.h>
 #include <UIHandler.h>
 
@@ -42,6 +43,7 @@ namespace Nawia::Core {
 			Menu,
 			SettingsMenu,
 			LevelSelect,
+			SaveSlotSelect,
 			Playing,
 			GameOver
 		};
@@ -77,6 +79,7 @@ namespace Nawia::Core {
 		Audio::AudioManager& getAudioManager() { return _audio_manager; }
 		Game::BossManager& getBossManager() { return _boss_manager; }
 		const Game::BossManager& getBossManager() const { return _boss_manager; }
+		Game::SaveGameManager& getSaveGameManager() { return _save_game_manager; }
 	private:
 		void update(float delta_time);
 		void render() const;
@@ -85,12 +88,18 @@ namespace Nawia::Core {
 		void handleGameOverInput();
 		void handleSettingsInput();
 		void handleLevelSelectInput();
+		void handleSaveSlotSelectInput();
 		void handlePlayingInput();
 		void renderWorld() const;
 		void renderGameplay() const;
 		void collectPendingSpawns();
 		void loadGameplaySounds();
 		void applySettings(const Settings& new_settings);
+		void createFreshPlayer(bool grant_starter_items);
+		void startNewGame();
+		bool saveCurrentGame(int slot);
+		bool loadLatestGame();
+		bool loadGameFromSlot(int slot);
 
 		bool _is_running = false;
 		GameState _game_state = GameState::Menu;
@@ -112,6 +121,7 @@ namespace Nawia::Core {
 		Game::DialogueManager _dialogue_manager;
 		Game::QuestManager _quest_manager;
 		Game::BossManager _boss_manager;
+		Game::SaveGameManager _save_game_manager;
 		Vector2 _last_hover_mouse_pos = {-10000.0f, -10000.0f};
 		float _hover_update_timer = 0.0f;
 	};

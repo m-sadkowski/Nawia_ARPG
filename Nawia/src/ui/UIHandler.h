@@ -5,6 +5,7 @@
 #include <DialogueUI.h>
 #include <InventoryUI.h>
 #include <QuestUI.h>
+#include <SaveGameManager.h>
 #include <UIDefines.h>
 #include <UIRenderUtils.h>
 
@@ -47,7 +48,17 @@ namespace Nawia::UI {
      * @brief Akcja wybrana przez gracza w menu.
      */
     enum class MenuAction {
-        None, Play, Settings, Authors, Respawn, Exit
+        None,
+        Play,
+        NewGame,
+        ContinueGame,
+        SaveGame,
+        LoadGame,
+        MainMenu,
+        Settings,
+        Authors,
+        Respawn,
+        Exit
     };
 
     /**
@@ -78,11 +89,13 @@ namespace Nawia::UI {
         void render(const Core::GameCamera& camera, const Game::BossManager* boss_manager = nullptr);
         void renderMainMenu() const;
         void renderSettingsMenu() const;
+        void renderSaveSlotMenu() const;
         
         MenuAction handleMenuInput();
         MenuAction handleSettingsInput();
         MenuAction handlePauseMenuInput();
         MenuAction handleGameOverInput();
+        int handleSaveSlotInput();
 
         void renderGameOverScreen() const;
         void handleInput();
@@ -99,7 +112,12 @@ namespace Nawia::UI {
         void closeSettingsMenu();
 
         void setLevelManager(World::LevelManager* level_manager) { _level_manager = level_manager; }
+        void setPlayer(const std::shared_ptr<Entity::Player>& player);
         void renderLocationInfo() const;
+        void openSaveSlotMenu(const std::vector<Game::SaveSlotInfo>& slots, bool save_mode);
+        void closeSaveSlotMenu();
+        [[nodiscard]] bool isSaveSlotMenuOpen() const { return _is_save_slot_menu_open; }
+        [[nodiscard]] bool isSaveSlotMenuSaveMode() const { return _save_slot_menu_save_mode; }
 
         [[nodiscard]] bool isInventoryOpen() const { return _is_inventory_open; }
         void toggleInventory() { _is_inventory_open = !_is_inventory_open; }
@@ -164,6 +182,10 @@ namespace Nawia::UI {
         
         std::unique_ptr<SettingsMenu> _settings_menu;
         std::unique_ptr<LevelSelectMenu> _level_select_menu;
+        std::vector<Game::SaveSlotInfo> _save_slots;
+        bool _is_save_slot_menu_open = false;
+        bool _save_slot_menu_save_mode = false;
+        int _pending_overwrite_slot = 0;
         std::unique_ptr<InventoryUI> _inventory_ui;
         bool _is_inventory_open = false;
         std::unique_ptr<QuestUI> _quest_ui;

@@ -10,6 +10,7 @@
 #include <raymath.h>
 
 #include <cmath>
+#include <algorithm>
 #include <cstdint>
 #include <fstream>
 #include <limits>
@@ -452,6 +453,14 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	{
 		_max_hp = max_hp;
 		_hp = max_hp;
+	}
+
+	void Entity::setHP(const int hp)
+	{
+		_hp = std::clamp(hp, 0, _max_hp);
+		_is_dying = false;
+		if (_hp > 0 && _type != EntityType::Projectile)
+			setFaction(_faction);
 	}
 
 	bool Entity::isMouseOver(const float screen_x, const float screen_y, const Camera3D& camera) const 

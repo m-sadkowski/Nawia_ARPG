@@ -64,6 +64,9 @@ namespace Nawia::World {
 		 */
 		void addSpawnPoint(const SpawnPoint& sp);
 
+		[[nodiscard]] const std::vector<SpawnPoint>& getSpawnPoints() const { return _spawn_points; }
+		std::vector<SpawnPoint>& getSpawnPoints() { return _spawn_points; }
+
 	private:
 		std::vector<SpawnPoint> _spawn_points;
 	};

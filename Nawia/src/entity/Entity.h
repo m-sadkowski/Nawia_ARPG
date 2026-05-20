@@ -186,6 +186,7 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool isMoving() const { return _is_moving; }
 		[[nodiscard]] int getHP() const { return _hp; }
 		[[nodiscard]] int getMaxHP() const { return _max_hp; }
+		void setHP(int hp);
 		[[nodiscard]] const std::string& getName() const { return _name; }
 		void setName(const std::string& name) { _name = name; }
 

@@ -43,12 +43,18 @@ namespace Nawia::Entity {
 
 		/** @brief Udostępnia ekwipunek, gdy skrzynia nie jest zablokowana. */
 		Item::Backpack* getInventory() override;
+		Item::Backpack* getStoredInventory() { return _inventory.get(); }
+		[[nodiscard]] const Item::Backpack* getStoredInventory() const { return _inventory.get(); }
 
 		/** @brief Dodaje przedmiot do ekwipunku skrzyni. */
 		void addItem(const std::shared_ptr<Item::Item>& item);
 
 		/** @brief Ustawia blokadę skrzyni i identyfikator wymaganego klucza. */
 		void setLocked(bool locked, int key_id);
+		void setOpen(bool open) { _is_open = open; }
+		[[nodiscard]] bool isOpen() const { return _is_open; }
+		[[nodiscard]] bool isLocked() const { return _locked; }
+		[[nodiscard]] int getKeyId() const { return _key_id; }
 
 	private:
 		bool _is_open = false;

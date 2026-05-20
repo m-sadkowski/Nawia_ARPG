@@ -5,6 +5,7 @@
 
 #include <json.hpp>
 
+#include <algorithm>
 #include <fstream>
 #include <utility>
 
@@ -23,6 +24,26 @@ namespace Nawia::Game {
 
 			Core::Logger::errorLog("QuestManager: nieznany typ celu: " + type_text);
 			return ObjectiveType::Kill;
+		}
+
+		std::string questStateToString(const QuestState state) {
+			switch (state) {
+				case QuestState::Locked: return "locked";
+				case QuestState::Available: return "available";
+				case QuestState::Active: return "active";
+				case QuestState::Completed: return "completed";
+				case QuestState::Failed: return "failed";
+			}
+
+			return "locked";
+		}
+
+		QuestState questStateFromString(const std::string& state) {
+			if (state == "available") return QuestState::Available;
+			if (state == "active") return QuestState::Active;
+			if (state == "completed") return QuestState::Completed;
+			if (state == "failed") return QuestState::Failed;
+			return QuestState::Locked;
 		}
 
 		QuestState getInitialState(const Quest& quest) {
@@ -337,6 +358,67 @@ namespace Nawia::Game {
 
 			if (quest.isActive() && quest.areAllObjectivesComplete())
 				completeQuest(id, engine);
+		}
+	}
+
+	json QuestManager::serializeState() const {
+		json quests = json::array();
+
+		for (const auto& [id, quest] : _quests) {
+			json quest_state;
+			quest_state["id"] = id;
+			quest_state["level_name"] = quest.level_name;
+			quest_state["state"] = questStateToString(quest.state);
+			quest_state["objectives"] = json::array();
+
+			for (size_t i = 0; i < quest.objectives.size(); ++i) {
+				const auto& objective = quest.objectives[i];
+				quest_state["objectives"].push_back({
+					{"index", i},
+					{"current_count", objective.current_count}
+				});
+			}
+
+			quests.push_back(std::move(quest_state));
+		}
+
+		return {
+			{"current_level", _current_level},
+			{"quests", std::move(quests)}
+		};
+	}
+
+	void QuestManager::applyState(const json& state) {
+		if (state.contains("current_level") && state["current_level"].is_string())
+			_current_level = state["current_level"].get<std::string>();
+
+		if (!state.contains("quests") || !state["quests"].is_array())
+			return;
+
+		for (const auto& quest_state : state["quests"]) {
+			const std::string id = quest_state.value("id", "");
+			auto quest_it = _quests.find(id);
+			if (quest_it == _quests.end())
+				continue;
+
+			Quest& quest = quest_it->second;
+			quest.state = questStateFromString(quest_state.value("state", "locked"));
+
+			if (!quest_state.contains("objectives") || !quest_state["objectives"].is_array())
+				continue;
+
+			for (const auto& objective_state : quest_state["objectives"]) {
+				const int index = objective_state.value("index", -1);
+				if (index < 0 || static_cast<size_t>(index) >= quest.objectives.size())
+					continue;
+
+				auto& objective = quest.objectives[static_cast<size_t>(index)];
+				objective.current_count = std::clamp(
+					objective_state.value("current_count", 0),
+					0,
+					objective.required_count
+				);
+			}
 		}
 	}
 

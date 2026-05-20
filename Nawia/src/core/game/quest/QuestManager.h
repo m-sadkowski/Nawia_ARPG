@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Quest.h>
+#include <json.hpp>
 
 #include <map>
 #include <string>
@@ -96,6 +97,9 @@ namespace Nawia::Game {
 		 * @brief Odblokowuje dostepne questy i zamyka wykonane aktywne questy.
 		 */
 		void update(Core::Engine* engine);
+
+		[[nodiscard]] nlohmann::json serializeState() const;
+		void applyState(const nlohmann::json& state);
 
 	private:
 		[[nodiscard]] bool arePrerequisitesMet(const Quest& quest, Core::Engine* engine) const;

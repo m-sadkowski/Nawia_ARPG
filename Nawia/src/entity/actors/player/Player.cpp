@@ -216,6 +216,24 @@ namespace Nawia::Entity {
 		_movement_speed = _current_stats.movement_speed;
 	}
 
+	void Player::setBaseStats(const Stats& stats)
+	{
+		_base_stats = stats;
+		recalculateStats();
+	}
+
+	void Player::clearItems()
+	{
+		if (_backpack)
+			_backpack->clear();
+
+		if (_equipment)
+			_equipment->clear();
+
+		updateWeaponVisualModel();
+		recalculateStats();
+	}
+
 	void Player::knockDown(const int damage)
 	{
 		if (_is_knocked_down)

@@ -29,6 +29,9 @@ namespace Nawia::Item {
          */
         std::shared_ptr<Item> unequip(EquipmentSlot slot);
 
+        /** @brief Zdejmuje wszystkie przedmioty bez zwracania ich do plecaka. */
+        void clear();
+
         /** @brief Zwraca przedmiot w slocie albo nullptr. */
         [[nodiscard]] std::shared_ptr<Item> getItemAt(EquipmentSlot slot) const;
 

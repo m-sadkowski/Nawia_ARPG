@@ -97,6 +97,16 @@ namespace Nawia::Item {
         return nullptr;
     }
 
+	void Equipment::clear() {
+		for (auto& [slot, item] : _slots)
+			item = nullptr;
+
+		_models.clear();
+		modelEmpty(EquipmentSlot::Feet);
+		modelEmpty(EquipmentSlot::Legs);
+		modelEmpty(EquipmentSlot::Chest);
+	}
+
 	void Equipment::updateAnimations(const ModelAnimation& current_anim, int frame) {
 		for (auto& pair : _models) {
 			UpdateModelAnimation(*(pair.second), current_anim, frame);

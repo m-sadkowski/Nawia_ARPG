@@ -24,6 +24,12 @@ namespace Nawia::Item {
         /** @brief Usuwa przedmiot z podanego slotu. */
         void removeItem(int index);
 
+        /** @brief Ustawia zawartosc konkretnego slotu. */
+        bool setItem(int index, const std::shared_ptr<Item>& item);
+
+        /** @brief Oproznia wszystkie sloty. */
+        void clear();
+
         /** @brief Zwraca przedmiot z indeksu albo nullptr. */
         [[nodiscard]] std::shared_ptr<Item> getItem(int index) const;
 

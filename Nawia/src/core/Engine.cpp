@@ -145,20 +145,8 @@ namespace Nawia::Core {
 		_quest_manager.loadFromJson("assets/data/quests.json");
 		_boss_manager.loadFromJson("assets/data/bosses.json");
 
-		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
-		_player->setAudioManager(&_audio_manager);
-
-		const auto sword_slash_icon = _resource_manager.getTexture("assets/textures/icons/sword_slash_icon.png");
-		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(nullptr, sword_slash_icon));
-
-		const auto fireball_icon = _resource_manager.getTexture("assets/textures/icons/fireball_icon.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>("assets/models/fireball.glb", 0.5f, nullptr, fireball_icon, &_resource_manager));
-
-		_controller = std::make_unique<PlayerController>(this, _player);
-
 		_entity_manager = std::make_unique<EntityManager>(this);
-		_entity_manager->addEntity(_player);
-		_entity_manager->setPlayer(_player);
+		createFreshPlayer(true);
 
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
@@ -167,17 +155,6 @@ namespace Nawia::Core {
 		_ui_handler = std::make_unique<UI::UIHandler>();
 		_ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
 		_ui_handler->setLevelManager(_level_manager.get());
-
-		if (_player) {
-			for (const int starter_item_id : {1, 2, 3, 8, 9}) {
-				if (const auto item = _item_database.createItem(starter_item_id))
-					_player->equipItem(item);
-			}
-			for (const int backpack_item_id : {4, 5, 6, 7, 10, 11, 12}) {
-				if (const auto item = _item_database.createItem(backpack_item_id))
-					_player->getBackpack().addItem(item);
-			}
-		}
 
 		_is_running = true;
 	}
@@ -220,6 +197,45 @@ namespace Nawia::Core {
 		return nullptr;
 	}
 
+	void Engine::createFreshPlayer(const bool grant_starter_items) {
+		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
+		_player->setAudioManager(&_audio_manager);
+
+		const auto sword_slash_icon = _resource_manager.getTexture("assets/textures/icons/sword_slash_icon.png");
+		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(nullptr, sword_slash_icon));
+
+		const auto fireball_icon = _resource_manager.getTexture("assets/textures/icons/fireball_icon.png");
+		_player->addAbility(std::make_shared<Entity::FireballAbility>(
+			"assets/models/fireball.glb",
+			0.5f,
+			nullptr,
+			fireball_icon,
+			&_resource_manager));
+
+		_controller = std::make_unique<PlayerController>(this, _player);
+
+		if (_entity_manager) {
+			_entity_manager->setPlayer(_player);
+			_entity_manager->clearNonPlayerEntities();
+		}
+
+		if (_ui_handler)
+			_ui_handler->setPlayer(_player);
+
+		if (!grant_starter_items)
+			return;
+
+		for (const int starter_item_id : {1, 2, 3, 8, 9}) {
+			if (const auto item = _item_database.createItem(starter_item_id))
+				_player->equipItem(item);
+		}
+
+		for (const int backpack_item_id : {4, 5, 6, 7, 10, 11, 12}) {
+			if (const auto item = _item_database.createItem(backpack_item_id))
+				_player->getBackpack().addItem(item);
+		}
+	}
+
 	void Engine::run() {
 		while (isRunning()) {
 			const float delta_time = GetFrameTime();
@@ -245,6 +261,9 @@ namespace Nawia::Core {
 			case GameState::LevelSelect:
 				handleLevelSelectInput();
 				break;
+			case GameState::SaveSlotSelect:
+				handleSaveSlotSelectInput();
+				break;
 			case GameState::Playing:
 				handlePlayingInput();
 				break;
@@ -254,7 +273,15 @@ namespace Nawia::Core {
 	void Engine::handleMenuInput() {
 		const UI::MenuAction action = _ui_handler->handleMenuInput();
 
-		if (action == UI::MenuAction::Play) {
+		if (action == UI::MenuAction::NewGame) {
+			startNewGame();
+		} else if (action == UI::MenuAction::ContinueGame) {
+			loadLatestGame();
+		} else if (action == UI::MenuAction::LoadGame) {
+			_previous_state = GameState::Menu;
+			_ui_handler->openSaveSlotMenu(_save_game_manager.getSaveSlots(), false);
+			_game_state = GameState::SaveSlotSelect;
+		} else if (action == UI::MenuAction::Play) {
 			_previous_state = GameState::Menu;
 			_ui_handler->openLevelSelect(_level_manager->getRegisteredLevelInfos());
 			_game_state = GameState::LevelSelect;
@@ -321,6 +348,96 @@ namespace Nawia::Core {
 		}
 	}
 
+	void Engine::handleSaveSlotSelectInput() {
+		const int selected_slot = _ui_handler->handleSaveSlotInput();
+		if (selected_slot == 0)
+			return;
+
+		const bool opened_from_game = _previous_state == GameState::Playing;
+		const bool save_mode = _ui_handler->isSaveSlotMenuSaveMode();
+
+		if (selected_slot < 0) {
+			_ui_handler->closeSaveSlotMenu();
+			_game_state = opened_from_game ? GameState::Playing : GameState::Menu;
+			_show_pause_menu = opened_from_game;
+			return;
+		}
+
+		_ui_handler->closeSaveSlotMenu();
+		if (save_mode) {
+			saveCurrentGame(selected_slot);
+			_game_state = GameState::Playing;
+			_show_pause_menu = opened_from_game;
+			return;
+		}
+
+		loadGameFromSlot(selected_slot);
+	}
+
+	void Engine::startNewGame() {
+		_save_game_manager.clearActiveSlot();
+		_show_pause_menu = false;
+		_previous_state = GameState::Menu;
+
+		_boss_manager.resetRuntimeState(this);
+		_boss_manager.clearDefeatedBosses();
+		_quest_manager.resetAll();
+		createFreshPlayer(true);
+
+		_audio_manager.stopMusic();
+		_level_manager->changeLevel("Demo", this);
+		_game_state = GameState::Playing;
+		_ui_handler->onLevelLoaded();
+	}
+
+	bool Engine::saveCurrentGame(const int slot) {
+		const bool saved = _save_game_manager.saveGame(*this, slot);
+		if (_ui_handler) {
+			_ui_handler->showNotification(saved ? "Gra zapisana." : "Nie udalo sie zapisac gry.", 3.0f);
+		}
+		return saved;
+	}
+
+	bool Engine::loadLatestGame() {
+		if (!_save_game_manager.hasAnySave()) {
+			if (_ui_handler)
+				_ui_handler->showNotification("Brak zapisu do wczytania.", 3.0f);
+			return false;
+		}
+
+		createFreshPlayer(false);
+		const bool loaded = _save_game_manager.loadLatestGame(*this);
+		if (!loaded) {
+			if (_ui_handler)
+				_ui_handler->showNotification("Nie udalo sie wczytac gry.", 3.0f);
+			return false;
+		}
+
+		_show_pause_menu = false;
+		_game_state = GameState::Playing;
+		_ui_handler->onLevelLoaded();
+		if (_ui_handler)
+			_ui_handler->showNotification("Gra wczytana.", 3.0f);
+		return true;
+	}
+
+	bool Engine::loadGameFromSlot(const int slot) {
+		createFreshPlayer(false);
+		const bool loaded = _save_game_manager.loadGame(*this, slot);
+		if (!loaded) {
+			if (_ui_handler)
+				_ui_handler->showNotification("Nie udalo sie wczytac tego slotu.", 3.0f);
+			return false;
+		}
+
+		_show_pause_menu = false;
+		_game_state = GameState::Playing;
+		_ui_handler->onLevelLoaded();
+		if (_ui_handler)
+			_ui_handler->showNotification("Gra wczytana.", 3.0f);
+		return true;
+	}
+
 	void Engine::handlePlayingInput() {
 		if (IsKeyPressed(KEY_ESCAPE)) {
 			if (_ui_handler->closeOpenWindows())
@@ -334,12 +451,17 @@ namespace Nawia::Core {
 			const UI::MenuAction action = _ui_handler->handlePauseMenuInput();
 			if (action == UI::MenuAction::Play) {
 				_show_pause_menu = false;
-			} else if (action == UI::MenuAction::Settings) {
+			} else if (action == UI::MenuAction::SaveGame) {
 				_previous_state = GameState::Playing;
-				_ui_handler->openSettings(_settings);
-				_game_state = GameState::SettingsMenu;
+				_ui_handler->openSaveSlotMenu(_save_game_manager.getSaveSlots(), true);
+				_game_state = GameState::SaveSlotSelect;
 				_show_pause_menu = false;
-			} else if (action == UI::MenuAction::Exit) {
+			} else if (action == UI::MenuAction::LoadGame) {
+				_previous_state = GameState::Playing;
+				_ui_handler->openSaveSlotMenu(_save_game_manager.getSaveSlots(), false);
+				_game_state = GameState::SaveSlotSelect;
+				_show_pause_menu = false;
+			} else if (action == UI::MenuAction::MainMenu || action == UI::MenuAction::Exit) {
 				_audio_manager.playMusic(MENU_MUSIC_PATH, true, 1.f);
 				_game_state = GameState::Menu;
 				_show_pause_menu = false;
@@ -394,7 +516,10 @@ namespace Nawia::Core {
 	void Engine::update(const float delta_time) {
 		_audio_manager.update();
 
-		if (_game_state == GameState::Menu || _game_state == GameState::SettingsMenu || _game_state == GameState::LevelSelect) {
+		if (_game_state == GameState::Menu ||
+			_game_state == GameState::SettingsMenu ||
+			_game_state == GameState::LevelSelect ||
+			_game_state == GameState::SaveSlotSelect) {
 			if (_ui_handler) _ui_handler->update(delta_time);
 			return;
 		}
@@ -470,6 +595,13 @@ namespace Nawia::Core {
 		} else if (_game_state == GameState::LevelSelect && _ui_handler) {
 			_ui_handler->renderMainMenu();
 			_ui_handler->renderLevelSelectMenu();
+		} else if (_game_state == GameState::SaveSlotSelect && _ui_handler) {
+			if (_previous_state == GameState::Playing)
+				renderGameplay();
+			else
+				_ui_handler->renderMainMenu();
+
+			_ui_handler->renderSaveSlotMenu();
 		} else if (_game_state == GameState::GameOver) {
 			renderWorld();
 			if (_ui_handler) _ui_handler->renderGameOverScreen();
