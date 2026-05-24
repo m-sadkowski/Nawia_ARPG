@@ -20,6 +20,7 @@ namespace Nawia::World {
     struct LevelInfo {
         std::string name;
         std::vector<std::string> locations;
+        bool allows_saves = true; ///< Czy poziom uczestniczy w systemie zapisu.
     };
 
     /**

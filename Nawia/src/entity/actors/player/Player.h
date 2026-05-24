@@ -13,6 +13,10 @@ namespace Nawia::Core {
 	class Engine;
 }
 
+namespace Nawia::Item {
+	class ItemDatabase;
+}
+
 namespace Nawia::Entity {
 
 	/**
@@ -122,6 +126,29 @@ namespace Nawia::Entity {
 		[[nodiscard]] const Stats& getBaseStats() const { return _base_stats; }
 		void setBaseStats(const Stats& stats);
 		void clearItems();
+
+		/**
+		 * @brief Zapisuje globalny profil gracza (statystyki, ekwipunek, plecak).
+		 *
+		 * Profil jest dzielony miedzy lokacjami, czyli przechowywany niezaleznie
+		 * od pojedynczych zapisow lokacji.
+		 */
+		[[nodiscard]] nlohmann::json serializeProfile() const;
+
+		/**
+		 * @brief Przywraca globalny profil gracza i przelicza statystyki.
+		 */
+		void applyProfile(const nlohmann::json& data, Item::ItemDatabase& item_database);
+
+		/**
+		 * @brief Zapisuje stan gracza zwiazany z aktualna lokacja (pozycja, HP).
+		 */
+		[[nodiscard]] nlohmann::json serializeLocationView() const;
+
+		/**
+		 * @brief Przywraca stan gracza zwiazany z lokacja (pozycja, HP).
+		 */
+		void applyLocationView(const nlohmann::json& data);
 
 		/** @brief Podnosi poziom gracza i zwiększa próg doświadczenia. */
 		void levelUp();

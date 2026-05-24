@@ -1,5 +1,7 @@
 #pragma once
 
+#include <json.hpp>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -160,6 +162,12 @@ namespace Nawia::Game {
         void clearDefeatedBosses() { _defeated_bosses.clear(); }
         [[nodiscard]] BossRuntimeState getRuntimeState() const;
         bool restoreRuntimeState(const BossRuntimeState& state, Core::Engine* engine);
+
+        /** @brief Serializuje aktywna walke z bossem do JSON-a (pusty obiekt, gdy brak walki). */
+        [[nodiscard]] nlohmann::json serializeRuntimeState() const;
+
+        /** @brief Odtwarza aktywna walke z bossem z JSON-a. Zwraca false, gdy stan jest pusty/nieaktywny. */
+        bool applyRuntimeState(const nlohmann::json& state, Core::Engine* engine);
 
         [[nodiscard]] const std::map<std::string, BossData>& getAllBosses() const { return _bosses; }
 

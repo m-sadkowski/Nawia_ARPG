@@ -4,6 +4,7 @@
 #include <Entity.h>
 #include <EntityFactory.h>
 #include <ActorInterface.h>
+#include <ItemDatabase.h>
 #include <Logger.h>
 #include <Map.h>
 
@@ -11,6 +12,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <utility>
 
 using json = nlohmann::json;
@@ -157,6 +159,79 @@ namespace Nawia::World {
 
 	void SpawnManager::addSpawnPoint(const SpawnPoint& sp) {
 		_spawn_points.push_back(sp);
+	}
+
+	std::string SpawnManager::makeStableId(const SpawnPoint& spawn_point, const size_t index) {
+		return std::to_string(index) + "|" +
+			spawn_point.location + "|" +
+			spawn_point.entity_type + "|" +
+			spawn_point.entity_data.value("name", "");
+	}
+
+	json SpawnManager::serializeSpawn(const SpawnPoint& spawn_point, const size_t index) {
+		json result;
+		result["spawn_index"] = index;
+		result["stable_id"] = makeStableId(spawn_point, index);
+		result["activated"] = spawn_point.activated;
+		if (spawn_point.entity)
+			result["entity"] = spawn_point.entity->serializeState();
+
+		return result;
+	}
+
+	void SpawnManager::applySpawn(SpawnPoint& spawn_point, const json& state, Item::ItemDatabase& item_database) {
+		spawn_point.activated = state.value("activated", spawn_point.activated);
+
+		if (!spawn_point.entity)
+			return;
+
+		if (state.contains("entity"))
+			spawn_point.entity->applyState(state["entity"], &item_database);
+
+		// Martwe encje zawsze pozostaja aktywowane i uspione, niezaleznie od stanu poprzedzajacego smierc.
+		if (spawn_point.entity->isDead()) {
+			spawn_point.activated = true;
+			spawn_point.entity->setDormant(true);
+		}
+	}
+
+	json SpawnManager::serializeLocation(const std::string& location_name) const {
+		json result = json::array();
+		for (size_t i = 0; i < _spawn_points.size(); ++i) {
+			if (_spawn_points[i].location == location_name)
+				result.push_back(serializeSpawn(_spawn_points[i], i));
+		}
+		return result;
+	}
+
+	void SpawnManager::applyLocation(
+		const std::string& location_name,
+		const json& location_state,
+		Item::ItemDatabase& item_database
+	) {
+		if (!location_state.is_array())
+			return;
+
+		std::map<std::string, size_t> stable_ids;
+		for (size_t i = 0; i < _spawn_points.size(); ++i)
+			stable_ids[makeStableId(_spawn_points[i], i)] = i;
+
+		for (const auto& spawn_state : location_state) {
+			size_t spawn_index = static_cast<size_t>(spawn_state.value("spawn_index", -1));
+			if (spawn_index >= _spawn_points.size()) {
+				const std::string stable_id = spawn_state.value("stable_id", "");
+				const auto stable_it = stable_ids.find(stable_id);
+				if (stable_it == stable_ids.end())
+					continue;
+
+				spawn_index = stable_it->second;
+			}
+
+			if (_spawn_points[spawn_index].location != location_name)
+				continue;
+
+			applySpawn(_spawn_points[spawn_index], spawn_state, item_database);
+		}
 	}
 
 } // namespace Nawia::World

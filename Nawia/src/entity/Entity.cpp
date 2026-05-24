@@ -463,6 +463,46 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			setFaction(_faction);
 	}
 
+	nlohmann::json Entity::serializeState() const
+	{
+		return {
+			{"name", _name},
+			{"position", {{"x", _pos.x}, {"y", _pos.y}}},
+			{"altitude", _altitude},
+			{"rotation", _rotation},
+			{"hp", _hp},
+			{"max_hp", _max_hp},
+			{"dead", isDead()},
+			{"dormant", _dormant}
+		};
+	}
+
+	void Entity::applyState(const nlohmann::json& state, Item::ItemDatabase* /*item_database*/)
+	{
+		if (!state.is_object())
+			return;
+
+		if (state.contains("position") && state["position"].is_object()) {
+			_pos.x = state["position"].value("x", _pos.x);
+			_pos.y = state["position"].value("y", _pos.y);
+		}
+
+		_altitude = state.value("altitude", _altitude);
+		_rotation = state.value("rotation", _rotation);
+
+		if (state.contains("max_hp") && state["max_hp"].is_number_integer())
+			setMaxHp(state["max_hp"].get<int>());
+
+		const int loaded_hp = state.value("hp", _hp);
+		if (state.value("dead", false) || loaded_hp <= 0) {
+			die();
+			_dormant = true;
+		} else {
+			setHP(loaded_hp);
+			_dormant = state.value("dormant", _dormant);
+		}
+	}
+
 	bool Entity::isMouseOver(const float screen_x, const float screen_y, const Camera3D& camera) const 
 	{
 		if (_model_loaded)

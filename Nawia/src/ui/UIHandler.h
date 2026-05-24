@@ -5,7 +5,7 @@
 #include <DialogueUI.h>
 #include <InventoryUI.h>
 #include <QuestUI.h>
-#include <SaveGameManager.h>
+#include <SaveSlotMenu.h>
 #include <UIDefines.h>
 #include <UIRenderUtils.h>
 
@@ -29,7 +29,9 @@ namespace Nawia::Core {
 namespace Nawia::Game {
     class QuestManager;
     class BossManager;
+    class SaveGameManager;
     struct BossData;
+    struct SaveSlotInfo;
 }
 
 namespace Nawia::World {
@@ -93,13 +95,13 @@ namespace Nawia::UI {
         
         MenuAction handleMenuInput();
         MenuAction handleSettingsInput();
-        MenuAction handlePauseMenuInput();
+        MenuAction handlePauseMenuInput(bool saves_enabled = true);
         MenuAction handleGameOverInput();
         int handleSaveSlotInput();
 
         void renderGameOverScreen() const;
         void handleInput();
-        void renderPauseMenu() const;
+        void renderPauseMenu(bool saves_enabled = true) const;
 
         void renderLevelSelectMenu() const;
         void openLevelSelect(const std::vector<World::LevelInfo>& levels);
@@ -112,12 +114,13 @@ namespace Nawia::UI {
         void closeSettingsMenu();
 
         void setLevelManager(World::LevelManager* level_manager) { _level_manager = level_manager; }
+        void setSaveGameManager(const Game::SaveGameManager* save_game_manager) { _save_game_manager = save_game_manager; }
         void setPlayer(const std::shared_ptr<Entity::Player>& player);
         void renderLocationInfo() const;
-        void openSaveSlotMenu(const std::vector<Game::SaveSlotInfo>& slots, bool save_mode);
+        void openSaveSlotMenu(const std::vector<Game::SaveSlotInfo>& slots, SaveSlotMenu::Mode mode);
         void closeSaveSlotMenu();
-        [[nodiscard]] bool isSaveSlotMenuOpen() const { return _is_save_slot_menu_open; }
-        [[nodiscard]] bool isSaveSlotMenuSaveMode() const { return _save_slot_menu_save_mode; }
+        [[nodiscard]] bool isSaveSlotMenuOpen() const { return _save_slot_menu != nullptr; }
+        [[nodiscard]] SaveSlotMenu::Mode getSaveSlotMenuMode() const;
 
         [[nodiscard]] bool isInventoryOpen() const { return _is_inventory_open; }
         void toggleInventory() { _is_inventory_open = !_is_inventory_open; }
@@ -151,6 +154,10 @@ namespace Nawia::UI {
         void onLevelLoaded();
 
     private:
+        [[nodiscard]] std::vector<MenuButtonDef> buildMainMenuButtons() const;
+        [[nodiscard]] static std::vector<Rectangle> getMainMenuLayout(int button_count);
+        void renderMainMenuTitle() const;
+
         void renderPlayerHealthBar() const;
         void renderPlayerAbilityBar() const;
         void renderPlayerExperienceBar() const;
@@ -171,6 +178,7 @@ namespace Nawia::UI {
         std::shared_ptr<Entity::Player> _player;
         Core::EntityManager* _entity_manager;
         World::LevelManager* _level_manager = nullptr;
+        const Game::SaveGameManager* _save_game_manager = nullptr;
         Font _font;
         std::shared_ptr<Texture2D> _main_menu_background;
         std::shared_ptr<Texture2D> _menu_btn_idle;
@@ -182,10 +190,7 @@ namespace Nawia::UI {
         
         std::unique_ptr<SettingsMenu> _settings_menu;
         std::unique_ptr<LevelSelectMenu> _level_select_menu;
-        std::vector<Game::SaveSlotInfo> _save_slots;
-        bool _is_save_slot_menu_open = false;
-        bool _save_slot_menu_save_mode = false;
-        int _pending_overwrite_slot = 0;
+        std::unique_ptr<SaveSlotMenu> _save_slot_menu;
         std::unique_ptr<InventoryUI> _inventory_ui;
         bool _is_inventory_open = false;
         std::unique_ptr<QuestUI> _quest_ui;

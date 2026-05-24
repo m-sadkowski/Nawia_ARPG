@@ -15,6 +15,7 @@
 #include <SoundIds.h>
 #include <SwordSlashAbility.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <json.hpp>
@@ -155,6 +156,7 @@ namespace Nawia::Core {
 		_ui_handler = std::make_unique<UI::UIHandler>();
 		_ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
 		_ui_handler->setLevelManager(_level_manager.get());
+		_ui_handler->setSaveGameManager(&_save_game_manager);
 
 		_is_running = true;
 	}
@@ -274,17 +276,16 @@ namespace Nawia::Core {
 		const UI::MenuAction action = _ui_handler->handleMenuInput();
 
 		if (action == UI::MenuAction::NewGame) {
-			startNewGame();
-		} else if (action == UI::MenuAction::ContinueGame) {
-			loadLatestGame();
-		} else if (action == UI::MenuAction::LoadGame) {
 			_previous_state = GameState::Menu;
-			_ui_handler->openSaveSlotMenu(_save_game_manager.getSaveSlots(), false);
-			_game_state = GameState::SaveSlotSelect;
-		} else if (action == UI::MenuAction::Play) {
-			_previous_state = GameState::Menu;
+			_pending_new_game_level.clear();
 			_ui_handler->openLevelSelect(_level_manager->getRegisteredLevelInfos());
 			_game_state = GameState::LevelSelect;
+		} else if (action == UI::MenuAction::ContinueGame) {
+			loadGameFromSlot(0);
+		} else if (action == UI::MenuAction::LoadGame) {
+			_previous_state = GameState::Menu;
+			_ui_handler->openSaveSlotMenu(_save_game_manager.getSaveSlots(), UI::SaveSlotMenu::Mode::Load);
+			_game_state = GameState::SaveSlotSelect;
 		} else if (action == UI::MenuAction::Settings) {
 			_previous_state = GameState::Menu;
 			_ui_handler->openSettings(_settings);
@@ -335,17 +336,33 @@ namespace Nawia::Core {
 
 	void Engine::handleLevelSelectInput() {
 		const std::string selected_level = _ui_handler->handleLevelSelectInput();
+		if (selected_level.empty())
+			return;
+
+		_ui_handler->closeLevelSelect();
 
 		if (selected_level == "BACK") {
-			_ui_handler->closeLevelSelect();
+			_pending_new_game_level.clear();
 			_game_state = GameState::Menu;
-		} else if (!selected_level.empty()) {
-			_ui_handler->closeLevelSelect();
-			_audio_manager.stopMusic();
-			_level_manager->changeLevel(selected_level, this);
-			_game_state = GameState::Playing;
-			_ui_handler->onLevelLoaded();
+			return;
 		}
+
+		// Poziomy bez systemu zapisu (np. kreator) startuja od razu, z pomijaniem
+		// wyboru slotu i auto-zapisu po zaladowaniu swiata.
+		const auto level_infos = _level_manager->getRegisteredLevelInfos();
+		const auto level_info = std::ranges::find_if(level_infos, [&](const World::LevelInfo& info) {
+			return info.name == selected_level;
+		});
+		if (level_info != level_infos.end() && !level_info->allows_saves) {
+			_pending_new_game_level.clear();
+			startNewGame(selected_level, 0);
+			return;
+		}
+
+		// Po wybraniu poziomu fabularnego prosimy o slot startowy dla nowej gry.
+		_pending_new_game_level = selected_level;
+		_ui_handler->openSaveSlotMenu(_save_game_manager.getSaveSlots(), UI::SaveSlotMenu::Mode::SelectDefault);
+		_game_state = GameState::SaveSlotSelect;
 	}
 
 	void Engine::handleSaveSlotSelectInput() {
@@ -354,27 +371,43 @@ namespace Nawia::Core {
 			return;
 
 		const bool opened_from_game = _previous_state == GameState::Playing;
-		const bool save_mode = _ui_handler->isSaveSlotMenuSaveMode();
+		const UI::SaveSlotMenu::Mode mode = _ui_handler->getSaveSlotMenuMode();
 
 		if (selected_slot < 0) {
 			_ui_handler->closeSaveSlotMenu();
+
+			// Anulowanie wyboru slotu w nowej grze cofa nas do wyboru poziomu.
+			if (mode == UI::SaveSlotMenu::Mode::SelectDefault) {
+				_ui_handler->openLevelSelect(_level_manager->getRegisteredLevelInfos());
+				_game_state = GameState::LevelSelect;
+				return;
+			}
+
 			_game_state = opened_from_game ? GameState::Playing : GameState::Menu;
 			_show_pause_menu = opened_from_game;
 			return;
 		}
 
 		_ui_handler->closeSaveSlotMenu();
-		if (save_mode) {
-			saveCurrentGame(selected_slot);
-			_game_state = GameState::Playing;
-			_show_pause_menu = opened_from_game;
-			return;
-		}
 
-		loadGameFromSlot(selected_slot);
+		switch (mode) {
+			case UI::SaveSlotMenu::Mode::Save:
+				saveCurrentGame(selected_slot);
+				_game_state = GameState::Playing;
+				_show_pause_menu = opened_from_game;
+				return;
+			case UI::SaveSlotMenu::Mode::SelectDefault:
+				startNewGame(_pending_new_game_level, selected_slot);
+				_pending_new_game_level.clear();
+				return;
+			case UI::SaveSlotMenu::Mode::Load:
+			default:
+				loadGameFromSlot(selected_slot);
+				return;
+		}
 	}
 
-	void Engine::startNewGame() {
+	void Engine::startNewGame(const std::string& level_name, const int default_slot) {
 		_save_game_manager.clearActiveSlot();
 		_show_pause_menu = false;
 		_previous_state = GameState::Menu;
@@ -385,56 +418,54 @@ namespace Nawia::Core {
 		createFreshPlayer(true);
 
 		_audio_manager.stopMusic();
-		_level_manager->changeLevel("Demo", this);
+		_level_manager->changeLevel(level_name.empty() ? "Demo" : level_name, this);
 		_game_state = GameState::Playing;
 		_ui_handler->onLevelLoaded();
+
+		// Zapis tuz po zaladowaniu swiata, zeby checkpointy znaly slot docelowy.
+		if (default_slot > 0)
+			saveCurrentGame(default_slot);
 	}
 
 	bool Engine::saveCurrentGame(const int slot) {
 		const bool saved = _save_game_manager.saveGame(*this, slot);
-		if (_ui_handler) {
+		if (_ui_handler)
 			_ui_handler->showNotification(saved ? "Gra zapisana." : "Nie udalo sie zapisac gry.", 3.0f);
-		}
+
 		return saved;
 	}
 
-	bool Engine::loadLatestGame() {
-		if (!_save_game_manager.hasAnySave()) {
+	bool Engine::saveGameToActiveSlot() {
+		const int active_slot = _save_game_manager.getActiveSlot();
+		if (active_slot <= 0)
+			return false;
+
+		return saveCurrentGame(active_slot);
+	}
+
+	bool Engine::loadGameFromSlot(const int slot) {
+		// `slot == 0` oznacza najnowszy zapis. Zanim podejmiemy proby wczytania,
+		// upewniamy sie, ze ten slot w ogole istnieje.
+		if (slot == 0 && !_save_game_manager.hasAnySave()) {
 			if (_ui_handler)
 				_ui_handler->showNotification("Brak zapisu do wczytania.", 3.0f);
 			return false;
 		}
 
 		createFreshPlayer(false);
-		const bool loaded = _save_game_manager.loadLatestGame(*this);
-		if (!loaded) {
-			if (_ui_handler)
-				_ui_handler->showNotification("Nie udalo sie wczytac gry.", 3.0f);
-			return false;
-		}
-
-		_show_pause_menu = false;
-		_game_state = GameState::Playing;
-		_ui_handler->onLevelLoaded();
-		if (_ui_handler)
-			_ui_handler->showNotification("Gra wczytana.", 3.0f);
-		return true;
-	}
-
-	bool Engine::loadGameFromSlot(const int slot) {
-		createFreshPlayer(false);
 		const bool loaded = _save_game_manager.loadGame(*this, slot);
 		if (!loaded) {
 			if (_ui_handler)
-				_ui_handler->showNotification("Nie udalo sie wczytac tego slotu.", 3.0f);
+				_ui_handler->showNotification("Nie udalo sie wczytac zapisu.", 3.0f);
 			return false;
 		}
 
 		_show_pause_menu = false;
 		_game_state = GameState::Playing;
-		_ui_handler->onLevelLoaded();
-		if (_ui_handler)
+		if (_ui_handler) {
+			_ui_handler->onLevelLoaded();
 			_ui_handler->showNotification("Gra wczytana.", 3.0f);
+		}
 		return true;
 	}
 
@@ -448,18 +479,26 @@ namespace Nawia::Core {
 		}
 
 		if (_show_pause_menu) {
-			const UI::MenuAction action = _ui_handler->handlePauseMenuInput();
+			const auto* current_level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
+			const bool saves_enabled = current_level && current_level->allowsSaves();
+
+			const UI::MenuAction action = _ui_handler->handlePauseMenuInput(saves_enabled);
 			if (action == UI::MenuAction::Play) {
 				_show_pause_menu = false;
 			} else if (action == UI::MenuAction::SaveGame) {
 				_previous_state = GameState::Playing;
-				_ui_handler->openSaveSlotMenu(_save_game_manager.getSaveSlots(), true);
+				_ui_handler->openSaveSlotMenu(_save_game_manager.getSaveSlots(), UI::SaveSlotMenu::Mode::Save);
 				_game_state = GameState::SaveSlotSelect;
 				_show_pause_menu = false;
 			} else if (action == UI::MenuAction::LoadGame) {
 				_previous_state = GameState::Playing;
-				_ui_handler->openSaveSlotMenu(_save_game_manager.getSaveSlots(), false);
+				_ui_handler->openSaveSlotMenu(_save_game_manager.getSaveSlots(), UI::SaveSlotMenu::Mode::Load);
 				_game_state = GameState::SaveSlotSelect;
+				_show_pause_menu = false;
+			} else if (action == UI::MenuAction::Settings) {
+				_previous_state = GameState::Playing;
+				_ui_handler->openSettings(_settings);
+				_game_state = GameState::SettingsMenu;
 				_show_pause_menu = false;
 			} else if (action == UI::MenuAction::MainMenu || action == UI::MenuAction::Exit) {
 				_audio_manager.playMusic(MENU_MUSIC_PATH, true, 1.f);
@@ -634,8 +673,10 @@ namespace Nawia::Core {
 
 		if (_ui_handler) _ui_handler->render(_camera, &_boss_manager);
 
-		if (_show_pause_menu && _ui_handler)
-			_ui_handler->renderPauseMenu();
+		if (_show_pause_menu && _ui_handler) {
+			const auto* current_level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
+			_ui_handler->renderPauseMenu(current_level && current_level->allowsSaves());
+		}
 
 		_level_manager->renderUI(const_cast<Engine*>(this));
 	}

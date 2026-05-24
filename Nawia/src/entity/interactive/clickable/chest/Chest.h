@@ -8,6 +8,7 @@
 namespace Nawia::Item {
 	class Backpack;
 	class Item;
+	class ItemDatabase;
 	class Loottable;
 	enum class LOOTTABLE_TYPE;
 }
@@ -43,8 +44,6 @@ namespace Nawia::Entity {
 
 		/** @brief Udostępnia ekwipunek, gdy skrzynia nie jest zablokowana. */
 		Item::Backpack* getInventory() override;
-		Item::Backpack* getStoredInventory() { return _inventory.get(); }
-		[[nodiscard]] const Item::Backpack* getStoredInventory() const { return _inventory.get(); }
 
 		/** @brief Dodaje przedmiot do ekwipunku skrzyni. */
 		void addItem(const std::shared_ptr<Item::Item>& item);
@@ -55,6 +54,9 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool isOpen() const { return _is_open; }
 		[[nodiscard]] bool isLocked() const { return _locked; }
 		[[nodiscard]] int getKeyId() const { return _key_id; }
+
+		[[nodiscard]] nlohmann::json serializeState() const override;
+		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
 	private:
 		bool _is_open = false;

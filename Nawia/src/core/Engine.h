@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <raylib.h>
+#include <string>
 
 namespace Nawia::Core {
 
@@ -80,6 +81,14 @@ namespace Nawia::Core {
 		Game::BossManager& getBossManager() { return _boss_manager; }
 		const Game::BossManager& getBossManager() const { return _boss_manager; }
 		Game::SaveGameManager& getSaveGameManager() { return _save_game_manager; }
+
+		/**
+		 * @brief Zapisuje stan gry do aktywnego slotu, jesli jakikolwiek jest ustawiony.
+		 *
+		 * Wywolywane np. przez checkpointy. Bez aktywnego slotu (np. po starcie
+		 * gry uruchomionej z trybu deweloperskiego) operacja jest pomijana.
+		 */
+		bool saveGameToActiveSlot();
 	private:
 		void update(float delta_time);
 		void render() const;
@@ -96,15 +105,18 @@ namespace Nawia::Core {
 		void loadGameplaySounds();
 		void applySettings(const Settings& new_settings);
 		void createFreshPlayer(bool grant_starter_items);
-		void startNewGame();
+		void startNewGame(const std::string& level_name, int default_slot);
 		bool saveCurrentGame(int slot);
-		bool loadLatestGame();
+		/**
+		 * @brief Wczytuje zapis z podanego slotu albo najnowszy zapis, gdy slot == 0.
+		 */
 		bool loadGameFromSlot(int slot);
 
 		bool _is_running = false;
 		GameState _game_state = GameState::Menu;
 		bool _show_pause_menu = false;
 		GameState _previous_state = GameState::Menu;
+		std::string _pending_new_game_level; ///< Niepusta wartosc oznacza, ze trwa flow nowej gry.
 		Settings _settings;
 
 		Audio::AudioManager _audio_manager;

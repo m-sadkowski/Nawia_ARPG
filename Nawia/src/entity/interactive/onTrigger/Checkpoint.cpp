@@ -16,18 +16,24 @@ namespace Nawia::Entity {
     }
 
     void Checkpoint::onTriggerEnter(Entity& other) {
-        if (!_activated && other.getFaction() == Faction::Player) {
-            std::cout << "Checkpoint '" << _name << "' aktywowany przez " << other.getName() << "!" << std::endl;
-            _activated = true;
-            if (auto* player = dynamic_cast<Player*>(&other)) {
-                player->setRespawnPoint(this->getCenter());
+        if (_activated || other.getFaction() != Faction::Player)
+            return;
 
-                // Informujemy QuestManager o dotarciu do checkpointu.
-                if (player->getEngine()) {
-                    player->getEngine()->getQuestManager().notifyCheckpointReached(getName());
-                }
-            }
-        }
+        std::cout << "Checkpoint '" << _name << "' aktywowany przez " << other.getName() << "!" << std::endl;
+        _activated = true;
+
+        auto* player = dynamic_cast<Player*>(&other);
+        if (!player)
+            return;
+
+        player->setRespawnPoint(this->getCenter());
+
+        Core::Engine* engine = player->getEngine();
+        if (!engine)
+            return;
+
+        engine->getQuestManager().notifyCheckpointReached(getName());
+        engine->saveGameToActiveSlot();
     }
 
     void Checkpoint::update(float delta_time) {
@@ -61,5 +67,19 @@ namespace Nawia::Entity {
     float Checkpoint::getInteractionRange() {
         return 0;
     }
-    
+
+    nlohmann::json Checkpoint::serializeState() const {
+        nlohmann::json state = Entity::serializeState();
+        state["activated"] = _activated;
+        return state;
+    }
+
+    void Checkpoint::applyState(const nlohmann::json& state, Item::ItemDatabase* item_database) {
+        Entity::applyState(state, item_database);
+        if (!state.is_object())
+            return;
+
+        _activated = state.value("activated", _activated);
+    }
+
 } // namespace Nawia::Entity

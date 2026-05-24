@@ -31,6 +31,9 @@ namespace Nawia::Entity {
 		/** @brief Zwraca zasięg interakcji triggera. */
 		float getInteractionRange() override;
 
+		[[nodiscard]] nlohmann::json serializeState() const override;
+		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
+
 	private:
 		bool _activated = false;
 	};

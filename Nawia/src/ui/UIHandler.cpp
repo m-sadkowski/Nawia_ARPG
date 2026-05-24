@@ -15,6 +15,7 @@
 #include <QuestManager.h>
 #include <BossManager.h>
 #include <ResourceManager.h>
+#include <SaveGameManager.h>
 #include <Settings.h>
 #include <SettingsMenu.h>
 #include <StatsUI.h>
@@ -73,22 +74,6 @@ namespace Nawia::UI
             }
 
             return button_rectangles;
-        }
-
-        std::vector<Rectangle> getSaveSlotLayout()
-        {
-            return getVerticalMenuLayout(4, true);
-        }
-
-        Rectangle getModalButtonRect(int index)
-        {
-            const float button_width = Core::GlobalScaling::scaled(180.0f);
-            const float button_height = Core::GlobalScaling::scaled(64.0f);
-            const float spacing = Core::GlobalScaling::scaled(24.0f);
-            const float total_width = button_width * 2.0f + spacing;
-            const float start_x = (static_cast<float>(GetScreenWidth()) - total_width) * 0.5f;
-            const float y = static_cast<float>(GetScreenHeight()) * 0.58f;
-            return {start_x + index * (button_width + spacing), y, button_width, button_height};
         }
 
         /**
@@ -233,10 +218,8 @@ namespace Nawia::UI
             
             updateHoverTimers(delta_time, {{ (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height }});
         }
-        else if (_is_save_slot_menu_open)
-            updateHoverTimers(delta_time, getSaveSlotLayout());
-        else if (!_settings_menu && !_level_select_menu)
-            updateHoverTimers(delta_time, getVerticalMenuLayout(6));
+        else if (!_settings_menu && !_level_select_menu && !_save_slot_menu)
+            updateHoverTimers(delta_time, getMainMenuLayout(static_cast<int>(buildMainMenuButtons().size())));
 
         for (auto iterator = _notifications.begin(); iterator != _notifications.end();)
         {
@@ -321,6 +304,69 @@ namespace Nawia::UI
         drawMenuButtonsStack(buttons, button_rectangles);
     }
 
+    std::vector<MenuButtonDef> UIHandler::buildMainMenuButtons() const
+    {
+        std::vector<MenuButtonDef> buttons;
+        buttons.push_back({LABEL_NEW_GAME, MenuAction::NewGame});
+
+        const bool has_save = _save_game_manager && _save_game_manager->hasAnySave();
+        if (has_save)
+        {
+            buttons.push_back({LABEL_CONTINUE, MenuAction::ContinueGame});
+            buttons.push_back({LABEL_LOAD_GAME, MenuAction::LoadGame});
+        }
+
+        buttons.push_back({LABEL_SETTINGS, MenuAction::Settings});
+        buttons.push_back({LABEL_AUTHORS, MenuAction::Authors});
+        buttons.push_back({LABEL_EXIT, MenuAction::Exit});
+
+        return buttons;
+    }
+
+    std::vector<Rectangle> UIHandler::getMainMenuLayout(const int button_count)
+    {
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float screen_height = static_cast<float>(GetScreenHeight());
+
+        const float scaled_width = Core::GlobalScaling::scaled(BUTTON_WIDTH);
+        const float scaled_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT);
+        const float scaled_spacing = Core::GlobalScaling::scaled(BUTTON_SPACING);
+
+        const float start_x = screen_width * MENU_SIDE_X_PCT;
+        const float total_height = button_count * scaled_height + std::max(0, button_count - 1) * scaled_spacing;
+        const float top_margin = Core::GlobalScaling::scaled(80.0f);
+        const float available_height = screen_height - top_margin - Core::GlobalScaling::scaled(60.0f);
+        const float start_y = (total_height < available_height)
+            ? top_margin + (available_height - total_height) * 0.5f
+            : top_margin;
+
+        std::vector<Rectangle> rectangles;
+        rectangles.reserve(button_count);
+        for (int i = 0; i < button_count; ++i)
+            rectangles.push_back({start_x, start_y + i * (scaled_height + scaled_spacing), scaled_width, scaled_height});
+
+        return rectangles;
+    }
+
+    void UIHandler::renderMainMenuTitle() const
+    {
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float screen_height = static_cast<float>(GetScreenHeight());
+        const float font_spacing = Core::GlobalScaling::scaled(2.0f);
+        const float title_font_size = Core::GlobalScaling::scaled(FONT_SIZE_MAIN_TITLE);
+
+        const char* title_text = "Nawia";
+        const Vector2 title_size = MeasureTextEx(_font, title_text, title_font_size, font_spacing);
+
+        // Symetryczny margines wzgledem lewej kolumny przyciskow.
+        const float side_margin = screen_width * MENU_SIDE_X_PCT;
+        const float title_x = screen_width - side_margin - title_size.x;
+        const float title_y = (screen_height - title_size.y) * 0.5f + std::sin(static_cast<float>(GetTime()) * 0.8f) * Core::GlobalScaling::scaled(4.0f);
+
+        DrawTextEx(_font, title_text, {title_x + 6.0f, title_y + 6.0f}, title_font_size, font_spacing, withAlpha(BLACK, 0.8f));
+        DrawTextEx(_font, title_text, {title_x, title_y}, title_font_size, font_spacing, WHITE);
+    }
+
     void UIHandler::renderMainMenu() const
     {
         if (_is_authors_open)
@@ -329,14 +375,11 @@ namespace Nawia::UI
             return;
         }
         drawSharedMenuBackground();
-        renderVerticalMenu("Nawia", { 
-            {LABEL_NEW_GAME, MenuAction::NewGame},
-            {LABEL_CONTINUE, MenuAction::ContinueGame},
-            {LABEL_LOAD_GAME, MenuAction::LoadGame},
-            {LABEL_SETTINGS, MenuAction::Settings}, 
-            {LABEL_AUTHORS, MenuAction::Authors}, 
-            {LABEL_EXIT, MenuAction::Exit} 
-        });
+        renderMainMenuTitle();
+
+        const auto buttons = buildMainMenuButtons();
+        const auto button_rectangles = getMainMenuLayout(static_cast<int>(buttons.size()));
+        drawMenuButtonsStack(buttons, button_rectangles);
     }
 
     void UIHandler::renderAuthorsMenu() const
@@ -383,15 +426,11 @@ namespace Nawia::UI
         }
         else
         {
-            const auto button_rectangles = getVerticalMenuLayout(6, false);
+            const auto buttons = buildMainMenuButtons();
+            const auto button_rectangles = getMainMenuLayout(static_cast<int>(buttons.size()));
             const int clicked_index = getClickedButtonIndex(button_rectangles);
-            
-            if (clicked_index == 0) return MenuAction::NewGame;
-            if (clicked_index == 1) return MenuAction::ContinueGame;
-            if (clicked_index == 2) return MenuAction::LoadGame;
-            if (clicked_index == 3) return MenuAction::Settings;
-            if (clicked_index == 4) return MenuAction::Authors;
-            if (clicked_index == 5) return MenuAction::Exit;
+            if (clicked_index >= 0)
+                return buttons[static_cast<size_t>(clicked_index)].action;
         }
         
         if (IsKeyPressed(KEY_ESCAPE) && _is_authors_open)
@@ -543,177 +582,66 @@ namespace Nawia::UI
             _quest_ui->render(_font, _quest_manager);
     }
 
-    void UIHandler::renderPauseMenu() const
+    namespace
+    {
+        std::vector<MenuButtonDef> buildPauseMenuButtons(bool saves_enabled)
+        {
+            std::vector<MenuButtonDef> buttons;
+            buttons.push_back({LABEL_CONTINUE, MenuAction::Play});
+            if (saves_enabled)
+                buttons.push_back({LABEL_SAVE_GAME, MenuAction::SaveGame});
+            buttons.push_back({LABEL_LOAD_GAME, MenuAction::LoadGame});
+            buttons.push_back({LABEL_SETTINGS, MenuAction::Settings});
+            buttons.push_back({LABEL_MAIN_MENU, MenuAction::MainMenu});
+            return buttons;
+        }
+    }
+
+    void UIHandler::renderPauseMenu(const bool saves_enabled) const
     {
         drawSharedMenuBackground();
-        renderVerticalMenu(LABEL_PAUSE, { 
-            {LABEL_CONTINUE, MenuAction::Play}, 
-            {LABEL_SAVE_GAME, MenuAction::SaveGame},
-            {LABEL_LOAD_GAME, MenuAction::LoadGame},
-            {LABEL_MAIN_MENU, MenuAction::MainMenu}
-        }, true);
+        renderVerticalMenu(LABEL_PAUSE, buildPauseMenuButtons(saves_enabled), true);
     }
 
-    MenuAction UIHandler::handlePauseMenuInput()
+    MenuAction UIHandler::handlePauseMenuInput(const bool saves_enabled)
     {
-        const int clicked_index = getClickedButtonIndex(getVerticalMenuLayout(4, true));
-        
-        if (clicked_index == 0) return MenuAction::Play;
-        if (clicked_index == 1) return MenuAction::SaveGame;
-        if (clicked_index == 2) return MenuAction::LoadGame;
-        if (clicked_index == 3) return MenuAction::MainMenu;
-        
-        return MenuAction::None;
+        const auto buttons = buildPauseMenuButtons(saves_enabled);
+        const int clicked_index = getClickedButtonIndex(getVerticalMenuLayout(static_cast<int>(buttons.size()), true));
+        if (clicked_index < 0)
+            return MenuAction::None;
+
+        return buttons[static_cast<size_t>(clicked_index)].action;
     }
 
-    void UIHandler::openSaveSlotMenu(const std::vector<Game::SaveSlotInfo>& slots, const bool save_mode)
+    void UIHandler::openSaveSlotMenu(const std::vector<Game::SaveSlotInfo>& slots, const SaveSlotMenu::Mode mode)
     {
-        _save_slots = slots;
-        _save_slot_menu_save_mode = save_mode;
-        _is_save_slot_menu_open = true;
-        _pending_overwrite_slot = 0;
+        _save_slot_menu = std::make_unique<SaveSlotMenu>(slots, mode);
     }
 
     void UIHandler::closeSaveSlotMenu()
     {
-        _is_save_slot_menu_open = false;
-        _save_slot_menu_save_mode = false;
-        _pending_overwrite_slot = 0;
-        _save_slots.clear();
+        _save_slot_menu.reset();
+    }
+
+    SaveSlotMenu::Mode UIHandler::getSaveSlotMenuMode() const
+    {
+        return _save_slot_menu ? _save_slot_menu->getMode() : SaveSlotMenu::Mode::Load;
     }
 
     void UIHandler::renderSaveSlotMenu() const
     {
-        if (!_is_save_slot_menu_open)
+        if (!_save_slot_menu)
             return;
 
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.55f));
-
-        const float font_spacing = Core::GlobalScaling::scaled(1.5f);
-        const float title_font_size = Core::GlobalScaling::scaled(FONT_SIZE_TITLE);
-        const char* title = _save_slot_menu_save_mode ? "ZAPISZ GRE" : "WCZYTAJ GRE";
-        const Vector2 title_size = MeasureTextEx(_font, title, title_font_size, font_spacing);
-        DrawTextEx(
-            _font,
-            title,
-            {(static_cast<float>(GetScreenWidth()) - title_size.x) * 0.5f, Core::GlobalScaling::scaled(70.0f)},
-            title_font_size,
-            font_spacing,
-            COLOR_ACCENT);
-
-        const auto rectangles = getSaveSlotLayout();
-        const Vector2 mouse_position = GetMousePosition();
-        const float slot_title_font = Core::GlobalScaling::scaled(28.0f);
-        const float slot_text_font = Core::GlobalScaling::scaled(18.0f);
-
-        for (int i = 0; i < 3; ++i)
-        {
-            const Rectangle rect = rectangles[static_cast<size_t>(i)];
-            const bool hovered = CheckCollisionPointRec(mouse_position, rect);
-            drawMenuButton(rect, "", hovered ? 1.0f : 0.0f);
-
-            const Game::SaveSlotInfo slot = i < static_cast<int>(_save_slots.size())
-                ? _save_slots[static_cast<size_t>(i)]
-                : Game::SaveSlotInfo{i + 1, false, "", "", ""};
-
-            const std::string slot_title = "ZAPIS " + std::to_string(i + 1);
-            const std::string slot_subtitle = slot.occupied
-                ? (slot.saved_at.empty() ? "ZAPIS ISTNIEJE" : slot.saved_at)
-                : "PUSTY SLOT";
-            const std::string slot_location = slot.occupied
-                ? (slot.current_level + (slot.current_location.empty() ? "" : " / " + slot.current_location))
-                : (_save_slot_menu_save_mode ? "Kliknij, aby zapisac" : "Brak zapisu");
-
-            DrawTextEx(
-                _font,
-                slot_title.c_str(),
-                {rect.x + Core::GlobalScaling::scaled(34.0f), rect.y + Core::GlobalScaling::scaled(15.0f)},
-                slot_title_font,
-                font_spacing,
-                COLOR_ACCENT);
-            DrawTextEx(
-                _font,
-                slot_subtitle.c_str(),
-                {rect.x + Core::GlobalScaling::scaled(34.0f), rect.y + Core::GlobalScaling::scaled(47.0f)},
-                slot_text_font,
-                font_spacing,
-                WHITE);
-            DrawTextEx(
-                _font,
-                slot_location.c_str(),
-                {rect.x + Core::GlobalScaling::scaled(34.0f), rect.y + Core::GlobalScaling::scaled(70.0f)},
-                slot_text_font,
-                font_spacing,
-                withAlpha(COLOR_PARCHMENT, 0.8f));
-        }
-
-        drawMenuButton(rectangles[3], LABEL_BACK, CheckCollisionPointRec(mouse_position, rectangles[3]) ? 1.0f : 0.0f);
-
-        if (_pending_overwrite_slot > 0)
-        {
-            DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.55f));
-            const char* confirm_text = TextFormat("NADPISAC ZAPIS %d?", _pending_overwrite_slot);
-            const float confirm_font = Core::GlobalScaling::scaled(34.0f);
-            const Vector2 confirm_size = MeasureTextEx(_font, confirm_text, confirm_font, font_spacing);
-            DrawTextEx(
-                _font,
-                confirm_text,
-                {(static_cast<float>(GetScreenWidth()) - confirm_size.x) * 0.5f, static_cast<float>(GetScreenHeight()) * 0.46f},
-                confirm_font,
-                font_spacing,
-                WHITE);
-
-            const Rectangle yes_rect = getModalButtonRect(0);
-            const Rectangle no_rect = getModalButtonRect(1);
-            drawMenuButton(yes_rect, "TAK", CheckCollisionPointRec(mouse_position, yes_rect) ? 1.0f : 0.0f);
-            drawMenuButton(no_rect, "NIE", CheckCollisionPointRec(mouse_position, no_rect) ? 1.0f : 0.0f);
-        }
+        _save_slot_menu->render(*this);
     }
 
     int UIHandler::handleSaveSlotInput()
     {
-        if (!_is_save_slot_menu_open)
+        if (!_save_slot_menu)
             return 0;
 
-        if (_pending_overwrite_slot > 0)
-        {
-            if (IsKeyPressed(KEY_ESCAPE)) {
-                _pending_overwrite_slot = 0;
-                return 0;
-            }
-
-            const int clicked_index = getClickedButtonIndex({getModalButtonRect(0), getModalButtonRect(1)});
-            if (clicked_index == 0)
-                return _pending_overwrite_slot;
-            if (clicked_index == 1)
-                _pending_overwrite_slot = 0;
-
-            return 0;
-        }
-
-        if (IsKeyPressed(KEY_ESCAPE))
-            return -1;
-
-        const int clicked_index = getClickedButtonIndex(getSaveSlotLayout());
-        if (clicked_index == -1)
-            return 0;
-
-        if (clicked_index == 3)
-            return -1;
-
-        const int slot_number = clicked_index + 1;
-        const bool occupied = clicked_index < static_cast<int>(_save_slots.size()) &&
-            _save_slots[static_cast<size_t>(clicked_index)].occupied;
-
-        if (!_save_slot_menu_save_mode && !occupied)
-            return 0;
-
-        if (_save_slot_menu_save_mode && occupied) {
-            _pending_overwrite_slot = slot_number;
-            return 0;
-        }
-
-        return slot_number;
+        return _save_slot_menu->handleInput();
     }
 
     void UIHandler::renderGameOverScreen() const

@@ -44,7 +44,7 @@ namespace Nawia::World {
 		std::vector<LevelInfo> infos;
 		infos.reserve(_levels.size());
 		for (const auto& [name, level] : _levels) {
-			infos.push_back({name, level->getLocations()});
+			infos.push_back({name, level->getLocations(), level->allowsSaves()});
 		}
 		return infos;
 	}

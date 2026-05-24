@@ -121,4 +121,25 @@ namespace Nawia::Entity {
 		_inventory->addItem(item);
 	}
 
+	nlohmann::json Cat::serializeState() const {
+		nlohmann::json state = Entity::serializeState();
+		state["open"] = _is_open;
+		state["quest_completed"] = _quest_completed;
+		if (_inventory)
+			state["inventory"] = _inventory->serialize();
+		return state;
+	}
+
+	void Cat::applyState(const nlohmann::json& state, Item::ItemDatabase* item_database) {
+		Entity::applyState(state, item_database);
+		if (!state.is_object())
+			return;
+
+		_is_open = state.value("open", _is_open);
+		_quest_completed = state.value("quest_completed", _quest_completed);
+
+		if (item_database && _inventory && state.contains("inventory"))
+			_inventory->applyJson(state["inventory"], *item_database);
+	}
+
 } // namespace Nawia::Entity

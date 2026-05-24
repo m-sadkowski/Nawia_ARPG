@@ -110,4 +110,27 @@ namespace Nawia::Entity {
 		_key_id = key_id;
 	}
 
+	nlohmann::json Chest::serializeState() const {
+		nlohmann::json state = Entity::serializeState();
+		state["open"] = _is_open;
+		state["locked"] = _locked;
+		state["key_id"] = _key_id;
+		if (_inventory)
+			state["inventory"] = _inventory->serialize();
+		return state;
+	}
+
+	void Chest::applyState(const nlohmann::json& state, Item::ItemDatabase* item_database) {
+		Entity::applyState(state, item_database);
+		if (!state.is_object())
+			return;
+
+		_is_open = state.value("open", _is_open);
+		_locked = state.value("locked", _locked);
+		_key_id = state.value("key_id", _key_id);
+
+		if (item_database && _inventory && state.contains("inventory"))
+			_inventory->applyJson(state["inventory"], *item_database);
+	}
+
 } // namespace Nawia::Entity
