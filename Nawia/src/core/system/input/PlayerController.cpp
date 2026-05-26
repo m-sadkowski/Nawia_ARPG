@@ -329,6 +329,12 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::updatePathMovement() {
+		// Podczas zablokowanej animacji (np. sword slash) nie pchamy gracza
+		// dalej po waypointach, inaczej "slizga sie" przez kolejne segmenty
+		// sciezki w trakcie ataku - widoczne zwlaszcza pod gore.
+		if (_player->isAnimationLocked())
+			return;
+
 		if (!_player->isMoving() && !_current_path.empty()) {
 			_current_path.erase(_current_path.begin());
 

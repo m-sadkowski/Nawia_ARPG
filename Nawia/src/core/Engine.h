@@ -13,11 +13,13 @@
 #include <QuestManager.h>
 #include <BossManager.h>
 #include <ResourceManager.h>
+#include <SaveGameManager.h>
 #include <Settings.h>
 #include <UIHandler.h>
 
 #include <memory>
 #include <raylib.h>
+#include <string>
 
 namespace Nawia::Core {
 
@@ -42,6 +44,7 @@ namespace Nawia::Core {
 			Menu,
 			SettingsMenu,
 			LevelSelect,
+			SaveSlotSelect,
 			Playing,
 			GameOver
 		};
@@ -77,6 +80,15 @@ namespace Nawia::Core {
 		Audio::AudioManager& getAudioManager() { return _audio_manager; }
 		Game::BossManager& getBossManager() { return _boss_manager; }
 		const Game::BossManager& getBossManager() const { return _boss_manager; }
+		Game::SaveGameManager& getSaveGameManager() { return _save_game_manager; }
+
+		/**
+		 * @brief Zapisuje stan gry do aktywnego slotu, jesli jakikolwiek jest ustawiony.
+		 *
+		 * Wywolywane np. przez checkpointy. Bez aktywnego slotu (np. po starcie
+		 * gry uruchomionej z trybu deweloperskiego) operacja jest pomijana.
+		 */
+		bool saveGameToActiveSlot();
 	private:
 		void update(float delta_time);
 		void render() const;
@@ -85,17 +97,26 @@ namespace Nawia::Core {
 		void handleGameOverInput();
 		void handleSettingsInput();
 		void handleLevelSelectInput();
+		void handleSaveSlotSelectInput();
 		void handlePlayingInput();
 		void renderWorld() const;
 		void renderGameplay() const;
 		void collectPendingSpawns();
 		void loadGameplaySounds();
 		void applySettings(const Settings& new_settings);
+		void createFreshPlayer(bool grant_starter_items);
+		void startNewGame(const std::string& level_name, int default_slot);
+		bool saveCurrentGame(int slot);
+		/**
+		 * @brief Wczytuje zapis z podanego slotu albo najnowszy zapis, gdy slot == 0.
+		 */
+		bool loadGameFromSlot(int slot);
 
 		bool _is_running = false;
 		GameState _game_state = GameState::Menu;
 		bool _show_pause_menu = false;
 		GameState _previous_state = GameState::Menu;
+		std::string _pending_new_game_level; ///< Niepusta wartosc oznacza, ze trwa flow nowej gry.
 		Settings _settings;
 
 		Audio::AudioManager _audio_manager;
@@ -112,6 +133,7 @@ namespace Nawia::Core {
 		Game::DialogueManager _dialogue_manager;
 		Game::QuestManager _quest_manager;
 		Game::BossManager _boss_manager;
+		Game::SaveGameManager _save_game_manager;
 		Vector2 _last_hover_mouse_pos = {-10000.0f, -10000.0f};
 		float _hover_update_timer = 0.0f;
 	};

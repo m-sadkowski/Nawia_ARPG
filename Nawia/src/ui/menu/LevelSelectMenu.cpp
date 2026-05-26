@@ -39,11 +39,7 @@ namespace Nawia::UI
             drawLevelCard(card_rect, _levels[i], CheckCollisionPointRec(GetMousePosition(), card_rect), ui.getFont()); 
         }
         
-        const float button_width = Core::GlobalScaling::scaled(BUTTON_WIDTH * 0.65f);
-        const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT * 0.85f);
-        const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
-        
-        const Rectangle back_button_rect = { (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height };
+        const Rectangle back_button_rect = UIHandler::getCenteredBackButtonRect(0.65f, 0.85f);
         ui.drawMenuButton(back_button_rect, LABEL_BACK, CheckCollisionPointRec(GetMousePosition(), back_button_rect) ? 1.0f : 0.0f);
     }
 
@@ -75,11 +71,7 @@ namespace Nawia::UI
             } 
         }
         
-        const float button_width = Core::GlobalScaling::scaled(BUTTON_WIDTH * 0.65f);
-        const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT * 0.85f);
-        const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
-        
-        if (CheckCollisionPointRec(mouse_pos, { (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height }))
+        if (CheckCollisionPointRec(mouse_pos, UIHandler::getCenteredBackButtonRect(0.65f, 0.85f)))
             return "BACK";
         
         return "";

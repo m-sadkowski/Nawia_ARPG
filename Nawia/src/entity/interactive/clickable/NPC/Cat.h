@@ -9,6 +9,7 @@
 namespace Nawia::Item {
 	class Backpack;
 	class Item;
+	class ItemDatabase;
 	class Loottable;
 	enum class LOOTTABLE_TYPE;
 }
@@ -56,6 +57,13 @@ namespace Nawia::Entity {
 
 		/** @brief Podmienia drzewo dialogowe kota. */
 		void setDialogue(const Game::DialogueTree& dialogue) { _dialogue_tree = dialogue; }
+		void setOpen(bool open) { _is_open = open; }
+		void setQuestCompleted(bool completed) { _quest_completed = completed; }
+		[[nodiscard]] bool isOpen() const { return _is_open; }
+		[[nodiscard]] bool isQuestCompleted() const { return _quest_completed; }
+
+		[[nodiscard]] nlohmann::json serializeState() const override;
+		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
 		using InteractiveClickable::canInteract;
 

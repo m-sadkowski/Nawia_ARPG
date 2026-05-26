@@ -97,6 +97,16 @@ namespace Nawia::Item {
         return nullptr;
     }
 
+	void Equipment::clear() {
+		for (auto& [slot, item] : _slots)
+			item = nullptr;
+
+		_models.clear();
+		modelEmpty(EquipmentSlot::Feet);
+		modelEmpty(EquipmentSlot::Legs);
+		modelEmpty(EquipmentSlot::Chest);
+	}
+
 	void Equipment::updateAnimations(const ModelAnimation& current_anim, int frame) {
 		for (auto& pair : _models) {
 			UpdateModelAnimation(*(pair.second), current_anim, frame);
@@ -113,6 +123,50 @@ namespace Nawia::Item {
 			const float draw_rotation = body_slot ? owner_logical_rotation : owner_visual_rotation;
 			DrawModelEx(*(pair.second), pos, {0, 1, 0}, draw_rotation, {scale, scale, scale}, WHITE);
 		}
+	}
+
+	nlohmann::json Equipment::serialize() const {
+		nlohmann::json result = nlohmann::json::array();
+
+		for (const auto& [slot, item] : _slots) {
+			if (!item)
+				continue;
+
+			result.push_back({
+				{"slot", slotToString(slot)},
+				{"item_id", item->getId()}
+			});
+		}
+
+		return result;
+	}
+
+	std::string Equipment::slotToString(const EquipmentSlot slot) {
+		switch (slot) {
+			case EquipmentSlot::Head: return "Head";
+			case EquipmentSlot::Neck: return "Neck";
+			case EquipmentSlot::Chest: return "Chest";
+			case EquipmentSlot::Legs: return "Legs";
+			case EquipmentSlot::Feet: return "Feet";
+			case EquipmentSlot::Weapon: return "Weapon";
+			case EquipmentSlot::OffHand: return "OffHand";
+			case EquipmentSlot::Ring: return "Ring";
+			case EquipmentSlot::None: return "None";
+		}
+
+		return "None";
+	}
+
+	EquipmentSlot Equipment::slotFromString(const std::string& slot_name) {
+		if (slot_name == "Head") return EquipmentSlot::Head;
+		if (slot_name == "Neck") return EquipmentSlot::Neck;
+		if (slot_name == "Chest") return EquipmentSlot::Chest;
+		if (slot_name == "Legs") return EquipmentSlot::Legs;
+		if (slot_name == "Feet") return EquipmentSlot::Feet;
+		if (slot_name == "Weapon") return EquipmentSlot::Weapon;
+		if (slot_name == "OffHand") return EquipmentSlot::OffHand;
+		if (slot_name == "Ring") return EquipmentSlot::Ring;
+		return EquipmentSlot::None;
 	}
 
 } // namespace Nawia::Item

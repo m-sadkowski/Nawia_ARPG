@@ -13,6 +13,10 @@ namespace Nawia::Core {
 	class Engine;
 }
 
+namespace Nawia::Item {
+	class ItemDatabase;
+}
+
 namespace Nawia::Entity {
 
 	/**
@@ -77,12 +81,14 @@ namespace Nawia::Entity {
 
 		/** @brief Zwraca aktualne wyposażenie gracza. */
 		[[nodiscard]] const Item::Equipment& getEquipment() const { return *_equipment; }
+		Item::Equipment& getEquipment() { return *_equipment; }
 
 		/** @brief Zwraca ilość złota gracza. */
 		[[nodiscard]] int getGold() const { return _gold; }
 
 		/** @brief Dodaje złoto do portfela gracza. */
 		void addGold(int amount) { _gold += amount; }
+		void setGold(int amount) { _gold = amount; }
 
 		/** @brief Próbuje wydać złoto i zwraca, czy operacja się udała. */
 		bool spendGold(int amount) {
@@ -111,9 +117,38 @@ namespace Nawia::Entity {
 
 		/** @brief Dodaje punkty doświadczenia. */
 		void addExp(int amount) { _exp += amount; }
+		void setExp(int amount) { _exp = amount; }
 
 		/** @brief Zwraca próg doświadczenia wymagany do kolejnego poziomu. */
 		[[nodiscard]] int getExpToNextLvl() const { return _exp_to_next_lvl; }
+		void setExpToNextLvl(int amount) { _exp_to_next_lvl = amount; }
+
+		[[nodiscard]] const Stats& getBaseStats() const { return _base_stats; }
+		void setBaseStats(const Stats& stats);
+		void clearItems();
+
+		/**
+		 * @brief Zapisuje globalny profil gracza (statystyki, ekwipunek, plecak).
+		 *
+		 * Profil jest dzielony miedzy lokacjami, czyli przechowywany niezaleznie
+		 * od pojedynczych zapisow lokacji.
+		 */
+		[[nodiscard]] nlohmann::json serializeProfile() const;
+
+		/**
+		 * @brief Przywraca globalny profil gracza i przelicza statystyki.
+		 */
+		void applyProfile(const nlohmann::json& data, Item::ItemDatabase& item_database);
+
+		/**
+		 * @brief Zapisuje stan gracza zwiazany z aktualna lokacja (pozycja, HP).
+		 */
+		[[nodiscard]] nlohmann::json serializeLocationView() const;
+
+		/**
+		 * @brief Przywraca stan gracza zwiazany z lokacja (pozycja, HP).
+		 */
+		void applyLocationView(const nlohmann::json& data);
 
 		/** @brief Podnosi poziom gracza i zwiększa próg doświadczenia. */
 		void levelUp();

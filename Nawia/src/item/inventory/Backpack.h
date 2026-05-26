@@ -2,10 +2,14 @@
 
 #include <Item.h>
 
+#include <json.hpp>
+
 #include <memory>
 #include <vector>
 
 namespace Nawia::Item {
+
+    class ItemDatabase;
 
     /**
      * @class Backpack
@@ -24,6 +28,12 @@ namespace Nawia::Item {
         /** @brief Usuwa przedmiot z podanego slotu. */
         void removeItem(int index);
 
+        /** @brief Ustawia zawartosc konkretnego slotu. */
+        bool setItem(int index, const std::shared_ptr<Item>& item);
+
+        /** @brief Oproznia wszystkie sloty. */
+        void clear();
+
         /** @brief Zwraca przedmiot z indeksu albo nullptr. */
         [[nodiscard]] std::shared_ptr<Item> getItem(int index) const;
 
@@ -35,6 +45,12 @@ namespace Nawia::Item {
 
         /** @brief Zwraca liczbe pustych slotow. */
         [[nodiscard]] int getRemainingCapacity() const;
+
+        /** @brief Zapisuje zawartosc plecaka do JSON-a. */
+        [[nodiscard]] nlohmann::json serialize() const;
+
+        /** @brief Wypelnia plecak na podstawie JSON-a, uzywajac fabryki przedmiotow. */
+        void applyJson(const nlohmann::json& data, ItemDatabase& item_database);
 
     private:
         int _capacity;

@@ -10,6 +10,10 @@ namespace Nawia::Core {
 	class Map;
 }
 
+namespace Nawia::Item {
+	class ItemDatabase;
+}
+
 namespace Nawia::World {
 
 	/**
@@ -64,7 +68,26 @@ namespace Nawia::World {
 		 */
 		void addSpawnPoint(const SpawnPoint& sp);
 
+		[[nodiscard]] const std::vector<SpawnPoint>& getSpawnPoints() const { return _spawn_points; }
+
+		/**
+		 * @brief Zapisuje stan spawnow nalezacych do podanej lokacji.
+		 */
+		[[nodiscard]] nlohmann::json serializeLocation(const std::string& location_name) const;
+
+		/**
+		 * @brief Przywraca stan spawnow lokacji, dopasowujac je po indeksie albo stabilnym ID.
+		 */
+		void applyLocation(
+			const std::string& location_name,
+			const nlohmann::json& location_state,
+			Item::ItemDatabase& item_database);
+
 	private:
+		[[nodiscard]] static std::string makeStableId(const SpawnPoint& spawn_point, size_t index);
+		[[nodiscard]] static nlohmann::json serializeSpawn(const SpawnPoint& spawn_point, size_t index);
+		void applySpawn(SpawnPoint& spawn_point, const nlohmann::json& state, Item::ItemDatabase& item_database);
+
 		std::vector<SpawnPoint> _spawn_points;
 	};
 
