@@ -25,6 +25,21 @@ namespace Nawia::Core {
 
 		std::shared_ptr<Texture2D> getTexture(const std::string& filename);
 		Model* getModel(const std::string& path);
+
+		/**
+		 * @brief Klonuje model z cache'u — nowe bufory mesh (wlasne VBO),
+		 *        wspoldzielone tekstury GPU. ~100x szybsze niz LoadModel z dysku.
+		 *
+		 * Zwracany Model nalezy zwolnic przez unloadClonedModel(), NIE UnloadModel().
+		 * @return Model z wlasnymi buforami siatki, albo pusty Model jesli brak w cache.
+		 */
+		Model cloneModel(const std::string& path);
+
+		/**
+		 * @brief Zwalnia sklonowany model: meshe i kosciowy, ale NIE tekstury.
+		 */
+		static void unloadClonedModel(Model& model);
+
 		void clear();
 
 	private:

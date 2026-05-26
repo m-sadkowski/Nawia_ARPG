@@ -1,5 +1,7 @@
 #pragma once
 
+#include <json.hpp>
+
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -53,6 +55,16 @@ namespace Nawia::Game {
 		 * @param slot Numer slotu (1..N) albo 0, aby uzyc najnowszego zapisu.
 		 */
 		bool loadGame(Core::Engine& engine, int slot);
+
+		/**
+		 * @brief Odczytuje JSON zapisu bez ladowania poziomu (do ekranu ladowania).
+		 */
+		bool tryReadSave(int slot, nlohmann::json& out_data, int& resolved_slot) const;
+
+		/**
+		 * @brief Stosuje stan zapisu po zaladowaniu poziomu i zasobow.
+		 */
+		void applySaveState(Core::Engine& engine, const nlohmann::json& save_state, int slot);
 
 	private:
 		[[nodiscard]] static std::filesystem::path getSaveRoot();

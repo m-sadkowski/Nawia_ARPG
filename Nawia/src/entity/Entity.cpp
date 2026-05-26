@@ -2,6 +2,7 @@
 #include <Ability.h>
 #include <AudioManager.h>
 #include <Collider.h>
+#include <ResourceManager.h>
 
 #include <Logger.h>
 #include <MathUtils.h>
@@ -54,6 +55,7 @@ namespace {
 namespace Nawia::Entity {
 
 namespace {
+	Core::ResourceManager* g_shared_resource_manager = nullptr;
 	std::map<std::string, std::shared_ptr<const AnimationBundle>> g_animation_cache;
 
 	std::shared_ptr<const AnimationBundle> getCachedAnimationBundle(const std::string& path)
@@ -124,12 +126,17 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_animation_map.clear();
 		_animation_path_map.clear();
 
-		if (_model_loaded && _owns_model)
-			UnloadModel(_model);
+		if (_model_loaded && _owns_model) {
+			if (_cloned_model)
+				Core::ResourceManager::unloadClonedModel(_model);
+			else
+				UnloadModel(_model);
+		}
 
 		_model = {};
 		_model_loaded = false;
 		_owns_model = false;
+		_cloned_model = false;
 		_local_model_bounding_box = {};
 		_local_model_bounding_box_valid = false;
 		_current_anim_index = 0;
@@ -143,22 +150,58 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_anim_direction = 1.0f;
 	}
 
+	void Entity::setSharedResourceManager(Core::ResourceManager* manager) {
+		g_shared_resource_manager = manager;
+	}
+
+	Core::ResourceManager* Entity::getSharedResourceManager() {
+		return g_shared_resource_manager;
+	}
+
 	void Entity::loadModel(const std::string& path, const bool rotate_model)
 	{
 		unloadModelData();
 
+		// Klonowanie modelu z cache'u ResourceManagera: kopiujemy bufory mesh
+		// w pamieci RAM i uploadujemy do nowych VBO na GPU. Jest to ~100x
+		// szybsze niz LoadModel z dysku, a kazda encja dostaje wlasne bufory,
+		// wiec UpdateModelAnimation nie powoduje migotania.
+		if (g_shared_resource_manager) {
+			Model cloned = g_shared_resource_manager->cloneModel(path);
+			if (cloned.meshCount > 0) {
+				if (rotate_model)
+					cloned.transform = MatrixRotateX(-PI / 2.0f);
+
+				_model = cloned;
+				_model_loaded = true;
+				_owns_model = true;
+				_cloned_model = true;
+				_local_model_bounding_box = GetModelBoundingBox(_model);
+				_local_model_bounding_box_valid = true;
+				_last_applied_anim_index = -1;
+				_last_applied_anim_frame = -1;
+				addAnimation("default", path);
+				return;
+			}
+		}
+
+		// Fallback: ladowanie z dysku jesli cache jest pusty.
 		replaceModel(path, rotate_model);
 		if (!_model_loaded)
 			return;
 
-		// Plik modelu traktujemy teĹĽ jako domyĹ›lne ĹşrĂłdĹ‚o animacji.
 		addAnimation("default", path);
 	}
 
 	void Entity::replaceModel(const std::string& path, const bool rotate_model)
 	{
-		if (_model_loaded && _owns_model)
-			UnloadModel(_model);
+		if (_model_loaded && _owns_model) {
+			if (_cloned_model)
+				Core::ResourceManager::unloadClonedModel(_model);
+			else
+				UnloadModel(_model);
+		}
+		_cloned_model = false;
 
 		_model = LoadModel(path.c_str());
 		if (_model.meshCount == 0)

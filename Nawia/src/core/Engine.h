@@ -17,6 +17,10 @@
 #include <Settings.h>
 #include <UIHandler.h>
 
+#include <AssetLoadManifest.h>
+
+#include <json.hpp>
+
 #include <memory>
 #include <raylib.h>
 #include <string>
@@ -41,6 +45,7 @@ namespace Nawia::Core {
 		 * @brief Ekran albo tryb, w ktorym aktualnie znajduje sie gra.
 		 */
 		enum class GameState {
+			Loading,
 			Menu,
 			SettingsMenu,
 			LevelSelect,
@@ -64,7 +69,7 @@ namespace Nawia::Core {
 		/** @brief Dodaje encje utworzona przez gameplay, np. efekt umiejetnosci. */
 		void spawnEntity(std::shared_ptr<Entity::Entity> new_entity) const;
 
-		UI::UIHandler& getUIHandler() const { return *_ui_handler; }
+		UI::UIHandler& getUIHandler() const;
 		[[nodiscard]] bool isPaused() const { return _show_pause_menu || _game_state != GameState::Playing; }
 		Map* getCurrentMap() const;
 		Item::ItemDatabase& getItemDatabase() { return _item_database; }
@@ -112,8 +117,33 @@ namespace Nawia::Core {
 		 */
 		bool loadGameFromSlot(int slot);
 
+		void processLoading();
+		void finishStartupLoading();
+		void finishLevelLoading();
+		void queueLevelLoad(
+			const std::string& level_name,
+			const std::string& initial_location,
+			bool is_new_game,
+			int default_slot
+		);
+		enum class LoadingKind { None, Startup, Level };
+
+		LoadingKind _loading_kind = LoadingKind::Startup;
+		AssetLoadManifest _loading_manifest;
+		size_t _loading_asset_index = 0;
+		float _loading_progress = 0.0f;
+		std::string _loading_status;
+		std::string _loading_title;
+		std::string _pending_level_name;
+		std::string _pending_initial_location;
+		bool _pending_is_new_game = false;
+		int _pending_new_game_slot = 0;
+		bool _has_pending_save = false;
+		nlohmann::json _pending_save_state;
+		int _pending_save_slot = 0;
+
 		bool _is_running = false;
-		GameState _game_state = GameState::Menu;
+		GameState _game_state = GameState::Loading;
 		bool _show_pause_menu = false;
 		GameState _previous_state = GameState::Menu;
 		std::string _pending_new_game_level; ///< Niepusta wartosc oznacza, ze trwa flow nowej gry.

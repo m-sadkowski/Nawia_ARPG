@@ -25,6 +25,10 @@ namespace Nawia::Audio {
 	class AudioManager;
 }
 
+namespace Nawia::Core {
+	class ResourceManager;
+}
+
 namespace Nawia::Entity {
 
 	/**
@@ -222,6 +226,13 @@ namespace Nawia::Entity {
 		 * @brief Wczytuje dane animacji do wspolnego cache bez tworzenia encji.
 		 */
 		static void preloadAnimationData(const std::string& path);
+
+		/**
+		 * @brief Ustawia manager zasobow uzywany przez loadModel do wspoldzielenia meshy.
+		 */
+		static void setSharedResourceManager(Core::ResourceManager* manager);
+
+		[[nodiscard]] static Core::ResourceManager* getSharedResourceManager();
 
 		/**
 		 * @brief Odtwarza zarejestrowaną animację.
@@ -439,6 +450,7 @@ namespace Nawia::Entity {
 		float _model_facing_offset = 90.0f; ///< Offset modelu względem kierunku matematycznego.
 		bool _model_loaded = false;
 		bool _owns_model = false;
+		bool _cloned_model = false; ///< Model pochodzi z cloneModel — nie zwalniaj tekstur.
 		BoundingBox _local_model_bounding_box = {};
 		bool _local_model_bounding_box_valid = false;
 		bool _anim_looping = true;
