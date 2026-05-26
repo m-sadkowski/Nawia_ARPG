@@ -1,6 +1,8 @@
 #include "Level.h"
 
+#include <AssetLoadManifest.h>
 #include <Engine.h>
+#include <Entity.h>
 #include <LocationJsonLoader.h>
 #include <Logger.h>
 #include <Map.h>
@@ -76,28 +78,16 @@ namespace Nawia::World {
 		return locations.empty() ? "" : locations[0];
 	}
 
-	void Level::loadLocations(
-		Core::Engine* engine,
-		const std::vector<LevelLocationFile>& location_files,
+	void Level::setPreparedLocationDefinitions(
+		std::vector<LocationDefinition> definitions,
 		const std::string& initial_location
 	) {
-		_location_definitions.clear();
+		_location_definitions = std::move(definitions);
 		_uses_location_files = true;
 		_current_location_index = 0;
 
-		for (const auto& location_file : location_files) {
-			LocationDefinition definition;
-			if (!LocationJsonLoader::loadLocation(location_file.path, definition))
-				continue;
-
-			if (!location_file.name.empty())
-				definition.name = location_file.name;
-
-			_location_definitions.push_back(std::move(definition));
-		}
-
 		if (_location_definitions.empty()) {
-			Core::Logger::errorLog("Level: nie udalo sie wczytac zadnej lokacji z JSON");
+			Core::Logger::errorLog("Level: brak przygotowanych definicji lokacji");
 			return;
 		}
 
@@ -111,10 +101,26 @@ namespace Nawia::World {
 			else
 				Core::Logger::errorLog("Level: nie znaleziono lokacji startowej " + initial_location);
 		}
+	}
+
+	void Level::activatePreparedLocations(Core::Engine* engine) {
+		if (!engine || _location_definitions.empty())
+			return;
 
 		preloadLocationMapModels();
 		loadLocationDefinition(engine, _current_location_index, true, false);
 		rebuildLocationEntityPool(engine);
+	}
+
+	void Level::loadLocations(
+		Core::Engine* engine,
+		const std::vector<LevelLocationFile>& location_files,
+		const std::string& initial_location
+	) {
+		std::vector<LocationDefinition> definitions;
+		Core::AssetLoadManifest::buildForLocationFiles(location_files, definitions);
+		setPreparedLocationDefinitions(std::move(definitions), initial_location);
+		activatePreparedLocations(engine);
 	}
 
 	bool Level::loadLocationDefinition(
@@ -189,6 +195,8 @@ namespace Nawia::World {
 	void Level::rebuildLocationEntityPool(Core::Engine* engine) {
 		if (!engine || !_map || _location_definitions.empty())
 			return;
+
+		Entity::Entity::setSharedResourceManager(&engine->getResourceManager());
 
 		std::vector<nlohmann::json> entities;
 

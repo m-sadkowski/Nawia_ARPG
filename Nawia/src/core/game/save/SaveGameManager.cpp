@@ -289,31 +289,21 @@ namespace Nawia::Game {
 		return true;
 	}
 
-	bool SaveGameManager::loadGame(Core::Engine& engine, const int slot) {
-		const int target_slot = slot == 0 ? findLatestSlot() : slot;
-		if (!isValidSlot(target_slot))
+	bool SaveGameManager::tryReadSave(const int slot, json& out_data, int& resolved_slot) const {
+		resolved_slot = slot == 0 ? findLatestSlot() : slot;
+		if (!isValidSlot(resolved_slot))
 			return false;
 
-		json save_state;
-		if (!readJsonFile(getSlotFilePath(target_slot), save_state))
-			return false;
+		return readJsonFile(getSlotFilePath(resolved_slot), out_data);
+	}
 
-		const std::string current_level_name = save_state.value("current_level", "");
+	void SaveGameManager::applySaveState(Core::Engine& engine, const json& save_state, const int slot) {
 		const std::string current_location_name = save_state.value("current_location", "");
-		if (current_level_name.empty())
-			return false;
-
-		// Resetujemy systemy zalezne od poziomu, zeby uniknac mieszania stanow.
-		engine.getBossManager().resetRuntimeState(&engine);
-		engine.getBossManager().clearDefeatedBosses();
-		engine.getQuestManager().resetAll();
 
 		if (const auto player = engine.getPlayer()) {
 			if (save_state.contains("player"))
 				player->applyProfile(save_state["player"], engine.getItemDatabase());
 		}
-
-		engine.getLevelManager().changeLevel(current_level_name, &engine);
 
 		if (!current_location_name.empty()) {
 			if (auto current_level = engine.getLevelManager().getCurrentLevel()) {
@@ -340,7 +330,25 @@ namespace Nawia::Game {
 		if (save_state.contains("locations"))
 			applyLocations(engine, save_state["locations"]);
 
-		_active_slot = target_slot;
+		_active_slot = slot;
+	}
+
+	bool SaveGameManager::loadGame(Core::Engine& engine, const int slot) {
+		json save_state;
+		int resolved_slot = 0;
+		if (!tryReadSave(slot, save_state, resolved_slot))
+			return false;
+
+		const std::string current_level_name = save_state.value("current_level", "");
+		if (current_level_name.empty())
+			return false;
+
+		engine.getBossManager().resetRuntimeState(&engine);
+		engine.getBossManager().clearDefeatedBosses();
+		engine.getQuestManager().resetAll();
+
+		engine.getLevelManager().changeLevel(current_level_name, &engine);
+		applySaveState(engine, save_state, resolved_slot);
 		return true;
 	}
 

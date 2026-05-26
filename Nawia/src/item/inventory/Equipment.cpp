@@ -113,15 +113,14 @@ namespace Nawia::Item {
 		}
 	}
 
-	void Equipment::draw(const Vector3 pos, const float owner_visual_rotation, const float owner_logical_rotation,
+	void Equipment::draw(const Vector3 pos, const float owner_visual_rotation, const float /*owner_logical_rotation*/,
 						 const float scale) {
+		// Wszystkie elementy ekwipunku rysowane sa z ta sama rotacja co model wlasciciela.
+		// Entity::render uzywa visual_rotation (_rotation + _model_facing_offset), wiec
+		// ubrania musza uzywac dokladnie tej samej wartosci, aby nie rozjezdzaly sie
+		// z modelem postaci.
 		for (auto& pair : _models) {
-			const bool body_slot = pair.first == EquipmentSlot::Head
-				|| pair.first == EquipmentSlot::Chest
-				|| pair.first == EquipmentSlot::Legs
-				|| pair.first == EquipmentSlot::Feet;
-			const float draw_rotation = body_slot ? owner_logical_rotation : owner_visual_rotation;
-			DrawModelEx(*(pair.second), pos, {0, 1, 0}, draw_rotation, {scale, scale, scale}, WHITE);
+			DrawModelEx(*(pair.second), pos, {0, 1, 0}, owner_visual_rotation, {scale, scale, scale}, WHITE);
 		}
 	}
 

@@ -68,6 +68,11 @@ namespace Nawia::World {
         [[nodiscard]] Level* getCurrentLevel() const;
 
         /**
+         * @brief Zwraca zarejestrowany poziom po nazwie (bez aktywacji).
+         */
+        [[nodiscard]] std::shared_ptr<Level> getRegisteredLevel(const std::string& name) const;
+
+        /**
          * @brief Zwraca nazwe aktywnego poziomu.
          */
         [[nodiscard]] std::string getCurrentLevelName() const;

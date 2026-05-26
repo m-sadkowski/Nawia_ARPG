@@ -19,11 +19,15 @@ namespace Nawia::World {
 		};
 	}
 
+	std::vector<LevelLocationFile> DemoLevel::getLocationFiles() const {
+		return DEMO_LOCATIONS;
+	}
+
 	void DemoLevel::onEnter(Core::Engine* engine) {
 		Core::Logger::debugLog("Ladowanie poziomu Demo...");
 
 		engine->getLightingSystem().loadLightingFromJson(DEMO_LIGHTING_FILE);
-		loadLocations(engine, DEMO_LOCATIONS, "Diabelski Las");
+		activatePreparedLocations(engine);
 		playLocationMusic(engine, getCurrentLocationName());
 	}
 

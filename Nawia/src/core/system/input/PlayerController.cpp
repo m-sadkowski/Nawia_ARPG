@@ -325,7 +325,11 @@ namespace Nawia::Core {
 		_player->rotateTowards(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		_player->stop();
 		useAbility(auto_attack_index, _target_enemy->getCenter().x, _target_enemy->getCenter().y);
-		_target_enemy = nullptr;
+		// Cel zostaje, zeby kontynuowac auto-atak: gdy wrog ucieknie z zasiegu,
+		// nastepna iteracja updateCombatMovement pchnie gracza za nim, a kiedy
+		// auto-atak skonczy cooldown i animacje - znowu wystrzeli. Target jest
+		// czyszczony naturalnie, gdy wrog umrze (isValidEnemyTarget) lub gdy
+		// gracz klika ziemie/innego przeciwnika.
 	}
 
 	void PlayerController::updatePathMovement() {

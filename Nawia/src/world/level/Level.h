@@ -71,6 +71,29 @@ namespace Nawia::World {
         [[nodiscard]] virtual std::vector<std::string> getLocations() const;
 
         /**
+         * @brief Zwraca pliki lokacji uzywane przy ladowaniu poziomu (puste = brak JSON).
+         */
+        [[nodiscard]] virtual std::vector<LevelLocationFile> getLocationFiles() const { return {}; }
+
+        /**
+         * @brief Domyslna lokacja startowa dla poziomu opartego o pliki JSON.
+         */
+        [[nodiscard]] virtual std::string getDefaultInitialLocation() const { return ""; }
+
+        /**
+         * @brief Ustawia wczytane definicje lokacji przed aktywacja mapy i encji.
+         */
+        void setPreparedLocationDefinitions(
+            std::vector<LocationDefinition> definitions,
+            const std::string& initial_location = ""
+        );
+
+        /**
+         * @brief Aktywuje przygotowane lokacje: mapa, navmesh, pula encji.
+         */
+        void activatePreparedLocations(Core::Engine* engine);
+
+        /**
          * @brief Zwraca, czy poziom uczestniczy w systemie zapisu i wczytywania.
          *
          * Standardowe poziomy fabularne zwracaja `true`; specjalne tryby (np.

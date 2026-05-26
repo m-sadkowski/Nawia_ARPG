@@ -53,6 +53,14 @@ namespace Nawia::World {
 		return _current_level.get();
 	}
 
+	std::shared_ptr<Level> LevelManager::getRegisteredLevel(const std::string& name) const {
+		const auto level_it = _levels.find(name);
+		if (level_it == _levels.end())
+			return nullptr;
+
+		return level_it->second;
+	}
+
 	std::string LevelManager::getCurrentLevelName() const {
 		return _current_level ? _current_level->getName() : "";
 	}

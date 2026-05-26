@@ -1,6 +1,8 @@
 #include "Engine.h"
 
+#include <AssetPreloader.h>
 #include <GlobalScaling.h>
+#include <LoadingScreen.h>
 #include <Logger.h>
 #include <MathUtils.h>
 #include <PlayerController.h>
@@ -32,85 +34,6 @@ namespace Nawia::Core {
 		constexpr float k_hover_update_interval = 0.05f;
 		constexpr float k_hover_mouse_move_threshold_sq = 1.0f;
 
-		void preloadCommonAnimationData() {
-			for (const char* path : {
-				"assets/models/animations/anims.glb",
-				"assets/models/animations/anims2.glb",
-				"assets/models/player/player_head.glb",
-				"assets/models/cat_bounce.glb",
-				"assets/models/fireball.glb",
-				"assets/models/knife.glb",
-				"assets/models/bandit_idle.glb",
-				"assets/models/bandit_walk_backwards3.glb",
-				"assets/models/bandit_throw.glb",
-				"assets/models/bandit_death.glb",
-				"assets/models/walking_dead_idle.glb",
-				"assets/models/walking_dead_walk.glb",
-				"assets/models/walking_dead_run.glb",
-				"assets/models/walking_dead_attack.glb",
-				"assets/models/walking_dead_death.glb",
-				"assets/models/walking_dead_scream.glb",
-				"assets/models/walking_dead_hit.glb",
-				"assets/models/devil_idle.glb",
-				"assets/models/devil_walk.glb",
-				"assets/models/devil_run.glb",
-				"assets/models/devil_attack.glb",
-				"assets/models/devil_dead.glb",
-				"assets/models/player_idle.glb",
-				"assets/models/player_walk.glb",
-				"assets/models/player_auto_attack.glb",
-				"assets/models/player_knocked.glb",
-				"assets/models/dummy_idle.glb",
-				"assets/models/dummy_walk.glb",
-				"assets/models/dummy_cast_fireball.glb",
-				"assets/models/dummy_death.glb"
-			}) {
-				Entity::Entity::preloadAnimationData(path);
-			}
-		}
-
-		void preloadCommonModelData(ResourceManager& resource_manager) {
-			for (const char* path : {
-				"assets/models/fireball.glb",
-				"assets/models/knife.glb"
-			}) {
-				resource_manager.getModel(path);
-			}
-		}
-
-		void preloadLocationMapData() {
-			const std::filesystem::path locations_dir = "assets/data/locations";
-			if (!std::filesystem::exists(locations_dir))
-				return;
-
-			for (const auto& entry : std::filesystem::directory_iterator(locations_dir)) {
-				if (!entry.is_regular_file() || entry.path().extension() != ".json")
-					continue;
-
-				const std::string filename = entry.path().filename().generic_string();
-				if (filename.rfind("objects_", 0) == 0)
-					continue;
-
-				std::ifstream file(entry.path());
-				if (!file.is_open())
-					continue;
-
-				nlohmann::json data;
-				try {
-					file >> data;
-				} catch (const nlohmann::json::parse_error&) {
-					continue;
-				}
-
-				if (!data.contains("map") || !data["map"].is_object())
-					continue;
-
-				const std::string model = data["map"].value("model", "");
-				if (!model.empty() && model != "placeholder")
-					Map::preloadMapModel(model);
-			}
-		}
-
 	}
 
 	Engine::Engine() {
@@ -131,34 +54,27 @@ namespace Nawia::Core {
 		_audio_manager.setMusicVolume(_settings.music_volume);
 		_audio_manager.setEffectsVolume(_settings.effects_volume);
 		loadGameplaySounds();
-		preloadCommonAnimationData();
-		preloadCommonModelData(_resource_manager);
-		preloadLocationMapData();
-
-		_audio_manager.playMusic(MENU_MUSIC_PATH, true, 1.f);
 
 		GlobalScaling::setManualScale(_settings.ui_scale);
 
-		_item_database.loadDatabase("assets/data/items.json", _resource_manager);
-		Logger::debugLog("Zaladowano baze danych przedmiotow");
-
-		_loottable.loadLootTables("assets/data/loottables.json", _item_database);
-		_quest_manager.loadFromJson("assets/data/quests.json");
-		_boss_manager.loadFromJson("assets/data/bosses.json");
-
 		_entity_manager = std::make_unique<EntityManager>(this);
-		createFreshPlayer(true);
-
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
 
-		_ui_handler = std::make_unique<UI::UIHandler>();
-		_ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
-		_ui_handler->setLevelManager(_level_manager.get());
-		_ui_handler->setSaveGameManager(&_save_game_manager);
+		_loading_kind = LoadingKind::Startup;
+		_loading_manifest = AssetLoadManifest::buildStartupManifest();
+		_loading_asset_index = 0;
+		_loading_progress = 0.0f;
+		_loading_status = "Przygotowywanie...";
+		_loading_title = "Ladowanie gry";
+		_game_state = GameState::Loading;
 
 		_is_running = true;
+	}
+
+	UI::UIHandler& Engine::getUIHandler() const {
+		return *_ui_handler;
 	}
 
 	Engine::~Engine() {
@@ -175,6 +91,7 @@ namespace Nawia::Core {
 		_item_database.clear();
 		Map::clearPreloadedMapModels();
 		_resource_manager.clear();
+		UI::LoadingScreen::unload();
 
 		CloseWindow();
 	}
@@ -197,6 +114,118 @@ namespace Nawia::Core {
 			return _level_manager->getCurrentLevel()->getMap();
 
 		return nullptr;
+	}
+
+	void Engine::processLoading() {
+		if (_loading_kind == LoadingKind::None)
+			return;
+
+		const size_t total_assets = _loading_manifest.size();
+		if (_loading_asset_index < total_assets) {
+			const auto& entry = _loading_manifest.entries()[_loading_asset_index];
+			AssetPreloader::loadManifestStep(_loading_manifest, _loading_asset_index, _resource_manager);
+			_loading_asset_index++;
+			_loading_progress = static_cast<float>(_loading_asset_index) / static_cast<float>(total_assets);
+			_loading_status = entry.label;
+			return;
+		}
+
+		if (_loading_kind == LoadingKind::Startup) {
+			finishStartupLoading();
+			return;
+		}
+
+		if (_loading_kind == LoadingKind::Level) {
+			finishLevelLoading();
+		}
+	}
+
+	void Engine::finishStartupLoading() {
+		_loading_status = "Inicjalizacja systemow...";
+		_loading_progress = 1.0f;
+
+		_item_database.loadDatabase("assets/data/items.json", _resource_manager);
+		Logger::debugLog("Zaladowano baze danych przedmiotow");
+
+		_loottable.loadLootTables("assets/data/loottables.json", _item_database);
+		_quest_manager.loadFromJson("assets/data/quests.json");
+		_boss_manager.loadFromJson("assets/data/bosses.json");
+
+		Entity::Entity::setSharedResourceManager(&_resource_manager);
+		createFreshPlayer(true);
+
+		_ui_handler = std::make_unique<UI::UIHandler>();
+		_ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
+		_ui_handler->setLevelManager(_level_manager.get());
+		_ui_handler->setSaveGameManager(&_save_game_manager);
+
+		_audio_manager.playMusic(MENU_MUSIC_PATH, true, 1.f);
+
+		_loading_kind = LoadingKind::None;
+		_game_state = GameState::Menu;
+	}
+
+	void Engine::queueLevelLoad(
+		const std::string& level_name,
+		const std::string& initial_location,
+		const bool is_new_game,
+		const int default_slot
+	) {
+		const std::string resolved_level = level_name.empty() ? "Demo" : level_name;
+		_pending_level_name = resolved_level;
+		_pending_initial_location = initial_location;
+		_pending_is_new_game = is_new_game;
+		_pending_new_game_slot = default_slot;
+
+		_loading_kind = LoadingKind::Level;
+		_loading_asset_index = 0;
+		_loading_progress = 0.0f;
+		_loading_title = "Ladowanie poziomu";
+		_loading_status = "Przygotowywanie listy zasobow...";
+		_game_state = GameState::Loading;
+
+		const auto level = _level_manager->getRegisteredLevel(resolved_level);
+		std::vector<World::LocationDefinition> definitions;
+		if (level && !level->getLocationFiles().empty()) {
+			const std::string start_location = initial_location.empty()
+				? level->getDefaultInitialLocation()
+				: initial_location;
+			_loading_manifest = AssetLoadManifest::buildForLocationFiles(level->getLocationFiles(), definitions);
+			level->setPreparedLocationDefinitions(std::move(definitions), start_location);
+		} else {
+			_loading_manifest = {};
+		}
+	}
+
+	void Engine::finishLevelLoading() {
+		_loading_status = "Budowanie swiata...";
+		_loading_progress = 1.0f;
+
+		Entity::Entity::setSharedResourceManager(&_resource_manager);
+		_audio_manager.stopMusic();
+		_level_manager->changeLevel(_pending_level_name, this);
+
+		if (_has_pending_save) {
+			_save_game_manager.applySaveState(*this, _pending_save_state, _pending_save_slot);
+			_has_pending_save = false;
+			_pending_save_state = {};
+			_game_state = GameState::Playing;
+			if (_ui_handler) {
+				_ui_handler->onLevelLoaded();
+				_ui_handler->showNotification("Gra wczytana.", 3.0f);
+			}
+		} else {
+			_game_state = GameState::Playing;
+			if (_ui_handler)
+				_ui_handler->onLevelLoaded();
+
+			if (_pending_is_new_game && _pending_new_game_slot > 0)
+				saveCurrentGame(_pending_new_game_slot);
+		}
+
+		_loading_kind = LoadingKind::None;
+		_pending_is_new_game = false;
+		_pending_new_game_slot = 0;
 	}
 
 	void Engine::createFreshPlayer(const bool grant_starter_items) {
@@ -408,20 +437,15 @@ namespace Nawia::Core {
 		_save_game_manager.clearActiveSlot();
 		_show_pause_menu = false;
 		_previous_state = GameState::Menu;
+		_has_pending_save = false;
+		_pending_save_state = {};
 
 		_boss_manager.resetRuntimeState(this);
 		_boss_manager.clearDefeatedBosses();
 		_quest_manager.resetAll();
 		createFreshPlayer(true);
 
-		_audio_manager.stopMusic();
-		_level_manager->changeLevel(level_name.empty() ? "Demo" : level_name, this);
-		_game_state = GameState::Playing;
-		_ui_handler->onLevelLoaded();
-
-		// Zapis tuz po zaladowaniu swiata, zeby checkpointy znaly slot docelowy.
-		if (default_slot > 0)
-			saveCurrentGame(default_slot);
+		queueLevelLoad(level_name, "", true, default_slot);
 	}
 
 	bool Engine::saveCurrentGame(const int slot) {
@@ -441,28 +465,40 @@ namespace Nawia::Core {
 	}
 
 	bool Engine::loadGameFromSlot(const int slot) {
-		// `slot == 0` oznacza najnowszy zapis. Zanim podejmiemy proby wczytania,
-		// upewniamy sie, ze ten slot w ogole istnieje.
 		if (slot == 0 && !_save_game_manager.hasAnySave()) {
 			if (_ui_handler)
 				_ui_handler->showNotification("Brak zapisu do wczytania.", 3.0f);
 			return false;
 		}
 
-		createFreshPlayer(false);
-		const bool loaded = _save_game_manager.loadGame(*this, slot);
-		if (!loaded) {
+		nlohmann::json save_state;
+		int resolved_slot = 0;
+		if (!_save_game_manager.tryReadSave(slot, save_state, resolved_slot)) {
+			if (_ui_handler)
+				_ui_handler->showNotification("Nie udalo sie wczytac zapisu.", 3.0f);
+			return false;
+		}
+
+		const std::string current_level_name = save_state.value("current_level", "");
+		if (current_level_name.empty()) {
 			if (_ui_handler)
 				_ui_handler->showNotification("Nie udalo sie wczytac zapisu.", 3.0f);
 			return false;
 		}
 
 		_show_pause_menu = false;
-		_game_state = GameState::Playing;
-		if (_ui_handler) {
-			_ui_handler->onLevelLoaded();
-			_ui_handler->showNotification("Gra wczytana.", 3.0f);
-		}
+		_previous_state = GameState::Menu;
+		_has_pending_save = true;
+		_pending_save_state = std::move(save_state);
+		_pending_save_slot = resolved_slot;
+
+		_boss_manager.resetRuntimeState(this);
+		_boss_manager.clearDefeatedBosses();
+		_quest_manager.resetAll();
+		createFreshPlayer(false);
+
+		const std::string initial_location = _pending_save_state.value("current_location", "");
+		queueLevelLoad(current_level_name, initial_location, false, 0);
 		return true;
 	}
 
@@ -552,6 +588,11 @@ namespace Nawia::Core {
 	void Engine::update(const float delta_time) {
 		_audio_manager.update();
 
+		if (_game_state == GameState::Loading) {
+			processLoading();
+			return;
+		}
+
 		if (_game_state == GameState::Menu ||
 			_game_state == GameState::SettingsMenu ||
 			_game_state == GameState::LevelSelect ||
@@ -622,6 +663,12 @@ namespace Nawia::Core {
 	void Engine::render() const {
 		BeginDrawing();
 		ClearBackground(Color{30, 30, 35, 255});
+
+		if (_game_state == GameState::Loading) {
+			UI::LoadingScreen::render(_loading_progress, _loading_status, _loading_title);
+			EndDrawing();
+			return;
+		}
 
 		if (_game_state == GameState::Menu && _ui_handler) {
 			_ui_handler->renderMainMenu();
