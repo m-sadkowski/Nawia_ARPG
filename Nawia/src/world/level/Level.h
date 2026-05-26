@@ -71,6 +71,14 @@ namespace Nawia::World {
         [[nodiscard]] virtual std::vector<std::string> getLocations() const;
 
         /**
+         * @brief Zwraca, czy poziom uczestniczy w systemie zapisu i wczytywania.
+         *
+         * Standardowe poziomy fabularne zwracaja `true`; specjalne tryby (np.
+         * kreator leveli) moga wylaczyc zapisy w calym swoim cyklu zycia.
+         */
+        [[nodiscard]] virtual bool allowsSaves() const { return true; }
+
+        /**
          * @brief Zwraca manager spawnow poziomu.
          */
         [[nodiscard]] SpawnManager& getSpawnManager() { return _spawn_manager; }

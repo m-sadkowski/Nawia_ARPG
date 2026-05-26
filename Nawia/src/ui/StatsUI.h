@@ -19,6 +19,7 @@ namespace Nawia::UI {
 
         /** @brief Laduje tlo panelu statystyk. */
         void loadResources(Core::ResourceManager& resource_manager);
+        void setPlayer(const std::shared_ptr<Entity::Player>& player) { _player = player; }
 
         /** @brief Rysuje panel statystyk gracza. */
         void render(float x, float y, const Font& font) const;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <json.hpp>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -72,6 +74,22 @@ namespace Nawia::Game {
     };
 
     /**
+     * @brief Runtime'owy stan aktywnej walki, zapisywany per lokacja.
+     */
+    struct BossRuntimeState {
+        bool active = false;
+        std::string boss_id;
+        int current_phase_index = 0;
+        float fight_timer = 0.0f;
+        int saved_hp = 0;
+        int max_hp = 0;
+        Vector2 position = {0.0f, 0.0f};
+        float altitude = 0.0f;
+        Vector2 spawn_position = {0.0f, 0.0f};
+        float spawn_altitude = 0.0f;
+    };
+
+    /**
      * @class BossManager
      * @brief Zarzadza definicjami bossow, cyklem walki, fazami i nagrodami.
      *
@@ -99,6 +117,7 @@ namespace Nawia::Game {
          * @brief Czyści preloadowane pule bossow i minionow.
          */
         void clearPreloadedBosses();
+        void resetRuntimeState(Core::Engine* engine);
 
         /**
          * @brief Aktualizuje stan walki: timer, smierc bossa, fazy.
@@ -138,6 +157,17 @@ namespace Nawia::Game {
         [[nodiscard]] int getCurrentPhaseIndex() const { return _current_phase_index; }
         [[nodiscard]] float getFightTimer() const { return _fight_timer; }
         [[nodiscard]] bool isBossDefeated(const std::string& boss_id) const { return _defeated_bosses.count(boss_id) > 0; }
+        [[nodiscard]] std::vector<std::string> getDefeatedBossIds() const;
+        void setDefeatedBossIds(const std::vector<std::string>& boss_ids);
+        void clearDefeatedBosses() { _defeated_bosses.clear(); }
+        [[nodiscard]] BossRuntimeState getRuntimeState() const;
+        bool restoreRuntimeState(const BossRuntimeState& state, Core::Engine* engine);
+
+        /** @brief Serializuje aktywna walke z bossem do JSON-a (pusty obiekt, gdy brak walki). */
+        [[nodiscard]] nlohmann::json serializeRuntimeState() const;
+
+        /** @brief Odtwarza aktywna walke z bossem z JSON-a. Zwraca false, gdy stan jest pusty/nieaktywny. */
+        bool applyRuntimeState(const nlohmann::json& state, Core::Engine* engine);
 
         [[nodiscard]] const std::map<std::string, BossData>& getAllBosses() const { return _bosses; }
 

@@ -86,6 +86,9 @@ namespace Nawia::World {
 		/** @brief Zwraca robocza lokacje edytora. */
 		[[nodiscard]] std::vector<std::string> getLocations() const override;
 
+		/** @brief Kreator leveli nie uczestniczy w systemie zapisu i wczytywania. */
+		[[nodiscard]] bool allowsSaves() const override { return false; }
+
 		/** @brief Zwraca, czy aktywne menu kreatora blokuje input gracza. */
 		[[nodiscard]] bool isTyping() const;
 

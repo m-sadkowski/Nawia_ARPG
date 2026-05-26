@@ -3,6 +3,7 @@
 
 #include <Constants.h>
 #include <Engine.h>
+#include <ItemDatabase.h>
 #include <Logger.h>
 #include <Map.h>
 #include <MathUtils.h>
@@ -16,6 +17,42 @@ namespace Nawia::Entity {
 	namespace {
 		constexpr const char* PLAYER_HEAD_MODEL = "assets/models/player/player_head.glb";
 		constexpr const char* PLAYER_HEAD_WITH_SWORD_MODEL = "assets/models/items/player_head_with_sword.glb";
+
+		nlohmann::json statsToJson(const Stats& stats) {
+			return {
+				{"max_hp", stats.max_hp},
+				{"damage", stats.damage},
+				{"power", stats.power},
+				{"attack_speed", stats.attack_speed},
+				{"movement_speed", stats.movement_speed},
+				{"defense", stats.defense}
+			};
+		}
+
+		Stats statsFromJson(const nlohmann::json& data, const Stats& fallback) {
+			if (!data.is_object())
+				return fallback;
+
+			Stats stats = fallback;
+			stats.max_hp = data.value("max_hp", stats.max_hp);
+			stats.damage = data.value("damage", stats.damage);
+			stats.power = data.value("power", stats.power);
+			stats.attack_speed = data.value("attack_speed", stats.attack_speed);
+			stats.movement_speed = data.value("movement_speed", stats.movement_speed);
+			stats.defense = data.value("defense", stats.defense);
+			return stats;
+		}
+
+		nlohmann::json vector2ToJson(const Vector2 value) {
+			return {{"x", value.x}, {"y", value.y}};
+		}
+
+		Vector2 vector2FromJson(const nlohmann::json& data, const Vector2 fallback) {
+			if (!data.is_object())
+				return fallback;
+
+			return {data.value("x", fallback.x), data.value("y", fallback.y)};
+		}
 	}
 
 	Player::Player() {
@@ -214,6 +251,93 @@ namespace Nawia::Entity {
 		_max_hp = _current_stats.max_hp;
 		_hp = std::min(_hp, _max_hp);
 		_movement_speed = _current_stats.movement_speed;
+	}
+
+	void Player::setBaseStats(const Stats& stats)
+	{
+		_base_stats = stats;
+		recalculateStats();
+	}
+
+	void Player::clearItems()
+	{
+		if (_backpack)
+			_backpack->clear();
+
+		if (_equipment)
+			_equipment->clear();
+
+		updateWeaponVisualModel();
+		recalculateStats();
+	}
+
+	nlohmann::json Player::serializeProfile() const
+	{
+		return {
+			{"level", _level},
+			{"exp", _exp},
+			{"exp_to_next_level", _exp_to_next_lvl},
+			{"gold", _gold},
+			{"base_stats", statsToJson(_base_stats)},
+			{"inventory", _backpack ? _backpack->serialize() : nlohmann::json::object()},
+			{"equipment", _equipment ? _equipment->serialize() : nlohmann::json::array()}
+		};
+	}
+
+	void Player::applyProfile(const nlohmann::json& data, Item::ItemDatabase& item_database)
+	{
+		clearItems();
+
+		if (!data.is_object())
+			return;
+
+		_level = data.value("level", _level);
+		_exp = data.value("exp", _exp);
+		_exp_to_next_lvl = data.value("exp_to_next_level", _exp_to_next_lvl);
+		_gold = data.value("gold", _gold);
+		_base_stats = statsFromJson(data.value("base_stats", nlohmann::json::object()), _base_stats);
+
+		if (data.contains("inventory") && _backpack)
+			_backpack->applyJson(data["inventory"], item_database);
+
+		if (data.contains("equipment") && data["equipment"].is_array()) {
+			for (const auto& entry : data["equipment"]) {
+				const int item_id = entry.value("item_id", 0);
+				if (item_id <= 0)
+					continue;
+
+				if (auto item = item_database.createItem(item_id))
+					equipItem(item);
+			}
+		}
+
+		recalculateStats();
+	}
+
+	nlohmann::json Player::serializeLocationView() const
+	{
+		return {
+			{"position", vector2ToJson({_pos.x, _pos.y})},
+			{"altitude", _altitude},
+			{"hp", _hp},
+			{"max_hp", _max_hp},
+			{"respawn_point", vector2ToJson(_respawn_point)}
+		};
+	}
+
+	void Player::applyLocationView(const nlohmann::json& data)
+	{
+		if (!data.is_object())
+			return;
+
+		const Vector2 position = vector2FromJson(data.value("position", nlohmann::json::object()), {_pos.x, _pos.y});
+		setX(position.x);
+		setY(position.y);
+		_altitude = data.value("altitude", _altitude);
+		_respawn_point = vector2FromJson(data.value("respawn_point", nlohmann::json::object()), _respawn_point);
+
+		setHP(data.value("hp", _hp));
+		stop();
 	}
 
 	void Player::knockDown(const int damage)

@@ -8,6 +8,7 @@
 namespace Nawia::Item {
 	class Backpack;
 	class Item;
+	class ItemDatabase;
 	class Loottable;
 	enum class LOOTTABLE_TYPE;
 }
@@ -49,6 +50,13 @@ namespace Nawia::Entity {
 
 		/** @brief Ustawia blokadę skrzyni i identyfikator wymaganego klucza. */
 		void setLocked(bool locked, int key_id);
+		void setOpen(bool open) { _is_open = open; }
+		[[nodiscard]] bool isOpen() const { return _is_open; }
+		[[nodiscard]] bool isLocked() const { return _locked; }
+		[[nodiscard]] int getKeyId() const { return _key_id; }
+
+		[[nodiscard]] nlohmann::json serializeState() const override;
+		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
 	private:
 		bool _is_open = false;

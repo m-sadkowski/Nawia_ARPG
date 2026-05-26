@@ -37,9 +37,6 @@ namespace Nawia::UI {
 
         /** @brief Rysuje pojedyncza karte poziomu. */
         void drawLevelCard(const Rectangle& rect, const World::LevelInfo& info, bool is_hovered, const Font& font) const;
-
-        /** @brief Rysuje przycisk panelu wyboru poziomu. */
-        void drawButton(const Rectangle& rect, const char* text, bool is_hovered, const Font& font) const;
     };
 
 } // namespace Nawia::UI

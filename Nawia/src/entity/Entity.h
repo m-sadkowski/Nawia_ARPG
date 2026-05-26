@@ -3,6 +3,7 @@
 #include <AbilityStats.h>
 #include <Equipment.h>
 
+#include <json.hpp>
 #include <raylib.h>
 
 #include <map>
@@ -14,6 +15,10 @@
 namespace Nawia::Entity {
 	class Ability;
 	class Collider;
+}
+
+namespace Nawia::Item {
+	class ItemDatabase;
 }
 
 namespace Nawia::Audio {
@@ -186,6 +191,7 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool isMoving() const { return _is_moving; }
 		[[nodiscard]] int getHP() const { return _hp; }
 		[[nodiscard]] int getMaxHP() const { return _max_hp; }
+		void setHP(int hp);
 		[[nodiscard]] const std::string& getName() const { return _name; }
 		void setName(const std::string& name) { _name = name; }
 
@@ -366,6 +372,23 @@ namespace Nawia::Entity {
 		 */
 		void setDormant(bool dormant) { _dormant = dormant; }
 		[[nodiscard]] bool isDormant() const { return _dormant; }
+
+		// Zapis stanu encji.
+		/**
+		 * @brief Zapisuje bazowy runtime'owy stan encji do JSON-a.
+		 *
+		 * Klasy pochodne moga rozszerzac wynik wlasnymi polami, np. otwarciem
+		 * skrzyni albo postepem questa NPC.
+		 */
+		[[nodiscard]] virtual nlohmann::json serializeState() const;
+
+		/**
+		 * @brief Przywraca bazowy runtime'owy stan encji z JSON-a.
+		 *
+		 * Klasy pochodne moga uzyc `item_database` do odtworzenia ekwipunku,
+		 * dlatego parametr jest opcjonalny.
+		 */
+		virtual void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr);
 
 	protected:
 		template <typename T> friend class EntityBuilder;

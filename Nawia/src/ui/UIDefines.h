@@ -28,6 +28,9 @@ namespace Nawia::UI {
 
     // Etykiety menu.
     inline const char* LABEL_PLAY = "GRAJ";
+    inline const char* LABEL_NEW_GAME = "NOWA GRA";
+    inline const char* LABEL_LOAD_GAME = "WCZYTAJ GRE";
+    inline const char* LABEL_SAVE_GAME = "ZAPISZ GRE";
     inline const char* LABEL_SETTINGS = "USTAWIENIA";
     inline const char* LABEL_AUTHORS = "AUTORZY";
     inline const char* LABEL_EXIT = "WYJDZ";

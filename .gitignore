@@ -83,3 +83,5 @@ venv/
 Thumbs.db
 Desktop.ini
 Nawia/src/logs.txt
+saves/
+Nawia/saves/
