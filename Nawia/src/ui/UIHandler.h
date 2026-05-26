@@ -150,6 +150,15 @@ namespace Nawia::UI {
         void drawSharedMenuBackground() const;
         void drawMenuButton(const Rectangle& rect, const char* text, float hover_timer) const;
         const Font& getFont() const { return _font; }
+
+        /**
+         * @brief Wyliczony prostokat wycentrowanego przycisku "powrot" u dolu ekranu.
+         *
+         * `BACK_BUTTON_BOTTOM_OFFSET` mierzymy od dolnej krawedzi przycisku, dzieki
+         * czemu we wszystkich menu odstep od dolu ekranu jest taki sam, niezaleznie
+         * od wysokosci samego przycisku.
+         */
+        [[nodiscard]] static Rectangle getCenteredBackButtonRect(float width_factor = 1.0f, float height_factor = 1.0f);
         void triggerLocationBanner();
         void onLevelLoaded();
 

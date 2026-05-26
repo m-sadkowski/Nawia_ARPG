@@ -17,7 +17,9 @@
 #include <ctime>
 #include <fstream>
 #include <iomanip>
+#include <memory>
 #include <sstream>
+#include <unordered_map>
 #include <utility>
 
 using json = nlohmann::json;
@@ -99,27 +101,31 @@ namespace Nawia::Game {
 			if (!allies_state.is_array())
 				return;
 
+			// Mapujemy raz, zeby uniknac O(N*M) skanowania entity_manager dla kazdego sojusznika.
+			std::unordered_map<std::string, std::shared_ptr<Nawia::Entity::Entity>> allies_by_name;
+			for (const auto& entity : entity_manager.getEntities()) {
+				if (entity && entity->getType() == Nawia::Entity::EntityType::Ally)
+					allies_by_name.emplace(entity->getName(), entity);
+			}
+
 			for (const auto& ally_state : allies_state) {
 				const std::string name = ally_state.value("name", "");
 				if (name.empty())
 					continue;
 
-				for (const auto& entity : entity_manager.getEntities()) {
-					if (!entity || entity->getType() != Nawia::Entity::EntityType::Ally)
-						continue;
-					if (entity->getName() != name)
-						continue;
+				const auto it = allies_by_name.find(name);
+				if (it == allies_by_name.end())
+					continue;
 
-					if (ally_state.contains("max_hp"))
-						entity->setMaxHp(ally_state.value("max_hp", entity->getMaxHP()));
+				const auto& entity = it->second;
+				if (ally_state.contains("max_hp"))
+					entity->setMaxHp(ally_state.value("max_hp", entity->getMaxHP()));
 
-					if (ally_state.value("dead", false)) {
-						entity->die();
-						entity->setDormant(true);
-					} else {
-						entity->setHP(ally_state.value("hp", entity->getHP()));
-					}
-					break;
+				if (ally_state.value("dead", false)) {
+					entity->die();
+					entity->setDormant(true);
+				} else {
+					entity->setHP(ally_state.value("hp", entity->getHP()));
 				}
 			}
 		}

@@ -19,6 +19,14 @@ namespace Nawia::UI {
         constexpr float CARD_SPACING = 40.0f;
         constexpr float BACKDROP_ALPHA = 0.4f;
 
+        // Wymiary i fonty dialogu nadpisania zapisu - jeden zestaw stalych,
+        // z ktorych liczymy zarowno pozycje tekstu jak i przyciskow.
+        constexpr float MODAL_CONFIRM_FONT_SIZE = 34.0f;
+        constexpr float MODAL_BUTTON_WIDTH = 180.0f;
+        constexpr float MODAL_BUTTON_HEIGHT = 64.0f;
+        constexpr float MODAL_BUTTON_SPACING = 24.0f;
+        constexpr float MODAL_TEXT_BUTTON_GAP = 32.0f;
+
         const char* titleForMode(SaveSlotMenu::Mode mode) {
             switch (mode) {
                 case SaveSlotMenu::Mode::Save: return "ZAPISZ GRE";
@@ -77,21 +85,28 @@ namespace Nawia::UI {
     }
 
     Rectangle SaveSlotMenu::getBackButtonRect() {
-        const float button_width = Core::GlobalScaling::scaled(BUTTON_WIDTH * 0.65f);
-        const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT * 0.85f);
-        const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
-        const float screen_width = static_cast<float>(GetScreenWidth());
-        const float screen_height = static_cast<float>(GetScreenHeight());
-        return {(screen_width - button_width) * 0.5f, screen_height - bottom_offset, button_width, button_height};
+        return UIHandler::getCenteredBackButtonRect(0.65f, 0.85f);
+    }
+
+    float SaveSlotMenu::getModalGroupTopY() {
+        // Tekst i para przyciskow ulozone pionowo i wycentrowane razem na ekranie.
+        const float text_height = Core::GlobalScaling::scaled(MODAL_CONFIRM_FONT_SIZE);
+        const float button_height = Core::GlobalScaling::scaled(MODAL_BUTTON_HEIGHT);
+        const float gap = Core::GlobalScaling::scaled(MODAL_TEXT_BUTTON_GAP);
+        const float group_height = text_height + gap + button_height;
+        return (static_cast<float>(GetScreenHeight()) - group_height) * 0.5f;
     }
 
     Rectangle SaveSlotMenu::getModalButtonRect(const int index) {
-        const float button_width = Core::GlobalScaling::scaled(180.0f);
-        const float button_height = Core::GlobalScaling::scaled(64.0f);
-        const float spacing = Core::GlobalScaling::scaled(24.0f);
+        const float button_width = Core::GlobalScaling::scaled(MODAL_BUTTON_WIDTH);
+        const float button_height = Core::GlobalScaling::scaled(MODAL_BUTTON_HEIGHT);
+        const float spacing = Core::GlobalScaling::scaled(MODAL_BUTTON_SPACING);
+        const float text_height = Core::GlobalScaling::scaled(MODAL_CONFIRM_FONT_SIZE);
+        const float gap = Core::GlobalScaling::scaled(MODAL_TEXT_BUTTON_GAP);
+
         const float total_width = button_width * 2.0f + spacing;
         const float start_x = (static_cast<float>(GetScreenWidth()) - total_width) * 0.5f;
-        const float y = static_cast<float>(GetScreenHeight()) * 0.58f;
+        const float y = getModalGroupTopY() + text_height + gap;
         return {start_x + index * (button_width + spacing), y, button_width, button_height};
     }
 
@@ -102,58 +117,46 @@ namespace Nawia::UI {
         const float font_spacing = Core::GlobalScaling::scaled(1.0f);
         const float subtitle_font = Core::GlobalScaling::scaled(FONT_SIZE_SUBTITLE);
         const float text_font = Core::GlobalScaling::scaled(FONT_SIZE_TEXT);
+        const float body_x = rect.x + Core::GlobalScaling::scaled(20.0f);
 
         const std::string slot_title = "ZAPIS " + std::to_string(slot.slot);
         const Vector2 title_size = MeasureTextEx(font, slot_title.c_str(), subtitle_font, font_spacing);
-        DrawTextEx(
-            font,
-            slot_title.c_str(),
+        DrawTextEx(font, slot_title.c_str(),
             {rect.x + (rect.width - title_size.x) * 0.5f, rect.y + Core::GlobalScaling::scaled(20.0f)},
-            subtitle_font,
-            font_spacing,
-            WHITE);
+            subtitle_font, font_spacing, WHITE);
 
         const float separator_y = rect.y + Core::GlobalScaling::scaled(75.0f);
-        DrawLineEx(
-            {rect.x + Core::GlobalScaling::scaled(20.0f), separator_y},
-            {rect.x + rect.width - Core::GlobalScaling::scaled(20.0f), separator_y},
-            1.0f,
-            Fade(WHITE, 0.3f));
+        DrawLineEx({body_x, separator_y}, {rect.x + rect.width - Core::GlobalScaling::scaled(20.0f), separator_y},
+            1.0f, Fade(WHITE, 0.3f));
 
-        const float body_x = rect.x + Core::GlobalScaling::scaled(20.0f);
         float current_y = separator_y + Core::GlobalScaling::scaled(15.0f);
+        const auto drawLine = [&](const char* text, Color color, float extra_gap = 4.0f) {
+            DrawTextEx(font, text, {body_x, current_y}, text_font, font_spacing, color);
+            current_y += text_font + Core::GlobalScaling::scaled(extra_gap);
+        };
+        const auto drawLabelValue = [&](const char* label, const std::string& value) {
+            drawLine(label, COLOR_ACCENT);
+            drawLine(value.c_str(), Fade(WHITE, 0.85f), 10.0f);
+        };
 
         if (!slot.occupied) {
-            DrawTextEx(font, "PUSTY SLOT", {body_x, current_y}, text_font, font_spacing, COLOR_ACCENT);
-            current_y += text_font + Core::GlobalScaling::scaled(8.0f);
-            DrawTextEx(font, emptySlotHintForMode(_mode), {body_x, current_y}, text_font, font_spacing, Fade(WHITE, 0.8f));
+            drawLine("PUSTY SLOT", COLOR_ACCENT, 8.0f);
+            drawLine(emptySlotHintForMode(_mode), Fade(WHITE, 0.8f));
             return;
         }
 
-        DrawTextEx(font, "Zapisano:", {body_x, current_y}, text_font, font_spacing, COLOR_ACCENT);
-        current_y += text_font + Core::GlobalScaling::scaled(4.0f);
-        DrawTextEx(font, slot.saved_at.c_str(), {body_x, current_y}, text_font, font_spacing, Fade(WHITE, 0.85f));
-        current_y += text_font + Core::GlobalScaling::scaled(10.0f);
-
-        DrawTextEx(font, "Poziom:", {body_x, current_y}, text_font, font_spacing, COLOR_ACCENT);
-        current_y += text_font + Core::GlobalScaling::scaled(4.0f);
-        DrawTextEx(font, slot.current_level.c_str(), {body_x, current_y}, text_font, font_spacing, Fade(WHITE, 0.85f));
-
-        if (slot.current_location.empty())
-            return;
-
-        current_y += text_font + Core::GlobalScaling::scaled(10.0f);
-        DrawTextEx(font, "Lokacja:", {body_x, current_y}, text_font, font_spacing, COLOR_ACCENT);
-        current_y += text_font + Core::GlobalScaling::scaled(4.0f);
-        DrawTextEx(font, slot.current_location.c_str(), {body_x, current_y}, text_font, font_spacing, Fade(WHITE, 0.85f));
+        drawLabelValue("Zapisano:", slot.saved_at);
+        drawLabelValue("Poziom:", slot.current_level);
+        if (!slot.current_location.empty())
+            drawLabelValue("Lokacja:", slot.current_location);
     }
 
     void SaveSlotMenu::render(const UIHandler& ui) const {
         const float screen_width = static_cast<float>(GetScreenWidth());
         const float screen_height = static_cast<float>(GetScreenHeight());
 
-        // Lekkie zaciemnienie dopasowane do LevelSelectMenu - z menu glownego
-        // tlo praktycznie sie nie zmienia, a z pauzy dodaje subtelnego dimm.
+        // Lekkie zaciemnienie tla - z menu glownego prawie niewidoczne, a wchodzac
+        // z pauzy delikatnie wycisza widok gry pod menu slotow.
         DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, BACKDROP_ALPHA));
 
         const float font_spacing = Core::GlobalScaling::scaled(2.0f);
@@ -183,20 +186,17 @@ namespace Nawia::UI {
 
         DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.55f));
         const char* confirm_text = TextFormat("NADPISAC ZAPIS %d?", _pending_overwrite_slot);
-        const float confirm_font = Core::GlobalScaling::scaled(34.0f);
+        const float confirm_font = Core::GlobalScaling::scaled(MODAL_CONFIRM_FONT_SIZE);
         const Vector2 confirm_size = MeasureTextEx(ui.getFont(), confirm_text, confirm_font, font_spacing);
-        DrawTextEx(
-            ui.getFont(),
-            confirm_text,
-            {(screen_width - confirm_size.x) * 0.5f, screen_height * 0.46f},
-            confirm_font,
-            font_spacing,
-            WHITE);
+        DrawTextEx(ui.getFont(), confirm_text,
+            {(screen_width - confirm_size.x) * 0.5f, getModalGroupTopY()},
+            confirm_font, font_spacing, WHITE);
 
-        const Rectangle yes_rect = getModalButtonRect(0);
-        const Rectangle no_rect = getModalButtonRect(1);
-        ui.drawMenuButton(yes_rect, "TAK", CheckCollisionPointRec(mouse_position, yes_rect) ? 1.0f : 0.0f);
-        ui.drawMenuButton(no_rect, "NIE", CheckCollisionPointRec(mouse_position, no_rect) ? 1.0f : 0.0f);
+        const char* modal_labels[] = {"TAK", "NIE"};
+        for (int i = 0; i < 2; ++i) {
+            const Rectangle r = getModalButtonRect(i);
+            ui.drawMenuButton(r, modal_labels[i], CheckCollisionPointRec(mouse_position, r) ? 1.0f : 0.0f);
+        }
     }
 
     int SaveSlotMenu::handleInput() {

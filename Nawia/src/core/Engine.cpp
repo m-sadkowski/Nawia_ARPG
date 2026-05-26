@@ -372,10 +372,9 @@ namespace Nawia::Core {
 
 		const bool opened_from_game = _previous_state == GameState::Playing;
 		const UI::SaveSlotMenu::Mode mode = _ui_handler->getSaveSlotMenuMode();
+		_ui_handler->closeSaveSlotMenu();
 
 		if (selected_slot < 0) {
-			_ui_handler->closeSaveSlotMenu();
-
 			// Anulowanie wyboru slotu w nowej grze cofa nas do wyboru poziomu.
 			if (mode == UI::SaveSlotMenu::Mode::SelectDefault) {
 				_ui_handler->openLevelSelect(_level_manager->getRegisteredLevelInfos());
@@ -387,8 +386,6 @@ namespace Nawia::Core {
 			_show_pause_menu = opened_from_game;
 			return;
 		}
-
-		_ui_handler->closeSaveSlotMenu();
 
 		switch (mode) {
 			case UI::SaveSlotMenu::Mode::Save:
@@ -635,10 +632,14 @@ namespace Nawia::Core {
 			_ui_handler->renderMainMenu();
 			_ui_handler->renderLevelSelectMenu();
 		} else if (_game_state == GameState::SaveSlotSelect && _ui_handler) {
+			// Wybor slotu z menu glownego to osobny ekran - rysujemy samo tlo
+			// menu zamiast przyciskow "Nowa gra" itp., zeby nie przebijaly sie
+			// spod polprzezroczystego dimm-u SaveSlotMenu. Z pauzy zachowujemy
+			// widoczna rozgrywke w tle.
 			if (_previous_state == GameState::Playing)
 				renderGameplay();
 			else
-				_ui_handler->renderMainMenu();
+				_ui_handler->drawSharedMenuBackground();
 
 			_ui_handler->renderSaveSlotMenu();
 		} else if (_game_state == GameState::GameOver) {

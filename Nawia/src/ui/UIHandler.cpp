@@ -123,6 +123,16 @@ namespace Nawia::UI
         }
     }
 
+    Rectangle UIHandler::getCenteredBackButtonRect(const float width_factor, const float height_factor)
+    {
+        const float button_width = Core::GlobalScaling::scaled(BUTTON_WIDTH * width_factor);
+        const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT * height_factor);
+        const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float screen_height = static_cast<float>(GetScreenHeight());
+        return { (screen_width - button_width) / 2.0f, screen_height - bottom_offset - button_height, button_width, button_height };
+    }
+
     UIHandler::UIHandler() : _player(nullptr), _entity_manager(nullptr) {}
 
     UIHandler::~UIHandler() { UnloadFont(_font); }
@@ -210,13 +220,7 @@ namespace Nawia::UI
 
         if (_is_authors_open)
         {
-            const float screen_width = static_cast<float>(GetScreenWidth());
-            const float screen_height = static_cast<float>(GetScreenHeight());
-            const float button_width = Core::GlobalScaling::scaled(BUTTON_WIDTH);
-            const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT);
-            const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
-            
-            updateHoverTimers(delta_time, {{ (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height }});
+            updateHoverTimers(delta_time, { getCenteredBackButtonRect() });
         }
         else if (!_settings_menu && !_level_select_menu && !_save_slot_menu)
             updateHoverTimers(delta_time, getMainMenuLayout(static_cast<int>(buildMainMenuButtons().size())));
@@ -399,11 +403,7 @@ namespace Nawia::UI
             current_y += subtitle_font_size + Core::GlobalScaling::scaled(20.0f);
         }
         
-        const float button_width = Core::GlobalScaling::scaled(BUTTON_WIDTH);
-        const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT);
-        const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
-        
-        const Rectangle back_button_rect = { (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height };
+        const Rectangle back_button_rect = getCenteredBackButtonRect();
         drawMenuButton(back_button_rect, LABEL_BACK, CheckCollisionPointRec(GetMousePosition(), back_button_rect) ? 1.0f : 0.0f);
     }
 
@@ -411,14 +411,7 @@ namespace Nawia::UI
     {
         if (_is_authors_open)
         {
-            const float screen_width = static_cast<float>(GetScreenWidth());
-            const float screen_height = static_cast<float>(GetScreenHeight());
-            const float button_width = Core::GlobalScaling::scaled(BUTTON_WIDTH);
-            const float button_height = Core::GlobalScaling::scaled(BUTTON_HEIGHT);
-            const float bottom_offset = Core::GlobalScaling::scaled(BACK_BUTTON_BOTTOM_OFFSET);
-            
-            const Rectangle back_rectangle = { (screen_width - button_width) / 2.0f, screen_height - bottom_offset, button_width, button_height };
-            if (getClickedButtonIndex({back_rectangle}) == 0)
+            if (getClickedButtonIndex({ getCenteredBackButtonRect() }) == 0)
             {
                 _is_authors_open = false;
                 return MenuAction::None;

@@ -46,6 +46,8 @@ namespace Nawia::UI {
         [[nodiscard]] static std::vector<Rectangle> buildCardLayout(int slot_count);
         [[nodiscard]] static Rectangle getBackButtonRect();
         [[nodiscard]] static Rectangle getModalButtonRect(int index);
+        /** @brief Y gornej krawedzi grupy tekst+przyciski w modalu nadpisania. */
+        [[nodiscard]] static float getModalGroupTopY();
 
         void drawSlotCard(const Rectangle& rect, const Game::SaveSlotInfo& slot, bool hovered, const Font& font) const;
 
