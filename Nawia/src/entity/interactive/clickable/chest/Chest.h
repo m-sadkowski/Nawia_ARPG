@@ -50,18 +50,23 @@ namespace Nawia::Entity {
 
 		/** @brief Ustawia blokadę skrzyni i identyfikator wymaganego klucza. */
 		void setLocked(bool locked, int key_id);
-		void setOpen(bool open) { _is_open = open; }
+		void setOpen(bool open);
 		[[nodiscard]] bool isOpen() const { return _is_open; }
 		[[nodiscard]] bool isLocked() const { return _locked; }
+		[[nodiscard]] bool isEmpty() const;
 		[[nodiscard]] int getKeyId() const { return _key_id; }
 
 		[[nodiscard]] nlohmann::json serializeState() const override;
 		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
 	private:
+		void refreshVisualModel();
+		[[nodiscard]] const char* getVisualModelPath() const;
+
 		bool _is_open = false;
 		bool _locked = false;
 		int _key_id = -1;
+		std::string _active_model_path;
 
 		std::unique_ptr<Item::Backpack> _inventory;
 		static constexpr int INVENTORY_SIZE = 12;

@@ -145,6 +145,9 @@ namespace Nawia::Core {
 			"assets/models/player/player_head.glb",
 			"assets/models/items/player_head_with_sword.glb",
 			"assets/models/cat_bounce.glb",
+			"assets/models/chest/chest_close.glb",
+			"assets/models/chest/chest_open.glb",
+			"assets/models/chest/chest_open_full.glb",
 			"assets/models/fireball.glb",
 			"assets/models/knife.glb",
 			"assets/models/bandit_idle.glb",
@@ -230,7 +233,14 @@ namespace Nawia::Core {
 			return;
 		}
 
-		if (entity_type == "chest" || entity_type == "teleport") {
+		if (entity_type == "chest") {
+			addModel("assets/models/chest/chest_close.glb");
+			addModel("assets/models/chest/chest_open.glb");
+			addModel("assets/models/chest/chest_open_full.glb");
+			return;
+		}
+
+		if (entity_type == "teleport") {
 			addModel("assets/models/fireball.glb");
 			return;
 		}

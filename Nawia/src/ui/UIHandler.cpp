@@ -561,7 +561,8 @@ namespace Nawia::UI
             _inventory_ui->render(_font, *_player);
             if (_current_container)
             {
-                _chest_ui->render(*_current_container->getInventory(), _font);
+                if (const auto* container_inventory = _current_container->getInventory())
+                    _chest_ui->render(*container_inventory, _font);
                 if (_stats_ui)
                     _stats_ui->render(Core::GlobalScaling::scaled(50.0f), Core::GlobalScaling::scaled(610.0f), _font);
             }
@@ -823,15 +824,26 @@ namespace Nawia::UI
             
             if (_current_container)
             {
+                auto* container_inventory = _current_container->getInventory();
+                if (!container_inventory)
+                {
+                    closeContainer();
+                    return;
+                }
+
                 const int container_slot = _chest_ui->handleInput();
                 if (container_slot != -1)
                 {
-                    auto& container_inventory = *_current_container->getInventory();
-                    const auto item = container_inventory.getItem(container_slot);
+                    const auto item = container_inventory->getItem(container_slot);
                     if (item && _player->getBackpack().addItem(item))
                     {
-                        container_inventory.removeItem(container_slot);
+                        container_inventory->removeItem(container_slot);
                         if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
+                        if (container_inventory->getRemainingCapacity() == container_inventory->getCapacity())
+                        {
+                            showNotification("Ta skrzynia jest pusta", 3.0f);
+                            closeContainer();
+                        }
                     }
                 }
             }

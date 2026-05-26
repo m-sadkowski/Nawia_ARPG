@@ -7,19 +7,27 @@
 #include <Player.h>
 #include <SoundIds.h>
 
+#include <algorithm>
+
 
 namespace Nawia::Entity {
+
+	namespace {
+		constexpr const char* CHEST_MODEL_LOCKED = "assets/models/chest/chest_close.glb";
+		constexpr const char* CHEST_MODEL_OPEN_WITH_LOOT = "assets/models/chest/chest_open_full.glb";
+		constexpr const char* CHEST_MODEL_EMPTY = "assets/models/chest/chest_open.glb";
+	}
 
 	Chest::Chest(const std::string& name, const float x, const float y, const std::shared_ptr<Texture2D>& texture)
 		: InteractiveClickable(name, x, y, texture, 1) // Skrzynia ma techniczne 1 HP.
 	{
 		_type = EntityType::Chest;
 		setFaction(Faction::None);
-		loadModel("assets/models/fireball.glb");
-		setScale(0.35f);
+		setScale(1.0f);
 		setCollider(std::make_unique<RectangleCollider>(this, 0.9f, 0.4f, 0.0f, 0.0f));
 
 		_inventory = std::make_unique<Item::Backpack>(INVENTORY_SIZE);
+		refreshVisualModel();
 	}
 
 	Chest::~Chest() = default;
@@ -41,15 +49,21 @@ namespace Nawia::Entity {
 	}
 
 	void Chest::onInteract(Entity& instigator) {
-		if (_is_open) {
-			if (const auto* player = dynamic_cast<Player*>(&instigator))
-				player->getEngine()->getUIHandler().showNotification("Skrzynia jest juz otwarta.");
+		auto* player = dynamic_cast<Player*>(&instigator);
 
+		if (!_locked && isEmpty()) {
+			if (player)
+				player->getEngine()->getUIHandler().showNotification("Ta skrzynia jest pusta", 3.0f);
+			return;
+		}
+
+		if (_is_open) {
+			if (player)
+				player->getEngine()->getUIHandler().showNotification("Skrzynia jest juz otwarta.");
 			return;
 		}
 
 		if (_locked) {
-			auto* player = dynamic_cast<Player*>(&instigator);
 			if (!player)
 				return;
 
@@ -79,10 +93,12 @@ namespace Nawia::Entity {
 
 		// Tu można później uruchomić animację otwierania skrzyni.
 		_is_open = true;
+		refreshVisualModel();
 		playSoundEffect(Audio::SoundId::ChestOpen, 0.85f);
 	}
 
 	void Chest::update(const float delta_time) {
+		refreshVisualModel();
 		Entity::update(delta_time);
 	}
 
@@ -95,7 +111,7 @@ namespace Nawia::Entity {
 	}
 
 	Item::Backpack* Chest::getInventory() {
-		if (_locked)
+		if (_locked || isEmpty())
 			return nullptr;
 
 		return _inventory.get();
@@ -103,11 +119,44 @@ namespace Nawia::Entity {
 
 	void Chest::addItem(const std::shared_ptr<Item::Item>& item) {
 		_inventory->addItem(item);
+		refreshVisualModel();
 	}
 
 	void Chest::setLocked(const bool locked, const int key_id) {
 		_locked = locked;
 		_key_id = key_id;
+		refreshVisualModel();
+	}
+
+	void Chest::setOpen(const bool open) {
+		_is_open = open;
+		refreshVisualModel();
+	}
+
+	bool Chest::isEmpty() const {
+		if (!_inventory)
+			return true;
+
+		const auto& items = _inventory->getItems();
+		return std::ranges::none_of(items, [](const std::shared_ptr<Item::Item>& item) {
+			return item != nullptr;
+		});
+	}
+
+	const char* Chest::getVisualModelPath() const {
+		if (_locked)
+			return CHEST_MODEL_LOCKED;
+
+		return isEmpty() ? CHEST_MODEL_EMPTY : CHEST_MODEL_OPEN_WITH_LOOT;
+	}
+
+	void Chest::refreshVisualModel() {
+		const char* model_path = getVisualModelPath();
+		if (_active_model_path == model_path)
+			return;
+
+		_active_model_path = model_path;
+		loadModel(_active_model_path);
 	}
 
 	nlohmann::json Chest::serializeState() const {
@@ -131,6 +180,8 @@ namespace Nawia::Entity {
 
 		if (item_database && _inventory && state.contains("inventory"))
 			_inventory->applyJson(state["inventory"], *item_database);
+
+		refreshVisualModel();
 	}
 
 } // namespace Nawia::Entity
