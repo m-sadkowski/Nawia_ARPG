@@ -219,6 +219,7 @@ namespace Nawia::Entity {
 		 * @brief Rejestruje animację pod nazwą używaną później w `playAnimation`.
 		 */
 		void addAnimation(const std::string& name, const std::string& path);
+		void addAnimation(const std::string& name, const std::string& path, int clip_index);
 
 		void loadAnimationBundle(const std::string& path);
 

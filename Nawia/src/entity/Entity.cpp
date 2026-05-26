@@ -244,17 +244,24 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	void Entity::addAnimation(const std::string& name, const std::string& path)
 	{
+		addAnimation(name, path, 0);
+	}
+
+	void Entity::addAnimation(const std::string& name, const std::string& path, const int clip_index)
+	{
 		if (!_model_loaded)
 			return;
 
 		if (const auto cached_path = _animation_path_map.find(path); cached_path != _animation_path_map.end())
 		{
-			_animation_map[name] = cached_path->second;
+			const int animation_index = cached_path->second + clip_index;
+			if (clip_index >= 0 && static_cast<size_t>(animation_index) < _animations.size())
+				_animation_map[name] = animation_index;
 			return;
 		}
 
 		const auto bundle = getCachedAnimationBundle(path);
-		if (!bundle || bundle->clips.empty())
+		if (!bundle || bundle->clips.empty() || clip_index < 0 || static_cast<size_t>(clip_index) >= bundle->clips.size())
 			return;
 
 		const int start_index = static_cast<int>(_animations.size());
@@ -262,7 +269,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		for (int i = 0; i < static_cast<int>(bundle->clips.size()); i++)
 			_animations.push_back({bundle, i});
 
-		_animation_map[name] = start_index;
+		_animation_map[name] = start_index + clip_index;
 		_animation_path_map[path] = start_index;
 	}
 

@@ -8,18 +8,30 @@
 
 namespace Nawia::Entity {
 
+	namespace {
+		constexpr const char* WALKING_DEAD_MODEL = "assets/models/walking_dead.glb";
+		constexpr int ANIM_DEATH = 1;
+		constexpr int ANIM_HIT = 2;
+		constexpr int ANIM_IDLE = 3;
+		constexpr int ANIM_BITE = 4;
+		constexpr int ANIM_SCREAM = 8;
+		constexpr int ANIM_RUN_UP = 11;
+		constexpr int ANIM_WALK = 13;
+	}
+
 	WalkingDead::WalkingDead() {
-		setScale(0.015f);
+		setScale(1.5f);
 		setFaction(Faction::Enemy);
 
-		loadModel("assets/models/walking_dead_idle.glb");
-		addAnimation("idle", "assets/models/walking_dead_idle.glb");
-		addAnimation("walk", "assets/models/walking_dead_walk.glb");
-		addAnimation("run", "assets/models/walking_dead_run.glb");
-		addAnimation("attack", "assets/models/walking_dead_attack.glb");
-		addAnimation("death", "assets/models/walking_dead_death.glb");
-		addAnimation("scream", "assets/models/walking_dead_scream.glb");
-		addAnimation("get_hit", "assets/models/walking_dead_hit.glb");
+		loadModel(WALKING_DEAD_MODEL);
+		addAnimation("death", WALKING_DEAD_MODEL, ANIM_DEATH);
+		addAnimation("get_hit", WALKING_DEAD_MODEL, ANIM_HIT);
+		addAnimation("idle", WALKING_DEAD_MODEL, ANIM_IDLE);
+		addAnimation("walk", WALKING_DEAD_MODEL, ANIM_WALK);
+		addAnimation("run", WALKING_DEAD_MODEL, ANIM_RUN_UP);
+		addAnimation("attack", WALKING_DEAD_MODEL, ANIM_BITE);
+		addAnimation("scream", WALKING_DEAD_MODEL, ANIM_SCREAM);
+		playAnimation("idle", true, false, 0, true);
 	}
 
 	void WalkingDead::takeDamage(const int dmg)

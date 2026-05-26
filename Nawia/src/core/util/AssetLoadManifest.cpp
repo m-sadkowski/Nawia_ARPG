@@ -154,13 +154,7 @@ namespace Nawia::Core {
 			"assets/models/bandit_walk_backwards3.glb",
 			"assets/models/bandit_throw.glb",
 			"assets/models/bandit_death.glb",
-			"assets/models/walking_dead_idle.glb",
-			"assets/models/walking_dead_walk.glb",
-			"assets/models/walking_dead_run.glb",
-			"assets/models/walking_dead_attack.glb",
-			"assets/models/walking_dead_death.glb",
-			"assets/models/walking_dead_scream.glb",
-			"assets/models/walking_dead_hit.glb",
+			"assets/models/walking_dead.glb",
 			"assets/models/devil_idle.glb",
 			"assets/models/devil_walk.glb",
 			"assets/models/devil_run.glb",
@@ -215,14 +209,8 @@ namespace Nawia::Core {
 		}
 
 		if (entity_type == "walking_dead") {
-			addModel("assets/models/walking_dead_idle.glb");
-			addAnimation("assets/models/walking_dead_idle.glb");
-			addAnimation("assets/models/walking_dead_walk.glb");
-			addAnimation("assets/models/walking_dead_run.glb");
-			addAnimation("assets/models/walking_dead_attack.glb");
-			addAnimation("assets/models/walking_dead_death.glb");
-			addAnimation("assets/models/walking_dead_scream.glb");
-			addAnimation("assets/models/walking_dead_hit.glb");
+			addModel("assets/models/walking_dead.glb");
+			addAnimation("assets/models/walking_dead.glb");
 			return;
 		}
 
