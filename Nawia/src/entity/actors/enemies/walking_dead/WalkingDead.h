@@ -42,13 +42,13 @@ namespace Nawia::Entity {
 		// Statystyki walki.
 		static constexpr float VISION_RANGE = 10.0f;
 		static constexpr float CLOSE_RANGE = VISION_RANGE / 2.0f; // Dystans, od którego wróg zaczyna biec.
-		static constexpr float ATTACK_RANGE = 1.0f;
+		static constexpr float ATTACK_RANGE = 1.2f;
 		static constexpr float SPEED = 1.0f;
 		static constexpr float RUN_SPEED = 3.0f; // Prędkość biegu blisko gracza.
 		static constexpr int ATTACK_DAMAGE = 25;
 		static constexpr float ATTACK_COOLDOWN = 1.2f;
 		static constexpr float ATTACK_ANIMATION_SPEED = 2.25f;
-		static constexpr float HIT_REACTION_ANIMATION_SPEED = 1.4f;
+		static constexpr float HIT_REACTION_ANIMATION_SPEED = 1.0f;
 		static constexpr float DEFAULT_ANIMATION_SPEED = 1.0f;
 		static constexpr float ATTACK_DAMAGE_FRAME_RATIO = 0.38f;
 		static constexpr int HIT_INTERRUPT_CHANCE = 45;
