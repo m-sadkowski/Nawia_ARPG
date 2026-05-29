@@ -24,6 +24,7 @@ namespace Nawia::World {
 		PropDetails,
 		TeleportDetails,
 		BossTriggerDetails,
+		NavBlockerDetails,
 		ItemSelection,
 		KeySelection,
 		ConfirmOverwrite
@@ -53,6 +54,10 @@ namespace Nawia::World {
 		TeleportTarget,
 		BossTriggerWidth,
 		BossTriggerHeight,
+		NavBlockerWidth,
+		NavBlockerDepth,
+		NavBlockerHeight,
+		NavBlockerRadius,
 		ChestKeyId
 	};
 
@@ -104,6 +109,11 @@ namespace Nawia::World {
 			std::vector<int> loot_ids;
 			bool locked = false;
 			int key_id = -1;
+			float blocker_width = 4.0f;
+			float blocker_depth = 4.0f;
+			float blocker_height = 0.0f;
+			float blocker_radius = 2.0f;
+			std::string blocker_shape = "box";
 			std::string extra_value;
 			nlohmann::json raw_data = nlohmann::json::object();
 		};
@@ -169,6 +179,9 @@ namespace Nawia::World {
 		/** @brief Rysuje markery i zasiegi postawionych obiektow. */
 		void renderPlacedObjects(Core::Engine* engine);
 
+		/** @brief Rysuje roboczy bloker navmesha przed zatwierdzeniem. */
+		void renderNavBlockerPreview() const;
+
 		/** @brief Usuwa obiekt wskazany kursorem albo najblizszy punktowi klikniecia. */
 		void deleteNearestObject(Core::Engine* engine);
 
@@ -233,6 +246,9 @@ namespace Nawia::World {
 		/** @brief Rysuje formularz triggera bossa. */
 		void renderBossTriggerDetailsMenu(Core::Engine* engine);
 
+		/** @brief Rysuje formularz blokera navmesha. */
+		void renderNavBlockerDetailsMenu(Core::Engine* engine);
+
 		/** @brief Rysuje wybor przedmiotow z bazy itemow. */
 		void renderItemSelectionMenu(Core::Engine* engine);
 
@@ -247,6 +263,10 @@ namespace Nawia::World {
 
 		/** @brief Dodaje obiekt do sesji; zapis nastepuje dopiero przy zapisie lokacji. */
 		void saveObject(const std::string& category);
+
+		/** @brief Odtwarza blokery zapisane w edytorze jako dane navmesha. */
+		[[nodiscard]] std::vector<NavMeshBlocker> collectNavMeshBlockers(bool include_preview = false) const;
+		void applyNavMeshBlockersToMap(bool include_preview = false);
 
 		/** @brief Sprawdza, czy kursor jest nad panelami edytora. */
 		[[nodiscard]] bool isMouseOverEditorUI() const;
@@ -279,7 +299,15 @@ namespace Nawia::World {
 		std::string _prop_model_path_buffer;
 		std::string _boss_width_buffer = "10.0";
 		std::string _boss_height_buffer = "4.0";
+		std::string _nav_blocker_width_buffer = "4.0";
+		std::string _nav_blocker_depth_buffer = "4.0";
+		std::string _nav_blocker_height_buffer = "0.0";
 		std::string _key_id_buffer = "-1";
+		float _temp_nav_blocker_width = 4.0f;
+		float _temp_nav_blocker_depth = 4.0f;
+		float _temp_nav_blocker_height = 0.0f;
+		float _temp_nav_blocker_radius = 2.0f;
+		std::string _temp_nav_blocker_shape = "box";
 		float _navmesh_min_walkable_height = 0.0f;
 
 		std::vector<std::string> _map_model_options;

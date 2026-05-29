@@ -424,17 +424,27 @@ namespace Nawia::Core {
 				_wczora_intro_overlay_alpha = std::clamp(_wczora_intro_timer / 1.1f, 0.38f, 1.0f);
 				if (_wczora_intro_timer >= 1.1f) {
 					removeWczoraIntroNpc();
+					_wczora_intro_phase = WczoraIntroPhase::FullBlackPause;
+					_wczora_intro_timer = 0.0f;
+					_wczora_intro_overlay_alpha = 1.0f;
+				}
+				break;
+			case WczoraIntroPhase::FullBlackPause:
+				_wczora_intro_overlay_alpha = 1.0f;
+				if (_wczora_intro_timer >= 1.0f) {
 					_wczora_intro_phase = WczoraIntroPhase::FadeFromBlackAfter;
 					_wczora_intro_timer = 0.0f;
 				}
 				break;
 			case WczoraIntroPhase::FadeFromBlackAfter:
-				_wczora_intro_overlay_alpha = std::max(0.30f, 1.0f - _wczora_intro_timer / 1.4f);
-				if (!_wczora_intro_dialogue_opened && _wczora_intro_timer >= 1.0f)
+				_wczora_intro_overlay_alpha = std::max(0.0f, 1.0f - _wczora_intro_timer / 1.4f);
+				if (_wczora_intro_timer >= 1.4f && !_wczora_intro_dialogue_opened) {
+					_wczora_intro_overlay_alpha = 0.0f;
 					openWczoraIntroFinalDialogue();
+				}
 				break;
 			case WczoraIntroPhase::FinalDialogue:
-				_wczora_intro_overlay_alpha = 0.30f;
+				_wczora_intro_overlay_alpha = 0.0f;
 				break;
 			case WczoraIntroPhase::Inactive:
 				break;
@@ -448,14 +458,7 @@ namespace Nawia::Core {
 		const int width = GetScreenWidth();
 		const int height = GetScreenHeight();
 		const float alpha = std::clamp(_wczora_intro_overlay_alpha, 0.0f, 1.0f);
-		DrawRectangle(0, 0, width, height, Fade(BLACK, alpha * 0.88f));
-		DrawRectangleGradientV(
-			0,
-			0,
-			width,
-			height,
-			Fade(Color{20, 10, 30, 255}, alpha * 0.30f),
-			Fade(BLACK, alpha * 0.55f));
+		DrawRectangle(0, 0, width, height, Fade(BLACK, alpha));
 	}
 
 	void Engine::run() {
@@ -928,6 +931,7 @@ namespace Nawia::Core {
 			return;
 
 		renderWorld();
+		renderGameplayVignetteOverlay();
 		renderWczoraIntroOverlay();
 
 		if (_wczora_intro_phase != WczoraIntroPhase::Inactive) {
@@ -944,6 +948,18 @@ namespace Nawia::Core {
 		}
 
 		_level_manager->renderUI(const_cast<Engine*>(this));
+	}
+
+	void Engine::renderGameplayVignetteOverlay() const {
+		const int width = GetScreenWidth();
+		const int height = GetScreenHeight();
+		const int edge_x = static_cast<int>(static_cast<float>(width) * 0.18f);
+		const int edge_y = static_cast<int>(static_cast<float>(height) * 0.18f);
+
+		DrawRectangleGradientH(0, 0, edge_x, height, Fade(BLACK, 0.24f), Fade(BLACK, 0.0f));
+		DrawRectangleGradientH(width - edge_x, 0, edge_x, height, Fade(BLACK, 0.0f), Fade(BLACK, 0.24f));
+		DrawRectangleGradientV(0, 0, width, edge_y, Fade(BLACK, 0.20f), Fade(BLACK, 0.0f));
+		DrawRectangleGradientV(0, height - edge_y, width, edge_y, Fade(BLACK, 0.0f), Fade(BLACK, 0.22f));
 	}
 
 	void Engine::applySettings(const Settings& new_settings) {

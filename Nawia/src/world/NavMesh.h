@@ -9,6 +9,20 @@ class dtNavMeshQuery;
 
 namespace Nawia::World {
 
+	enum class NavMeshBlockerShape {
+		Box,
+		Circle
+	};
+
+	struct NavMeshBlocker {
+		Vector2 center = {0.0f, 0.0f};
+		float width = 1.0f;
+		float depth = 1.0f;
+		float height = 0.0f;
+		NavMeshBlockerShape shape = NavMeshBlockerShape::Box;
+		float radius = 0.5f;
+	};
+
 	/**
 	 * @class NavMesh
 	 * @brief Buduje siatke nawigacji z modelu mapy i wyznacza sciezki.
@@ -21,7 +35,12 @@ namespace Nawia::World {
 		/**
 		 * @brief Buduje siatke nawigacji z modelu w przestrzeni swiata.
 		 */
-		bool buildFromModel(const Model& model, float scale = 1.0f, Vector3 offset = {0.0f, 0.0f, 0.0f});
+		bool buildFromModel(
+			const Model& model,
+			float scale = 1.0f,
+			Vector3 offset = {0.0f, 0.0f, 0.0f},
+			const std::vector<NavMeshBlocker>& blockers = {}
+		);
 
 		/**
 		 * @brief Ustawia minimalna wysokosc powierzchni dopuszczonej do chodzenia.

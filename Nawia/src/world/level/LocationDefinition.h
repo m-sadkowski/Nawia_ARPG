@@ -1,6 +1,7 @@
 #pragma once
 
 #include <json.hpp>
+#include <NavMesh.h>
 #include <raylib.h>
 
 #include <filesystem>
@@ -27,6 +28,7 @@ namespace Nawia::World {
 		bool has_navmesh_min_walkable_height = false;
 		float camera_zoom = 0.75f;
 		bool has_camera_zoom = false;
+		std::vector<NavMeshBlocker> navmesh_blockers;
 		std::vector<nlohmann::json> entities;
 	};
 

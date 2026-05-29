@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <utility>
 
 namespace Nawia::Core {
 
@@ -131,6 +132,7 @@ namespace Nawia::Core {
 		_scale = scale;
 		_offset = offset;
 		_rotation = rotation;
+		_navmesh_blockers.clear();
 
 		const auto cached_model = getCachedMapModel(filename);
 		if (!cached_model) {
@@ -149,7 +151,7 @@ namespace Nawia::Core {
 		const Matrix rotation_z = MatrixRotateZ(_rotation.z * DEG2RAD);
 		_model.transform = MatrixMultiply(MatrixMultiply(rotation_x, rotation_y), rotation_z);
 
-		_navmesh.buildFromModel(_model, _scale, _offset);
+		_navmesh.buildFromModel(_model, _scale, _offset, _navmesh_blockers);
 
 		_mesh_bboxes.clear();
 		_world_mesh_bboxes.clear();
@@ -183,6 +185,7 @@ namespace Nawia::Core {
 		_scale = 1.0f;
 		_offset = {0.0f, 0.0f, 0.0f};
 		_rotation = {0.0f, 0.0f, 0.0f};
+		_navmesh_blockers.clear();
 
 		const Mesh plane_mesh = GenMeshPlane(60.0f, 60.0f, 10, 10);
 		_model = LoadModelFromMesh(plane_mesh);
@@ -192,7 +195,7 @@ namespace Nawia::Core {
 		_owns_model = true;
 		_is_placeholder = true;
 		_model_transform = _model.transform;
-		_navmesh.buildFromModel(_model, _scale, _offset);
+		_navmesh.buildFromModel(_model, _scale, _offset, _navmesh_blockers);
 
 		_mesh_bboxes.clear();
 		_world_mesh_bboxes.clear();
@@ -279,8 +282,18 @@ namespace Nawia::Core {
 		if (!_model_loaded)
 			return;
 
-		if (!_navmesh.buildFromModel(_model, _scale, _offset))
+		if (!_navmesh.buildFromModel(_model, _scale, _offset, _navmesh_blockers))
 			Logger::errorLog("Map::setNavMeshMinWalkableHeight - nie udalo sie przebudowac navmesha.");
+	}
+
+	void Map::setNavMeshBlockers(std::vector<World::NavMeshBlocker> blockers) {
+		_navmesh_blockers = std::move(blockers);
+
+		if (!_model_loaded)
+			return;
+
+		if (!_navmesh.buildFromModel(_model, _scale, _offset, _navmesh_blockers))
+			Logger::errorLog("Map::setNavMeshBlockers - nie udalo sie przebudowac navmesha.");
 	}
 
 } // namespace Nawia::Core

@@ -109,6 +109,7 @@ namespace Nawia::Core {
 		void handlePlayingInput();
 		void renderWorld() const;
 		void renderGameplay() const;
+		void renderGameplayVignetteOverlay() const;
 		void startWczoraIntroSequence();
 		void updateWczoraIntro(float delta_time);
 		void renderWczoraIntroOverlay() const;
@@ -136,7 +137,7 @@ namespace Nawia::Core {
 			int default_slot
 		);
 		enum class LoadingKind { None, Startup, Level };
-		enum class WczoraIntroPhase { Inactive, FadeFromBlack, FirstDialogue, FadeToBlack, FadeFromBlackAfter, FinalDialogue };
+		enum class WczoraIntroPhase { Inactive, FadeFromBlack, FirstDialogue, FadeToBlack, FullBlackPause, FadeFromBlackAfter, FinalDialogue };
 
 		LoadingKind _loading_kind = LoadingKind::Startup;
 		AssetLoadManifest _loading_manifest;

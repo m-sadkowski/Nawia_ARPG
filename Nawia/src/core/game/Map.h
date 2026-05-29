@@ -70,6 +70,11 @@ namespace Nawia::Core {
 		void setNavMeshMinWalkableHeight(float height);
 
 		/**
+		 * @brief Ustawia prostokatne obszary wycinane z navmesha.
+		 */
+		void setNavMeshBlockers(std::vector<World::NavMeshBlocker> blockers);
+
+		/**
 		 * @brief Zwraca prog wysokosci uzywany przez navmesh.
 		 */
 		[[nodiscard]] float getNavMeshMinWalkableHeight() const { return _navmesh.getMinWalkableHeight(); }
@@ -99,6 +104,7 @@ namespace Nawia::Core {
 		Vector2 _player_spawn_pos = {0.0f, 0.0f};
 
 		World::NavMesh _navmesh;
+		std::vector<World::NavMeshBlocker> _navmesh_blockers;
 		std::vector<BoundingBox> _mesh_bboxes;
 		std::vector<BoundingBox> _world_mesh_bboxes;
 	};

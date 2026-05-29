@@ -38,6 +38,12 @@ namespace Nawia::World {
 		constexpr float MAP_SCALE_MAX = 5.0f;
 		constexpr float NAVMESH_HEIGHT_MIN = -15.0f;
 		constexpr float NAVMESH_HEIGHT_MAX = 5.0f;
+		constexpr float NAV_BLOCKER_SIZE_MIN = 0.5f;
+		constexpr float NAV_BLOCKER_SIZE_MAX = 80.0f;
+		constexpr float NAV_BLOCKER_RADIUS_MIN = 0.25f;
+		constexpr float NAV_BLOCKER_RADIUS_MAX = 40.0f;
+		constexpr float NAV_BLOCKER_HEIGHT_MIN = -15.0f;
+		constexpr float NAV_BLOCKER_HEIGHT_MAX = 12.0f;
 		constexpr float WATER_PLANE_HALF_SIZE = 90.0f;
 		constexpr int MAX_VISIBLE_ITEMS = 11;
 
@@ -258,6 +264,7 @@ namespace Nawia::World {
 			if (type == "checkpoint") return "checkpoints";
 			if (type == "checkpoint_mushroom_npc") return "checkpoints";
 			if (type == "boss_trigger") return "boss_triggers";
+			if (type == "nav_blocker") return "nav_blockers";
 			return "props";
 		}
 
@@ -269,7 +276,12 @@ namespace Nawia::World {
 			if (category == "teleports") return PURPLE;
 			if (category == "checkpoints") return LIME;
 			if (category == "boss_triggers") return MAGENTA;
+			if (category == "nav_blockers") return BLUE;
 			return GRAY;
+		}
+
+		NavMeshBlockerShape navBlockerShapeFromString(const std::string& shape) {
+			return shape == "circle" ? NavMeshBlockerShape::Circle : NavMeshBlockerShape::Box;
 		}
 
 		void drawDevText(const Font& font, const char* text, const float x, const float y, const float size, const Color color) {
@@ -615,6 +627,9 @@ namespace Nawia::World {
 			case EditorMode::BossTriggerDetails:
 				renderBossTriggerDetailsMenu(engine);
 				break;
+			case EditorMode::NavBlockerDetails:
+				renderNavBlockerDetailsMenu(engine);
+				break;
 			case EditorMode::ItemSelection:
 				renderItemSelectionMenu(engine);
 				break;
@@ -827,6 +842,14 @@ namespace Nawia::World {
 		placed_object.count = data.value("count", 1);
 		placed_object.locked = data.value("locked", false);
 		placed_object.key_id = data.value("key_id", -1);
+		placed_object.blocker_width = data.value("width", 4.0f);
+		placed_object.blocker_depth = data.value("depth", 4.0f);
+		placed_object.blocker_height = data.value("height", 0.0f);
+		placed_object.blocker_radius = data.value(
+			"radius",
+			std::max(placed_object.blocker_width, placed_object.blocker_depth) * 0.5f
+		);
+		placed_object.blocker_shape = data.value("shape", "box");
 
 		if (data.contains("items") && data["items"].is_array()) {
 			for (const auto& item_id : data["items"])
@@ -848,6 +871,17 @@ namespace Nawia::World {
 			placed_object.extra_value = data.value("boss_id", "");
 			placed_object.spawn_radius = data.value("width", 10.0f);
 			placed_object.trigger_radius = data.value("height", 4.0f);
+		} else if (placed_object.category == "nav_blockers") {
+			placed_object.blocker_width = data.value("width", 4.0f);
+			placed_object.blocker_depth = data.value("depth", 4.0f);
+			placed_object.blocker_height = data.value("height", 0.0f);
+			placed_object.blocker_radius = data.value(
+				"radius",
+				std::max(placed_object.blocker_width, placed_object.blocker_depth) * 0.5f
+			);
+			placed_object.blocker_shape = data.value("shape", "box");
+			if (placed_object.blocker_shape != "circle")
+				placed_object.blocker_shape = "box";
 		}
 
 		return placed_object;
@@ -893,6 +927,21 @@ namespace Nawia::World {
 			data["boss_id"] = object.extra_value;
 			data["width"] = object.spawn_radius;
 			data["height"] = object.trigger_radius;
+		} else if (object.category == "nav_blockers") {
+			data["shape"] = object.blocker_shape == "circle" ? "circle" : "box";
+			if (object.blocker_shape == "circle") {
+				data["radius"] = object.blocker_radius;
+				data.erase("width");
+				data.erase("depth");
+			} else {
+				data["width"] = object.blocker_width;
+				data["depth"] = object.blocker_depth;
+				data.erase("radius");
+			}
+			data["height"] = object.blocker_height;
+			data.erase("count");
+			data.erase("spawn_radius");
+			data.erase("trigger_radius");
 		}
 
 		return data;
@@ -958,6 +1007,7 @@ namespace Nawia::World {
 			_map->loadMap(_active_map_model, _active_map_scale, _active_map_offset, _active_map_rotation);
 		}
 
+		applyNavMeshBlockersToMap();
 		_map->setNavMeshMinWalkableHeight(_navmesh_min_walkable_height);
 
 		if (move_player_to_spawn && _has_player_spawn) {
@@ -1098,6 +1148,8 @@ namespace Nawia::World {
 		if (_current_mode == EditorMode::ItemSelection || _current_mode == EditorMode::KeySelection) {
 			_current_mode = EditorMode::ChestDetails;
 		} else {
+			if (_current_mode == EditorMode::NavBlockerDetails)
+				applyNavMeshBlockersToMap(false);
 			_current_mode = EditorMode::None;
 		}
 
@@ -1161,13 +1213,34 @@ namespace Nawia::World {
 		BeginMode3D(camera);
 
 		for (const auto& object : _placed_objects) {
-			const Vector3 nav_position =
-				_map->getNavMesh().getClosestWalkablePosition({object.position.x, 0.0f, object.position.y});
+			const Vector3 nav_position = object.category == "nav_blockers"
+				? Vector3{object.position.x, object.blocker_height, object.position.y}
+				: _map->getNavMesh().getClosestWalkablePosition({object.position.x, 0.0f, object.position.y});
 			const Vector3 marker_position = {object.position.x, nav_position.y + 0.5f, object.position.y};
 			const Color marker_color = getCategoryColor(object.category);
 
-			DrawCube(marker_position, 1.0f, 1.0f, 1.0f, marker_color);
-			DrawCubeWires(marker_position, 1.1f, 1.1f, 1.1f, RAYWHITE);
+			if (object.category == "nav_blockers") {
+				const Vector3 blocker_center = {object.position.x, object.blocker_height, object.position.y};
+				if (object.blocker_shape == "circle") {
+					const float radius = std::max(0.1f, object.blocker_radius);
+					DrawCylinder(blocker_center, radius, radius, 0.04f, 32, Color{50, 130, 255, 60});
+					DrawCylinderWires(blocker_center, radius, radius, 0.08f, 32, Color{90, 180, 255, 220});
+				} else {
+					DrawPlane(
+						blocker_center,
+						{std::max(0.1f, object.blocker_width), std::max(0.1f, object.blocker_depth)},
+						Color{50, 130, 255, 65});
+					DrawCubeWires(
+						blocker_center,
+						std::max(0.1f, object.blocker_width),
+						0.05f,
+						std::max(0.1f, object.blocker_depth),
+						Color{90, 180, 255, 220});
+				}
+			} else {
+				DrawCube(marker_position, 1.0f, 1.0f, 1.0f, marker_color);
+				DrawCubeWires(marker_position, 1.1f, 1.1f, 1.1f, RAYWHITE);
+			}
 
 			if (object.category == "spawners") {
 				const Vector3 ground_position = {object.position.x, nav_position.y + 0.05f, object.position.y};
@@ -1212,11 +1285,14 @@ namespace Nawia::World {
 			}
 		}
 
+		renderNavBlockerPreview();
+
 		EndMode3D();
 
 		for (const auto& object : _placed_objects) {
-			const Vector3 nav_position =
-				_map->getNavMesh().getClosestWalkablePosition({object.position.x, 0.0f, object.position.y});
+			const Vector3 nav_position = object.category == "nav_blockers"
+				? Vector3{object.position.x, object.blocker_height, object.position.y}
+				: _map->getNavMesh().getClosestWalkablePosition({object.position.x, 0.0f, object.position.y});
 			const Vector2 screen_position =
 				GetWorldToScreen({object.position.x, nav_position.y + 2.0f, object.position.y}, camera);
 			const std::string label = "[" + object.category + "] " + object.name;
@@ -1250,12 +1326,23 @@ namespace Nawia::World {
 
 		for (int index = 0; index < static_cast<int>(_placed_objects.size()); ++index) {
 			const auto& object = _placed_objects[index];
-			const Vector3 nav_position =
-				_map->getNavMesh().getClosestWalkablePosition({object.position.x, 0.0f, object.position.y});
-			const Vector3 marker_position = {object.position.x, nav_position.y + 0.5f, object.position.y};
+			const Vector3 nav_position = object.category == "nav_blockers"
+				? Vector3{object.position.x, object.blocker_height, object.position.y}
+				: _map->getNavMesh().getClosestWalkablePosition({object.position.x, 0.0f, object.position.y});
+			const Vector3 marker_position = object.category == "nav_blockers"
+				? Vector3{object.position.x, object.blocker_height, object.position.y}
+				: Vector3{object.position.x, nav_position.y + 0.5f, object.position.y};
+			const bool circular_blocker = object.category == "nav_blockers" && object.blocker_shape == "circle";
+			const float half_x = object.category == "nav_blockers"
+				? std::max(0.6f, circular_blocker ? object.blocker_radius : object.blocker_width * 0.5f)
+				: 0.6f;
+			const float half_z = object.category == "nav_blockers"
+				? std::max(0.6f, circular_blocker ? object.blocker_radius : object.blocker_depth * 0.5f)
+				: 0.6f;
+			const float half_y = object.category == "nav_blockers" ? 0.25f : 0.6f;
 			const BoundingBox marker_box = {
-				{marker_position.x - 0.6f, marker_position.y - 0.6f, marker_position.z - 0.6f},
-				{marker_position.x + 0.6f, marker_position.y + 0.6f, marker_position.z + 0.6f},
+				{marker_position.x - half_x, marker_position.y - half_y, marker_position.z - half_z},
+				{marker_position.x + half_x, marker_position.y + half_y, marker_position.z + half_z},
 			};
 
 			const RayCollision hit = GetRayCollisionBox(ray, marker_box);
@@ -1285,9 +1372,38 @@ namespace Nawia::World {
 			return;
 
 		Core::Logger::debugLog("DevLevel: usunieto obiekt: " + _placed_objects[nearest_index].name);
+		const bool removed_nav_blocker = _placed_objects[nearest_index].category == "nav_blockers";
 		_placed_objects.erase(_placed_objects.begin() + nearest_index);
+		if (removed_nav_blocker)
+			applyNavMeshBlockersToMap();
 		_has_unsaved_changes = true;
 		_status_message = "Usunieto obiekt. Zapisz lokacje, aby utrwalic zmiany.";
+	}
+
+	void DevLevel::renderNavBlockerPreview() const {
+		if (_current_mode != EditorMode::NavBlockerDetails)
+			return;
+
+		const Vector3 center = {_saved_world_position.x, _temp_nav_blocker_height, _saved_world_position.y};
+		if (_temp_nav_blocker_shape == "circle") {
+			const float radius = std::max(0.1f, _temp_nav_blocker_radius);
+			DrawCylinder(center, radius, radius, 0.06f, 40, Color{255, 210, 40, 75});
+			DrawCylinderWires(center, radius, radius, 0.16f, 40, ORANGE);
+			return;
+		}
+
+		DrawPlane(
+			center,
+			{std::max(0.1f, _temp_nav_blocker_width), std::max(0.1f, _temp_nav_blocker_depth)},
+			Color{255, 210, 40, 75}
+		);
+		DrawCubeWires(
+			center,
+			std::max(0.1f, _temp_nav_blocker_width),
+			0.12f,
+			std::max(0.1f, _temp_nav_blocker_depth),
+			ORANGE
+		);
 	}
 
 	void DevLevel::testLevel(Core::Engine* engine) {
@@ -1299,6 +1415,9 @@ namespace Nawia::World {
 		_spawn_manager.reset();
 
 		for (const auto& object : _placed_objects) {
+			if (object.category == "nav_blockers")
+				continue;
+
 			json entity_data = serializePlacedObject(object);
 			entity_data["location"] = _active_location_name;
 
@@ -1659,6 +1778,24 @@ namespace Nawia::World {
 			_temp_entity_type = "boss_trigger";
 			_temp_name = "Boss Trigger";
 			_current_mode = EditorMode::BossTriggerDetails;
+		}
+
+		button_y += object_button_step;
+		if (drawButton(font, "Nav Blocker", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
+			_temp_entity_type = "nav_blocker";
+			_temp_name = "Nav Blocker";
+			_temp_nav_blocker_shape = "box";
+			_temp_nav_blocker_width = 6.0f;
+			_temp_nav_blocker_depth = 6.0f;
+			_temp_nav_blocker_radius = 3.0f;
+			if (const auto player = engine ? engine->getPlayer() : nullptr) {
+				_temp_nav_blocker_height = player->getAltitude();
+				_nav_blocker_height_buffer = formatFloat(_temp_nav_blocker_height);
+			}
+			_nav_blocker_width_buffer = formatFloat(_temp_nav_blocker_width);
+			_nav_blocker_depth_buffer = formatFloat(_temp_nav_blocker_depth);
+			_current_mode = EditorMode::NavBlockerDetails;
 		}
 
 		button_y += 60;
@@ -2090,6 +2227,100 @@ namespace Nawia::World {
 		}
 	}
 
+	void DevLevel::renderNavBlockerDetailsMenu(Core::Engine* engine) {
+		const auto& font = engine->getUIHandler().getFont();
+		const int start_x = GetScreenWidth() / 2 - 250;
+		const int start_y = GetScreenHeight() / 2 - 260;
+
+		drawDevText(font, "Bloker NavMesha:", start_x, start_y - 40, 24, YELLOW);
+		drawLabel(font, "Nazwa:", start_x, start_y);
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 500, 38, _active_text_field == EditorTextField::ObjectName))
+			_active_text_field = EditorTextField::ObjectName;
+
+		bool changed = false;
+		const bool is_circle = _temp_nav_blocker_shape == "circle";
+		if (drawButton(font, is_circle ? "Ksztalt: Okrag" : "Ksztalt: Prostokat", start_x, start_y + 72, 240, 40, is_circle ? PURPLE : DARKBLUE)) {
+			_temp_nav_blocker_shape = is_circle ? "box" : "circle";
+			changed = true;
+			_active_text_field = EditorTextField::None;
+		}
+
+		drawDevText(font, "Podglad zolty: dopiero ZAPISZ BLOKER utrwala go w lokacji.", start_x, start_y + 122, 17, LIGHTGRAY);
+
+		int row_y = start_y + 165;
+		if (_temp_nav_blocker_shape == "circle") {
+			drawLabel(font, "Promien:", start_x, row_y);
+			changed |= drawSlider(
+				font,
+				{static_cast<float>(start_x), static_cast<float>(row_y + 24), 500.0f, 12.0f},
+				_temp_nav_blocker_radius,
+				NAV_BLOCKER_RADIUS_MIN,
+				NAV_BLOCKER_RADIUS_MAX,
+				_active_text_field,
+				EditorTextField::NavBlockerRadius,
+				ORANGE
+			);
+			row_y += 70;
+		} else {
+			drawLabel(font, "Szerokosc X:", start_x, row_y);
+			changed |= drawSlider(
+				font,
+				{static_cast<float>(start_x), static_cast<float>(row_y + 24), 500.0f, 12.0f},
+				_temp_nav_blocker_width,
+				NAV_BLOCKER_SIZE_MIN,
+				NAV_BLOCKER_SIZE_MAX,
+				_active_text_field,
+				EditorTextField::NavBlockerWidth,
+				SKYBLUE
+			);
+
+			row_y += 70;
+			drawLabel(font, "Glebokosc Z:", start_x, row_y);
+			changed |= drawSlider(
+				font,
+				{static_cast<float>(start_x), static_cast<float>(row_y + 24), 500.0f, 12.0f},
+				_temp_nav_blocker_depth,
+				NAV_BLOCKER_SIZE_MIN,
+				NAV_BLOCKER_SIZE_MAX,
+				_active_text_field,
+				EditorTextField::NavBlockerDepth,
+				SKYBLUE
+			);
+			row_y += 70;
+		}
+
+		drawLabel(font, "Wysokosc Y:", start_x, row_y);
+		changed |= drawSlider(
+			font,
+			{static_cast<float>(start_x), static_cast<float>(row_y + 24), 500.0f, 12.0f},
+			_temp_nav_blocker_height,
+			NAV_BLOCKER_HEIGHT_MIN,
+			NAV_BLOCKER_HEIGHT_MAX,
+			_active_text_field,
+			EditorTextField::NavBlockerHeight,
+			GOLD
+		);
+
+		if (changed) {
+			_nav_blocker_width_buffer = formatFloat(_temp_nav_blocker_width);
+			_nav_blocker_depth_buffer = formatFloat(_temp_nav_blocker_depth);
+			_nav_blocker_height_buffer = formatFloat(_temp_nav_blocker_height);
+		}
+
+		const int button_y = row_y + 72;
+		if (drawButton(font, "ZAPISZ BLOKER", start_x, button_y, 500, 50, GREEN)) {
+			saveObject("nav_blockers");
+			_active_text_field = EditorTextField::None;
+			_current_mode = EditorMode::None;
+		}
+
+		if (drawButton(font, "WSTECZ", start_x, button_y + 62, 500, 40, GRAY)) {
+			applyNavMeshBlockersToMap(false);
+			_active_text_field = EditorTextField::None;
+			_current_mode = EditorMode::None;
+		}
+	}
+
 	void DevLevel::renderItemSelectionMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
 		const int start_x = GetScreenWidth() / 2 - 250;
@@ -2156,7 +2387,15 @@ namespace Nawia::World {
 		_prop_model_path_buffer.clear();
 		_boss_width_buffer = "10.0";
 		_boss_height_buffer = "4.0";
+		_nav_blocker_width_buffer = "4.0";
+		_nav_blocker_depth_buffer = "4.0";
+		_nav_blocker_height_buffer = "0.0";
 		_key_id_buffer = "-1";
+		_temp_nav_blocker_width = 4.0f;
+		_temp_nav_blocker_depth = 4.0f;
+		_temp_nav_blocker_height = 0.0f;
+		_temp_nav_blocker_radius = 2.0f;
+		_temp_nav_blocker_shape = "box";
 		_selected_teleport_target_index = 0;
 		_selected_boss_index = 0;
 		_teleport_target_dropdown_open = false;
@@ -2182,12 +2421,53 @@ namespace Nawia::World {
 		placed_object.loot_ids = _temp_loot_ids;
 		placed_object.locked = _temp_chest_locked;
 		placed_object.key_id = _temp_key_id;
+		placed_object.blocker_width = _temp_nav_blocker_width;
+		placed_object.blocker_depth = _temp_nav_blocker_depth;
+		placed_object.blocker_height = _temp_nav_blocker_height;
+		placed_object.blocker_radius = _temp_nav_blocker_radius;
+		placed_object.blocker_shape = _temp_nav_blocker_shape == "circle" ? "circle" : "box";
 		placed_object.extra_value = _temp_extra_value;
 		placed_object.raw_data = json::object();
 
 		_placed_objects.push_back(std::move(placed_object));
+		if (category == "nav_blockers")
+			applyNavMeshBlockersToMap(false);
 		_has_unsaved_changes = true;
 		_status_message = "Dodano obiekt. Kliknij Zapisz, aby zapisac pliki.";
+	}
+
+	std::vector<NavMeshBlocker> DevLevel::collectNavMeshBlockers(const bool include_preview) const {
+		std::vector<NavMeshBlocker> blockers;
+		for (const auto& object : _placed_objects) {
+			if (object.category != "nav_blockers")
+				continue;
+
+			blockers.push_back({
+				object.position,
+				std::max(0.1f, object.blocker_width),
+				std::max(0.1f, object.blocker_depth),
+				object.blocker_height,
+				navBlockerShapeFromString(object.blocker_shape),
+				std::max(0.1f, object.blocker_radius)
+			});
+		}
+
+		if (include_preview && _current_mode == EditorMode::NavBlockerDetails) {
+			blockers.push_back({
+				_saved_world_position,
+				std::max(0.1f, _temp_nav_blocker_width),
+				std::max(0.1f, _temp_nav_blocker_depth),
+				_temp_nav_blocker_height,
+				navBlockerShapeFromString(_temp_nav_blocker_shape),
+				std::max(0.1f, _temp_nav_blocker_radius)
+			});
+		}
+		return blockers;
+	}
+
+	void DevLevel::applyNavMeshBlockersToMap(const bool include_preview) {
+		if (_map)
+			_map->setNavMeshBlockers(collectNavMeshBlockers(include_preview));
 	}
 
 	bool DevLevel::isMouseOverEditorUI() const {

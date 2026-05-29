@@ -142,6 +142,8 @@ namespace Nawia::World {
 		else
 			_map->loadMap(location.map.model, location.map.scale, location.map.offset, location.map.rotation);
 
+		_map->setNavMeshBlockers(location.navmesh_blockers);
+
 		if (location.has_navmesh_min_walkable_height)
 			_map->setNavMeshMinWalkableHeight(location.navmesh_min_walkable_height);
 
