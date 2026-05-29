@@ -25,6 +25,8 @@ namespace Nawia::World {
 		bool has_player_spawn = false;
 		float navmesh_min_walkable_height = 0.0f;
 		bool has_navmesh_min_walkable_height = false;
+		float camera_zoom = 0.75f;
+		bool has_camera_zoom = false;
 		std::vector<nlohmann::json> entities;
 	};
 

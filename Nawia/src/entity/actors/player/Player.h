@@ -167,6 +167,7 @@ namespace Nawia::Entity {
 		void onDeathStarted() override;
 		void attachEngine(Core::Engine* engine);
 		void updateWeaponVisualModel();
+		void updatePrimaryAttackAbility();
 
 		Core::Engine* _engine = nullptr;
 

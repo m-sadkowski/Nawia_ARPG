@@ -84,6 +84,96 @@
         "gold": 100,
         "exp": 1100
       }
+    },
+    {
+      "id": "gzib_talk_intro",
+      "name": "Porozmawiaj z Gzibem",
+      "description": "Znajdz Gziba i dowiedz sie, co stalo sie z jego bracmi.",
+      "level_name": "Wczora",
+      "prerequisites": [],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Gzib",
+          "count": 1,
+          "description": "Porozmawiaj z Gzibem"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 0
+      }
+    },
+    {
+      "id": "gzib_follow",
+      "name": "Podazaj za Gzibem",
+      "description": "Podazaj za Gzibem do miejsca, w ktorym czekaja jego zainfekowani bracia.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_talk_intro"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "Checkpoint Gziba",
+          "count": 1,
+          "description": "Dotrzyj za Gzibem na miejsce"
+        },
+        {
+          "type": "talk_to_npc",
+          "target_name": "Gzib",
+          "count": 1,
+          "description": "Porozmawiaj z Gzibem na miejscu"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 0
+      }
+    },
+    {
+      "id": "gzib_rescue_brothers",
+      "name": "Uratuj Gzibkow",
+      "description": "Pokonaj robale, ktore zatruwaja Gzibki.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_follow"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Robal",
+          "count": 5,
+          "description": "Zabij robale"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 0
+      }
+    },
+    {
+      "id": "gzib_report_brothers",
+      "name": "Powiadom Gziba o jego braciach",
+      "description": "Wroc do Gziba i powiedz mu, ze Gzibki sa bezpieczne.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_rescue_brothers"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Gzib",
+          "count": 1,
+          "description": "Powiadom Gziba"
+        }
+      ],
+      "rewards": {
+        "items": [13],
+        "gold": 0,
+        "exp": 0
+      }
     }
   ]
 }

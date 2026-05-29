@@ -302,6 +302,7 @@ namespace Nawia::Entity {
 		 * @brief Dodaje umiejętność i ustawia tę encję jako źródło użycia.
 		 */
 		void addAbility(const std::shared_ptr<Ability>& ability);
+		void setAbility(int index, const std::shared_ptr<Ability>& ability);
 
 		/**
 		 * @brief Zwraca umiejętność z danego slotu albo `nullptr`.

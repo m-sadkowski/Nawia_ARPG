@@ -155,6 +155,12 @@ namespace Nawia::Core {
 			"assets/models/bandit_throw.glb",
 			"assets/models/bandit_death.glb",
 			"assets/models/walking_dead.glb",
+			"assets/models/frog.glb",
+			"assets/models/worm.glb",
+			"assets/models/mini_mushroom.glb",
+			"assets/models/mini_mushroom_infected.glb",
+			"assets/models/mushroom_raylib_fixed.glb",
+			"assets/models/village_head.glb",
 			"assets/models/devil_idle.glb",
 			"assets/models/devil_walk.glb",
 			"assets/models/devil_run.glb",
@@ -185,6 +191,9 @@ namespace Nawia::Core {
 
 		addTexture("assets/textures/icons/sword_slash_icon.png");
 		addTexture("assets/textures/icons/fireball_icon.png");
+		addTexture("assets/textures/icons/punch_icon.png");
+		addTexture("assets/textures/icons/strong_hit_icon.png");
+		addTexture("assets/textures/icons/empty_ability_icon.png");
 	}
 
 	void AssetLoadManifest::appendEntityTypeAssets(const std::string& entity_type, const nlohmann::json& entity_data) {
@@ -214,10 +223,37 @@ namespace Nawia::Core {
 			return;
 		}
 
+		if (entity_type == "frog") {
+			addModel("assets/models/frog.glb");
+			addAnimation("assets/models/frog.glb");
+			addModel("assets/models/village_head.glb");
+			addAnimation("assets/models/village_head.glb");
+			return;
+		}
+
+		if (entity_type == "worm") {
+			addModel("assets/models/worm.glb");
+			addAnimation("assets/models/worm.glb");
+			return;
+		}
+
+		if (entity_type == "mini_mushroom_infected") {
+			addModel("assets/models/mini_mushroom_infected.glb");
+			addAnimation("assets/models/mini_mushroom_infected.glb");
+			addModel("assets/models/mini_mushroom.glb");
+			addAnimation("assets/models/mini_mushroom.glb");
+			addModel("assets/models/worm.glb");
+			addAnimation("assets/models/worm.glb");
+			return;
+		}
+
 		if (entity_type == "friend") {
 			addModel("assets/models/player_idle.glb");
 			addAnimation("assets/models/player_idle.glb");
 			addTexture("assets/textures/icons/sword_slash_icon.png");
+			addTexture("assets/textures/icons/punch_icon.png");
+			addTexture("assets/textures/icons/strong_hit_icon.png");
+			addTexture("assets/textures/icons/empty_ability_icon.png");
 			return;
 		}
 
@@ -234,8 +270,23 @@ namespace Nawia::Core {
 		}
 
 		if (entity_type == "npc") {
-			addModel("assets/models/cat_bounce.glb");
-			addAnimation("assets/models/cat_bounce.glb");
+			const std::string npc_class = entity_data.value("npc_class", "cat");
+			if (npc_class == "mushroom") {
+				addModel("assets/models/mushroom_raylib_fixed.glb");
+				addAnimation("assets/models/mushroom_raylib_fixed.glb");
+			} else if (npc_class == "village_head") {
+				addModel("assets/models/village_head.glb");
+				addAnimation("assets/models/village_head.glb");
+			} else {
+				addModel("assets/models/cat_bounce.glb");
+				addAnimation("assets/models/cat_bounce.glb");
+			}
+			return;
+		}
+
+		if (entity_type == "mini_mushroom_prop") {
+			addModel("assets/models/mini_mushroom.glb");
+			addAnimation("assets/models/mini_mushroom.glb");
 			return;
 		}
 

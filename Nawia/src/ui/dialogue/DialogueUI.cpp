@@ -7,13 +7,14 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Nawia::UI
 {
     namespace
     {
-        constexpr float PANEL_WIDTH_RATIO = 0.6f;
+        constexpr float PANEL_WIDTH_RATIO = 0.82f;
 
         struct DialogueLayout
         {
@@ -67,8 +68,8 @@ namespace Nawia::UI
             const float min_panel_height = Core::GlobalScaling::scaled(DIALOGUE_BOX_HEIGHT);
             const float content_padding_x = Core::GlobalScaling::scaled(30.0f);
             const float content_padding_y = Core::GlobalScaling::scaled(20.0f);
-            const float name_font_size = Core::GlobalScaling::scaled(32.0f);
-            const float text_font_size = Core::GlobalScaling::scaled(20.0f);
+            const float name_font_size = Core::GlobalScaling::scaled(42.0f);
+            const float text_font_size = Core::GlobalScaling::scaled(30.0f);
             const float text_spacing = Core::GlobalScaling::scaled(1.0f);
             const float line_height = text_font_size + Core::GlobalScaling::scaled(5.0f);
             const float option_height = text_font_size + Core::GlobalScaling::scaled(10.0f);
@@ -129,17 +130,22 @@ namespace Nawia::UI
         }
     }
 
-    void DialogueUI::open(const Game::DialogueTree& tree)
+    void DialogueUI::open(const Game::DialogueTree& tree, const int start_node_id, std::function<void(int, bool)> on_close)
     {
         _current_tree = tree;
-        _current_node_id = 0;
+        _current_node_id = _current_tree.getNode(start_node_id) ? start_node_id : 0;
+        _on_close = std::move(on_close);
         _option_rectangles.clear();
         _is_open = true;
     }
 
-    void DialogueUI::close()
+    void DialogueUI::close(const bool completed)
     {
+        if (_is_open && _on_close)
+            _on_close(_current_node_id, completed);
+
         _is_open = false;
+        _on_close = nullptr;
         _option_rectangles.clear();
     }
 
@@ -212,7 +218,7 @@ namespace Nawia::UI
                 option.action();
 
             if (option.next_node_id == -1)
-                close();
+                close(true);
             else
                 _current_node_id = option.next_node_id;
 

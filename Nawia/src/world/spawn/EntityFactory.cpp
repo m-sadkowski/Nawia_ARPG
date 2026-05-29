@@ -13,9 +13,14 @@
 #include <Cat.h>
 #include <Chest.h>
 #include <Checkpoint.h>
+#include <Frog.h>
+#include <MiniMushroomInfected.h>
+#include <MiniMushroomProp.h>
 #include <StaticObject.h>
+#include <StoryNpc.h>
 #include <Teleport.h>
 #include <WalkingDead.h>
+#include <Worm.h>
 
 #include <KnifeThrowAbility.h>
 #include <SwordSlashAbility.h>
@@ -91,11 +96,16 @@ namespace Nawia::World {
 		if (type == "devil")         return createDevil(data, engine, map);
 		if (type == "bandit")        return createBandit(data, engine, map);
 		if (type == "walking_dead")  return createWalkingDead(data, engine, map);
+		if (type == "frog")          return createFrog(data, engine, map);
+		if (type == "worm")          return createWorm(data, engine, map);
+		if (type == "mini_mushroom_infected") return createMiniMushroomInfected(data, engine, map);
 		if (type == "friend")        return createFriend(data, engine, map);
 		if (type == "chest")         return createChest(data, engine);
 		if (type == "npc")           return createNPC(data, engine);
+		if (type == "mini_mushroom_prop") return createMiniMushroomProp(data, engine);
 		if (type == "static_object") return createStaticObject(data, engine);
 		if (type == "checkpoint")    return createCheckpoint(data);
+		if (type == "checkpoint_mushroom_npc") return createCheckpoint(data);
 		if (type == "teleport")      return createTeleport(data, engine);
 		if (type == "boss_trigger")  return createBossTrigger(data, engine);
 
@@ -186,6 +196,64 @@ namespace Nawia::World {
 		return wd;
 	}
 
+	std::shared_ptr<Entity::Entity> EntityFactory::createFrog(
+		const json& data, Core::Engine* engine, Core::Map* map)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const int hp = data.value("hp", 95);
+		const std::string name = data.value("name", "Ropuch");
+
+		auto frog = std::make_shared<Entity::Frog>();
+		frog->setName(name);
+		frog->setX(x);
+		frog->setY(y);
+		frog->setMap(map);
+		frog->setEngine(engine);
+		frog->setMaxHp(hp);
+		frog->setTarget(engine->getPlayer());
+		frog->setAudioManager(&engine->getAudioManager());
+		return frog;
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createWorm(
+		const json& data, Core::Engine* engine, Core::Map* map)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const int hp = data.value("hp", 35);
+		const std::string name = data.value("name", "Robal");
+
+		auto worm = std::make_shared<Entity::Worm>();
+		worm->setName(name);
+		worm->setX(x);
+		worm->setY(y);
+		worm->setMap(map);
+		worm->setMaxHp(hp);
+		worm->setTarget(engine->getPlayer());
+		worm->setAudioManager(&engine->getAudioManager());
+		return worm;
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createMiniMushroomInfected(
+		const json& data, Core::Engine* engine, Core::Map* map)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const int hp = data.value("hp", 45);
+		const std::string name = data.value("name", "Zly Gzibek");
+
+		auto mushroom = std::make_shared<Entity::MiniMushroomInfected>();
+		mushroom->setName(name);
+		mushroom->setX(x);
+		mushroom->setY(y);
+		mushroom->setMap(map);
+		mushroom->setMaxHp(hp);
+		mushroom->setTarget(engine->getPlayer());
+		mushroom->setAudioManager(&engine->getAudioManager());
+		return mushroom;
+	}
+
 	std::shared_ptr<Entity::Entity> EntityFactory::createFriend(
 		const json& data, Core::Engine* engine, Core::Map* map)
 	{
@@ -272,8 +340,37 @@ namespace Nawia::World {
 			return cat;
 		}
 
+		if (npc_class == "mushroom") {
+			auto mushroom = std::make_shared<Entity::StoryNpc>(name.empty() ? "Gzib" : name, x, y);
+			mushroom->setAudioManager(&engine->getAudioManager());
+			mushroom->configureMushroom(engine, data.value("follow_checkpoint", "Checkpoint Gziba"));
+			return mushroom;
+		}
+
+		if (npc_class == "village_head") {
+			auto village_head = std::make_shared<Entity::StoryNpc>(name.empty() ? "Soltys" : name, x, y);
+			village_head->setAudioManager(&engine->getAudioManager());
+			village_head->configureVillageHead(engine);
+			return village_head;
+		}
+
 		Core::Logger::errorLog("EntityFactory: nieznana klasa NPC: " + npc_class);
 		return nullptr;
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createMiniMushroomProp(
+		const json& data, Core::Engine* engine)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const std::string name = data.value("name", "Gzibek");
+
+		auto prop = std::make_shared<Entity::MiniMushroomProp>();
+		prop->setName(name);
+		prop->setX(x);
+		prop->setY(y);
+		prop->setAudioManager(&engine->getAudioManager());
+		return prop;
 	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createStaticObject(

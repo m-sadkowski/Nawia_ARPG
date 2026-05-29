@@ -23,6 +23,28 @@
       }
     },
     {
+      "name": "Punch",
+      "stats": {
+        "damage": 5,
+        "cooldown": 0.45,
+        "cast_range": 4.8,
+        "projectile_speed": 0.0,
+        "duration": 0.12,
+        "hitbox_radius": 3.8
+      }
+    },
+    {
+      "name": "Strong Hit",
+      "stats": {
+        "damage": 8,
+        "cooldown": 1.15,
+        "cast_range": 3.5,
+        "projectile_speed": 0.0,
+        "duration": 0.14,
+        "hitbox_radius": 3.0
+      }
+    },
+    {
       "name": "KnifeThrow",
       "stats": {
         "damage": 15,

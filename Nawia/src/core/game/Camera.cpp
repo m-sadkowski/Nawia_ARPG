@@ -37,6 +37,10 @@ namespace Nawia::Core {
 		_zoom_factor = k_default_zoom_factor;
 	}
 
+	void GameCamera::resetZoom(const float zoom_factor) {
+		_zoom_factor = std::clamp(zoom_factor, k_min_zoom_factor, k_max_zoom_factor);
+	}
+
 	void GameCamera::follow(const Entity::Entity* target) {
 		if (!target)
 			return;

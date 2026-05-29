@@ -699,6 +699,19 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_abilities.push_back(ability);
 	}
 
+	void Entity::setAbility(const int index, const std::shared_ptr<Ability>& ability)
+	{
+		if (index < 0 || !ability)
+			return;
+
+		ability->setCaster(this);
+		const auto ability_index = static_cast<size_t>(index);
+		if (_abilities.size() <= ability_index)
+			_abilities.resize(ability_index + 1);
+
+		_abilities[ability_index] = ability;
+	}
+
 	std::shared_ptr<Ability> Entity::getAbility(const int index)
 	{
 		if (index < 0)

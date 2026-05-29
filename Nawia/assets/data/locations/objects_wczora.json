@@ -1,0 +1,132 @@
+{
+    "entities": [
+        {
+            "category": "npcs",
+            "location": "Wczora",
+            "name": "Gzib",
+            "npc_class": "mushroom",
+            "type": "npc",
+            "x": 31.26576805114746,
+            "y": -2.6189374923706055
+        },
+        {
+            "category": "checkpoints",
+            "location": "Wczora",
+            "name": "Checkpoint Gziba",
+            "type": "checkpoint_mushroom_npc",
+            "x": 15.957840919494629,
+            "y": -27.788297653198242
+        },
+        {
+            "category": "checkpoints",
+            "location": "Wczora",
+            "name": "Checkpoint Gziba",
+            "type": "checkpoint_mushroom_npc",
+            "x": 29.311429977416992,
+            "y": -46.60541534423828
+        },
+        {
+            "category": "spawners",
+            "count": 5,
+            "location": "Wczora",
+            "name": "Zly Gzibek",
+            "spawn_radius": 5.0,
+            "trigger_radius": 20.0,
+            "type": "mini_mushroom_infected",
+            "x": 36.337188720703125,
+            "y": -59.00876998901367
+        },
+        {
+            "category": "chests",
+            "items": [
+                2
+            ],
+            "location": "Wczora",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 34.430233001708984,
+            "y": -62.50339889526367
+        },
+        {
+            "category": "chests",
+            "items": [
+                3
+            ],
+            "location": "Wczora",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 30.34515380859375,
+            "y": -11.262310028076172
+        },
+        {
+            "category": "chests",
+            "items": [
+                8
+            ],
+            "location": "Wczora",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 96.71841430664063,
+            "y": -45.44831848144531
+        },
+        {
+            "category": "spawners",
+            "count": 1,
+            "location": "Wczora",
+            "name": "Ropuch",
+            "spawn_radius": 5.0,
+            "trigger_radius": 20.0,
+            "type": "frog",
+            "x": 86.85816192626953,
+            "y": -39.160499572753906
+        },
+        {
+            "category": "chests",
+            "items": [
+                9
+            ],
+            "location": "Wczora",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 118.98974609375,
+            "y": -71.56340789794922
+        },
+        {
+            "category": "spawners",
+            "count": 3,
+            "location": "Wczora",
+            "name": "Walking Dead",
+            "spawn_radius": 5.0,
+            "trigger_radius": 20.0,
+            "type": "walking_dead",
+            "x": 118.83037567138672,
+            "y": -71.46399688720703
+        },
+        {
+            "category": "checkpoints",
+            "location": "Wczora",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 80.77792358398438,
+            "y": -43.62266159057617
+        },
+        {
+            "category": "checkpoints",
+            "location": "Wczora",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 34.662330627441406,
+            "y": -60.36192321777344
+        },
+        {
+            "category": "checkpoints",
+            "location": "Wczora",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 28.960744857788086,
+            "y": -2.368885040283203
+        }
+    ],
+    "location": "Wczora",
+    "schema_version": 1
+}

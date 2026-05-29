@@ -28,6 +28,8 @@ namespace Nawia::Core {
 		 * @brief Przywraca domyslny zoom uzywany poza trybem developerskim.
 		 */
 		void resetZoom();
+		void resetZoom(float zoom_factor);
+		[[nodiscard]] float getZoomFactor() const { return _zoom_factor; }
 
 		/**
 		 * @brief Ustawia kamere nad wskazanym celem.

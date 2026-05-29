@@ -10,12 +10,14 @@
 #include <DemoLevel.h>
 #include <DevLevel.h>
 #include <Entity.h>
+#include <FirstLevel.h>
 #include <FireballAbility.h>
 #include <Level.h>
 #include <LevelManager.h>
 #include <Map.h>
 #include <SoundIds.h>
 #include <SwordSlashAbility.h>
+#include <UnarmedMeleeAbility.h>
 
 #include <algorithm>
 #include <filesystem>
@@ -60,6 +62,7 @@ namespace Nawia::Core {
 		_entity_manager = std::make_unique<EntityManager>(this);
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
+		_level_manager->registerLevel(std::make_shared<World::FirstLevel>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
 
 		_loading_kind = LoadingKind::Startup;
@@ -232,16 +235,42 @@ namespace Nawia::Core {
 		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
 		_player->setAudioManager(&_audio_manager);
 
-		const auto sword_slash_icon = _resource_manager.getTexture("assets/textures/icons/sword_slash_icon.png");
-		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(nullptr, sword_slash_icon));
+		const auto punch_icon = _resource_manager.getTexture("assets/textures/icons/punch_icon.png");
+		const auto strong_hit_icon = _resource_manager.getTexture("assets/textures/icons/strong_hit_icon.png");
+		_player->addAbility(std::make_shared<Entity::UnarmedMeleeAbility>(
+			"Punch",
+			"Punch",
+			"Punch_Jab",
+			Entity::AbilityTargetType::POINT,
+			false,
+			Entity::UnarmedMeleeEffect::Shape::Cone,
+			0.45f,
+			75.0f,
+			0.0f,
+			false,
+			punch_icon));
+		_player->addAbility(std::make_shared<Entity::UnarmedMeleeAbility>(
+			"Strong Hit",
+			"Strong Hit",
+			"Melee_Hook",
+			Entity::AbilityTargetType::POINT,
+			false,
+			Entity::UnarmedMeleeEffect::Shape::ForwardRectangle,
+			0.55f,
+			1.15f,
+			1.8f,
+			true,
+			strong_hit_icon));
 
-		const auto fireball_icon = _resource_manager.getTexture("assets/textures/icons/fireball_icon.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>(
-			"assets/models/fireball.glb",
-			0.5f,
-			nullptr,
-			fireball_icon,
-			&_resource_manager));
+		if (grant_starter_items) {
+			const auto fireball_icon = _resource_manager.getTexture("assets/textures/icons/fireball_icon.png");
+			_player->addAbility(std::make_shared<Entity::FireballAbility>(
+				"assets/models/fireball.glb",
+				0.5f,
+				nullptr,
+				fireball_icon,
+				&_resource_manager));
+		}
 
 		_controller = std::make_unique<PlayerController>(this, _player);
 
@@ -443,7 +472,7 @@ namespace Nawia::Core {
 		_boss_manager.resetRuntimeState(this);
 		_boss_manager.clearDefeatedBosses();
 		_quest_manager.resetAll();
-		createFreshPlayer(true);
+		createFreshPlayer(level_name != "Wczora");
 
 		queueLevelLoad(level_name, "", true, default_slot);
 	}
@@ -546,8 +575,9 @@ namespace Nawia::Core {
 		const auto dev_level = dynamic_cast<World::DevLevel*>(_level_manager->getCurrentLevel());
 		if (dev_level)
 			_camera.handleInput();
-		else
-			_camera.resetZoom();
+		else {
+			_camera.resetZoom(_gameplay_camera_zoom);
+		}
 
 		const Vector2 mouse_pos = GetMousePosition();
 		const float cursor_plane_height = _player ? _player->getAltitude() : 0.0f;

@@ -164,6 +164,7 @@ namespace Nawia::UI
         _menu_btn_idle = resource_manager.getTexture("assets/textures/ui/button.png");
         smoothUiTexture(_menu_btn_idle);
         _ability_bar_frame = resource_manager.getTexture("assets/textures/ui/ability_bar.png");
+        _empty_ability_icon = resource_manager.getTexture("assets/textures/icons/empty_ability_icon.png");
         _hp_orb_frame = resource_manager.getTexture("assets/textures/ui/hp_orb.png");
         _level_orb_frame = resource_manager.getTexture("assets/textures/ui/level_orb.png");
         smoothUiTexture(_ability_bar_frame);
@@ -1002,11 +1003,30 @@ namespace Nawia::UI
             {
                 DrawRectangleRec(icon_rectangle, withAlpha(BLACK, 0.5f));
             }
+
+            const auto draw_empty_slot_icon = [&]() {
+                if (_empty_ability_icon && _empty_ability_icon->id > 0) {
+                    const Rectangle source_rectangle = {
+                        0.0f,
+                        0.0f,
+                        static_cast<float>(_empty_ability_icon->width),
+                        static_cast<float>(_empty_ability_icon->height)
+                    };
+                    DrawTexturePro(*_empty_ability_icon, source_rectangle, icon_rectangle, {0.0f, 0.0f}, 0.0f, Fade(WHITE, 0.72f));
+                }
+            };
             
-            if (static_cast<size_t>(i) >= abilities.size())
+            if (static_cast<size_t>(i) >= abilities.size()) {
+                draw_empty_slot_icon();
                 continue;
+            }
             
             const auto& ability = abilities[i];
+            if (!ability) {
+                draw_empty_slot_icon();
+                continue;
+            }
+
             if (const auto icon_texture = ability->getIcon())
             {
                 const Rectangle source_rectangle = { 0, 0, static_cast<float>(icon_texture->width), static_cast<float>(icon_texture->height) };

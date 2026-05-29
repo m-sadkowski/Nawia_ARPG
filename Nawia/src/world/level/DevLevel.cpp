@@ -43,7 +43,97 @@ namespace Nawia::World {
 
 		constexpr Rectangle LEFT_PANEL = {20.0f, 20.0f, 330.0f, 430.0f};
 		constexpr Rectangle CENTER_PANEL = {0.0f, 20.0f, 360.0f, 310.0f};
-		constexpr Rectangle RIGHT_PANEL = {0.0f, 20.0f, 280.0f, 590.0f};
+		constexpr Rectangle RIGHT_PANEL = {0.0f, 20.0f, 280.0f, 720.0f};
+
+		const std::vector<std::string> PLAYER_ANIMATION_OPTIONS = {
+			"A_TPose",
+			"Chest_Open",
+			"ClimbUp_1m_RM",
+			"Consume",
+			"Farm_Harvest",
+			"Farm_PlantSeed",
+			"Farm_Watering",
+			"Hit_Knockback",
+			"Hit_Knockback_RM",
+			"Idle_FoldArms_Loop",
+			"Idle_Lantern_Loop",
+			"Idle_No_Loop",
+			"Idle_Rail_Call",
+			"Idle_Rail_Loop",
+			"Idle_Shield_Break",
+			"Idle_Shield_Loop",
+			"Idle_TalkingPhone_Loop",
+			"LayToIdle",
+			"Melee_Hook",
+			"Melee_Hook_Rec",
+			"NinjaJump_Idle_Loop",
+			"NinjaJump_Land",
+			"NinjaJump_Start",
+			"OverhandThrow",
+			"Shield_Dash_RM",
+			"Shield_OneShot",
+			"Slide_Exit",
+			"Slide_Loop",
+			"Slide_Start",
+			"Sword_Block",
+			"Sword_Dash_RM",
+			"Sword_Regular_A",
+			"Sword_Regular_A_Rec",
+			"Sword_Regular_B",
+			"Sword_Regular_B_Rec",
+			"Sword_Regular_C",
+			"Sword_Regular_Combo",
+			"TreeChopping_Loop",
+			"Walk_Carry_Loop",
+			"Yes",
+			"Zombie_Idle_Loop",
+			"Zombie_Scratch",
+			"Zombie_Walk_Fwd_Loop",
+			"Crouch_Fwd_Loop",
+			"Crouch_Idle_Loop",
+			"Dance_Loop",
+			"Death01",
+			"Driving_Loop",
+			"Fixing_Kneeling",
+			"Hit_Chest",
+			"Hit_Head",
+			"Idle_Loop",
+			"Idle_Talking_Loop",
+			"Idle_Torch_Loop",
+			"Interact",
+			"Jog_Fwd_Loop",
+			"Jump_Land",
+			"Jump_Loop",
+			"Jump_Start",
+			"PickUp_Table",
+			"Pistol_Aim_Down",
+			"Pistol_Aim_Neutral",
+			"Pistol_Aim_Up",
+			"Pistol_Idle_Loop",
+			"Pistol_Reload",
+			"Pistol_Shoot",
+			"Punch_Cross",
+			"Punch_Jab",
+			"Push_Loop",
+			"Roll",
+			"Roll_RM",
+			"Sitting_Enter",
+			"Sitting_Exit",
+			"Sitting_Idle_Loop",
+			"Sitting_Talking_Loop",
+			"Spell_Simple_Enter",
+			"Spell_Simple_Exit",
+			"Spell_Simple_Idle_Loop",
+			"Spell_Simple_Shoot",
+			"Sprint_Loop",
+			"Swim_Fwd_Loop",
+			"Swim_Idle_Loop",
+			"Sword_Attack",
+			"Sword_Attack_RM",
+			"Sword_Idle",
+			"Walk_Formal_Loop",
+			"Walk_Loop"
+		};
 
 		std::filesystem::path resolveAssetPath(const std::filesystem::path& relative_asset_path) {
 			return (std::filesystem::path("assets") / relative_asset_path).lexically_normal();
@@ -150,7 +240,12 @@ namespace Nawia::World {
 		}
 
 		bool isEnemyType(const std::string& type) {
-			return type == "devil" || type == "bandit" || type == "walking_dead";
+			return type == "devil" ||
+				   type == "bandit" ||
+				   type == "walking_dead" ||
+				   type == "frog" ||
+				   type == "worm" ||
+				   type == "mini_mushroom_infected";
 		}
 
 		std::string categoryFromEntityType(const std::string& type) {
@@ -158,8 +253,10 @@ namespace Nawia::World {
 			if (type == "chest") return "chests";
 			if (type == "npc") return "npcs";
 			if (type == "static_object") return "props";
+			if (type == "mini_mushroom_prop") return "props";
 			if (type == "teleport") return "teleports";
 			if (type == "checkpoint") return "checkpoints";
+			if (type == "checkpoint_mushroom_npc") return "checkpoints";
 			if (type == "boss_trigger") return "boss_triggers";
 			return "props";
 		}
@@ -383,6 +480,17 @@ namespace Nawia::World {
 			return navmesh_it->value("min_walkable_height", fallback);
 		}
 
+		float readCameraZoom(const json& root, const float fallback) {
+			const auto camera_it = root.find("camera");
+			if (camera_it != root.end() && camera_it->is_object())
+				return camera_it->value("zoom", fallback);
+
+			if (root.contains("camera_zoom") && root["camera_zoom"].is_number())
+				return root["camera_zoom"].get<float>();
+
+			return fallback;
+		}
+
 	} // namespace
 
 	std::vector<std::string> DevLevel::getLocations() const {
@@ -442,6 +550,9 @@ namespace Nawia::World {
 	}
 
 	void DevLevel::update(Core::Engine* engine, float dt) {
+		if (engine)
+			_camera_zoom = engine->getCamera().getZoomFactor();
+
 		if (const auto player = engine->getPlayer()) {
 			float movement_speed = 5.0f;
 			if (IsKeyDown(KEY_LEFT_SHIFT))
@@ -598,6 +709,7 @@ namespace Nawia::World {
 		_active_map_offset = {0.0f, 0.0f, 0.0f};
 		_active_map_rotation = {0.0f, 0.0f, 0.0f};
 		_navmesh_min_walkable_height = 0.0f;
+		_camera_zoom = 0.75f;
 		_player_spawn = {0.0f, 0.0f};
 		_has_player_spawn = true;
 		_active_location_name = "Nowa lokacja";
@@ -606,6 +718,8 @@ namespace Nawia::World {
 		_placed_objects.clear();
 
 		applyLocationStateToBuffers();
+		if (engine)
+			engine->getCamera().resetZoom(_camera_zoom);
 		reloadMapFromEditor(engine, true);
 		_status_message = "Pusta lokacja gotowa.";
 		_has_unsaved_changes = false;
@@ -633,6 +747,7 @@ namespace Nawia::World {
 		_active_map_offset = {0.0f, 0.0f, 0.0f};
 		_active_map_rotation = {0.0f, 0.0f, 0.0f};
 		_navmesh_min_walkable_height = 0.0f;
+		_camera_zoom = 0.75f;
 		_player_spawn = {0.0f, 0.0f};
 		_has_player_spawn = true;
 
@@ -654,6 +769,7 @@ namespace Nawia::World {
 				_player_spawn = parseVector2(root["player_spawn"], _player_spawn);
 
 			_navmesh_min_walkable_height = readNavmeshMinHeight(root, _navmesh_min_walkable_height);
+			_camera_zoom = readCameraZoom(root, _camera_zoom);
 			loadPlacedObjectsFromFile(option.objects_path, _active_location_name);
 		}
 
@@ -666,6 +782,8 @@ namespace Nawia::World {
 		}
 
 		applyLocationStateToBuffers();
+		if (engine)
+			engine->getCamera().resetZoom(_camera_zoom);
 		reloadMapFromEditor(engine, true);
 		_status_message = "Wczytano lokacje: " + _active_location_name;
 		_has_unsaved_changes = false;
@@ -927,6 +1045,7 @@ namespace Nawia::World {
 			{"rotation", vector3ToJson(_active_map_rotation)},
 		};
 		location_data["navmesh"]["min_walkable_height"] = _navmesh_min_walkable_height;
+		location_data["camera"]["zoom"] = _camera_zoom;
 		location_data["player_spawn"] = vector2ToJson(_player_spawn);
 		location_data["objects_file"] = objects_path.filename().string();
 
@@ -1347,13 +1466,15 @@ namespace Nawia::World {
 
 		const std::string spawn_text = "Spawn: " + formatFloat(_player_spawn.x, 1) + ", " + formatFloat(_player_spawn.y, 1);
 		drawDevText(font, spawn_text.c_str(), x + 18.0f, y + 288.0f, 16, LIGHTGRAY);
+		const std::string zoom_text = "Zoom kamery: " + formatFloat(_camera_zoom, 2);
+		drawDevText(font, zoom_text.c_str(), x + 18.0f, y + 306.0f, 16, LIGHTGRAY);
 
-		if (drawButton(font, "Ustaw spawn", x + 18, y + 314, 138, 40, ORANGE)) {
+		if (drawButton(font, "Ustaw spawn", x + 18, y + 330, 138, 40, ORANGE)) {
 			_active_text_field = EditorTextField::None;
 			setSpawnFromPlayer(engine);
 		}
 
-		if (drawButton(font, "Przeladuj", x + 172, y + 314, 138, 40, DARKGREEN)) {
+		if (drawButton(font, "Przeladuj", x + 172, y + 330, 138, 40, DARKGREEN)) {
 			_active_text_field = EditorTextField::None;
 			reloadMapFromEditor(engine, false);
 		}
@@ -1467,44 +1588,55 @@ namespace Nawia::World {
 		DrawRectangleLinesEx(panel, 2, ColorAlpha(RAYWHITE, 0.30f));
 		drawDevText(font, "Obiekty", panel.x + 82.0f, panel.y + 16.0f, 30, RAYWHITE);
 
-		int button_y = y + 62;
-		if (drawButton(font, "Spawner", x + 28, button_y, 224, 42, DARKGREEN)) {
+		const int object_button_height = 36;
+		const int object_button_step = 46;
+		int button_y = y + 58;
+		if (drawButton(font, "Spawner", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
 			prepareObjectPlacementAtPlayer(engine);
 			_current_mode = EditorMode::SpawnerType;
 		}
 
-		button_y += 58;
-		if (drawButton(font, "Skrzynia", x + 28, button_y, 224, 42, DARKGREEN)) {
+		button_y += object_button_step;
+		if (drawButton(font, "Skrzynia", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
 			prepareObjectPlacementAtPlayer(engine);
 			_temp_entity_type = "chest";
 			_temp_name = "Skrzynia";
 			_current_mode = EditorMode::ChestDetails;
 		}
 
-		button_y += 58;
-		if (drawButton(font, "NPC", x + 28, button_y, 224, 42, DARKGREEN)) {
+		button_y += object_button_step;
+		if (drawButton(font, "NPC", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
 			prepareObjectPlacementAtPlayer(engine);
 			_current_mode = EditorMode::NPCSelection;
 		}
 
-		button_y += 58;
-		if (drawButton(font, "Prop", x + 28, button_y, 224, 42, DARKGREEN)) {
+		button_y += object_button_step;
+		if (drawButton(font, "Prop", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
 			prepareObjectPlacementAtPlayer(engine);
 			_temp_entity_type = "static_object";
 			_temp_name = "Prop";
 			_current_mode = EditorMode::PropDetails;
 		}
 
-		button_y += 58;
-		if (drawButton(font, "Teleport", x + 28, button_y, 224, 42, DARKGREEN)) {
+		button_y += object_button_step;
+		if (drawButton(font, "Gzibek prop", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
+			_temp_entity_type = "mini_mushroom_prop";
+			_temp_name = "Gzibek";
+			saveObject("props");
+			_current_mode = EditorMode::None;
+		}
+
+		button_y += object_button_step;
+		if (drawButton(font, "Teleport", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
 			prepareObjectPlacementAtPlayer(engine);
 			_temp_entity_type = "teleport";
 			_temp_name = "Teleport";
 			_current_mode = EditorMode::TeleportDetails;
 		}
 
-		button_y += 58;
-		if (drawButton(font, "Checkpoint", x + 28, button_y, 224, 42, DARKGREEN)) {
+		button_y += object_button_step;
+		if (drawButton(font, "Checkpoint", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
 			prepareObjectPlacementAtPlayer(engine);
 			_temp_entity_type = "checkpoint";
 			_temp_name = "Punkt Kontrolny";
@@ -1512,21 +1644,78 @@ namespace Nawia::World {
 			_current_mode = EditorMode::None;
 		}
 
-		button_y += 58;
-		if (drawButton(font, "Boss Trigger", x + 28, button_y, 224, 42, DARKGREEN)) {
+		button_y += object_button_step;
+		if (drawButton(font, "Waypoint Gziba", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
+			_temp_entity_type = "checkpoint_mushroom_npc";
+			_temp_name = "Checkpoint Gziba";
+			saveObject("checkpoints");
+			_current_mode = EditorMode::None;
+		}
+
+		button_y += object_button_step;
+		if (drawButton(font, "Boss Trigger", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
 			prepareObjectPlacementAtPlayer(engine);
 			_temp_entity_type = "boss_trigger";
 			_temp_name = "Boss Trigger";
 			_current_mode = EditorMode::BossTriggerDetails;
 		}
 
-		button_y += 74;
-		if (drawButton(font, _is_testing_level ? "Zakoncz test" : "Testuj", x + 28, button_y, 224, 48, ORANGE)) {
+		button_y += 60;
+		if (drawButton(font, _is_testing_level ? "Zakoncz test" : "Testuj", x + 28, button_y, 224, 44, ORANGE)) {
 			if (_is_testing_level)
 				stopTestLevel(engine);
 			else
 				testLevel(engine);
 		}
+
+		renderPlayerAnimationPanel(engine, x + 18, button_y + 62);
+	}
+
+	void DevLevel::renderPlayerAnimationPanel(Core::Engine* engine, const int x, const int y) {
+		const auto& font = engine->getUIHandler().getFont();
+		drawDevText(font, "Anim gracza", static_cast<float>(x), static_cast<float>(y), 18, YELLOW);
+
+		if (PLAYER_ANIMATION_OPTIONS.empty())
+			return;
+
+		_selected_player_animation_index = std::clamp(
+			_selected_player_animation_index,
+			0,
+			static_cast<int>(PLAYER_ANIMATION_OPTIONS.size()) - 1);
+
+		const std::string label = std::to_string(_selected_player_animation_index) + ": " +
+			PLAYER_ANIMATION_OPTIONS[static_cast<size_t>(_selected_player_animation_index)];
+		drawDevText(font, label.c_str(), static_cast<float>(x), static_cast<float>(y + 26), 14, RAYWHITE);
+
+		if (drawButton(font, "<", x, y + 50, 48, 32, DARKBLUE)) {
+			_selected_player_animation_index =
+				(_selected_player_animation_index - 1 + static_cast<int>(PLAYER_ANIMATION_OPTIONS.size())) %
+				static_cast<int>(PLAYER_ANIMATION_OPTIONS.size());
+			playSelectedPlayerAnimation(engine);
+		}
+
+		if (drawButton(font, "Play", x + 58, y + 50, 92, 32, BLUE))
+			playSelectedPlayerAnimation(engine);
+
+		if (drawButton(font, ">", x + 160, y + 50, 48, 32, DARKBLUE)) {
+			_selected_player_animation_index =
+				(_selected_player_animation_index + 1) % static_cast<int>(PLAYER_ANIMATION_OPTIONS.size());
+			playSelectedPlayerAnimation(engine);
+		}
+	}
+
+	void DevLevel::playSelectedPlayerAnimation(Core::Engine* engine) {
+		const auto player = engine ? engine->getPlayer() : nullptr;
+		if (!player || PLAYER_ANIMATION_OPTIONS.empty())
+			return;
+
+		const std::string& animation_name = PLAYER_ANIMATION_OPTIONS[static_cast<size_t>(_selected_player_animation_index)];
+		const bool loop = animation_name.find("_Loop") != std::string::npos || animation_name.find("Idle") != std::string::npos;
+		player->stop();
+		player->setAnimationSpeed(1.0f);
+		player->playAnimation(animation_name, loop, !loop, 0, true);
+		_status_message = "Anim gracza: " + animation_name;
 	}
 
 	void DevLevel::renderConfirmOverwriteDialog() {
@@ -1574,7 +1763,22 @@ namespace Nawia::World {
 			_temp_name = "Walking Dead";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 180, 300, 40, GRAY)) {
+		if (drawButton(font, "Ropuch (Frog)", start_x, start_y + 150, 300, 40, BLUE)) {
+			_temp_entity_type = "frog";
+			_temp_name = "Ropuch";
+			_current_mode = EditorMode::SpawnerDetails;
+		}
+		if (drawButton(font, "Zly Gzibek", start_x, start_y + 200, 300, 40, BLUE)) {
+			_temp_entity_type = "mini_mushroom_infected";
+			_temp_name = "Zly Gzibek";
+			_current_mode = EditorMode::SpawnerDetails;
+		}
+		if (drawButton(font, "Robal (Worm)", start_x, start_y + 250, 300, 40, BLUE)) {
+			_temp_entity_type = "worm";
+			_temp_name = "Robal";
+			_current_mode = EditorMode::SpawnerDetails;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 330, 300, 40, GRAY)) {
 			_current_mode = EditorMode::None;
 		}
 	}
@@ -1706,7 +1910,21 @@ namespace Nawia::World {
 			saveObject("npcs");
 			_current_mode = EditorMode::None;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 80, 300, 50, GRAY)) {
+		if (drawButton(font, "Gzib (Mushroom)", start_x, start_y + 60, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Gzib";
+			_temp_extra_value = "mushroom";
+			saveObject("npcs");
+			_current_mode = EditorMode::None;
+		}
+		if (drawButton(font, "Soltys", start_x, start_y + 120, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Soltys";
+			_temp_extra_value = "village_head";
+			saveObject("npcs");
+			_current_mode = EditorMode::None;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 200, 300, 50, GRAY)) {
 			_current_mode = EditorMode::None;
 		}
 	}

@@ -123,6 +123,17 @@
         "stats": {
             "defense": 5
         }
+    },
+    {
+        "id": 13,
+        "name": "Zagrzybialy miecz",
+        "description": "Pierwszy prawdziwy miecz z daru Gzibow.",
+        "slot": "Weapon",
+        "texture": "assets/textures/items/sword_wooden.png",
+        "model_path": "",
+        "stats": {
+            "damage": 15
+        }
     }
 ]
 

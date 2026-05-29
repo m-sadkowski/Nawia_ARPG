@@ -8,6 +8,8 @@
 #include <Map.h>
 #include <MathUtils.h>
 #include <SoundIds.h>
+#include <SwordSlashAbility.h>
+#include <UnarmedMeleeAbility.h>
 
 #include <algorithm>
 #include <cmath>
@@ -193,6 +195,7 @@ namespace Nawia::Entity {
 
 		updateWeaponVisualModel();
 		playSoundEffect(Audio::SoundId::ItemEquip, 0.85f);
+		updatePrimaryAttackAbility();
 		recalculateStats();
 
 	}
@@ -206,6 +209,7 @@ namespace Nawia::Entity {
 			_backpack->addItem(old_item);
 
 		updateWeaponVisualModel();
+		updatePrimaryAttackAbility();
 		recalculateStats();
 		return true;
 	}
@@ -219,6 +223,7 @@ namespace Nawia::Entity {
 			_backpack->addItem(item);
 			_equipment->unequip(slot);
 			updateWeaponVisualModel();
+			updatePrimaryAttackAbility();
 			recalculateStats();
 		}
 	}
@@ -268,7 +273,35 @@ namespace Nawia::Entity {
 			_equipment->clear();
 
 		updateWeaponVisualModel();
+		updatePrimaryAttackAbility();
 		recalculateStats();
+	}
+
+	void Player::updatePrimaryAttackAbility()
+	{
+		if (!_engine || !_equipment)
+			return;
+
+		const bool has_weapon = _equipment->getItemAt(Item::EquipmentSlot::Weapon) != nullptr;
+		if (has_weapon) {
+			const auto icon = _engine->getResourceManager().getTexture("assets/textures/icons/sword_slash_icon.png");
+			setAbility(0, std::make_shared<SwordSlashAbility>(nullptr, icon));
+			return;
+		}
+
+		const auto icon = _engine->getResourceManager().getTexture("assets/textures/icons/punch_icon.png");
+		setAbility(0, std::make_shared<UnarmedMeleeAbility>(
+			"Punch",
+			"Punch",
+			"Punch_Jab",
+			AbilityTargetType::POINT,
+			false,
+			UnarmedMeleeEffect::Shape::Cone,
+			0.45f,
+			75.0f,
+			0.0f,
+			false,
+			icon));
 	}
 
 	nlohmann::json Player::serializeProfile() const

@@ -11,7 +11,9 @@
 
 #include <raylib.h>
 
+#include <functional>
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace Nawia::Entity {
@@ -131,8 +133,11 @@ namespace Nawia::UI {
         void openContainer(Entity::InteractiveClickable* container);
         void closeContainer();
 
-        void openDialogue(const Game::DialogueTree& tree) { _dialogueUI.open(tree); }
+        void openDialogue(const Game::DialogueTree& tree, int start_node_id = 0, std::function<void(int, bool)> on_close = nullptr) {
+            _dialogueUI.open(tree, start_node_id, std::move(on_close));
+        }
         void closeDialogue() { _dialogueUI.close(); }
+        [[nodiscard]] bool isDialogueOpen() const { return _dialogueUI.isOpen(); }
 
         void openAuthors() { _is_authors_open = true; }
         void closeAuthors() { _is_authors_open = false; }
@@ -193,6 +198,7 @@ namespace Nawia::UI {
         std::shared_ptr<Texture2D> _menu_btn_idle;
         std::shared_ptr<Texture2D> _menu_btn_hover;
         std::shared_ptr<Texture2D> _ability_bar_frame;
+        std::shared_ptr<Texture2D> _empty_ability_icon;
         std::shared_ptr<Texture2D> _hp_orb_frame;
         std::shared_ptr<Texture2D> _level_orb_frame;
         std::vector<float> _hover_timers;

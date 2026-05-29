@@ -6,6 +6,7 @@
 #include <EnemyInterface.h>
 #include <Interactable.h>
 #include <InteractiveClickable.h>
+#include <StoryNpc.h>
 #include <InteractiveTrigger.h>
 #include <Logger.h>
 #include <Map.h>
@@ -98,6 +99,26 @@ namespace Nawia::Core {
 		if (const auto cat = std::dynamic_pointer_cast<Entity::Cat>(_target_interactable)) {
 			_engine->getUIHandler().openDialogue(cat->getDialogueTree());
 			_engine->getQuestManager().notifyNPCTalked(cat->getName());
+			_target_interactable = nullptr;
+			return true;
+		}
+
+		if (const auto story_npc = std::dynamic_pointer_cast<Entity::StoryNpc>(_target_interactable)) {
+			std::weak_ptr<Entity::StoryNpc> story_npc_ref = story_npc;
+			Engine* engine = _engine;
+			_engine->getUIHandler().openDialogue(
+				story_npc->getDialogueTree(),
+				story_npc->getDialogueStartNode(),
+				[story_npc_ref, engine](const int node_id, const bool completed) {
+					if (const auto npc = story_npc_ref.lock()) {
+						npc->onDialogueClosed(node_id, completed);
+						if (completed && engine && npc->shouldNotifyQuestTalkOnDialogueComplete()) {
+							engine->getQuestManager().notifyNPCTalked(npc->getName());
+							engine->getQuestManager().update(engine);
+							npc->handleQuestTalkCompleted(*engine);
+						}
+					}
+				});
 			_target_interactable = nullptr;
 			return true;
 		}

@@ -26,9 +26,11 @@ namespace Nawia::World {
 	void DemoLevel::onEnter(Core::Engine* engine) {
 		Core::Logger::debugLog("Ladowanie poziomu Demo...");
 
-		engine->getLightingSystem().loadLightingFromJson(DEMO_LIGHTING_FILE);
-		activatePreparedLocations(engine);
-		playLocationMusic(engine, getCurrentLocationName());
+		if (engine) {
+			engine->getLightingSystem().loadLightingFromJson(DEMO_LIGHTING_FILE);
+			activatePreparedLocations(engine);
+			playLocationMusic(engine, getCurrentLocationName());
+		}
 	}
 
 	void DemoLevel::changeLocation(Core::Engine* engine, const std::string& location_name) {

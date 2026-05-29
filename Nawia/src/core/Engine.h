@@ -78,6 +78,7 @@ namespace Nawia::Core {
 		Item::Loottable& getLoottable() { return _loottable; }
 		EntityManager& getEntityManager() const { return *_entity_manager; }
 		std::shared_ptr<Entity::Player> getPlayer() const { return _player; }
+		GameCamera& getCamera() { return _camera; }
 		const GameCamera& getCamera() const { return _camera; }
 		World::LevelManager& getLevelManager() const { return *_level_manager; }
 		System::Renderer::LightingSystem& getLightingSystem() { return _lighting_system; }
@@ -86,6 +87,8 @@ namespace Nawia::Core {
 		Game::BossManager& getBossManager() { return _boss_manager; }
 		const Game::BossManager& getBossManager() const { return _boss_manager; }
 		Game::SaveGameManager& getSaveGameManager() { return _save_game_manager; }
+		void setGameplayCameraZoom(float zoom_factor) { _gameplay_camera_zoom = zoom_factor; }
+		[[nodiscard]] float getGameplayCameraZoom() const { return _gameplay_camera_zoom; }
 
 		/**
 		 * @brief Zapisuje stan gry do aktywnego slotu, jesli jakikolwiek jest ustawiony.
@@ -153,6 +156,7 @@ namespace Nawia::Core {
 		System::Renderer::LightingSystem _lighting_system;
 		ResourceManager _resource_manager;
 		GameCamera _camera;
+		float _gameplay_camera_zoom = 0.75f;
 		std::unique_ptr<World::LevelManager> _level_manager;
 		std::unique_ptr<EntityManager> _entity_manager;
 		std::shared_ptr<Entity::Player> _player;

@@ -145,6 +145,8 @@ namespace Nawia::World {
 		if (location.has_navmesh_min_walkable_height)
 			_map->setNavMeshMinWalkableHeight(location.navmesh_min_walkable_height);
 
+		engine->setGameplayCameraZoom(location.has_camera_zoom ? location.camera_zoom : 0.75f);
+
 		if (reload_entities) {
 			engine->getEntityManager().clearNonPlayerEntities();
 			_spawn_manager.reset();

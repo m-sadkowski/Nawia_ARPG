@@ -202,6 +202,10 @@ namespace Nawia::World {
 		/** @brief Rysuje prawa kolumne dodawania obiektow. */
 		void renderObjectPanel(Core::Engine* engine);
 
+		/** @brief Rysuje prosty przeglad animacji gracza. */
+		void renderPlayerAnimationPanel(Core::Engine* engine, int x, int y);
+		void playSelectedPlayerAnimation(Core::Engine* engine);
+
 		/** @brief Rysuje rozwiniete listy nad wszystkimi panelami. */
 		void renderDropdownOverlays(Core::Engine* engine);
 
@@ -285,6 +289,7 @@ namespace Nawia::World {
 		int _selected_location_index = 0;
 		int _selected_teleport_target_index = 0;
 		int _selected_boss_index = 0;
+		int _selected_player_animation_index = 0;
 		bool _map_dropdown_open = false;
 		bool _location_dropdown_open = false;
 		bool _teleport_target_dropdown_open = false;
@@ -307,6 +312,7 @@ namespace Nawia::World {
 		float _active_map_scale = 1.0f;
 		Vector3 _active_map_offset = {0.0f, 0.0f, 0.0f};
 		Vector3 _active_map_rotation = {0.0f, 0.0f, 0.0f};
+		float _camera_zoom = 0.75f;
 		Vector2 _player_spawn = {0.0f, 0.0f};
 		bool _has_player_spawn = true;
 		bool _has_unsaved_changes = false;

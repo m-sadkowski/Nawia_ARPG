@@ -83,6 +83,17 @@ namespace Nawia::World {
 			}
 		}
 
+		if (data.contains("camera") && data["camera"].is_object()) {
+			const auto zoom_it = data["camera"].find("zoom");
+			if (zoom_it != data["camera"].end() && zoom_it->is_number()) {
+				location.camera_zoom = zoom_it->get<float>();
+				location.has_camera_zoom = true;
+			}
+		} else if (data.contains("camera_zoom") && data["camera_zoom"].is_number()) {
+			location.camera_zoom = data["camera_zoom"].get<float>();
+			location.has_camera_zoom = true;
+		}
+
 		loadEntitiesFromObjectsFile(location);
 
 		out_location = std::move(location);

@@ -63,7 +63,7 @@ namespace Nawia::UI {
     constexpr float ABILITY_ICON_SIZE = 50.0f;
     constexpr float ABILITY_SPACING = 10.0f;
     constexpr float EXP_CIRCLE_RADIUS = 18.0f;
-    constexpr float DIALOGUE_BOX_HEIGHT = 140.0f; // Minimalna wysokosc dialogu.
+    constexpr float DIALOGUE_BOX_HEIGHT = 250.0f; // Minimalna wysokosc dialogu.
     constexpr float DIALOGUE_BOX_MARGIN = 80.0f;  // Odstep od dolu ekranu.
 
     // Autorzy.

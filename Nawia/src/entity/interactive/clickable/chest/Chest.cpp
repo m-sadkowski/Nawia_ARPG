@@ -91,7 +91,13 @@ namespace Nawia::Entity {
 			_locked = false;
 		}
 
-		// Tu można później uruchomić animację otwierania skrzyni.
+		if (player) {
+			player->stop();
+			player->rotateTowardsCenter(getCenter().x, getCenter().y);
+			player->setAnimationSpeed(1.0f);
+			player->playAnimation("Chest_Open", false, true, 0, true);
+		}
+
 		_is_open = true;
 		refreshVisualModel();
 		playSoundEffect(Audio::SoundId::ChestOpen, 0.85f);
