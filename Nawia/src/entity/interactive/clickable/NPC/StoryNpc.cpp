@@ -35,6 +35,7 @@ namespace Nawia::Entity {
 		_engine = engine;
 		_follow_checkpoint_name = follow_checkpoint_name;
 		_can_follow = true;
+		_home_position = getCenter();
 		setMovementSpeed(2.4f);
 
 		bool using_fallback_model = false;
@@ -87,16 +88,69 @@ namespace Nawia::Entity {
 
 	void StoryNpc::configureVillageHead(Core::Engine* engine) {
 		_engine = engine;
-		setScale(1.0f);
+		_is_village_head = true;
+		setScale(1.15f);
 		loadModel(VILLAGE_HEAD_MODEL);
 		loadAnimationBundle(VILLAGE_HEAD_MODEL);
 		playAnimation("Idle", true, false, 0, true);
-		setPlaceholderDialogue("Soltys", "Jeszcze ustawimy tu dialog Soltysa po walce z Ropuchem.");
+		_dialogue_stage_key = "village_head";
+		setDialogue(buildLinearDialogue({
+			{"Gracz", "Alez smrod, chyba zjadl cos nieswiezego. Zaraz zaraz - Soltys?"},
+			{"Soltys", "Dzieki za ratunek. Przeklete monstrum zmienilo mnie w ta zabe. Nie panowalem nad soba, musialem patrzec co robi ten gad. Czulem smak wszystkich okropienstw ktore zjadal."},
+			{"Gracz", "Rad jestem, ze zyjesz. Wiesz co sie stalo z moja ukochana? Lezy tu jej chusta... czy ty ja..."},
+			{"Soltys", "Na szczescie nie, uciekla. Ropuch nie siegnal jej jezykiem, zgarnal tylko chuste z jej szyi. Zwiala na polnoc. Moze biegnie do Twierdzy Kamiennej?"},
+			{"Gracz", "Musze ja dogonic. Poradzisz sobie sam? Wrocisz do osady?"},
+			{"Soltys", "Nie ma do czego wracac, gniew Bogow spadl na nas. Musimy zebrac lud i odprawic dziady, prosic o przebaczenie."},
+			{"Gracz", "Postaram sie znalezc tych co przezyli. Gdzie ich odsylac?"},
+			{"Soltys", "Do chaty medrca Jakuba. Ma tam obore i zielnik. Mysle, ze zgodzi sie na utworzenie tam osady tymczasowej. Powodzenia, spiesz sie - nie wiem ile mamy czasu."},
+			{"Gracz", "Tobie rowniez, bywaj."}
+		}, "Bywaj."));
 	}
 
-	void StoryNpc::onInteract(Entity& /*instigator*/) {
+	void StoryNpc::configureSzeptucha(Core::Engine* engine) {
+		_engine = engine;
+		_can_follow = false;
+		_dialogue_stage_key = "szeptucha";
+		replaceModel(MUSHROOM_MODEL, false);
+
+		if (hasModelLoaded()) {
+			const BoundingBox bounds = GetModelBoundingBox(getModel());
+			const float model_height = bounds.max.y - bounds.min.y;
+			float computed_scale = MUSHROOM_FALLBACK_SCALE;
+			if (model_height > 1e-8f)
+				computed_scale = std::clamp(MUSHROOM_TARGET_HEIGHT / model_height, 0.1f, MUSHROOM_MAX_SCALE);
+
+			setScale(computed_scale);
+			const float center_x = 0.5f * (bounds.min.x + bounds.max.x);
+			const float center_z = 0.5f * (bounds.min.z + bounds.max.z);
+			getModel().transform = MatrixMultiply(
+				MatrixTranslate(-center_x, -bounds.min.y, -center_z),
+				getModel().transform);
+			setAltitude(0.0f);
+
+			addAnimation("idle", MUSHROOM_MODEL, 0);
+			addAnimation("talk", MUSHROOM_MODEL, 16);
+			if (getAnimationFrameCount("idle") > 0)
+				playAnimation("idle", true, false, 0, true);
+			else
+				_use_procedural_mushroom_animation = true;
+		}
+
+		setPlaceholderDialogue("Szeptucha", "...");
+	}
+
+	void StoryNpc::onInteract(Entity& instigator) {
+		rotateTowardsCenter(instigator.getCenter().x, instigator.getCenter().y);
+		instigator.rotateTowardsCenter(getCenter().x, getCenter().y);
+
 		if (_can_follow)
 			refreshMushroomDialogue();
+
+		if (_is_village_head) {
+			if (getAnimationFrameCount("Idle") > 0)
+				playAnimation("Idle", true, false, 0, true);
+			return;
+		}
 
 		if (_use_procedural_mushroom_animation) {
 			_playing_talk = true;
@@ -183,17 +237,33 @@ namespace Nawia::Entity {
 	}
 
 	void StoryNpc::handleQuestTalkCompleted(Core::Engine& engine) {
-		if (getName() != "Gzib" || _last_completed_dialogue_stage != "follow")
+		if (_is_village_head && !_survivor_quest_started) {
+			engine.getQuestManager().update(&engine);
+			if (engine.getQuestManager().startQuest("find_survivors")) {
+				engine.getUIHandler().showNotification("Nowy quest: Znajdz ocalencow", 4.0f);
+				_survivor_quest_started = true;
+			}
+			return;
+		}
+
+		if (getName() != "Gzib")
 			return;
 
-		const int rescued_count = getRescuedMushroomCount();
-		if (rescued_count <= 0)
+		if (_last_completed_dialogue_stage == "report" && !_return_started) {
+			startMushroomRoute(TravelMode::ReturningHome);
 			return;
+		}
 
-		for (int i = 0; i < rescued_count; ++i)
-			engine.getQuestManager().notifyKill("Robal");
+		if (_last_completed_dialogue_stage == "follow") {
+			const int rescued_count = getRescuedMushroomCount();
+			if (rescued_count <= 0)
+				return;
 
-		engine.getQuestManager().update(&engine);
+			for (int i = 0; i < rescued_count; ++i)
+				engine.getQuestManager().notifyKill("Robal");
+
+			engine.getQuestManager().update(&engine);
+		}
 	}
 
 	void StoryNpc::refreshMushroomDialogue() {
@@ -339,30 +409,37 @@ namespace Nawia::Entity {
 	}
 
 	void StoryNpc::updateMushroomFollow(const float delta_time) {
-		if (!_engine || _reached_follow_checkpoint)
+		if (!_engine)
 			return;
 
-		const auto* follow_quest = _engine->getQuestManager().getQuest("gzib_follow");
-		if (!follow_quest || !follow_quest->isActive())
-			return;
+		if (_travel_mode == TravelMode::None) {
+			if (_reached_follow_checkpoint)
+				return;
 
-		const Entity* checkpoint = findEntityByName(_follow_checkpoint_name);
-		if (!checkpoint)
-			return;
+			const auto* follow_quest = _engine->getQuestManager().getQuest("gzib_follow");
+			if (!follow_quest || !follow_quest->isActive())
+				return;
 
-		const Vector2 target = checkpoint->getCenter();
+			startMushroomRoute(TravelMode::ToBrothers);
+			if (_travel_mode == TravelMode::None)
+				return;
+		}
+
+		if (_travel_waypoint_index >= _travel_waypoints.size()) {
+			stopPathMovement();
+			_travel_mode = TravelMode::None;
+			return;
+		}
+
+		const Vector2 target = _travel_waypoints[_travel_waypoint_index];
 		const float distance = Vector2Distance(getCenter(), target);
 		if (distance <= FOLLOW_STOP_DISTANCE) {
-			_reached_follow_checkpoint = true;
-			stopPathMovement();
-			_engine->getQuestManager().notifyCheckpointReached(_follow_checkpoint_name);
-			if (!_use_procedural_mushroom_animation && getAnimationFrameCount("idle") > 0)
-				playAnimation("idle");
+			advanceMushroomRoute();
 			return;
 		}
 
 		if (!_follow_path_requested) {
-			buildPathToFollowCheckpoint(*checkpoint);
+			buildPathToPoint(target);
 			_follow_path_requested = true;
 		}
 
@@ -372,16 +449,54 @@ namespace Nawia::Entity {
 			playAnimation("walk");
 	}
 
-	void StoryNpc::buildPathToFollowCheckpoint(const Entity& checkpoint) {
+	void StoryNpc::startMushroomRoute(const TravelMode mode) {
+		_travel_waypoints = collectOrderedFollowWaypoints(mode == TravelMode::ReturningHome);
+		if (mode == TravelMode::ReturningHome)
+			_travel_waypoints.push_back(_home_position);
+
+		_travel_waypoint_index = 0;
+		_travel_mode = _travel_waypoints.empty() ? TravelMode::None : mode;
+		_follow_path_requested = false;
+		_return_started = mode == TravelMode::ReturningHome;
+
+		if (_travel_mode != TravelMode::None) {
+			if (mode == TravelMode::ReturningHome)
+				sendPurifiedMushroomsHome();
+			buildPathToPoint(_travel_waypoints.front());
+		}
+	}
+
+	void StoryNpc::advanceMushroomRoute() {
+		_travel_waypoint_index++;
+		_follow_path_requested = false;
+
+		if (_travel_waypoint_index < _travel_waypoints.size()) {
+			buildPathToPoint(_travel_waypoints[_travel_waypoint_index]);
+			return;
+		}
+
+		stopPathMovement();
+		const TravelMode finished_mode = _travel_mode;
+		_travel_mode = TravelMode::None;
+
+		if (finished_mode == TravelMode::ToBrothers) {
+			_reached_follow_checkpoint = true;
+			_engine->getQuestManager().notifyCheckpointReached(_follow_checkpoint_name);
+		}
+
+		if (!_use_procedural_mushroom_animation && getAnimationFrameCount("idle") > 0)
+			playAnimation("idle");
+	}
+
+	void StoryNpc::buildPathToPoint(const Vector2 target) {
 		_current_path.clear();
 
 		if (_engine && _engine->getCurrentMap() && _engine->getCurrentMap()->getNavMesh().isReady()) {
-			_current_path = _engine->getCurrentMap()->findPath(getWorldPos3D(), checkpoint.getWorldPos3D());
+			_current_path = _engine->getCurrentMap()->findPath(getWorldPos3D(), {target.x, getAltitude(), target.y});
 			Core::Logger::debugLog("StoryNpc: sciezka Gziba ma " + std::to_string(_current_path.size()) + " punktow");
 		}
 
 		if (_current_path.empty()) {
-			const Vector2 target = checkpoint.getCenter();
 			_current_path.push_back(target);
 		}
 
@@ -449,6 +564,67 @@ namespace Nawia::Entity {
 		_look_at_player_timer = IDLE_LOOK_AT_PLAYER_INTERVAL;
 		if (const auto player = _engine ? _engine->getPlayer() : nullptr)
 			rotateTowardsCenter(player->getCenter().x, player->getCenter().y);
+	}
+
+	std::vector<Vector2> StoryNpc::collectOrderedFollowWaypoints(const bool reverse_to_home) const {
+		std::vector<Vector2> remaining;
+		if (!_engine)
+			return remaining;
+
+		for (const auto& entity : _engine->getEntityManager().getEntities()) {
+			if (entity && entity->getName() == _follow_checkpoint_name)
+				remaining.push_back(entity->getCenter());
+		}
+
+		std::vector<Vector2> ordered;
+		Vector2 cursor = reverse_to_home && !remaining.empty() ? _home_position : getCenter();
+		if (reverse_to_home && !remaining.empty()) {
+			// For return, build from home backwards, then reverse to go from current place to home.
+			std::vector<Vector2> from_home;
+			while (!remaining.empty()) {
+				auto nearest_it = std::min_element(remaining.begin(), remaining.end(), [cursor](const Vector2& a, const Vector2& b) {
+					return Vector2DistanceSqr(cursor, a) < Vector2DistanceSqr(cursor, b);
+				});
+				cursor = *nearest_it;
+				from_home.push_back(cursor);
+				remaining.erase(nearest_it);
+			}
+			ordered.assign(from_home.rbegin(), from_home.rend());
+			return ordered;
+		}
+
+		while (!remaining.empty()) {
+			auto nearest_it = std::min_element(remaining.begin(), remaining.end(), [cursor](const Vector2& a, const Vector2& b) {
+				return Vector2DistanceSqr(cursor, a) < Vector2DistanceSqr(cursor, b);
+			});
+			cursor = *nearest_it;
+			ordered.push_back(cursor);
+			remaining.erase(nearest_it);
+		}
+
+		return ordered;
+	}
+
+	void StoryNpc::sendPurifiedMushroomsHome() {
+		if (!_engine)
+			return;
+
+		for (const auto& entity : _engine->getEntityManager().getEntities()) {
+			const auto mushroom = std::dynamic_pointer_cast<MiniMushroomInfected>(entity);
+			if (!mushroom || !mushroom->isPurified())
+				continue;
+
+			const float angle = static_cast<float>(GetRandomValue(0, 628)) / 100.0f;
+			const float radius = static_cast<float>(GetRandomValue(120, 500)) / 100.0f;
+			const Vector2 destination = {
+				_home_position.x + std::cos(angle) * radius,
+				_home_position.y + std::sin(angle) * radius
+			};
+
+			std::vector<Vector2> route = _travel_waypoints;
+			route.push_back(destination);
+			mushroom->setPropRoute(route);
+		}
 	}
 
 	int StoryNpc::getRescuedMushroomCount() const {

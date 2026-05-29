@@ -17,6 +17,7 @@ namespace Nawia::Entity {
 
 		void configureMushroom(Core::Engine* engine, const std::string& follow_checkpoint_name = "Checkpoint Gziba");
 		void configureVillageHead(Core::Engine* engine);
+		void configureSzeptucha(Core::Engine* engine);
 
 		void onInteract(Entity& instigator) override;
 		void update(float delta_time) override;
@@ -30,18 +31,28 @@ namespace Nawia::Entity {
 		void onDialogueClosed(int node_id, bool completed);
 
 	private:
+		enum class TravelMode {
+			None,
+			ToBrothers,
+			ReturningHome
+		};
+
 		void setPlaceholderDialogue(const std::string& speaker, const std::string& text);
 		void refreshMushroomDialogue();
 		[[nodiscard]] Game::DialogueTree buildLinearDialogue(
 			const std::vector<std::pair<std::string, std::string>>& lines,
 			const std::string& final_option_text) const;
 		void updateMushroomFollow(float delta_time);
-		void buildPathToFollowCheckpoint(const Entity& checkpoint);
+		void startMushroomRoute(TravelMode mode);
+		void advanceMushroomRoute();
+		void buildPathToPoint(Vector2 target);
 		void trimCurrentPathStart();
 		void updatePathMovement(float delta_time);
 		void stopPathMovement();
+		void sendPurifiedMushroomsHome();
 		void updateProceduralMushroomAnimation(float delta_time);
 		void rotateToPlayerOnInterval(float delta_time);
+		[[nodiscard]] std::vector<Vector2> collectOrderedFollowWaypoints(bool reverse_to_home) const;
 		[[nodiscard]] int getRescuedMushroomCount() const;
 		[[nodiscard]] int getRequiredRescueCount() const;
 		[[nodiscard]] bool areAllMushroomsAlreadyRescued() const;
@@ -53,6 +64,9 @@ namespace Nawia::Entity {
 		bool _can_follow = false;
 		bool _reached_follow_checkpoint = false;
 		bool _follow_path_requested = false;
+		bool _return_started = false;
+		bool _is_village_head = false;
+		bool _survivor_quest_started = false;
 		bool _playing_talk = false;
 		bool _use_procedural_mushroom_animation = false;
 		bool _procedural_base_altitude_initialized = false;
@@ -63,6 +77,10 @@ namespace Nawia::Entity {
 		float _base_altitude = 0.0f;
 		float _look_at_player_timer = 0.0f;
 		std::vector<Vector2> _current_path;
+		std::vector<Vector2> _travel_waypoints;
+		size_t _travel_waypoint_index = 0;
+		TravelMode _travel_mode = TravelMode::None;
+		Vector2 _home_position = {0.0f, 0.0f};
 	};
 
 } // namespace Nawia::Entity

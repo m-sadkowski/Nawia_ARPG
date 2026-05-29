@@ -1,6 +1,7 @@
 #include "Engine.h"
 
 #include <AssetPreloader.h>
+#include <Dialogue.h>
 #include <GlobalScaling.h>
 #include <LoadingScreen.h>
 #include <Logger.h>
@@ -16,10 +17,12 @@
 #include <LevelManager.h>
 #include <Map.h>
 #include <SoundIds.h>
+#include <StoryNpc.h>
 #include <SwordSlashAbility.h>
 #include <UnarmedMeleeAbility.h>
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <json.hpp>
@@ -224,6 +227,9 @@ namespace Nawia::Core {
 
 			if (_pending_is_new_game && _pending_new_game_slot > 0)
 				saveCurrentGame(_pending_new_game_slot);
+
+			if (_pending_is_new_game && _pending_level_name == "Wczora")
+				startWczoraIntroSequence();
 		}
 
 		_loading_kind = LoadingKind::None;
@@ -294,6 +300,162 @@ namespace Nawia::Core {
 			if (const auto item = _item_database.createItem(backpack_item_id))
 				_player->getBackpack().addItem(item);
 		}
+	}
+
+	void Engine::startWczoraIntroSequence() {
+		if (!_player || !_ui_handler)
+			return;
+
+		removeWczoraIntroNpc();
+
+		const Vector2 player_center = _player->getCenter();
+		const float facing_angle = -_player->getRotation() * DEG2RAD;
+		Vector2 forward = {std::cos(facing_angle), std::sin(facing_angle)};
+		if (forward.x * forward.x + forward.y * forward.y < 0.001f)
+			forward = {1.0f, 0.0f};
+
+		const Vector3 desired_spawn_position = {
+			player_center.x + forward.x * 2.8f,
+			_player->getAltitude(),
+			player_center.y + forward.y * 2.8f
+		};
+		Vector3 spawn_position = desired_spawn_position;
+		if (getCurrentMap() && getCurrentMap()->getNavMesh().isReady()) {
+			const Vector3 snapped_position = getCurrentMap()->getNavMesh().getClosestWalkablePosition(desired_spawn_position);
+			const Vector2 player_to_snapped = {
+				snapped_position.x - player_center.x,
+				snapped_position.z - player_center.y
+			};
+			if (player_to_snapped.x * forward.x + player_to_snapped.y * forward.y > 0.8f)
+				spawn_position = snapped_position;
+		}
+
+		auto szeptucha = std::make_shared<Entity::StoryNpc>("Szeptucha", spawn_position.x, spawn_position.z);
+		szeptucha->setAltitude(spawn_position.y);
+		szeptucha->setAudioManager(&_audio_manager);
+		szeptucha->configureSzeptucha(this);
+		szeptucha->rotateTowardsCenter(_player->getCenter().x, _player->getCenter().y);
+		_player->rotateTowardsCenter(szeptucha->getCenter().x, szeptucha->getCenter().y);
+		spawnEntity(szeptucha);
+		_wczora_intro_npc = szeptucha;
+
+		_wczora_intro_phase = WczoraIntroPhase::FadeFromBlack;
+		_wczora_intro_timer = 0.0f;
+		_wczora_intro_overlay_alpha = 1.0f;
+		_wczora_intro_dialogue_opened = false;
+		_player->stop();
+	}
+
+	void Engine::openWczoraIntroFirstDialogue() {
+		if (!_ui_handler)
+			return;
+
+		Game::DialogueTree tree;
+		Game::DialogueNode node;
+		node.id = 0;
+		node.speaker_name = "Szeptucha";
+		node.text = "...";
+
+		Game::DialogueOption option;
+		option.text = "Nic z tego nie rozumiem";
+		option.next_node_id = -1;
+		node.options.push_back(option);
+		tree.addNode(node);
+
+		_wczora_intro_dialogue_opened = true;
+		_wczora_intro_phase = WczoraIntroPhase::FirstDialogue;
+		_ui_handler->openDialogue(tree, 0, [this](const int, const bool) {
+			_wczora_intro_phase = WczoraIntroPhase::FadeToBlack;
+			_wczora_intro_timer = 0.0f;
+			_wczora_intro_dialogue_opened = false;
+		});
+	}
+
+	void Engine::openWczoraIntroFinalDialogue() {
+		if (!_ui_handler)
+			return;
+
+		Game::DialogueTree tree;
+		Game::DialogueNode node;
+		node.id = 0;
+		node.speaker_name = "Gracz";
+		node.text = "...";
+
+		Game::DialogueOption option;
+		option.text = "Co do licha? Gdzie ona jest?";
+		option.next_node_id = -1;
+		node.options.push_back(option);
+		tree.addNode(node);
+
+		_wczora_intro_dialogue_opened = true;
+		_wczora_intro_phase = WczoraIntroPhase::FinalDialogue;
+		_ui_handler->openDialogue(tree, 0, [this](const int, const bool) {
+			_wczora_intro_phase = WczoraIntroPhase::Inactive;
+			_wczora_intro_timer = 0.0f;
+			_wczora_intro_overlay_alpha = 0.0f;
+			_wczora_intro_dialogue_opened = false;
+		});
+	}
+
+	void Engine::removeWczoraIntroNpc() {
+		if (const auto npc = _wczora_intro_npc.lock())
+			npc->setDormant(true);
+		_wczora_intro_npc.reset();
+	}
+
+	void Engine::updateWczoraIntro(const float delta_time) {
+		if (_wczora_intro_phase == WczoraIntroPhase::Inactive)
+			return;
+
+		if (_player)
+			_player->stop();
+
+		_wczora_intro_timer += delta_time;
+		switch (_wczora_intro_phase) {
+			case WczoraIntroPhase::FadeFromBlack:
+				_wczora_intro_overlay_alpha = std::max(0.38f, 1.0f - _wczora_intro_timer / 2.4f);
+				if (!_wczora_intro_dialogue_opened && _wczora_intro_timer >= 0.75f)
+					openWczoraIntroFirstDialogue();
+				break;
+			case WczoraIntroPhase::FirstDialogue:
+				_wczora_intro_overlay_alpha = 0.38f;
+				break;
+			case WczoraIntroPhase::FadeToBlack:
+				_wczora_intro_overlay_alpha = std::clamp(_wczora_intro_timer / 1.1f, 0.38f, 1.0f);
+				if (_wczora_intro_timer >= 1.1f) {
+					removeWczoraIntroNpc();
+					_wczora_intro_phase = WczoraIntroPhase::FadeFromBlackAfter;
+					_wczora_intro_timer = 0.0f;
+				}
+				break;
+			case WczoraIntroPhase::FadeFromBlackAfter:
+				_wczora_intro_overlay_alpha = std::max(0.30f, 1.0f - _wczora_intro_timer / 1.4f);
+				if (!_wczora_intro_dialogue_opened && _wczora_intro_timer >= 1.0f)
+					openWczoraIntroFinalDialogue();
+				break;
+			case WczoraIntroPhase::FinalDialogue:
+				_wczora_intro_overlay_alpha = 0.30f;
+				break;
+			case WczoraIntroPhase::Inactive:
+				break;
+		}
+	}
+
+	void Engine::renderWczoraIntroOverlay() const {
+		if (_wczora_intro_phase == WczoraIntroPhase::Inactive || _wczora_intro_overlay_alpha <= 0.0f)
+			return;
+
+		const int width = GetScreenWidth();
+		const int height = GetScreenHeight();
+		const float alpha = std::clamp(_wczora_intro_overlay_alpha, 0.0f, 1.0f);
+		DrawRectangle(0, 0, width, height, Fade(BLACK, alpha * 0.88f));
+		DrawRectangleGradientV(
+			0,
+			0,
+			width,
+			height,
+			Fade(Color{20, 10, 30, 255}, alpha * 0.30f),
+			Fade(BLACK, alpha * 0.55f));
 	}
 
 	void Engine::run() {
@@ -532,6 +694,15 @@ namespace Nawia::Core {
 	}
 
 	void Engine::handlePlayingInput() {
+		if (_wczora_intro_phase != WczoraIntroPhase::Inactive) {
+			_show_pause_menu = false;
+			if (_player)
+				_player->stop();
+			if (_ui_handler && _ui_handler->isDialogueOpen())
+				_ui_handler->handleInput();
+			return;
+		}
+
 		if (IsKeyPressed(KEY_ESCAPE)) {
 			if (_ui_handler->closeOpenWindows())
 				return;
@@ -611,6 +782,9 @@ namespace Nawia::Core {
 		if (dev_level && dev_level->isTyping())
 			return;
 
+		if (!_ui_handler->isInputBlocked() && IsKeyPressed(KEY_ONE) && _player)
+			(void)_player->consumeFood();
+
 		if (_controller)
 			_controller->handleInput(mouse_world_pos, mouse_pos.x, mouse_pos.y);
 	}
@@ -645,6 +819,12 @@ namespace Nawia::Core {
 		_camera.follow(_player.get());
 		_lighting_system.update(_camera.get());
 		if (_ui_handler) _ui_handler->update(delta_time);
+		updateWczoraIntro(delta_time);
+		if (_wczora_intro_phase != WczoraIntroPhase::Inactive) {
+			_entity_manager->updateEntities(delta_time);
+			collectPendingSpawns();
+			return;
+		}
 		_level_manager->update(this, delta_time);
 		_controller->update(delta_time);
 
@@ -748,6 +928,13 @@ namespace Nawia::Core {
 			return;
 
 		renderWorld();
+		renderWczoraIntroOverlay();
+
+		if (_wczora_intro_phase != WczoraIntroPhase::Inactive) {
+			if (_ui_handler)
+				_ui_handler->renderDialogueOnly();
+			return;
+		}
 
 		if (_ui_handler) _ui_handler->render(_camera, &_boss_manager);
 

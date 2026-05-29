@@ -65,6 +65,8 @@ namespace Nawia::Game {
         std::string enemy_type; ///< Typ wroga, np. "Devil".
         int max_hp = 1000;
         float scale = 1.0f;
+        std::string music_path;
+        float music_volume = 0.85f;
 
         std::vector<BossPhase> phases;
         BossReward reward;
@@ -221,9 +223,15 @@ namespace Nawia::Game {
         );
         [[nodiscard]] Vector3 resolveBossSpawnPosition(Core::Engine* engine) const;
         void placeEntityAtBossSpawn(const std::shared_ptr<Entity::Entity>& entity, Core::Engine* engine) const;
+        void startBossMusic(Core::Engine* engine);
+        void restoreMusicAfterBoss(Core::Engine* engine);
 
         Vector2 _active_boss_spawn_pos = {0.0f, 0.0f};
         float _active_boss_spawn_altitude = 0.0f;
+        bool _boss_music_overrode_track = false;
+        bool _had_music_before_boss = false;
+        std::string _music_before_boss_path;
+        float _music_before_boss_volume = 1.0f;
     };
 
 } // namespace Nawia::Game

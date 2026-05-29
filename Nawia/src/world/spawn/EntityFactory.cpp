@@ -105,7 +105,7 @@ namespace Nawia::World {
 		if (type == "mini_mushroom_prop") return createMiniMushroomProp(data, engine);
 		if (type == "static_object") return createStaticObject(data, engine);
 		if (type == "checkpoint")    return createCheckpoint(data);
-		if (type == "checkpoint_mushroom_npc") return createCheckpoint(data);
+		if (type == "checkpoint_mushroom_npc") return createMushroomWaypoint(data);
 		if (type == "teleport")      return createTeleport(data, engine);
 		if (type == "boss_trigger")  return createBossTrigger(data, engine);
 
@@ -354,6 +354,13 @@ namespace Nawia::World {
 			return village_head;
 		}
 
+		if (npc_class == "szeptucha") {
+			auto szeptucha = std::make_shared<Entity::StoryNpc>(name.empty() ? "Szeptucha" : name, x, y);
+			szeptucha->setAudioManager(&engine->getAudioManager());
+			szeptucha->configureSzeptucha(engine);
+			return szeptucha;
+		}
+
 		Core::Logger::errorLog("EntityFactory: nieznana klasa NPC: " + npc_class);
 		return nullptr;
 	}
@@ -409,6 +416,19 @@ namespace Nawia::World {
 		const std::string name = data.value("name", "Punkt Kontrolny");
 
 		return std::make_shared<Entity::Checkpoint>(name, x, y);
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createMushroomWaypoint(const json& data)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const std::string name = data.value("name", "Checkpoint Gziba");
+
+		return Entity::StaticObjectBuilder()
+			.setName(name)
+			.setPosition({x, y})
+			.setMaxHp(1)
+			.build();
 	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createTeleport(

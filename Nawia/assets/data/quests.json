@@ -103,7 +103,7 @@
       "rewards": {
         "items": [],
         "gold": 0,
-        "exp": 0
+        "exp": 50
       }
     },
     {
@@ -130,7 +130,7 @@
       "rewards": {
         "items": [],
         "gold": 0,
-        "exp": 0
+        "exp": 100
       }
     },
     {
@@ -151,7 +151,7 @@
       "rewards": {
         "items": [],
         "gold": 0,
-        "exp": 0
+        "exp": 300
       }
     },
     {
@@ -172,7 +172,70 @@
       "rewards": {
         "items": [13],
         "gold": 0,
-        "exp": 0
+        "exp": 200
+      }
+    },
+    {
+      "id": "find_ropuch",
+      "name": "Znajdz Ropucha",
+      "description": "Idz w strone sadzawki i znajdz legowisko Ropucha.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_report_brothers"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "Ropuch Trigger",
+          "count": 1,
+          "description": "Znajdz legowisko Ropucha"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 150
+      }
+    },
+    {
+      "id": "recover_scarf",
+      "name": "Odzyskaj chuste",
+      "description": "Pokonaj Ropucha i odzyskaj chuste ukochanej.",
+      "level_name": "Wczora",
+      "prerequisites": ["find_ropuch"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Frog",
+          "count": 1,
+          "description": "Zabij Ropucha"
+        }
+      ],
+      "rewards": {
+        "items": [14],
+        "gold": 0,
+        "exp": 650
+      }
+    },
+    {
+      "id": "find_survivors",
+      "name": "Znajdz ocalencow",
+      "description": "Znajdz mieszkancow, ktorzy przezyli atak, i odeslij ich do chaty medrca Jakuba.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Ocalency",
+          "count": 1,
+          "description": "Znajdz ocalalych mieszkancow"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
       }
     }
   ]

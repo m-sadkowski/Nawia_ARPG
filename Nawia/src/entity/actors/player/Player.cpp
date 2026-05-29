@@ -61,7 +61,7 @@ namespace Nawia::Entity {
 		_name = "Player";
 		_max_hp = 200;
 		_hp = _max_hp;
-		_scale = 1.5f;
+		_scale = 1.85f;
 		_type = EntityType::Player;
 		_faction = Faction::Player;
 		_active_visual_model_path = PLAYER_HEAD_MODEL;
@@ -214,6 +214,21 @@ namespace Nawia::Entity {
 		return true;
 	}
 
+	void Player::addFood(const int amount) {
+		_food_count = std::max(0, _food_count + amount);
+	}
+
+	bool Player::consumeFood() {
+		if (_food_count <= 0 || isDying() || _hp >= _max_hp)
+			return false;
+
+		_food_count--;
+		setHP(std::min(_max_hp, _hp + 25));
+		if (_engine)
+			_engine->getUIHandler().showNotification("Zjedzono zapasy: +25 HP", 2.0f);
+		return true;
+	}
+
 	void Player::unequipItem(const Item::EquipmentSlot slot) 
 	{
 		const auto item = _equipment->getItemAt(slot);
@@ -272,6 +287,7 @@ namespace Nawia::Entity {
 		if (_equipment)
 			_equipment->clear();
 
+		_food_count = 0;
 		updateWeaponVisualModel();
 		updatePrimaryAttackAbility();
 		recalculateStats();
@@ -311,6 +327,7 @@ namespace Nawia::Entity {
 			{"exp", _exp},
 			{"exp_to_next_level", _exp_to_next_lvl},
 			{"gold", _gold},
+			{"food_count", _food_count},
 			{"base_stats", statsToJson(_base_stats)},
 			{"inventory", _backpack ? _backpack->serialize() : nlohmann::json::object()},
 			{"equipment", _equipment ? _equipment->serialize() : nlohmann::json::array()}
@@ -328,6 +345,7 @@ namespace Nawia::Entity {
 		_exp = data.value("exp", _exp);
 		_exp_to_next_lvl = data.value("exp_to_next_level", _exp_to_next_lvl);
 		_gold = data.value("gold", _gold);
+		_food_count = data.value("food_count", _food_count);
 		_base_stats = statsFromJson(data.value("base_stats", nlohmann::json::object()), _base_stats);
 
 		if (data.contains("inventory") && _backpack)

@@ -8,6 +8,7 @@
 #include <SoundIds.h>
 
 #include <algorithm>
+#include <string>
 
 
 namespace Nawia::Entity {
@@ -24,8 +25,10 @@ namespace Nawia::Entity {
 		_type = EntityType::Chest;
 		setFaction(Faction::None);
 		setScale(1.0f);
+		setRotation(-90.0f);
 		setCollider(std::make_unique<RectangleCollider>(this, 0.9f, 0.4f, 0.0f, 0.0f));
 
+		_gold_amount = GetRandomValue(50, 100);
 		_inventory = std::make_unique<Item::Backpack>(INVENTORY_SIZE);
 		refreshVisualModel();
 	}
@@ -51,7 +54,7 @@ namespace Nawia::Entity {
 	void Chest::onInteract(Entity& instigator) {
 		auto* player = dynamic_cast<Player*>(&instigator);
 
-		if (!_locked && isEmpty()) {
+		if (!_locked && isEmpty() && _gold_collected) {
 			if (player)
 				player->getEngine()->getUIHandler().showNotification("Ta skrzynia jest pusta", 3.0f);
 			return;
@@ -98,6 +101,7 @@ namespace Nawia::Entity {
 			player->playAnimation("Chest_Open", false, true, 0, true);
 		}
 
+		grantGold(instigator);
 		_is_open = true;
 		refreshVisualModel();
 		playSoundEffect(Audio::SoundId::ChestOpen, 0.85f);
@@ -141,12 +145,13 @@ namespace Nawia::Entity {
 
 	bool Chest::isEmpty() const {
 		if (!_inventory)
-			return true;
+			return _gold_collected;
 
 		const auto& items = _inventory->getItems();
-		return std::ranges::none_of(items, [](const std::shared_ptr<Item::Item>& item) {
+		const bool no_items = std::ranges::none_of(items, [](const std::shared_ptr<Item::Item>& item) {
 			return item != nullptr;
 		});
+		return no_items && _gold_collected;
 	}
 
 	const char* Chest::getVisualModelPath() const {
@@ -165,11 +170,27 @@ namespace Nawia::Entity {
 		loadModel(_active_model_path);
 	}
 
+	void Chest::grantGold(Entity& instigator) {
+		if (_gold_collected || _gold_amount <= 0)
+			return;
+
+		auto* player = dynamic_cast<Player*>(&instigator);
+		if (!player)
+			return;
+
+		player->addGold(_gold_amount);
+		if (player->getEngine())
+			player->getEngine()->getUIHandler().showNotification("Znaleziono zloto: +" + std::to_string(_gold_amount), 2.5f);
+		_gold_collected = true;
+	}
+
 	nlohmann::json Chest::serializeState() const {
 		nlohmann::json state = Entity::serializeState();
 		state["open"] = _is_open;
 		state["locked"] = _locked;
 		state["key_id"] = _key_id;
+		state["gold_amount"] = _gold_amount;
+		state["gold_collected"] = _gold_collected;
 		if (_inventory)
 			state["inventory"] = _inventory->serialize();
 		return state;
@@ -183,6 +204,8 @@ namespace Nawia::Entity {
 		_is_open = state.value("open", _is_open);
 		_locked = state.value("locked", _locked);
 		_key_id = state.value("key_id", _key_id);
+		_gold_amount = state.value("gold_amount", _gold_amount);
+		_gold_collected = state.value("gold_collected", _gold_collected);
 
 		if (item_database && _inventory && state.contains("inventory"))
 			_inventory->applyJson(state["inventory"], *item_database);

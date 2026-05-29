@@ -52,9 +52,6 @@ namespace Nawia::Entity {
 	}
 
 	bool UnarmedMeleeEffect::checkCollision(const std::shared_ptr<Entity>& target) const {
-		if (!_hit_entities.empty())
-			return false;
-
 		if (!canHitTarget(target))
 			return false;
 
@@ -108,9 +105,6 @@ namespace Nawia::Entity {
 	}
 
 	void UnarmedMeleeEffect::onCollision(const std::shared_ptr<Entity>& target) {
-		if (!_hit_entities.empty())
-			return;
-
 		const auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target);
 		if (!enemy)
 			return;

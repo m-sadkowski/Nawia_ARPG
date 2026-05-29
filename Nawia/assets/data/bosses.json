@@ -6,6 +6,8 @@
             "enemy_type": "Devil",
             "max_hp": 200,
             "scale": 0.03,
+            "music_path": "assets/audio/music/soundsbyamelia-slavic-war-dance-drums-stomps-amp-war-pipes-422949.mp3",
+            "music_volume": 0.82,
             "phases": [
                 {
                     "hp_threshold": 1.0,
@@ -63,6 +65,40 @@
                 "gold": 500,
                 "exp": 1000,
                 "items": [1, 2]
+            },
+            "on_player_death": "end_fight"
+        },
+        {
+            "id": "ropuch",
+            "name": "Ropuch",
+            "enemy_type": "Frog",
+            "max_hp": 380,
+            "scale": 1.5,
+            "music_path": "assets/audio/music/soundsbyamelia-slavic-war-dance-drums-stomps-amp-war-pipes-422949.mp3",
+            "music_volume": 0.82,
+            "phases": [
+                {
+                    "hp_threshold": 1.0,
+                    "name": "Glodny Ropuch",
+                    "speed_multiplier": 1.0,
+                    "damage_multiplier": 1.0,
+                    "notification": "Ropuch rusza do ataku!",
+                    "screen_flash": false
+                },
+                {
+                    "hp_threshold": 0.45,
+                    "name": "Wsciekly Ropuch",
+                    "speed_multiplier": 1.25,
+                    "damage_multiplier": 1.2,
+                    "notification": "Ropuch wpada w szal!",
+                    "screen_flash": true,
+                    "flash_color": [80, 180, 40, 180]
+                }
+            ],
+            "rewards": {
+                "gold": 0,
+                "exp": 0,
+                "items": []
             },
             "on_player_death": "end_fight"
         }

@@ -90,6 +90,10 @@ namespace Nawia::Entity {
 		void addGold(int amount) { _gold += amount; }
 		void setGold(int amount) { _gold = amount; }
 
+		[[nodiscard]] int getFoodCount() const { return _food_count; }
+		void addFood(int amount);
+		[[nodiscard]] bool consumeFood();
+
 		/** @brief Próbuje wydać złoto i zwraca, czy operacja się udała. */
 		bool spendGold(int amount) {
 			if (_gold >= amount) {
@@ -191,6 +195,7 @@ namespace Nawia::Entity {
 		Stats _current_stats;
 
 		int _gold = 0;
+		int _food_count = 0;
 		int _level = 1;
 		int _exp = 0;
 		int _exp_to_next_lvl = 100;

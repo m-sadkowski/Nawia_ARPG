@@ -55,12 +55,17 @@ namespace Nawia::Core {
 				return;
 
 			for (const auto& entry : data) {
-				if (!entry.is_object() || !entry.contains("icon"))
-					continue;
+			if (!entry.is_object())
+				continue;
 
-				const std::string icon = entry["icon"].get<std::string>();
-				if (!icon.empty())
-					paths.insert(icon);
+			std::string icon;
+			if (entry.contains("icon") && entry["icon"].is_string())
+				icon = entry["icon"].get<std::string>();
+			else if (entry.contains("texture") && entry["texture"].is_string())
+				icon = entry["texture"].get<std::string>();
+
+			if (!icon.empty())
+				paths.insert(icon);
 			}
 		}
 
@@ -194,6 +199,7 @@ namespace Nawia::Core {
 		addTexture("assets/textures/icons/punch_icon.png");
 		addTexture("assets/textures/icons/strong_hit_icon.png");
 		addTexture("assets/textures/icons/empty_ability_icon.png");
+		addTexture("assets/textures/icons/food_icon.png");
 	}
 
 	void AssetLoadManifest::appendEntityTypeAssets(const std::string& entity_type, const nlohmann::json& entity_data) {
@@ -254,6 +260,7 @@ namespace Nawia::Core {
 			addTexture("assets/textures/icons/punch_icon.png");
 			addTexture("assets/textures/icons/strong_hit_icon.png");
 			addTexture("assets/textures/icons/empty_ability_icon.png");
+			addTexture("assets/textures/icons/food_icon.png");
 			return;
 		}
 
@@ -272,6 +279,9 @@ namespace Nawia::Core {
 		if (entity_type == "npc") {
 			const std::string npc_class = entity_data.value("npc_class", "cat");
 			if (npc_class == "mushroom") {
+				addModel("assets/models/mushroom_raylib_fixed.glb");
+				addAnimation("assets/models/mushroom_raylib_fixed.glb");
+			} else if (npc_class == "szeptucha") {
 				addModel("assets/models/mushroom_raylib_fixed.glb");
 				addAnimation("assets/models/mushroom_raylib_fixed.glb");
 			} else if (npc_class == "village_head") {
@@ -302,6 +312,8 @@ namespace Nawia::Core {
 			const std::string boss_id = entity_data.value("boss_id", "");
 			if (boss_id == "devil" || boss_id.find("devil") != std::string::npos) {
 				appendEntityTypeAssets("devil", entity_data);
+			} else if (boss_id == "ropuch") {
+				appendEntityTypeAssets("frog", entity_data);
 			}
 		}
 	}

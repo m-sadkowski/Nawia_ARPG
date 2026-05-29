@@ -147,6 +147,7 @@ namespace Nawia::Entity {
 				if (getDistanceToTarget() <= _attack_range * 1.6f) {
 					target->takeDamage(static_cast<int>(_attack_damage * _damage_multiplier));
 					_attack_damage_applied = true;
+					onAttackDamageApplied(*target);
 				}
 			}
 		}

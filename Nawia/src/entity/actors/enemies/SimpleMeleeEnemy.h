@@ -37,6 +37,7 @@ namespace Nawia::Entity {
 			const std::string& attack_animation,
 			const std::string& hit_animation = ""
 		);
+		virtual void onAttackDamageApplied(Entity& target) {}
 
 		State _state = State::Idle;
 		State _state_before_hit = State::Idle;

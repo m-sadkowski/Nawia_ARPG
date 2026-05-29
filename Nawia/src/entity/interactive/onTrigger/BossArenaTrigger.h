@@ -1,7 +1,10 @@
 #pragma once
 #include <InteractiveTrigger.h>
 
+#include <memory>
 #include <string>
+
+namespace Nawia::Core { class Engine; }
 
 namespace Nawia::Entity {
 
@@ -38,7 +41,16 @@ namespace Nawia::Entity {
         float getInteractionRange() override;
 
     private:
+        [[nodiscard]] bool shouldRunRopuchIntro(Core::Engine* engine) const;
+        void showBossPreview(Core::Engine* engine);
+        void hideBossPreview();
+        void openRopuchIntro(Core::Engine* engine);
+        void startBoss(Core::Engine* engine);
+
         std::string _boss_id;
+        bool _intro_dialogue_open = false;
+        bool _intro_completed = false;
+        std::weak_ptr<Entity> _preview_boss;
     };
 
 } // namespace Nawia::Entity

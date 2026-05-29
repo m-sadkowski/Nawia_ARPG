@@ -64,6 +64,10 @@ namespace Nawia::Item {
         /** @brief Uzywa przedmiotu, jesli konkretny typ to wspiera. */
         virtual bool use() { return false; }
 
+		[[nodiscard]] bool isFood() const { return _food_value > 0; }
+		[[nodiscard]] int getFoodValue() const { return _food_value; }
+		void setFoodValue(int food_value) { _food_value = food_value; }
+
         /** @brief Tworzy kopie przedmiotu z template'u. */
         [[nodiscard]] virtual std::shared_ptr<Item> clone() const {
             return std::make_shared<Item>(*this);
@@ -74,9 +78,10 @@ namespace Nawia::Item {
         std::string _name;
         std::string _description;
         EquipmentSlot _slot;
-        std::shared_ptr<Texture2D> _icon;
+		std::shared_ptr<Texture2D> _icon;
         Entity::Stats _stats;
 		std::string _model_path;
+		int _food_value = 0;
     };
 
 } // namespace Nawia::Item

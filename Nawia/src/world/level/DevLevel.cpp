@@ -1924,7 +1924,14 @@ namespace Nawia::World {
 			saveObject("npcs");
 			_current_mode = EditorMode::None;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 200, 300, 50, GRAY)) {
+		if (drawButton(font, "Szeptucha", start_x, start_y + 180, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Szeptucha";
+			_temp_extra_value = "szeptucha";
+			saveObject("npcs");
+			_current_mode = EditorMode::None;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 250, 300, 50, GRAY)) {
 			_current_mode = EditorMode::None;
 		}
 	}

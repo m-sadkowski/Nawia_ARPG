@@ -44,6 +44,9 @@ namespace Nawia::Entity {
 	}
 
 	void Cat::onInteract(Entity& instigator) {
+		rotateTowardsCenter(instigator.getCenter().x, instigator.getCenter().y);
+		instigator.rotateTowardsCenter(getCenter().x, getCenter().y);
+
 		if (_quest_completed)
 			return;
 

@@ -5,6 +5,7 @@
 #include <Collider.h>
 #include <Devil.h>
 #include <Engine.h>
+#include <Frog.h>
 #include <Logger.h>
 #include <Map.h>
 #include <WalkingDead.h>
@@ -150,6 +151,8 @@ namespace Nawia::Game {
             boss.enemy_type = bj.value("enemy_type", "");
             boss.max_hp = bj.value("max_hp", 1000);
             boss.scale = bj.value("scale", 1.0f);
+            boss.music_path = bj.value("music_path", "");
+            boss.music_volume = bj.value("music_volume", 0.85f);
             boss.on_player_death = bj.value("on_player_death", "end_fight");
 
             // Fazy.
@@ -315,6 +318,8 @@ namespace Nawia::Game {
         if (!_active_boss_data->phases.empty())
             applyPhase(_active_boss_data->phases[_current_phase_index], engine);
 
+        startBossMusic(engine);
+
         Core::Logger::debugLog("BossManager: Odtworzono walke z bossem '" + state.boss_id +
             "' w fazie " + std::to_string(_current_phase_index + 1) +
             " z HP " + std::to_string(restart_hp) + ".");
@@ -349,6 +354,15 @@ namespace Nawia::Game {
                 .setName(name).setMap(map).setMaxHp(max_hp)
                 .setTarget(player).setAudioManager(&engine->getAudioManager())
                 .build());
+        } else if (type == "Frog") {
+            auto frog = std::make_shared<Entity::Frog>();
+            frog->setName(name);
+            frog->setMap(map);
+            frog->setEngine(engine);
+            frog->setMaxHp(max_hp);
+            frog->setTarget(player);
+            frog->setAudioManager(&engine->getAudioManager());
+            entity = frog;
         }
 
         return entity;
@@ -376,6 +390,7 @@ namespace Nawia::Game {
         _phase_flash_timer = 0.0f;
         _minion_pools.clear();
         _boss_pool.clear();
+        restoreMusicAfterBoss(engine);
     }
 
     void BossManager::preloadBossFight(const std::string& boss_id, Core::Engine* engine) {
@@ -484,7 +499,12 @@ namespace Nawia::Game {
         if (!enemy) return false;
 
         enemy->setScale(_active_boss_data->scale);
-        enemy->setCollider(std::make_unique<Entity::RectangleCollider>(enemy.get(), 1.2f, 1.4f, 0.0f, 0.0f));
+        enemy->setCollider(std::make_unique<Entity::RectangleCollider>(
+            enemy.get(),
+            _active_boss_data->enemy_type == "Frog" ? 2.0f : 1.2f,
+            _active_boss_data->enemy_type == "Frog" ? 2.0f : 1.4f,
+            0.0f,
+            0.0f));
         enemy->setMap(engine->getCurrentMap());
         _active_boss_entity = enemy;
         engine->getEntityManager().addEntity(_active_boss_entity);
@@ -492,28 +512,25 @@ namespace Nawia::Game {
     }
 
     bool BossManager::buildAndActivateBoss(Core::Engine* engine) {
-        auto player = engine->getPlayer();
-        auto* map = engine->getCurrentMap();
-
-        if (_active_boss_data->enemy_type != "Devil") {
+        auto boss_entity = buildEnemyEntity(
+            _active_boss_data->enemy_type,
+            _active_boss_data->name,
+            _active_boss_data->max_hp,
+            engine);
+        auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(boss_entity);
+        if (!enemy) {
             Core::Logger::errorLog("BossManager: Nieznany typ wroga '" + _active_boss_data->enemy_type + "'");
             return false;
         }
 
-        Entity::DevilBuilder builder;
-        builder.setPosition(_active_boss_spawn_pos)
-               .setName(_active_boss_data->name)
-               .setMaxHp(_active_boss_data->max_hp)
-               .setMap(map)
-               .setAudioManager(&engine->getAudioManager());
-
-        if (player)
-            builder.setTarget(player);
-
-        auto devil = builder.build();
-        devil->setScale(_active_boss_data->scale);
-        devil->setCollider(std::make_unique<Entity::RectangleCollider>(devil.get(), 1.2f, 1.4f, 0.0f, 0.0f));
-        _active_boss_entity = std::shared_ptr<Entity::EnemyInterface>(std::move(devil));
+        enemy->setScale(_active_boss_data->scale);
+        enemy->setCollider(std::make_unique<Entity::RectangleCollider>(
+            enemy.get(),
+            _active_boss_data->enemy_type == "Frog" ? 2.0f : 1.2f,
+            _active_boss_data->enemy_type == "Frog" ? 2.0f : 1.4f,
+            0.0f,
+            0.0f));
+        _active_boss_entity = enemy;
         placeEntityAtBossSpawn(_active_boss_entity, engine);
         engine->getEntityManager().addEntity(_active_boss_entity);
         return true;
@@ -582,6 +599,8 @@ namespace Nawia::Game {
             applyPhase(_active_boss_data->phases[0], engine);
         }
 
+        startBossMusic(engine);
+
         engine->getUIHandler().showNotification("WALKA Z BOSSEM: " + _active_boss_data->name, 4.0f);
 
         return true;
@@ -613,6 +632,39 @@ namespace Nawia::Game {
         entity->setX(spawn_position.x);
         entity->setY(spawn_position.z);
         entity->setAltitude(spawn_position.y);
+    }
+
+    void BossManager::startBossMusic(Core::Engine* engine) {
+        if (!engine || !_active_boss_data || _active_boss_data->music_path.empty() || _boss_music_overrode_track)
+            return;
+
+        auto& audio = engine->getAudioManager();
+        const bool had_previous_music = audio.hasMusic();
+        const std::string previous_music_path = audio.getCurrentMusicPath();
+        const float previous_music_volume = audio.getCurrentTrackVolume();
+
+        if (audio.playMusic(_active_boss_data->music_path, true, _active_boss_data->music_volume)) {
+            _boss_music_overrode_track = true;
+            _had_music_before_boss = had_previous_music;
+            _music_before_boss_path = previous_music_path;
+            _music_before_boss_volume = previous_music_volume;
+        }
+    }
+
+    void BossManager::restoreMusicAfterBoss(Core::Engine* engine) {
+        if (!engine || !_boss_music_overrode_track)
+            return;
+
+        auto& audio = engine->getAudioManager();
+        if (_had_music_before_boss && !_music_before_boss_path.empty())
+            audio.playMusic(_music_before_boss_path, true, _music_before_boss_volume);
+        else
+            audio.stopMusic();
+
+        _boss_music_overrode_track = false;
+        _had_music_before_boss = false;
+        _music_before_boss_path.clear();
+        _music_before_boss_volume = 1.0f;
     }
 
     // -----------------------------------------------------------------------
@@ -661,6 +713,7 @@ namespace Nawia::Game {
         _fight_timer = 0.0f;
         _phase_flash_timer = 0.0f;
         _minion_pools.clear();
+        restoreMusicAfterBoss(engine);
 
     }
 

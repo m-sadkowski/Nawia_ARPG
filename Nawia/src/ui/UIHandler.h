@@ -91,6 +91,7 @@ namespace Nawia::UI {
         
         void update(float dt);
         void render(const Core::GameCamera& camera, const Game::BossManager* boss_manager = nullptr);
+        void renderDialogueOnly();
         void renderMainMenu() const;
         void renderSettingsMenu() const;
         void renderSaveSlotMenu() const;
@@ -199,6 +200,7 @@ namespace Nawia::UI {
         std::shared_ptr<Texture2D> _menu_btn_hover;
         std::shared_ptr<Texture2D> _ability_bar_frame;
         std::shared_ptr<Texture2D> _empty_ability_icon;
+        std::shared_ptr<Texture2D> _food_icon;
         std::shared_ptr<Texture2D> _hp_orb_frame;
         std::shared_ptr<Texture2D> _level_orb_frame;
         std::vector<float> _hover_timers;

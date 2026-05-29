@@ -135,6 +135,7 @@ namespace Nawia::Item {
 				item_template = std::make_shared<Item>(id, name, description, slot, icon, model_path);
             }
 
+			item_template->setFoodValue(entry.value("food_value", 0));
             _templates[id] = item_template;
             Core::Logger::debugLog("Zaladowano przedmiot ID " + std::to_string(id) + ": " + name);
         }

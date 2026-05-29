@@ -2,6 +2,8 @@
 
 #include <Worm.h>
 
+#include <raymath.h>
+
 #include <algorithm>
 
 namespace Nawia::Entity {
@@ -96,6 +98,50 @@ namespace Nawia::Entity {
 		_anim_direction = -1.0f;
 	}
 
+	void MiniMushroomInfected::setPropDestination(const Vector2 destination) {
+		if (!_purified)
+			return;
+
+		_prop_route.clear();
+		_prop_route_index = 0;
+		_has_prop_destination = true;
+		_prop_destination = destination;
+		setMovementSpeed(2.1f);
+		moveTo(destination.x, destination.y);
+		if (getAnimationFrameCount("walk") > 0)
+			playAnimation("walk");
+	}
+
+	void MiniMushroomInfected::setPropRoute(const std::vector<Vector2>& route) {
+		if (!_purified)
+			return;
+
+		_prop_route = route;
+		_prop_route_index = 0;
+		setMovementSpeed(2.55f);
+		moveToNextPropRoutePoint();
+	}
+
+	void MiniMushroomInfected::moveToNextPropRoutePoint() {
+		while (_prop_route_index < _prop_route.size() &&
+			Vector2DistanceSqr(getCenter(), _prop_route[_prop_route_index]) < 0.20f) {
+			_prop_route_index++;
+		}
+
+		if (_prop_route_index >= _prop_route.size()) {
+			_has_prop_destination = false;
+			_prop_route.clear();
+			_prop_route_index = 0;
+			return;
+		}
+
+		_has_prop_destination = true;
+		_prop_destination = _prop_route[_prop_route_index];
+		moveTo(_prop_destination.x, _prop_destination.y);
+		if (getAnimationFrameCount("walk") > 0)
+			playAnimation("walk");
+	}
+
 	void MiniMushroomInfected::loadMiniMushroomAnimations() {
 		loadModel(MINI_MODEL);
 		addAnimation("death", MINI_MODEL, 2);
@@ -113,6 +159,26 @@ namespace Nawia::Entity {
 				playAnimation("idle", true, false, 0, true);
 			}
 			return;
+		}
+
+		if (_has_prop_destination) {
+			updateMovement(dt);
+			if (_is_moving) {
+				if (getAnimationFrameCount("walk") > 0)
+					playAnimation("walk");
+				return;
+			}
+
+			if (!_prop_route.empty()) {
+				_prop_route_index++;
+				moveToNextPropRoutePoint();
+				if (_has_prop_destination)
+					return;
+			}
+
+			_has_prop_destination = false;
+			_jump_timer = static_cast<float>(GetRandomValue(120, 300)) / 100.0f;
+			playAnimation("idle", true, false, 0, true);
 		}
 
 		if (_jumping) {

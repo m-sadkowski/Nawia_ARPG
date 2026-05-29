@@ -61,11 +61,14 @@ namespace Nawia::Entity {
 
 	private:
 		void refreshVisualModel();
+		void grantGold(Entity& instigator);
 		[[nodiscard]] const char* getVisualModelPath() const;
 
 		bool _is_open = false;
 		bool _locked = false;
+		bool _gold_collected = false;
 		int _key_id = -1;
+		int _gold_amount = 0;
 		std::string _active_model_path;
 
 		std::unique_ptr<Item::Backpack> _inventory;

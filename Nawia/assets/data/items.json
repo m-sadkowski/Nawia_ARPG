@@ -134,6 +134,41 @@
         "stats": {
             "damage": 15
         }
+    },
+    {
+        "id": 14,
+        "name": "Jej chusta",
+        "description": "Chusta ukochanej. Pachnie dymem, blotem i czyms paskudnym.",
+        "slot": "None",
+        "texture": "assets/textures/items/jej_chusta.png",
+        "model_path": ""
+    },
+    {
+        "id": 15,
+        "name": "Chleb",
+        "description": "Kawalek ciemnego chleba. Trafia do wspolnego stosu jedzenia.",
+        "slot": "None",
+        "texture": "assets/textures/icons/food_icon.png",
+        "model_path": "",
+        "food_value": 1
+    },
+    {
+        "id": 16,
+        "name": "Jablko",
+        "description": "Jablko zabrane na droge. Trafia do wspolnego stosu jedzenia.",
+        "slot": "None",
+        "texture": "assets/textures/icons/food_icon.png",
+        "model_path": "",
+        "food_value": 1
+    },
+    {
+        "id": 17,
+        "name": "Kawalek sloniny",
+        "description": "Tlusty zapas na czarna godzine. Trafia do wspolnego stosu jedzenia.",
+        "slot": "None",
+        "texture": "assets/textures/icons/food_icon.png",
+        "model_path": "",
+        "food_value": 1
     }
 ]
 

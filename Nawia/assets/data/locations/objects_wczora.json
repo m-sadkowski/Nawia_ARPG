@@ -39,7 +39,10 @@
         {
             "category": "chests",
             "items": [
-                2
+                2,
+                15,
+                16,
+                17
             ],
             "location": "Wczora",
             "name": "Skrzynia",
@@ -50,7 +53,9 @@
         {
             "category": "chests",
             "items": [
-                3
+                3,
+                15,
+                16
             ],
             "location": "Wczora",
             "name": "Skrzynia",
@@ -61,7 +66,9 @@
         {
             "category": "chests",
             "items": [
-                8
+                8,
+                15,
+                17
             ],
             "location": "Wczora",
             "name": "Skrzynia",
@@ -70,20 +77,23 @@
             "y": -45.44831848144531
         },
         {
-            "category": "spawners",
-            "count": 1,
+            "boss_id": "ropuch",
+            "category": "boss_triggers",
+            "height": 14.0,
             "location": "Wczora",
-            "name": "Ropuch",
-            "spawn_radius": 5.0,
-            "trigger_radius": 20.0,
-            "type": "frog",
+            "name": "Ropuch Trigger",
+            "type": "boss_trigger",
+            "width": 14.0,
             "x": 86.85816192626953,
             "y": -39.160499572753906
         },
         {
             "category": "chests",
             "items": [
-                9
+                9,
+                15,
+                16,
+                17
             ],
             "location": "Wczora",
             "name": "Skrzynia",
