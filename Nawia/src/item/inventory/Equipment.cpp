@@ -55,19 +55,19 @@ namespace Nawia::Item {
 
 	void Equipment::modelEmpty(EquipmentSlot slot) {
 		if (slot == EquipmentSlot::Feet) {
-			Model* feet = _resource_manager.getModel("assets/models/player/player_feet.glb");
+			Model* feet = _resource_manager.getModel("assets/models/actors/player/parts/player_feet.glb");
 			if (feet != nullptr) {
 				_models[EquipmentSlot::Feet] = feet;
 			}
 		}
 		else if (slot == EquipmentSlot::Legs) {
-			Model* legs = _resource_manager.getModel("assets/models/player/player_legs.glb");
+			Model* legs = _resource_manager.getModel("assets/models/actors/player/parts/player_legs.glb");
 			if (legs != nullptr) {
 				_models[EquipmentSlot::Legs] = legs;
 			}
 		}
 		else if (slot == EquipmentSlot::Chest) {
-			Model* chest = _resource_manager.getModel("assets/models/player/player_body.glb");
+			Model* chest = _resource_manager.getModel("assets/models/actors/player/parts/player_body.glb");
 			if (chest != nullptr) {
 				_models[EquipmentSlot::Chest] = chest;
 			}

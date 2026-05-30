@@ -29,6 +29,22 @@ namespace Nawia::Game {
         int exp = 0;
     };
 
+    struct BossDialogueLine {
+        std::string speaker;
+        std::string text;
+        std::string voice_path;
+    };
+
+    struct BossIntroDialogue {
+        bool enabled = false;
+        std::string required_active_quest;
+        std::string blocking_active_quest;
+        std::string checkpoint_on_complete;
+        std::string final_option = "...";
+        bool show_preview = false;
+        std::vector<BossDialogueLine> lines;
+    };
+
     /**
      * @brief Opis pojedynczego typu miniona przywolywanego w fazie bossa.
      */
@@ -70,6 +86,7 @@ namespace Nawia::Game {
 
         std::vector<BossPhase> phases;
         BossReward reward;
+        BossIntroDialogue intro_dialogue;
 
         /// Strategia po smierci gracza: "end_fight" = koniec walki, "retry" = mozliwosc ponowienia.
         std::string on_player_death = "end_fight";
@@ -172,6 +189,7 @@ namespace Nawia::Game {
         bool applyRuntimeState(const nlohmann::json& state, Core::Engine* engine);
 
         [[nodiscard]] const std::map<std::string, BossData>& getAllBosses() const { return _bosses; }
+        [[nodiscard]] std::shared_ptr<Entity::Entity> createPreviewEntity(const BossData& boss_data, Core::Engine* engine);
 
         /** @brief Zwraca pozostaly czas efektu blysku fazy, 0 gdy nieaktywny. */
         [[nodiscard]] float getPhaseFlashTimer() const { return _phase_flash_timer; }

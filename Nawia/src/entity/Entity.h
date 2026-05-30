@@ -40,6 +40,7 @@ namespace Nawia::Entity {
 		Player,
 		Enemy,
 		Ally,
+		NPCActor,
 		NPCStatic,
 		Projectile, ///< Efekt umiejętności działający jak encja.
 		Trigger,    ///< Obszar aktywujący logikę, np. checkpoint.
@@ -151,6 +152,7 @@ namespace Nawia::Entity {
 		 * @brief Zwraca najbliższe trafienie promienia w siatkę modelu.
 		 */
 		[[nodiscard]] RayCollision getRayMeshCollision(const Ray& ray) const;
+		[[nodiscard]] bool isVisibleInCamera(const Camera3D& camera, float screen_margin = 96.0f) const;
 
 		// Transformacja i ruch.
 		void setVelocity(float x, float y) { _velocity.x = x; _velocity.y = y; }
@@ -234,6 +236,7 @@ namespace Nawia::Entity {
 		static void setSharedResourceManager(Core::ResourceManager* manager);
 
 		[[nodiscard]] static Core::ResourceManager* getSharedResourceManager();
+		static void setAudioListener(const std::shared_ptr<Entity>& listener);
 
 		/**
 		 * @brief Odtwarza zarejestrowaną animację.
@@ -484,6 +487,7 @@ namespace Nawia::Entity {
 
 		void updateAnimation(float dt);
 		void updateMovementSound(const std::string& path, bool should_play, float volume = 0.55f, float pitch = 1.0f);
+		[[nodiscard]] float getSpatialAudioVolumeMultiplier() const;
 		void unloadModelData();
 		virtual void onDeathStarted() {}
 

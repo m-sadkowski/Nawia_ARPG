@@ -14,14 +14,13 @@
 #include <DevLevel.h>
 #include <Entity.h>
 #include <FirstLevel.h>
-#include <FireballAbility.h>
 #include <Level.h>
 #include <LevelManager.h>
 #include <Map.h>
+#include <PlayerAbilityFactory.h>
 #include <SoundIds.h>
-#include <StoryNpc.h>
-#include <SwordSlashAbility.h>
-#include <UnarmedMeleeAbility.h>
+#include <SzeptuchaNpc.h>
+#include <WandaCorpseNpc.h>
 
 #include <algorithm>
 #include <cmath>
@@ -97,6 +96,75 @@ namespace Nawia::Core {
 			};
 
 			DrawTexturePro(*texture, source_rectangle, {0.0f, 0.0f, screen_width, screen_height}, {0.0f, 0.0f}, 0.0f, WHITE);
+		}
+
+		nlohmann::json loadJsonDocument(const std::string& path) {
+			std::ifstream file(path);
+			if (!file.is_open()) {
+				Logger::errorLog("Engine: nie mozna otworzyc pliku JSON: " + path);
+				return {};
+			}
+
+			nlohmann::json data;
+			try {
+				file >> data;
+			} catch (const nlohmann::json::parse_error&) {
+				Logger::errorLog("Engine: blad parsowania JSON: " + path);
+				return {};
+			}
+
+			return data;
+		}
+
+		const nlohmann::json& getWczoraIntroConfig() {
+			static const nlohmann::json config = loadJsonDocument("assets/data/wczora_intro.json");
+			return config;
+		}
+
+		Game::DialogueTree buildLinearDialogueTreeFromJson(
+			const nlohmann::json& lines,
+			const std::string& final_option_text,
+			const std::string& continue_option_text = "..."
+		) {
+			Game::DialogueTree tree;
+			if (!lines.is_array())
+				return tree;
+
+			for (size_t i = 0; i < lines.size(); ++i) {
+				const auto& line = lines[i];
+				Game::DialogueNode node;
+				node.id = static_cast<int>(i);
+				node.speaker_name = line.value("speaker", "");
+				node.text = line.value("text", "");
+				node.voice_path = line.value("voice_path", "");
+
+				Game::DialogueOption option;
+				option.text = (i + 1 < lines.size()) ? continue_option_text : final_option_text;
+				option.next_node_id = (i + 1 < lines.size()) ? static_cast<int>(i + 1) : -1;
+				node.options.push_back(option);
+				tree.addNode(node);
+			}
+
+			return tree;
+		}
+
+		Game::DialogueTree buildSingleNodeDialogueTreeFromJson(const nlohmann::json& data) {
+			Game::DialogueTree tree;
+			if (!data.is_object())
+				return tree;
+
+			Game::DialogueNode node;
+			node.id = 0;
+			node.speaker_name = data.value("speaker", "");
+			node.text = data.value("text", "");
+			node.voice_path = data.value("voice_path", "");
+
+			Game::DialogueOption option;
+			option.text = data.value("option", "...");
+			option.next_node_id = -1;
+			node.options.push_back(option);
+			tree.addNode(node);
+			return tree;
 		}
 
 	}
@@ -302,41 +370,13 @@ namespace Nawia::Core {
 		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
 		_player->setAudioManager(&_audio_manager);
 
-		const auto punch_icon = _resource_manager.getTexture("assets/textures/icons/punch_icon.png");
-		const auto strong_hit_icon = _resource_manager.getTexture("assets/textures/icons/strong_hit_icon.png");
-		_player->addAbility(std::make_shared<Entity::UnarmedMeleeAbility>(
-			"Punch",
-			"Punch",
-			"Punch_Jab",
-			Entity::AbilityTargetType::POINT,
-			false,
-			Entity::UnarmedMeleeEffect::Shape::Cone,
-			0.45f,
-			75.0f,
-			0.0f,
-			false,
-			punch_icon));
-		_player->addAbility(std::make_shared<Entity::UnarmedMeleeAbility>(
-			"Strong Hit",
-			"Strong Hit",
-			"Melee_Hook",
-			Entity::AbilityTargetType::POINT,
-			false,
-			Entity::UnarmedMeleeEffect::Shape::ForwardRectangle,
-			0.55f,
-			1.15f,
-			1.8f,
-			true,
-			strong_hit_icon));
+		const auto& player_setup = Entity::PlayerAbilityFactory::getPlayerSetupConfig();
+		for (const auto& ability : Entity::PlayerAbilityFactory::createUnarmedAbilities(player_setup, _resource_manager))
+			_player->addAbility(ability);
 
 		if (grant_starter_items) {
-			const auto fireball_icon = _resource_manager.getTexture("assets/textures/icons/fireball_icon.png");
-			_player->addAbility(std::make_shared<Entity::FireballAbility>(
-				"assets/models/fireball.glb",
-				0.5f,
-				nullptr,
-				fireball_icon,
-				&_resource_manager));
+			if (const auto fireball = Entity::PlayerAbilityFactory::createStarterFireball(player_setup, _resource_manager))
+				_player->addAbility(fireball);
 		}
 
 		_controller = std::make_unique<PlayerController>(this, _player);
@@ -352,14 +392,27 @@ namespace Nawia::Core {
 		if (!grant_starter_items)
 			return;
 
-		for (const int starter_item_id : {1, 2, 3, 8, 9}) {
-			if (const auto item = _item_database.createItem(starter_item_id))
-				_player->equipItem(item);
-		}
+		if (const auto items_it = player_setup.find("starter_items");
+			items_it != player_setup.end() && items_it->is_object()) {
+			if (const auto equipment_it = items_it->find("equipment");
+				equipment_it != items_it->end() && equipment_it->is_array()) {
+				for (const auto& starter_item_id : *equipment_it) {
+					if (!starter_item_id.is_number_integer())
+						continue;
+					if (const auto item = _item_database.createItem(starter_item_id.get<int>()))
+						_player->equipItem(item);
+				}
+			}
 
-		for (const int backpack_item_id : {4, 5, 6, 7, 10, 11, 12}) {
-			if (const auto item = _item_database.createItem(backpack_item_id))
-				_player->getBackpack().addItem(item);
+			if (const auto backpack_it = items_it->find("backpack");
+				backpack_it != items_it->end() && backpack_it->is_array()) {
+				for (const auto& backpack_item_id : *backpack_it) {
+					if (!backpack_item_id.is_number_integer())
+						continue;
+					if (const auto item = _item_database.createItem(backpack_item_id.get<int>()))
+						_player->getBackpack().addItem(item);
+				}
+			}
 		}
 	}
 
@@ -370,13 +423,18 @@ namespace Nawia::Core {
 		removeWczoraIntroNpc();
 		spawnWczoraIntroCorpse();
 
-		_wczora_intro_slides = {
-			{"Okolo 2 tys. lat temu.\nDzisiejsze Kaszuby.", "assets/audio/dialogues/Intro/slide_01.wav", "assets/dzisiejsze_kaszuby.png", nullptr, 8.0f},
-			{"Slowianskie piesni unosza sie w powietrzu. Plomienie ognisk hulaja jak mlodziez tanczaca wokol nich. Noc radosci - zaslubiny Wandy. Leja sie trunki, slychac smiech, zargot i radosc rodziny.\n\nOgnisko trzeszczy.", "assets/audio/dialogues/Intro/slide_02.wav", "assets/dzisiejsze_kaszuby.png", nullptr, 20.0f},
-			{"Jarko szuka Mileny. Nie moze nigdzie znalezc swej lubej. W koncu jest - widzi ja jak wchodzi do obory. Podaza w jej strone.\n\nOgnisko trzeszczy.", "assets/audio/dialogues/Intro/slide_03.wav", "assets/jarko_szuka_mileny.png", nullptr, 16.0f},
-			{"Zrywa sie wiatr. Drzwi od obory trzaskaja za Jarkiem. Nie widzi Wandy, z zewnatrz dobiegaja krzyki, lecz nie radosne. Ognisko trzeszczy... nie, trzeszczy cos jeszcze.", "assets/audio/dialogues/Intro/slide_04.wav", "assets/zrywa_sie_wiatr.png", nullptr, 18.0f},
-			{"Jarko wybiega na dwor i widzi plomienie, lecz nie ogniska - pali sie chata, pala sie drzewa, wszystko stoi w ogniu. Ludzie uciekaja, niebo jest czarne i szaleje burza. Nagle cos uderza go w glowe.\n\nOgnisko trzeszczy.", "assets/audio/dialogues/Intro/slide_05.wav", "assets/jarko_wybiega_na_dwor.png", nullptr, 21.0f}
-		};
+		_wczora_intro_slides.clear();
+		const auto& config = getWczoraIntroConfig();
+		if (config.contains("slides") && config["slides"].is_array()) {
+			for (const auto& slide_json : config["slides"]) {
+				WczoraIntroSlide slide;
+				slide.text = slide_json.value("text", "");
+				slide.voice_path = slide_json.value("voice_path", "");
+				slide.image_path = slide_json.value("image_path", "");
+				slide.duration = slide_json.value("duration", 6.0f);
+				_wczora_intro_slides.push_back(std::move(slide));
+			}
+		}
 		for (auto& slide : _wczora_intro_slides) {
 			if (!slide.image_path.empty()) {
 				slide.image_texture = _resource_manager.getTexture(slide.image_path);
@@ -392,6 +450,10 @@ namespace Nawia::Core {
 		_wczora_intro_flash_timer = 0.0f;
 		_current_camera_zoom = _gameplay_camera_zoom * k_wczora_intro_camera_zoom_factor;
 		_camera.resetZoom(_current_camera_zoom);
+		if (_wczora_intro_slides.empty()) {
+			openWczoraAwakeningDialogue();
+			return;
+		}
 		playWczoraIntroSlideVoice();
 		_player->stop();
 	}
@@ -414,10 +476,9 @@ namespace Nawia::Core {
 		if (getCurrentMap() && getCurrentMap()->getNavMesh().isReady())
 			corpse_position = getCurrentMap()->getNavMesh().getClosestWalkablePosition(corpse_position);
 
-		auto corpse = std::make_shared<Entity::StoryNpc>("Zwloki Wandy", corpse_position.x, corpse_position.z);
+		auto corpse = std::make_shared<Entity::WandaCorpseNpc>("Zwloki Wandy", corpse_position.x, corpse_position.z, this);
 		corpse->setAltitude(corpse_position.y);
 		corpse->setAudioManager(&_audio_manager);
-		corpse->configureWandaCorpse(this);
 		spawnEntity(corpse);
 		_wczora_intro_corpse = corpse;
 	}
@@ -433,18 +494,7 @@ namespace Nawia::Core {
 			_player->playAnimation("Death01", false, true, std::max(0, death_frames - 1), true);
 		}
 
-		Game::DialogueTree tree;
-		Game::DialogueNode node;
-		node.id = 0;
-		node.speaker_name = "Jarko";
-		node.text = "Strasznie wczoraj zachlalem. Palilem bagienne ziola do switu. Powiesc mi sie urwala jak lezalem w klodzie. Teraz mnie krzyz uwiera. Troche sie przespalem, ale juz jutrzenka, ale musialem wstac bo mam obowiazki. Chwila moment, gdzie ja jestem? Kto tu lezy? Czy to wszystko bylo naprawde?";
-		node.voice_path = "assets/audio/dialogues/Intro/awakening.wav";
-
-		Game::DialogueOption option;
-		option.text = "Wstac.";
-		option.next_node_id = -1;
-		node.options.push_back(option);
-		tree.addNode(node);
+		Game::DialogueTree tree = buildSingleNodeDialogueTreeFromJson(getWczoraIntroConfig()["awakening_dialogue"]);
 
 		_wczora_intro_dialogue_opened = true;
 		_wczora_intro_phase = WczoraIntroPhase::AwakeningDialogue;
@@ -484,15 +534,20 @@ namespace Nawia::Core {
 
 		removeWczoraIntroNpc();
 
-		Vector2 spawn_2d = {corpse_position.x + 1.8f, corpse_position.y + 0.8f};
+		const auto& szeptucha_config = getWczoraIntroConfig()["szeptucha"];
+		const auto& spawn_offset = szeptucha_config["spawn_offset"];
+		const Vector2 offset = {
+			spawn_offset.value("x", 1.8f),
+			spawn_offset.value("y", 0.8f)
+		};
+		Vector2 spawn_2d = {corpse_position.x + offset.x, corpse_position.y + offset.y};
 		Vector3 spawn_position = {spawn_2d.x, _player->getAltitude(), spawn_2d.y};
 		if (getCurrentMap() && getCurrentMap()->getNavMesh().isReady())
 			spawn_position = getCurrentMap()->getNavMesh().getClosestWalkablePosition(spawn_position);
 
-		auto szeptucha = std::make_shared<Entity::StoryNpc>("Szeptucha", spawn_position.x, spawn_position.z);
+		auto szeptucha = std::make_shared<Entity::SzeptuchaNpc>("Szeptucha", spawn_position.x, spawn_position.z, this);
 		szeptucha->setAltitude(spawn_position.y);
 		szeptucha->setAudioManager(&_audio_manager);
-		szeptucha->configureSzeptucha(this);
 		szeptucha->rotateTowardsCenter(_player->getCenter().x, _player->getCenter().y);
 		_player->rotateTowardsCenter(szeptucha->getCenter().x, szeptucha->getCenter().y);
 		spawnEntity(szeptucha);
@@ -501,24 +556,9 @@ namespace Nawia::Core {
 		_wczora_intro_phase = WczoraIntroPhase::SzeptuchaDialogue;
 		_wczora_intro_timer = 0.0f;
 
-		Game::DialogueTree tree;
-		const std::vector<std::tuple<std::string, std::string, std::string>> lines = {
-			{"Szeptucha", "Glupis... uraduj bogow. Dziewczyna zginie tak czy siak.", "assets/audio/dialogues/Intro/szeptucha_glupis.wav"},
-			{"Jarko", "Kim jestes? O czym prawisz? Gdzie Milena?", "assets/audio/dialogues/Intro/player_kim_jestes.wav"},
-			{"Szeptucha", "Lud zapomnial kto nad nim panuje. Wznosza twierdze, baluja, a ofiar nie skladaja. Gniew bogow spadl na nas. Podazaj sciezka przeznaczenia do Nawii lub wszyscy zgina.", "assets/audio/dialogues/Intro/szeptucha_gniew_bogow.wav"}
-		};
-		for (size_t i = 0; i < lines.size(); ++i) {
-			Game::DialogueNode node;
-			node.id = static_cast<int>(i);
-			node.speaker_name = std::get<0>(lines[i]);
-			node.text = std::get<1>(lines[i]);
-			node.voice_path = std::get<2>(lines[i]);
-			Game::DialogueOption option;
-			option.text = (i + 1 < lines.size()) ? "..." : "Co?";
-			option.next_node_id = (i + 1 < lines.size()) ? static_cast<int>(i + 1) : -1;
-			node.options.push_back(option);
-			tree.addNode(node);
-		}
+		Game::DialogueTree tree = buildLinearDialogueTreeFromJson(
+			szeptucha_config["lines"],
+			szeptucha_config.value("final_option", "Co?"));
 
 		_ui_handler->openDialogue(tree, 0, [this](const int, const bool) {
 			removeWczoraIntroNpc();
@@ -531,18 +571,7 @@ namespace Nawia::Core {
 		if (!_ui_handler)
 			return;
 
-		Game::DialogueTree tree;
-		Game::DialogueNode node;
-		node.id = 0;
-		node.speaker_name = "Jarko";
-		node.text = "O co tu chodzi? Dlaczego akurat ja? Musze znalezc Milene i mieszkancow wioski...";
-		node.voice_path = "assets/audio/dialogues/Intro/player_final.wav";
-
-		Game::DialogueOption option;
-		option.text = "Ruszac.";
-		option.next_node_id = -1;
-		node.options.push_back(option);
-		tree.addNode(node);
+		Game::DialogueTree tree = buildSingleNodeDialogueTreeFromJson(getWczoraIntroConfig()["final_dialogue"]);
 
 		_wczora_intro_dialogue_opened = true;
 		_wczora_intro_phase = WczoraIntroPhase::FinalDialogue;

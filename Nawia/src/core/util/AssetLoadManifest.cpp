@@ -147,38 +147,38 @@ namespace Nawia::Core {
 		for (const char* path : {
 			"assets/models/animations/anims.glb",
 			"assets/models/animations/anims2.glb",
-			"assets/models/player/player_head.glb",
+			"assets/models/actors/player/parts/player_head.glb",
 			"assets/models/items/player_head_with_sword.glb",
-			"assets/models/cat_bounce.glb",
+			"assets/models/actors/cat/cat_bounce.glb",
 			"assets/models/chest/chest_close.glb",
 			"assets/models/chest/chest_open.glb",
 			"assets/models/chest/chest_open_full.glb",
 			"assets/models/fireball.glb",
 			"assets/models/knife.glb",
-			"assets/models/bandit_idle.glb",
-			"assets/models/bandit_walk_backwards3.glb",
-			"assets/models/bandit_throw.glb",
-			"assets/models/bandit_death.glb",
-			"assets/models/walking_dead.glb",
-			"assets/models/frog.glb",
-			"assets/models/worm.glb",
-			"assets/models/mini_mushroom.glb",
-			"assets/models/mini_mushroom_infected.glb",
-			"assets/models/mushroom_raylib_fixed.glb",
-			"assets/models/village_head.glb",
-			"assets/models/devil_idle.glb",
-			"assets/models/devil_walk.glb",
-			"assets/models/devil_run.glb",
-			"assets/models/devil_attack.glb",
-			"assets/models/devil_dead.glb",
-			"assets/models/player_idle.glb",
-			"assets/models/player_walk.glb",
-			"assets/models/player_auto_attack.glb",
-			"assets/models/player_knocked.glb",
-			"assets/models/dummy_idle.glb",
-			"assets/models/dummy_walk.glb",
-			"assets/models/dummy_cast_fireball.glb",
-			"assets/models/dummy_death.glb"
+			"assets/models/actors/bandit/bandit_idle.glb",
+			"assets/models/actors/bandit/bandit_walk_backwards3.glb",
+			"assets/models/actors/bandit/bandit_throw.glb",
+			"assets/models/actors/bandit/bandit_death.glb",
+			"assets/models/actors/walking_dead/walking_dead.glb",
+			"assets/models/actors/frog/frog.glb",
+			"assets/models/actors/worm/worm.glb",
+			"assets/models/actors/mini_mushroom/mini_mushroom.glb",
+			"assets/models/actors/mini_mushroom/mini_mushroom_infected.glb",
+			"assets/models/actors/gzib/mushroom_raylib_fixed.glb",
+			"assets/models/actors/village_head/village_head.glb",
+			"assets/models/actors/devil/devil_idle.glb",
+			"assets/models/actors/devil/devil_walk.glb",
+			"assets/models/actors/devil/devil_run.glb",
+			"assets/models/actors/devil/devil_attack.glb",
+			"assets/models/actors/devil/devil_dead.glb",
+			"assets/models/actors/player/player_idle.glb",
+			"assets/models/actors/player/player_walk.glb",
+			"assets/models/actors/player/player_auto_attack.glb",
+			"assets/models/actors/player/player_knocked.glb",
+			"assets/models/actors/dummy/dummy_idle.glb",
+			"assets/models/actors/dummy/dummy_walk.glb",
+			"assets/models/actors/dummy/dummy_cast_fireball.glb",
+			"assets/models/actors/dummy/dummy_death.glb"
 		}) {
 			addAnimation(path);
 			addModel(path);
@@ -204,58 +204,58 @@ namespace Nawia::Core {
 
 	void AssetLoadManifest::appendEntityTypeAssets(const std::string& entity_type, const nlohmann::json& entity_data) {
 		if (entity_type == "devil") {
-			addModel("assets/models/devil_idle.glb");
-			addAnimation("assets/models/devil_idle.glb");
-			addAnimation("assets/models/devil_walk.glb");
-			addAnimation("assets/models/devil_run.glb");
-			addAnimation("assets/models/devil_attack.glb");
-			addAnimation("assets/models/devil_dead.glb");
+			addModel("assets/models/actors/devil/devil_idle.glb");
+			addAnimation("assets/models/actors/devil/devil_idle.glb");
+			addAnimation("assets/models/actors/devil/devil_walk.glb");
+			addAnimation("assets/models/actors/devil/devil_run.glb");
+			addAnimation("assets/models/actors/devil/devil_attack.glb");
+			addAnimation("assets/models/actors/devil/devil_dead.glb");
 			return;
 		}
 
 		if (entity_type == "bandit") {
-			addModel("assets/models/bandit_idle.glb");
-			addAnimation("assets/models/bandit_idle.glb");
-			addAnimation("assets/models/bandit_walk_backwards3.glb");
-			addAnimation("assets/models/bandit_throw.glb");
-			addAnimation("assets/models/bandit_death.glb");
+			addModel("assets/models/actors/bandit/bandit_idle.glb");
+			addAnimation("assets/models/actors/bandit/bandit_idle.glb");
+			addAnimation("assets/models/actors/bandit/bandit_walk_backwards3.glb");
+			addAnimation("assets/models/actors/bandit/bandit_throw.glb");
+			addAnimation("assets/models/actors/bandit/bandit_death.glb");
 			addModel("assets/models/knife.glb");
 			return;
 		}
 
 		if (entity_type == "walking_dead") {
-			addModel("assets/models/walking_dead.glb");
-			addAnimation("assets/models/walking_dead.glb");
+			addModel("assets/models/actors/walking_dead/walking_dead.glb");
+			addAnimation("assets/models/actors/walking_dead/walking_dead.glb");
 			return;
 		}
 
 		if (entity_type == "frog") {
-			addModel("assets/models/frog.glb");
-			addAnimation("assets/models/frog.glb");
-			addModel("assets/models/village_head.glb");
-			addAnimation("assets/models/village_head.glb");
+			addModel("assets/models/actors/frog/frog.glb");
+			addAnimation("assets/models/actors/frog/frog.glb");
+			addModel("assets/models/actors/village_head/village_head.glb");
+			addAnimation("assets/models/actors/village_head/village_head.glb");
 			return;
 		}
 
 		if (entity_type == "worm") {
-			addModel("assets/models/worm.glb");
-			addAnimation("assets/models/worm.glb");
+			addModel("assets/models/actors/worm/worm.glb");
+			addAnimation("assets/models/actors/worm/worm.glb");
 			return;
 		}
 
 		if (entity_type == "mini_mushroom_infected") {
-			addModel("assets/models/mini_mushroom_infected.glb");
-			addAnimation("assets/models/mini_mushroom_infected.glb");
-			addModel("assets/models/mini_mushroom.glb");
-			addAnimation("assets/models/mini_mushroom.glb");
-			addModel("assets/models/worm.glb");
-			addAnimation("assets/models/worm.glb");
+			addModel("assets/models/actors/mini_mushroom/mini_mushroom_infected.glb");
+			addAnimation("assets/models/actors/mini_mushroom/mini_mushroom_infected.glb");
+			addModel("assets/models/actors/mini_mushroom/mini_mushroom.glb");
+			addAnimation("assets/models/actors/mini_mushroom/mini_mushroom.glb");
+			addModel("assets/models/actors/worm/worm.glb");
+			addAnimation("assets/models/actors/worm/worm.glb");
 			return;
 		}
 
 		if (entity_type == "friend") {
-			addModel("assets/models/player_idle.glb");
-			addAnimation("assets/models/player_idle.glb");
+			addModel("assets/models/actors/player/player_idle.glb");
+			addAnimation("assets/models/actors/player/player_idle.glb");
 			addTexture("assets/textures/icons/sword_slash_icon.png");
 			addTexture("assets/textures/icons/punch_icon.png");
 			addTexture("assets/textures/icons/strong_hit_icon.png");
@@ -279,24 +279,24 @@ namespace Nawia::Core {
 		if (entity_type == "npc") {
 			const std::string npc_class = entity_data.value("npc_class", "cat");
 			if (npc_class == "mushroom") {
-				addModel("assets/models/mushroom_raylib_fixed.glb");
-				addAnimation("assets/models/mushroom_raylib_fixed.glb");
+				addModel("assets/models/actors/gzib/mushroom_raylib_fixed.glb");
+				addAnimation("assets/models/actors/gzib/mushroom_raylib_fixed.glb");
 			} else if (npc_class == "szeptucha") {
-				addModel("assets/models/mushroom_raylib_fixed.glb");
-				addAnimation("assets/models/mushroom_raylib_fixed.glb");
+				addModel("assets/models/actors/gzib/mushroom_raylib_fixed.glb");
+				addAnimation("assets/models/actors/gzib/mushroom_raylib_fixed.glb");
 			} else if (npc_class == "village_head") {
-				addModel("assets/models/village_head.glb");
-				addAnimation("assets/models/village_head.glb");
+				addModel("assets/models/actors/village_head/village_head.glb");
+				addAnimation("assets/models/actors/village_head/village_head.glb");
 			} else {
-				addModel("assets/models/cat_bounce.glb");
-				addAnimation("assets/models/cat_bounce.glb");
+				addModel("assets/models/actors/cat/cat_bounce.glb");
+				addAnimation("assets/models/actors/cat/cat_bounce.glb");
 			}
 			return;
 		}
 
 		if (entity_type == "mini_mushroom_prop") {
-			addModel("assets/models/mini_mushroom.glb");
-			addAnimation("assets/models/mini_mushroom.glb");
+			addModel("assets/models/actors/mini_mushroom/mini_mushroom.glb");
+			addAnimation("assets/models/actors/mini_mushroom/mini_mushroom.glb");
 			return;
 		}
 

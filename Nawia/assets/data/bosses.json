@@ -100,7 +100,21 @@
                 "exp": 0,
                 "items": []
             },
-            "on_player_death": "end_fight"
+            "on_player_death": "end_fight",
+            "intro_dialogue": {
+                "enabled": true,
+                "required_active_quest": "find_ropuch",
+                "blocking_active_quest": "recover_scarf",
+                "checkpoint_on_complete": "Ropuch Trigger",
+                "show_preview": true,
+                "final_option": "Rozprawie sie z nim.",
+                "lines": [
+                    {
+                        "speaker": "Jarko",
+                        "text": "Alez obrzydlistwo. CO ON MA W GNIEZDZIE? TO JEJ CHUSTA. Musze sie z nim rozprawic."
+                    }
+                ]
+            }
         }
     ]
 }

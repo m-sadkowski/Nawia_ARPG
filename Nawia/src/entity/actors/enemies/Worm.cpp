@@ -5,7 +5,7 @@
 namespace Nawia::Entity {
 
 	namespace {
-		constexpr const char* MODEL_PATH = "assets/models/worm.glb";
+		constexpr const char* MODEL_PATH = "assets/models/actors/worm/worm.glb";
 	}
 
 	Worm::Worm() {

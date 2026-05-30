@@ -30,7 +30,8 @@ namespace Nawia::Core {
             const Entity::EntityType type = entity->getType();
             return type == Entity::EntityType::Player ||
                    type == Entity::EntityType::Enemy ||
-                   type == Entity::EntityType::Ally;
+                   type == Entity::EntityType::Ally ||
+                   type == Entity::EntityType::NPCActor;
         }
 
         bool isAbilityTarget(const std::shared_ptr<Entity::Entity>& entity) {
@@ -41,13 +42,19 @@ namespace Nawia::Core {
             return type != Entity::EntityType::Projectile &&
                    type != Entity::EntityType::Chest &&
                    type != Entity::EntityType::Trigger &&
-                   type != Entity::EntityType::NPCStatic;
+                   type != Entity::EntityType::NPCStatic &&
+                   type != Entity::EntityType::NPCActor;
         }
 
     }
 
     void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity) {
         _active_entities.push_back(std::move(new_entity));
+    }
+
+    void EntityManager::setPlayer(std::shared_ptr<Entity::Entity> player) {
+        _player = std::move(player);
+        Entity::Entity::setAudioListener(_player);
     }
 
 	void EntityManager::clearNonPlayerEntities() {
@@ -100,7 +107,7 @@ namespace Nawia::Core {
 
         for (const auto& entity : _active_entities)
         {
-            if (!entity->isDormant())
+            if (!entity->isDormant() && entity->isVisibleInCamera(camera))
                 render_list.push_back(entity.get());
         }
 
@@ -314,7 +321,8 @@ namespace Nawia::Core {
         const Entity::EntityType type = entity->getType();
         return type == Entity::EntityType::Player ||
                type == Entity::EntityType::Enemy ||
-               type == Entity::EntityType::Ally;
+               type == Entity::EntityType::Ally ||
+               type == Entity::EntityType::NPCActor;
     }
 
     void EntityManager::resolveOverlap(

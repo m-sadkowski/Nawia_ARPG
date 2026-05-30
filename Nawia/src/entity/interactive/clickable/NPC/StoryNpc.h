@@ -14,12 +14,15 @@ namespace Nawia::Entity {
 	class StoryNpc : public InteractiveClickable {
 	public:
 		StoryNpc(const std::string& name, float x, float y);
+		[[nodiscard]] virtual const char* getNpcClass() const = 0;
 
+	protected:
 		void configureMushroom(Core::Engine* engine, const std::string& follow_checkpoint_name = "Checkpoint Gziba");
 		void configureVillageHead(Core::Engine* engine);
 		void configureSzeptucha(Core::Engine* engine);
 		void configureWandaCorpse(Core::Engine* engine);
 
+	public:
 		void onInteract(Entity& instigator) override;
 		[[nodiscard]] bool isMouseOver(float screen_x, float screen_y, const Camera3D& camera) const override;
 		[[nodiscard]] bool canInteract() const override;
@@ -55,6 +58,7 @@ namespace Nawia::Entity {
 		[[nodiscard]] Game::DialogueTree buildVoicedLinearDialogue(
 			const std::vector<DialogueLine>& lines,
 			const std::string& final_option_text) const;
+		[[nodiscard]] Game::DialogueTree buildDialogueFromConfig(const std::string& key) const;
 		void updateMushroomFollow(float delta_time);
 		void updateVillageHeadTravel(float delta_time);
 		void startVillageHeadRouteToPlayerSpawn();
@@ -72,7 +76,6 @@ namespace Nawia::Entity {
 		[[nodiscard]] int getRequiredRescueCount() const;
 		[[nodiscard]] bool areAllMushroomsAlreadyRescued() const;
 		[[nodiscard]] bool hasMushroomDialogueAvailable() const;
-		Entity* findEntityByName(const std::string& name) const;
 
 		Core::Engine* _engine = nullptr;
 		Game::DialogueTree _dialogue_tree;
@@ -95,7 +98,6 @@ namespace Nawia::Entity {
 		float _procedural_anim_time = 0.0f;
 		float _base_altitude = 0.0f;
 		float _look_at_player_timer = 0.0f;
-		float _mushroom_step_sound_timer = 0.0f;
 		std::vector<Vector2> _current_path;
 		std::vector<Vector2> _travel_waypoints;
 		size_t _travel_waypoint_index = 0;

@@ -1,0 +1,70 @@
+{
+  "slides": [
+    {
+      "text": "Okolo 2 tys. lat temu.\nDzisiejsze Kaszuby.",
+      "voice_path": "assets/audio/dialogues/Intro/slide_01.wav",
+      "image_path": "assets/textures/intro/dzisiejsze_kaszuby.png",
+      "duration": 8.0
+    },
+    {
+      "text": "Slowianskie piesni unosza sie w powietrzu. Plomienie ognisk hulaja jak mlodziez tanczaca wokol nich. Noc radosci - zaslubiny Wandy. Leja sie trunki, slychac smiech, zargot i radosc rodziny.\n\nOgnisko trzeszczy.",
+      "voice_path": "assets/audio/dialogues/Intro/slide_02.wav",
+      "image_path": "assets/textures/intro/dzisiejsze_kaszuby.png",
+      "duration": 20.0
+    },
+    {
+      "text": "Jarko szuka Mileny. Nie moze nigdzie znalezc swej lubej. W koncu jest - widzi ja jak wchodzi do obory. Podaza w jej strone.\n\nOgnisko trzeszczy.",
+      "voice_path": "assets/audio/dialogues/Intro/slide_03.wav",
+      "image_path": "assets/textures/intro/jarko_szuka_mileny.png",
+      "duration": 16.0
+    },
+    {
+      "text": "Zrywa sie wiatr. Drzwi od obory trzaskaja za Jarkiem. Nie widzi Wandy, z zewnatrz dobiegaja krzyki, lecz nie radosne. Ognisko trzeszczy... nie, trzeszczy cos jeszcze.",
+      "voice_path": "assets/audio/dialogues/Intro/slide_04.wav",
+      "image_path": "assets/textures/intro/zrywa_sie_wiatr.png",
+      "duration": 18.0
+    },
+    {
+      "text": "Jarko wybiega na dwor i widzi plomienie, lecz nie ogniska - pali sie chata, pala sie drzewa, wszystko stoi w ogniu. Ludzie uciekaja, niebo jest czarne i szaleje burza. Nagle cos uderza go w glowe.\n\nOgnisko trzeszczy.",
+      "voice_path": "assets/audio/dialogues/Intro/slide_05.wav",
+      "image_path": "assets/textures/intro/jarko_wybiega_na_dwor.png",
+      "duration": 21.0
+    }
+  ],
+  "awakening_dialogue": {
+    "speaker": "Jarko",
+    "text": "Strasznie wczoraj zachlalem. Palilem bagienne ziola do switu. Powiesc mi sie urwala jak lezalem w klodzie. Teraz mnie krzyz uwiera. Troche sie przespalem, ale juz jutrzenka, ale musialem wstac bo mam obowiazki. Chwila moment, gdzie ja jestem? Kto tu lezy? Czy to wszystko bylo naprawde?",
+    "voice_path": "assets/audio/dialogues/Intro/awakening.wav",
+    "option": "Wstac."
+  },
+  "szeptucha": {
+    "spawn_offset": {
+      "x": 1.8,
+      "y": 0.8
+    },
+    "final_option": "Co?",
+    "lines": [
+      {
+        "speaker": "Szeptucha",
+        "text": "Glupis... uraduj bogow. Dziewczyna zginie tak czy siak.",
+        "voice_path": "assets/audio/dialogues/Intro/szeptucha_glupis.wav"
+      },
+      {
+        "speaker": "Jarko",
+        "text": "Kim jestes? O czym prawisz? Gdzie Milena?",
+        "voice_path": "assets/audio/dialogues/Intro/player_kim_jestes.wav"
+      },
+      {
+        "speaker": "Szeptucha",
+        "text": "Lud zapomnial kto nad nim panuje. Wznosza twierdze, baluja, a ofiar nie skladaja. Gniew bogow spadl na nas. Podazaj sciezka przeznaczenia do Nawii lub wszyscy zgina.",
+        "voice_path": "assets/audio/dialogues/Intro/szeptucha_gniew_bogow.wav"
+      }
+    ]
+  },
+  "final_dialogue": {
+    "speaker": "Jarko",
+    "text": "O co tu chodzi? Dlaczego akurat ja? Musze znalezc Milene i mieszkancow wioski...",
+    "voice_path": "assets/audio/dialogues/Intro/player_final.wav",
+    "option": "Ruszac."
+  }
+}

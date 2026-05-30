@@ -102,14 +102,15 @@ namespace Nawia::Audio {
 		}
 
 		Sound& sound = sound_iterator->second.sound;
+		SetSoundVolume(sound, clampVolume(options.volume) * _effects_volume);
+		SetSoundPitch(sound, std::max(0.01f, options.pitch));
+
 		if (IsSoundPlaying(sound)) {
 			if (!options.restart_if_playing)
 				return true;
 			StopSound(sound);
 		}
 
-		SetSoundVolume(sound, clampVolume(options.volume) * _effects_volume);
-		SetSoundPitch(sound, std::max(0.01f, options.pitch));
 		PlaySound(sound);
 		return true;
 	}

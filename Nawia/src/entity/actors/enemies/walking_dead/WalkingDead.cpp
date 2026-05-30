@@ -9,7 +9,7 @@
 namespace Nawia::Entity {
 
 	namespace {
-		constexpr const char* WALKING_DEAD_MODEL = "assets/models/walking_dead.glb";
+		constexpr const char* WALKING_DEAD_MODEL = "assets/models/actors/walking_dead/walking_dead.glb";
 		constexpr int ANIM_DEATH = 1;
 		constexpr int ANIM_HIT = 2;
 		constexpr int ANIM_IDLE = 3;

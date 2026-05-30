@@ -5,6 +5,7 @@
 #include <string>
 
 namespace Nawia::Core { class Engine; }
+namespace Nawia::Game { struct BossData; }
 
 namespace Nawia::Entity {
 
@@ -41,10 +42,11 @@ namespace Nawia::Entity {
         float getInteractionRange() override;
 
     private:
-        [[nodiscard]] bool shouldRunRopuchIntro(Core::Engine* engine) const;
-        void showBossPreview(Core::Engine* engine);
+        [[nodiscard]] const Game::BossData* getBossData(Core::Engine* engine) const;
+        [[nodiscard]] bool shouldRunIntro(Core::Engine* engine, const Game::BossData& boss_data) const;
+        void showBossPreview(Core::Engine* engine, const Game::BossData& boss_data);
         void hideBossPreview();
-        void openRopuchIntro(Core::Engine* engine);
+        void openIntroDialogue(Core::Engine* engine, const Game::BossData& boss_data);
         void startBoss(Core::Engine* engine);
 
         std::string _boss_id;

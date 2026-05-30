@@ -19,7 +19,7 @@ namespace Nawia::Entity {
 		_type = EntityType::NPCStatic;
 		setFaction(Faction::None);
 		setScale(0.03f);
-		loadModel("assets/models/cat_bounce.glb", false);
+		loadModel("assets/models/actors/cat/cat_bounce.glb", false);
 		playAnimation("default");
 
 		_inventory = std::make_unique<Item::Backpack>(INVENTORY_SIZE);

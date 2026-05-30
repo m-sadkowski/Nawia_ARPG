@@ -10,8 +10,8 @@
 namespace Nawia::Entity {
 
 	namespace {
-		constexpr const char* INFECTED_MODEL = "assets/models/mini_mushroom_infected.glb";
-		constexpr const char* MINI_MODEL = "assets/models/mini_mushroom.glb";
+		constexpr const char* INFECTED_MODEL = "assets/models/actors/mini_mushroom/mini_mushroom_infected.glb";
+		constexpr const char* MINI_MODEL = "assets/models/actors/mini_mushroom/mini_mushroom.glb";
 	}
 
 	MiniMushroomInfected::MiniMushroomInfected() {
@@ -65,15 +65,15 @@ namespace Nawia::Entity {
 	}
 
 	void MiniMushroomInfected::spawnLinkedWorm() {
-		auto worm = std::make_shared<Worm>();
-		worm->setName("Robal");
-		worm->setX(getX());
-		worm->setY(getY());
+		auto worm = std::shared_ptr<Worm>(WormBuilder()
+			.setName("Robal")
+			.setPosition(getCenter())
+			.setMap(_map)
+			.setMaxHp(35)
+			.setAudioManager(_audio_manager)
+			.setLinkedMushroom(std::dynamic_pointer_cast<MiniMushroomInfected>(shared_from_this()))
+			.build());
 		worm->setAltitude(getAltitude());
-		worm->setMap(_map);
-		worm->setMaxHp(35);
-		worm->setAudioManager(_audio_manager);
-		worm->setLinkedMushroom(std::dynamic_pointer_cast<MiniMushroomInfected>(shared_from_this()));
 		addPendingSpawn(worm);
 	}
 

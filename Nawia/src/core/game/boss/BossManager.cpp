@@ -79,6 +79,33 @@ namespace Nawia::Game {
             return reward;
         }
 
+        BossIntroDialogue parseBossIntroDialogue(const nlohmann::json& bj) {
+            BossIntroDialogue intro;
+            if (!bj.contains("intro_dialogue") || !bj["intro_dialogue"].is_object())
+                return intro;
+
+            const auto& ij = bj["intro_dialogue"];
+            intro.enabled = ij.value("enabled", false);
+            intro.required_active_quest = ij.value("required_active_quest", "");
+            intro.blocking_active_quest = ij.value("blocking_active_quest", "");
+            intro.checkpoint_on_complete = ij.value("checkpoint_on_complete", "");
+            intro.final_option = ij.value("final_option", "...");
+            intro.show_preview = ij.value("show_preview", false);
+
+            if (ij.contains("lines") && ij["lines"].is_array()) {
+                for (const auto& lj : ij["lines"]) {
+                    BossDialogueLine line;
+                    line.speaker = lj.value("speaker", "");
+                    line.text = lj.value("text", "");
+                    line.voice_path = lj.value("voice_path", "");
+                    intro.lines.push_back(std::move(line));
+                }
+            }
+
+            intro.enabled = intro.enabled && !intro.lines.empty();
+            return intro;
+        }
+
         int getPhaseRestartHp(const BossData& boss, const int phase_index, const int max_hp) {
             if (max_hp <= 0)
                 return 1;
@@ -154,6 +181,7 @@ namespace Nawia::Game {
             boss.music_path = bj.value("music_path", "");
             boss.music_volume = bj.value("music_volume", 0.85f);
             boss.on_player_death = bj.value("on_player_death", "end_fight");
+            boss.intro_dialogue = parseBossIntroDialogue(bj);
 
             // Fazy.
             if (bj.contains("phases")) {
@@ -355,16 +383,31 @@ namespace Nawia::Game {
                 .setTarget(player).setAudioManager(&engine->getAudioManager())
                 .build());
         } else if (type == "Frog") {
-            auto frog = std::make_shared<Entity::Frog>();
-            frog->setName(name);
-            frog->setMap(map);
-            frog->setEngine(engine);
-            frog->setMaxHp(max_hp);
-            frog->setTarget(player);
-            frog->setAudioManager(&engine->getAudioManager());
-            entity = frog;
+            entity = std::shared_ptr<Entity::Entity>(Entity::FrogBuilder()
+                .setName(name).setMap(map).setEngine(engine).setMaxHp(max_hp)
+                .setTarget(player).setAudioManager(&engine->getAudioManager())
+                .build());
         }
 
+        return entity;
+    }
+
+    std::shared_ptr<Entity::Entity> BossManager::createPreviewEntity(const BossData& boss_data, Core::Engine* engine) {
+        if (!engine)
+            return nullptr;
+
+        auto entity = buildEnemyEntity(
+            boss_data.enemy_type,
+            boss_data.name.empty() ? boss_data.id : boss_data.name,
+            boss_data.max_hp,
+            engine);
+        if (!entity)
+            return nullptr;
+
+        entity->setType(Entity::EntityType::NPCStatic);
+        entity->setFaction(Entity::Faction::None);
+        entity->setTarget(nullptr);
+        entity->setScale(boss_data.scale);
         return entity;
     }
 

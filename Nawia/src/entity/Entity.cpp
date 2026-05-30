@@ -57,6 +57,11 @@ namespace Nawia::Entity {
 namespace {
 	Core::ResourceManager* g_shared_resource_manager = nullptr;
 	std::map<std::string, std::shared_ptr<const AnimationBundle>> g_animation_cache;
+	std::weak_ptr<Entity> g_audio_listener;
+
+	constexpr float FULL_VOLUME_DISTANCE = 5.0f;
+	constexpr float MEDIUM_VOLUME_DISTANCE = 10.0f;
+	constexpr float LOW_VOLUME_DISTANCE = 15.0f;
 
 	std::shared_ptr<const AnimationBundle> getCachedAnimationBundle(const std::string& path)
 	{
@@ -156,6 +161,10 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	Core::ResourceManager* Entity::getSharedResourceManager() {
 		return g_shared_resource_manager;
+	}
+
+	void Entity::setAudioListener(const std::shared_ptr<Entity>& listener) {
+		g_audio_listener = listener;
 	}
 
 	void Entity::loadModel(const std::string& path, const bool rotate_model)
@@ -620,6 +629,44 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		return closest;
 	}
 
+	bool Entity::isVisibleInCamera(const Camera3D& camera, const float screen_margin) const
+	{
+		if (_dormant)
+			return false;
+
+		if (!_model_loaded)
+			return DebugColliders;
+
+		const int screen_width = GetScreenWidth();
+		const int screen_height = GetScreenHeight();
+		if (screen_width <= 0 || screen_height <= 0)
+			return true;
+
+		const BoundingBox box = getBoundingBox();
+		const Vector3 corners[8] = {
+			{box.min.x, box.min.y, box.min.z},
+			{box.max.x, box.min.y, box.min.z},
+			{box.min.x, box.max.y, box.min.z},
+			{box.max.x, box.max.y, box.min.z},
+			{box.min.x, box.min.y, box.max.z},
+			{box.max.x, box.min.y, box.max.z},
+			{box.min.x, box.max.y, box.max.z},
+			{box.max.x, box.max.y, box.max.z}
+		};
+
+		for (const Vector3& corner : corners) {
+			const Vector2 projected = GetWorldToScreen(corner, camera);
+			if (projected.x >= -screen_margin &&
+				projected.x <= static_cast<float>(screen_width) + screen_margin &&
+				projected.y >= -screen_margin &&
+				projected.y <= static_cast<float>(screen_height) + screen_margin) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	BoundingBox Entity::getBoundingBox() const
 	{
 		if (!_model_loaded)
@@ -852,7 +899,11 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (!_audio_manager)
 			return;
 
-		_audio_manager->playSound(id, Audio::SoundOptions{volume, pitch, restart_if_playing});
+		const float spatial_volume = getSpatialAudioVolumeMultiplier();
+		if (spatial_volume <= 0.0f)
+			return;
+
+		_audio_manager->playSound(id, Audio::SoundOptions{volume * spatial_volume, pitch, restart_if_playing});
 	}
 
 	void Entity::stopSoundEffect(const std::string& id) const
@@ -871,10 +922,27 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (_movement_sound_id.empty())
 			_movement_sound_id = "movement:" + std::to_string(reinterpret_cast<std::uintptr_t>(this));
 
-		if (should_play)
-			_audio_manager->playSoundFile(_movement_sound_id, path, Audio::SoundOptions{volume, pitch, false});
+		const float spatial_volume = getSpatialAudioVolumeMultiplier();
+		if (should_play && spatial_volume > 0.0f)
+			_audio_manager->playSoundFile(_movement_sound_id, path, Audio::SoundOptions{volume * spatial_volume, pitch, false});
 		else
 			_audio_manager->stopSound(_movement_sound_id);
+	}
+
+	float Entity::getSpatialAudioVolumeMultiplier() const
+	{
+		const auto listener = g_audio_listener.lock();
+		if (!listener || listener.get() == this)
+			return 1.0f;
+
+		const float distance = Vector2Distance(getCenter(), listener->getCenter());
+		if (distance <= FULL_VOLUME_DISTANCE)
+			return 1.0f;
+		if (distance <= MEDIUM_VOLUME_DISTANCE)
+			return 2.0f / 3.0f;
+		if (distance <= LOW_VOLUME_DISTANCE)
+			return 1.0f / 3.0f;
+		return 0.0f;
 	}
 
 } // namespace Nawia::Entity

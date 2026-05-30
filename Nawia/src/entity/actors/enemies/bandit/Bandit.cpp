@@ -17,11 +17,11 @@ namespace Nawia::Entity {
 		setScale(0.015f);
 		setFaction(Faction::Enemy);
 
-		loadModel("assets/models/bandit_idle.glb");
-		addAnimation("idle", "assets/models/bandit_idle.glb");
-		addAnimation("walk", "assets/models/bandit_walk_backwards3.glb");
-		addAnimation("throw", "assets/models/bandit_throw.glb");
-		addAnimation("death", "assets/models/bandit_death.glb");
+		loadModel("assets/models/actors/bandit/bandit_idle.glb");
+		addAnimation("idle", "assets/models/actors/bandit/bandit_idle.glb");
+		addAnimation("walk", "assets/models/actors/bandit/bandit_walk_backwards3.glb");
+		addAnimation("throw", "assets/models/actors/bandit/bandit_throw.glb");
+		addAnimation("death", "assets/models/actors/bandit/bandit_death.glb");
 	}
 
 	void Bandit::takeDamage(const int dmg)

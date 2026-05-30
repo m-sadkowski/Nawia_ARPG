@@ -1,0 +1,40 @@
+{
+  "unarmed_abilities": [
+    {
+      "name": "Punch",
+      "stats_key": "Punch",
+      "animation": "Punch_Jab",
+      "target_type": "POINT",
+      "direct_target_hit": false,
+      "shape": "Cone",
+      "spawn_ratio": 0.45,
+      "hitbox_width": 75.0,
+      "knockback_distance": 0.0,
+      "ping_pong_animation": false,
+      "icon": "assets/textures/icons/punch_icon.png"
+    },
+    {
+      "name": "Strong Hit",
+      "stats_key": "Strong Hit",
+      "animation": "Melee_Hook",
+      "target_type": "POINT",
+      "direct_target_hit": false,
+      "shape": "ForwardRectangle",
+      "spawn_ratio": 0.55,
+      "hitbox_width": 1.15,
+      "knockback_distance": 1.8,
+      "ping_pong_animation": true,
+      "icon": "assets/textures/icons/strong_hit_icon.png"
+    }
+  ],
+  "starter_fireball": {
+    "enabled": true,
+    "model": "assets/models/fireball.glb",
+    "scale": 0.5,
+    "icon": "assets/textures/icons/fireball_icon.png"
+  },
+  "starter_items": {
+    "equipment": [1, 2, 3, 8, 9],
+    "backpack": [4, 5, 6, 7, 10, 11, 12]
+  }
+}

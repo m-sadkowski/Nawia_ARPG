@@ -7,9 +7,9 @@
 #include <Logger.h>
 #include <Map.h>
 #include <MathUtils.h>
+#include <PlayerAbilityFactory.h>
 #include <SoundIds.h>
 #include <SwordSlashAbility.h>
-#include <UnarmedMeleeAbility.h>
 
 #include <algorithm>
 #include <cmath>
@@ -17,7 +17,7 @@
 namespace Nawia::Entity {
 
 	namespace {
-		constexpr const char* PLAYER_HEAD_MODEL = "assets/models/player/player_head.glb";
+		constexpr const char* PLAYER_HEAD_MODEL = "assets/models/actors/player/parts/player_head.glb";
 		constexpr const char* PLAYER_HEAD_WITH_SWORD_MODEL = "assets/models/items/player_head_with_sword.glb";
 
 		nlohmann::json statsToJson(const Stats& stats) {
@@ -61,7 +61,7 @@ namespace Nawia::Entity {
 		_name = "Player";
 		_max_hp = 200;
 		_hp = _max_hp;
-		_scale = 1.85f;
+		_scale = 1.5f;
 		_type = EntityType::Player;
 		_faction = Faction::Player;
 		_active_visual_model_path = PLAYER_HEAD_MODEL;
@@ -336,19 +336,12 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		const auto icon = _engine->getResourceManager().getTexture("assets/textures/icons/punch_icon.png");
-		setAbility(0, std::make_shared<UnarmedMeleeAbility>(
-			"Punch",
-			"Punch",
-			"Punch_Jab",
-			AbilityTargetType::POINT,
-			false,
-			UnarmedMeleeEffect::Shape::Cone,
-			0.45f,
-			75.0f,
-			0.0f,
-			false,
-			icon));
+		if (const auto punch = PlayerAbilityFactory::createUnarmedAbilityByName(
+			PlayerAbilityFactory::getPlayerSetupConfig(),
+			_engine->getResourceManager(),
+			"Punch")) {
+			setAbility(0, punch);
+		}
 	}
 
 	nlohmann::json Player::serializeProfile() const

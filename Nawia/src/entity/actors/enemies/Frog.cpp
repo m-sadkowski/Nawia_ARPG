@@ -2,7 +2,7 @@
 
 #include <Map.h>
 #include <SoundIds.h>
-#include <StoryNpc.h>
+#include <VillageHeadNpc.h>
 
 #include <raymath.h>
 
@@ -13,7 +13,7 @@
 namespace Nawia::Entity {
 
 	namespace {
-		constexpr const char* MODEL_PATH = "assets/models/frog.glb";
+		constexpr const char* MODEL_PATH = "assets/models/actors/frog/frog.glb";
 	}
 
 	Frog::Frog() {
@@ -104,10 +104,9 @@ namespace Nawia::Entity {
 		if (!_engine)
 			return;
 
-		auto village_head = std::make_shared<StoryNpc>("Soltys", getX(), getY());
+		auto village_head = std::make_shared<VillageHeadNpc>("Soltys", getX(), getY(), _engine);
 		village_head->setAltitude(getAltitude());
 		village_head->setAudioManager(_audio_manager);
-		village_head->configureVillageHead(_engine);
 		addPendingSpawn(village_head);
 	}
 

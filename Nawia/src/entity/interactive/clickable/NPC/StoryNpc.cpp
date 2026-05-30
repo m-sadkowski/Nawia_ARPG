@@ -11,15 +11,17 @@
 
 #include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <json.hpp>
 
 namespace Nawia::Entity {
 
 	namespace {
-		constexpr const char* MUSHROOM_MODEL = "assets/models/mushroom_raylib_fixed.glb";
-		constexpr const char* MUSHROOM_FALLBACK_MODEL = "assets/models/cat_bounce.glb";
-		constexpr const char* VILLAGE_HEAD_MODEL = "assets/models/village_head.glb";
-		constexpr const char* BABA_YAGA_MODEL = "assets/models/baba_yaga.glb";
-		constexpr const char* WANDA_CORPSE_MODEL = "assets/models/woman_dress.glb";
+		constexpr const char* MUSHROOM_MODEL = "assets/models/actors/gzib/mushroom_raylib_fixed.glb";
+		constexpr const char* MUSHROOM_FALLBACK_MODEL = "assets/models/actors/cat/cat_bounce.glb";
+		constexpr const char* VILLAGE_HEAD_MODEL = "assets/models/actors/village_head/village_head.glb";
+		constexpr const char* BABA_YAGA_MODEL = "assets/models/actors/szeptucha/baba_yaga.glb";
+		constexpr const char* WANDA_CORPSE_MODEL = "assets/models/actors/wanda/woman_dress.glb";
 		constexpr float FOLLOW_STOP_DISTANCE = 0.45f;
 		constexpr float MUSHROOM_TARGET_HEIGHT = 3.6f;
 		constexpr float MUSHROOM_FALLBACK_SCALE = 15.0f;
@@ -28,25 +30,27 @@ namespace Nawia::Entity {
 		constexpr float VILLAGE_HEAD_SCALE = 1.55f;
 		constexpr float VILLAGE_HEAD_STOP_DISTANCE = 0.65f;
 
-		constexpr const char* GZIB_VOICE_GDZIE_MOJE_GZIBY = "assets/audio/dialogues/Mushroom/gziby_gdzie_moje_gziby.mp3";
-		constexpr const char* GZIB_VOICE_MOJE_GZIBY = "assets/audio/dialogues/Mushroom/moje_gziby_nie_ma_gzibow.mp3";
-		constexpr const char* GZIB_VOICE_URATUJ = "assets/audio/dialogues/Mushroom/gziby_uratuj_zatrutane.mp3";
-		constexpr const char* GZIB_VOICE_ROPUCH = "assets/audio/dialogues/Mushroom/gruby_ropuch_ropuch.mp3";
-		constexpr const char* GZIB_VOICE_CHODZ = "assets/audio/dialogues/Mushroom/chodz_ratuj_gziby.mp3";
-		constexpr const char* GZIB_VOICE_WYTNIJ = "assets/audio/dialogues/Mushroom/wytnij_robaki_ratuj.mp3";
-		constexpr const char* GZIB_VOICE_URATOWANE = "assets/audio/dialogues/Mushroom/gziby_uratowane_dziekuje.mp3";
-		constexpr const char* GZIB_VOICE_MOWIA = "assets/audio/dialogues/Mushroom/gziby_mowia_ze.mp3";
-		constexpr const char* GZIB_VOICE_NIE_WIDZIAL = "assets/audio/dialogues/Mushroom/nie_widzial_ale.mp3";
+		nlohmann::json loadJsonDocument(const std::string& path) {
+			std::ifstream file(path);
+			if (!file.is_open()) {
+				Nawia::Core::Logger::errorLog("StoryNpc: nie mozna otworzyc JSON: " + path);
+				return {};
+			}
 
-		constexpr const char* PLAYER_VOICE_OMAMY = "assets/audio/dialogues/Player/omamy_co_sie_stalo.wav";
-		constexpr const char* PLAYER_VOICE_POMOC = "assets/audio/dialogues/Player/pomoc_ci_jakos.wav";
-		constexpr const char* PLAYER_VOICE_KTO = "assets/audio/dialogues/Player/kto_zaczarowal.wav";
-		constexpr const char* PLAYER_VOICE_ROZJEBANY = "assets/audio/dialogues/Player/rozjebany_muchomorze.wav";
-		constexpr const char* PLAYER_VOICE_ONE_WYGLADAJA = "assets/audio/dialogues/Player/one_wygladaja.wav";
-		constexpr const char* PLAYER_VOICE_SPROBUJE = "assets/audio/dialogues/Player/no_dobra_sprobuje.wav";
-		constexpr const char* PLAYER_VOICE_ROBALE_BEZPIECZNE = "assets/audio/dialogues/Player/robale_bezpieczne.wav";
-		constexpr const char* PLAYER_VOICE_ROPUCH_UDZIAL = "assets/audio/dialogues/Player/ropuch_bral_udzial.wav";
-		constexpr const char* PLAYER_VOICE_PORA_ODWIEDZIC = "assets/audio/dialogues/Player/pora_go_odwiedzic.wav";
+			nlohmann::json data;
+			try {
+				file >> data;
+			} catch (const nlohmann::json::parse_error&) {
+				Nawia::Core::Logger::errorLog("StoryNpc: blad parsowania JSON: " + path);
+				return {};
+			}
+			return data;
+		}
+
+		const nlohmann::json& getNpcDialogueConfig() {
+			static const nlohmann::json config = loadJsonDocument("assets/data/npc_dialogues.json");
+			return config;
+		}
 	}
 
 	StoryNpc::StoryNpc(const std::string& name, const float x, const float y)
@@ -60,6 +64,7 @@ namespace Nawia::Entity {
 		_engine = engine;
 		_follow_checkpoint_name = follow_checkpoint_name;
 		_can_follow = true;
+		_type = EntityType::NPCActor;
 		_home_position = getCenter();
 		setMovementSpeed(2.4f);
 
@@ -114,28 +119,20 @@ namespace Nawia::Entity {
 	void StoryNpc::configureVillageHead(Core::Engine* engine) {
 		_engine = engine;
 		_is_village_head = true;
+		_type = EntityType::NPCActor;
 		setScale(VILLAGE_HEAD_SCALE);
 		setMovementSpeed(2.0f);
 		loadModel(VILLAGE_HEAD_MODEL);
 		loadAnimationBundle(VILLAGE_HEAD_MODEL);
 		playAnimation("Idle", true, false, 0, true);
 		_dialogue_stage_key = "village_head";
-		setDialogue(buildLinearDialogue({
-			{"Jarko", "Alez smrod, chyba zjadl cos nieswiezego. Zaraz zaraz - Soltys?"},
-			{"Soltys", "Dzieki za ratunek. Przeklete monstrum zmienilo mnie w ta zabe. Nie panowalem nad soba, musialem patrzec co robi ten gad. Czulem smak wszystkich okropienstw ktore zjadal."},
-			{"Jarko", "Rad jestem, ze zyjesz. Wiesz co sie stalo z moja ukochana? Lezy tu jej chusta... czy ty ja..."},
-			{"Soltys", "Na szczescie nie, uciekla. Ropuch nie siegnal jej jezykiem, zgarnal tylko chuste z jej szyi. Zwiala na polnoc. Moze biegnie do Twierdzy Kamiennej?"},
-			{"Jarko", "Musze ja dogonic. Poradzisz sobie sam? Wrocisz do osady?"},
-			{"Soltys", "Nie ma do czego wracac, gniew Bogow spadl na nas. Musimy zebrac lud i odprawic dziady, prosic o przebaczenie."},
-			{"Jarko", "Postaram sie znalezc tych co przezyli. Gdzie ich odsylac?"},
-			{"Soltys", "Do chaty medrca Jakuba. Ma tam obore i zielnik. Mysle, ze zgodzi sie na utworzenie tam osady tymczasowej. Powodzenia, spiesz sie - nie wiem ile mamy czasu."},
-			{"Jarko", "Tobie rowniez, bywaj."}
-		}, "Bywaj."));
+		setDialogue(buildDialogueFromConfig("village_head"));
 	}
 
 	void StoryNpc::configureSzeptucha(Core::Engine* engine) {
 		_engine = engine;
 		_can_follow = false;
+		_type = EntityType::NPCStatic;
 		_dialogue_stage_key = "szeptucha";
 		replaceModel(BABA_YAGA_MODEL, false);
 
@@ -160,6 +157,7 @@ namespace Nawia::Entity {
 	void StoryNpc::configureWandaCorpse(Core::Engine* engine) {
 		_engine = engine;
 		_is_wanda_corpse = true;
+		_type = EntityType::NPCStatic;
 		_dialogue_stage_key = "wanda_corpse";
 		setFaction(Faction::None);
 		replaceModel(WANDA_CORPSE_MODEL, false);
@@ -174,9 +172,7 @@ namespace Nawia::Entity {
 				getModel().transform);
 		}
 		setScale(1.65f);
-		setDialogue(buildVoicedLinearDialogue({
-			{"Jarko", "O nie, to Wanda... slady wielkich pazurow... zaatakowalo ja jakies monstrum. Musze znalezc Milene.", "assets/audio/dialogues/Intro/wanda_body.wav"}
-		}, "Musze znalezc Milene."));
+		setDialogue(buildDialogueFromConfig("wanda_corpse"));
 	}
 
 	void StoryNpc::onInteract(Entity& instigator) {
@@ -377,37 +373,17 @@ namespace Nawia::Entity {
 		std::string stage_key = "idle";
 
 		if (_dialogue_resume_node > 0 && _dialogue_stage_key == "report") {
-			setDialogue(buildVoicedLinearDialogue({
-				{"Gzib", "GZIBY URATOWANE! DZIEKUJE", GZIB_VOICE_URATOWANE},
-				{"Jarko", "Wydaje mi sie ze ten ropuch tez bral udzial w ataku na wioske. Pamietam jak przez mgle jakis rechot.", PLAYER_VOICE_ROPUCH_UDZIAL},
-				{"Gzib", "GZIBY MOWIA, ZE W SADZAWCE SLYCHAC RE RE KUM KUM", GZIB_VOICE_MOWIA},
-				{"Jarko", "Pora go odwiedzic. Widziales moze innych mieszkancow wioski ktorzy tedy uciekali?", PLAYER_VOICE_PORA_ODWIEDZIC},
-				{"Gzib", "NIE WIDZIAL. ALE NAGRODA OD GZIBOW - WEZ", GZIB_VOICE_NIE_WIDZIAL}
-			}, "Wez."));
+			setDialogue(buildDialogueFromConfig("gzib_report"));
 			return;
 		}
 
 		if (_dialogue_resume_node > 0 && _dialogue_stage_key == "follow") {
-			setDialogue(buildVoicedLinearDialogue({
-				{"Jarko", "One wygladaja jakby juz nie chcialy sie z toba kolegowac.", PLAYER_VOICE_ONE_WYGLADAJA},
-				{"Gzib", "WYTNIJ ROBAKI RATUJ GZIBY, RATUJ GZIBYYY", GZIB_VOICE_WYTNIJ},
-				{"Jarko", "No dobra, sprobuje", PLAYER_VOICE_SPROBUJE}
-			}, "Sprobuje."));
+			setDialogue(buildDialogueFromConfig("gzib_follow"));
 			return;
 		}
 
 		if (_dialogue_resume_node > 0 && _dialogue_stage_key == "intro") {
-			setDialogue(buildVoicedLinearDialogue({
-				{"Gzib", "GZIBYYY, GDZIE MOJE GZIBYYY", GZIB_VOICE_GDZIE_MOJE_GZIBY},
-				{"Jarko", "O, nie tylko ja mam omamy. Co sie stalo muchomorku?", PLAYER_VOICE_OMAMY},
-				{"Gzib", "MOJE GZIBY, NIE MA GZIBOW", GZIB_VOICE_MOJE_GZIBY},
-				{"Jarko", "Pomoc ci jakos?", PLAYER_VOICE_POMOC},
-				{"Gzib", "GZIBY, URATUJ, ZATRUTANE, ZACZAROWANE", GZIB_VOICE_URATUJ},
-				{"Jarko", "Kto zaczarowal twoich kolegow?", PLAYER_VOICE_KTO},
-				{"Gzib", "GRUBY ROPUCH. ROPUCH KRZYCZY ZE GO BRZUCH BOLI OD GZIBY", GZIB_VOICE_ROPUCH},
-				{"Jarko", "No chyba ty jestes jakis rozjebany muchmorze.", PLAYER_VOICE_ROZJEBANY},
-				{"Gzib", "CHODZ RATUJ GZIBY", GZIB_VOICE_CHODZ}
-			}, "Chodzmy."));
+			setDialogue(buildDialogueFromConfig("gzib_intro"));
 			return;
 		}
 
@@ -417,13 +393,7 @@ namespace Nawia::Entity {
 				_dialogue_stage_key = stage_key;
 				_dialogue_resume_node = 0;
 			}
-			setDialogue(buildVoicedLinearDialogue({
-				{"Gzib", "GZIBY URATOWANE! DZIEKUJE", GZIB_VOICE_URATOWANE},
-				{"Jarko", "Wydaje mi sie ze ten ropuch tez bral udzial w ataku na wioske. Pamietam jak przez mgle jakis rechot.", PLAYER_VOICE_ROPUCH_UDZIAL},
-				{"Gzib", "GZIBY MOWIA, ZE W SADZAWCE SLYCHAC RE RE KUM KUM", GZIB_VOICE_MOWIA},
-				{"Jarko", "Pora go odwiedzic. Widziales moze innych mieszkancow wioski ktorzy tedy uciekali?", PLAYER_VOICE_PORA_ODWIEDZIC},
-				{"Gzib", "NIE WIDZIAL. ALE NAGRODA OD GZIBOW - WEZ", GZIB_VOICE_NIE_WIDZIAL}
-			}, "Wez."));
+			setDialogue(buildDialogueFromConfig("gzib_report"));
 			return;
 		}
 
@@ -437,16 +407,9 @@ namespace Nawia::Entity {
 				_dialogue_resume_node = 0;
 			}
 			if (areAllMushroomsAlreadyRescued()) {
-				setDialogue(buildVoicedLinearDialogue({
-					{"Jarko", "Robale juz wyciete. Gziby sa bezpieczne.", PLAYER_VOICE_ROBALE_BEZPIECZNE},
-					{"Gzib", "GZIBY URATOWANE! DZIEKUJE", GZIB_VOICE_URATOWANE}
-				}, "Dobra."));
+				setDialogue(buildDialogueFromConfig("gzib_follow_done"));
 			} else {
-				setDialogue(buildVoicedLinearDialogue({
-					{"Jarko", "One wygladaja jakby juz nie chcialy sie z toba kolegowac.", PLAYER_VOICE_ONE_WYGLADAJA},
-					{"Gzib", "WYTNIJ ROBAKI RATUJ GZIBY, RATUJ GZIBYYY", GZIB_VOICE_WYTNIJ},
-					{"Jarko", "No dobra, sprobuje", PLAYER_VOICE_SPROBUJE}
-				}, "Sprobuje."));
+				setDialogue(buildDialogueFromConfig("gzib_follow"));
 			}
 			return;
 		}
@@ -457,17 +420,7 @@ namespace Nawia::Entity {
 				_dialogue_stage_key = stage_key;
 				_dialogue_resume_node = 0;
 			}
-			setDialogue(buildVoicedLinearDialogue({
-				{"Gzib", "GZIBYYY, GDZIE MOJE GZIBYYY", GZIB_VOICE_GDZIE_MOJE_GZIBY},
-				{"Jarko", "O, nie tylko ja mam omamy. Co sie stalo muchomorku?", PLAYER_VOICE_OMAMY},
-				{"Gzib", "MOJE GZIBY, NIE MA GZIBOW", GZIB_VOICE_MOJE_GZIBY},
-				{"Jarko", "Pomoc ci jakos?", PLAYER_VOICE_POMOC},
-				{"Gzib", "GZIBY, URATUJ, ZATRUTANE, ZACZAROWANE", GZIB_VOICE_URATUJ},
-				{"Jarko", "Kto zaczarowal twoich kolegow?", PLAYER_VOICE_KTO},
-				{"Gzib", "GRUBY ROPUCH. ROPUCH KRZYCZY ZE GO BRZUCH BOLI OD GZIBY", GZIB_VOICE_ROPUCH},
-				{"Jarko", "No chyba ty jestes jakis rozjebany muchmorze.", PLAYER_VOICE_ROZJEBANY},
-				{"Gzib", "CHODZ RATUJ GZIBY", GZIB_VOICE_CHODZ}
-			}, "Chodzmy."));
+			setDialogue(buildDialogueFromConfig("gzib_intro"));
 			return;
 		}
 
@@ -528,6 +481,35 @@ namespace Nawia::Entity {
 		}
 
 		return tree;
+	}
+
+	Game::DialogueTree StoryNpc::buildDialogueFromConfig(const std::string& key) const {
+		const auto& config = getNpcDialogueConfig();
+		if (!config.contains(key) || !config[key].is_object())
+			return {};
+
+		const auto& dialogue = config[key];
+		const std::string final_option = dialogue.value("final_option", "...");
+		const auto& lines_json = dialogue["lines"];
+		if (!lines_json.is_array())
+			return {};
+
+		bool has_voice = false;
+		std::vector<DialogueLine> voiced_lines;
+		std::vector<std::pair<std::string, std::string>> plain_lines;
+		for (const auto& line_json : lines_json) {
+			DialogueLine line;
+			line.speaker = line_json.value("speaker", "");
+			line.text = line_json.value("text", "");
+			line.voice_path = line_json.value("voice_path", "");
+			has_voice = has_voice || !line.voice_path.empty();
+			plain_lines.emplace_back(line.speaker, line.text);
+			voiced_lines.push_back(std::move(line));
+		}
+
+		return has_voice
+			? buildVoicedLinearDialogue(voiced_lines, final_option)
+			: buildLinearDialogue(plain_lines, final_option);
 	}
 
 	void StoryNpc::updateMushroomFollow(const float delta_time) {
@@ -847,18 +829,6 @@ namespace Nawia::Entity {
 
 		const auto* report_quest = _engine->getQuestManager().getQuest("gzib_report_brothers");
 		return report_quest && report_quest->isActive();
-	}
-
-	Entity* StoryNpc::findEntityByName(const std::string& name) const {
-		if (!_engine)
-			return nullptr;
-
-		for (const auto& entity : _engine->getEntityManager().getEntities()) {
-			if (entity && entity->getName() == name)
-				return entity.get();
-		}
-
-		return nullptr;
 	}
 
 } // namespace Nawia::Entity

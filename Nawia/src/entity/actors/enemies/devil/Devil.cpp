@@ -14,12 +14,12 @@ namespace Nawia::Entity {
 		setScale(0.025f);
 		setFaction(Faction::Enemy);
 
-		loadModel("assets/models/devil_idle.glb");
-		addAnimation("idle", "assets/models/devil_idle.glb");
-		addAnimation("walk", "assets/models/devil_walk.glb");
-		addAnimation("run", "assets/models/devil_run.glb");
-		addAnimation("attack", "assets/models/devil_attack.glb");
-		addAnimation("death", "assets/models/devil_dead.glb");
+		loadModel("assets/models/actors/devil/devil_idle.glb");
+		addAnimation("idle", "assets/models/actors/devil/devil_idle.glb");
+		addAnimation("walk", "assets/models/actors/devil/devil_walk.glb");
+		addAnimation("run", "assets/models/actors/devil/devil_run.glb");
+		addAnimation("attack", "assets/models/actors/devil/devil_attack.glb");
+		addAnimation("death", "assets/models/actors/devil/devil_dead.glb");
 		setMovementSpeed(SPEED);
 	}
 
@@ -29,12 +29,12 @@ namespace Nawia::Entity {
 		setScale(0.025f);
 		setFaction(Faction::Enemy);
 
-		loadModel("assets/models/devil_idle.glb");
-		addAnimation("idle", "assets/models/devil_idle.glb");	
-		addAnimation("walk", "assets/models/devil_walk.glb");
-		addAnimation("run", "assets/models/devil_run.glb");
-		addAnimation("attack", "assets/models/devil_attack.glb");
-		addAnimation("death", "assets/models/devil_dead.glb");
+		loadModel("assets/models/actors/devil/devil_idle.glb");
+		addAnimation("idle", "assets/models/actors/devil/devil_idle.glb");
+		addAnimation("walk", "assets/models/actors/devil/devil_walk.glb");
+		addAnimation("run", "assets/models/actors/devil/devil_run.glb");
+		addAnimation("attack", "assets/models/actors/devil/devil_attack.glb");
+		addAnimation("death", "assets/models/actors/devil/devil_dead.glb");
 
 		setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, 0.0f, 0.0f));
 		setMovementSpeed(SPEED);
@@ -115,7 +115,7 @@ namespace Nawia::Entity {
 
 		const float dist = getDistanceToTarget();
 
-		
+
 		if (dist > VISION_RANGE * 1.5f)
 		{
 			_state = State::Idle;
@@ -126,7 +126,7 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		
+
 		// Sprawdzenie, czy cel jest w zasięgu ataku.
 		if (dist <= ATTACK_RANGE && _attack_cooldown_timer <= 0.0f)
 		{
@@ -152,19 +152,19 @@ namespace Nawia::Entity {
 			playAnimation("idle");
 			return;
 		}
-		
+
 		// Zwykły pościg z okresowym odświeżaniem celu ruchu.
 		_path_recalc_timer -= dt;
-		
+
 		if (_path_recalc_timer <= 0.0f || !_is_moving)
 		{
 			moveTo(target->getX(), target->getY());
 			_path_recalc_timer = DEFAULT_PATH_RECALC_INTERVAL;
 		}
-		
+
 		updateMovement(dt);
-		
-		if (_is_moving) 
+
+		if (_is_moving)
 		{
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 			playAnimation("walk");
@@ -174,18 +174,18 @@ namespace Nawia::Entity {
 	void Devil::handlePreparingDashState(const float dt)
 	{
 		Entity::update(dt);
-		
-		
+
+
 		_dash_prepare_timer -= dt;
-		
-		
+
+
 		rotateTowards(_dash_target_pos.x, _dash_target_pos.y);
-		
+
 		if (_dash_prepare_timer <= 0.0f)
 		{
-			
+
 			_state = State::Dashing;
-			_dash_hit_target = false;  
+			_dash_hit_target = false;
 			playSoundEffect(Audio::SoundId::DevilDash, 0.9f);
 			setAnimationSpeed(DEVIL_DASH_ANIMATION_SPEED);
 			playAnimation("run", true, false);
@@ -219,12 +219,12 @@ namespace Nawia::Entity {
 		if (dist_to_dash_target <= DASH_ARRIVE_THRESHOLD)
 		{
 			_dash_cooldown_timer = DASH_COOLDOWN;
-			
-			
+
+
 			_state = State::Recovering;
 			_stun_timer = DASH_STUN_DURATION;
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
-			playAnimation("idle"); 
+			playAnimation("idle");
 			return;
 		}
 
@@ -239,8 +239,8 @@ namespace Nawia::Entity {
 		const float offset_y = center.y - getY();
 		const float next_center_x = next_x + offset_x;
 		const float next_center_y = next_y + offset_y;
-		
-		if (_map && !_map->isWalkable(next_center_x, next_center_y)) 
+
+		if (_map && !_map->isWalkable(next_center_x, next_center_y))
 		{
 			// Doskok uderzył w ścianę lub niewalkowalny fragment mapy.
 			_dash_cooldown_timer = DASH_COOLDOWN;
@@ -259,7 +259,7 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 		_stun_timer -= dt;
-		
+
 		if (_stun_timer <= 0.0f)
 		{
 			_state = State::Chasing;
@@ -283,7 +283,7 @@ namespace Nawia::Entity {
 
 				}
 			}
-			
+
 			_attack_cooldown_timer = ATTACK_COOLDOWN;
 			_state = State::Chasing;
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);

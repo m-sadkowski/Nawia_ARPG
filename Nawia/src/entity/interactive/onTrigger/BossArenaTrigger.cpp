@@ -4,7 +4,6 @@
 #include <Dialogue.h>
 #include <Engine.h>
 #include <BossManager.h>
-#include <Frog.h>
 #include <Player.h>
 #include <QuestManager.h>
 
@@ -26,9 +25,10 @@ namespace Nawia::Entity {
                     auto& boss_mgr = engine->getBossManager();
                     if (boss_mgr.isFightActive() || _intro_dialogue_open) return;
 
-                    if (shouldRunRopuchIntro(engine)) {
-                        showBossPreview(engine);
-                        openRopuchIntro(engine);
+                    const auto* boss_data = getBossData(engine);
+                    if (boss_data && shouldRunIntro(engine, *boss_data)) {
+                        showBossPreview(engine, *boss_data);
+                        openIntroDialogue(engine, *boss_data);
                         return;
                     }
 
@@ -38,17 +38,37 @@ namespace Nawia::Entity {
         }
     }
 
-    bool BossArenaTrigger::shouldRunRopuchIntro(Core::Engine* engine) const {
-        if (!engine || _boss_id != "ropuch" || _intro_completed)
-            return false;
+    const Game::BossData* BossArenaTrigger::getBossData(Core::Engine* engine) const {
+        if (!engine)
+            return nullptr;
 
-        const auto* find_quest = engine->getQuestManager().getQuest("find_ropuch");
-        const auto* scarf_quest = engine->getQuestManager().getQuest("recover_scarf");
-        return find_quest && find_quest->isActive() && (!scarf_quest || !scarf_quest->isActive());
+        const auto& bosses = engine->getBossManager().getAllBosses();
+        const auto boss_it = bosses.find(_boss_id);
+        return boss_it != bosses.end() ? &boss_it->second : nullptr;
     }
 
-    void BossArenaTrigger::showBossPreview(Core::Engine* engine) {
-        if (!engine || _boss_id != "ropuch")
+    bool BossArenaTrigger::shouldRunIntro(Core::Engine* engine, const Game::BossData& boss_data) const {
+        if (!engine || _intro_completed || !boss_data.intro_dialogue.enabled)
+            return false;
+
+        const auto& intro = boss_data.intro_dialogue;
+        if (!intro.required_active_quest.empty()) {
+            const auto* required_quest = engine->getQuestManager().getQuest(intro.required_active_quest);
+            if (!required_quest || !required_quest->isActive())
+                return false;
+        }
+
+        if (!intro.blocking_active_quest.empty()) {
+            const auto* blocking_quest = engine->getQuestManager().getQuest(intro.blocking_active_quest);
+            if (blocking_quest && blocking_quest->isActive())
+                return false;
+        }
+
+        return true;
+    }
+
+    void BossArenaTrigger::showBossPreview(Core::Engine* engine, const Game::BossData& boss_data) {
+        if (!engine || !boss_data.intro_dialogue.show_preview)
             return;
 
         if (const auto existing = _preview_boss.lock()) {
@@ -56,19 +76,15 @@ namespace Nawia::Entity {
             return;
         }
 
-        auto frog = std::make_shared<Frog>();
-        frog->setName("Ropuch");
-        frog->setType(EntityType::NPCStatic);
-        frog->setFaction(Faction::None);
-        frog->setTarget(nullptr);
-        frog->setScale(1.5f);
-        frog->setX(getCenter().x);
-        frog->setY(getCenter().y);
-        frog->setAltitude(getAltitude());
-        frog->setMap(engine->getCurrentMap());
-        frog->setAudioManager(&engine->getAudioManager());
-        _preview_boss = frog;
-        engine->spawnEntity(frog);
+        auto preview = engine->getBossManager().createPreviewEntity(boss_data, engine);
+        if (!preview)
+            return;
+
+        preview->setX(getCenter().x);
+        preview->setY(getCenter().y);
+        preview->setAltitude(getAltitude());
+        _preview_boss = preview;
+        engine->spawnEntity(preview);
     }
 
     void BossArenaTrigger::hideBossPreview() {
@@ -76,31 +92,37 @@ namespace Nawia::Entity {
             preview->setDormant(true);
     }
 
-    void BossArenaTrigger::openRopuchIntro(Core::Engine* engine) {
+    void BossArenaTrigger::openIntroDialogue(Core::Engine* engine, const Game::BossData& boss_data) {
         if (!engine)
             return;
 
         Game::DialogueTree tree;
-        Game::DialogueNode node;
-        node.id = 0;
-        node.speaker_name = "Jarko";
-        node.text = "Alez obrzydlistwo. CO ON MA W GNIEZDZIE? TO JEJ CHUSTA. Musze sie z nim rozprawic.";
+        const auto& intro = boss_data.intro_dialogue;
+        for (size_t i = 0; i < intro.lines.size(); ++i) {
+            Game::DialogueNode node;
+            node.id = static_cast<int>(i);
+            node.speaker_name = intro.lines[i].speaker;
+            node.text = intro.lines[i].text;
+            node.voice_path = intro.lines[i].voice_path;
 
-        Game::DialogueOption option;
-        option.text = "Rozprawie sie z nim.";
-        option.next_node_id = -1;
-        node.options.push_back(option);
-        tree.addNode(node);
+            Game::DialogueOption option;
+            option.text = (i + 1 < intro.lines.size()) ? "..." : intro.final_option;
+            option.next_node_id = (i + 1 < intro.lines.size()) ? static_cast<int>(i + 1) : -1;
+            node.options.push_back(option);
+            tree.addNode(node);
+        }
 
         _intro_dialogue_open = true;
-        engine->getUIHandler().openDialogue(tree, 0, [this, engine](const int, const bool completed) {
+        engine->getUIHandler().openDialogue(tree, 0, [this, engine, checkpoint = intro.checkpoint_on_complete](const int, const bool completed) {
             _intro_dialogue_open = false;
             if (!completed)
                 return;
 
             _intro_completed = true;
-            engine->getQuestManager().notifyCheckpointReached("Ropuch Trigger");
-            engine->getQuestManager().update(engine);
+            if (!checkpoint.empty()) {
+                engine->getQuestManager().notifyCheckpointReached(checkpoint);
+                engine->getQuestManager().update(engine);
+            }
             startBoss(engine);
         });
     }

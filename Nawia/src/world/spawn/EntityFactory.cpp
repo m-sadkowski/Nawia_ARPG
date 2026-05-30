@@ -16,9 +16,11 @@
 #include <Frog.h>
 #include <MiniMushroomInfected.h>
 #include <MiniMushroomProp.h>
+#include <MushroomNpc.h>
+#include <SzeptuchaNpc.h>
 #include <StaticObject.h>
-#include <StoryNpc.h>
 #include <Teleport.h>
+#include <VillageHeadNpc.h>
 #include <WalkingDead.h>
 #include <Worm.h>
 
@@ -204,15 +206,15 @@ namespace Nawia::World {
 		const int hp = data.value("hp", 95);
 		const std::string name = data.value("name", "Ropuch");
 
-		auto frog = std::make_shared<Entity::Frog>();
-		frog->setName(name);
-		frog->setX(x);
-		frog->setY(y);
-		frog->setMap(map);
-		frog->setEngine(engine);
-		frog->setMaxHp(hp);
-		frog->setTarget(engine->getPlayer());
-		frog->setAudioManager(&engine->getAudioManager());
+		auto frog = std::shared_ptr<Entity::Frog>(Entity::FrogBuilder()
+			.setName(name)
+			.setPosition({x, y})
+			.setMap(map)
+			.setEngine(engine)
+			.setMaxHp(hp)
+			.setTarget(engine->getPlayer())
+			.setAudioManager(&engine->getAudioManager())
+			.build());
 		return frog;
 	}
 
@@ -224,14 +226,14 @@ namespace Nawia::World {
 		const int hp = data.value("hp", 35);
 		const std::string name = data.value("name", "Robal");
 
-		auto worm = std::make_shared<Entity::Worm>();
-		worm->setName(name);
-		worm->setX(x);
-		worm->setY(y);
-		worm->setMap(map);
-		worm->setMaxHp(hp);
-		worm->setTarget(engine->getPlayer());
-		worm->setAudioManager(&engine->getAudioManager());
+		auto worm = std::shared_ptr<Entity::Worm>(Entity::WormBuilder()
+			.setName(name)
+			.setPosition({x, y})
+			.setMap(map)
+			.setMaxHp(hp)
+			.setTarget(engine->getPlayer())
+			.setAudioManager(&engine->getAudioManager())
+			.build());
 		return worm;
 	}
 
@@ -243,14 +245,14 @@ namespace Nawia::World {
 		const int hp = data.value("hp", 45);
 		const std::string name = data.value("name", "Zly Gzibek");
 
-		auto mushroom = std::make_shared<Entity::MiniMushroomInfected>();
-		mushroom->setName(name);
-		mushroom->setX(x);
-		mushroom->setY(y);
-		mushroom->setMap(map);
-		mushroom->setMaxHp(hp);
-		mushroom->setTarget(engine->getPlayer());
-		mushroom->setAudioManager(&engine->getAudioManager());
+		auto mushroom = std::shared_ptr<Entity::MiniMushroomInfected>(Entity::MiniMushroomInfectedBuilder()
+			.setName(name)
+			.setPosition({x, y})
+			.setMap(map)
+			.setMaxHp(hp)
+			.setTarget(engine->getPlayer())
+			.setAudioManager(&engine->getAudioManager())
+			.build());
 		return mushroom;
 	}
 
@@ -341,23 +343,25 @@ namespace Nawia::World {
 		}
 
 		if (npc_class == "mushroom") {
-			auto mushroom = std::make_shared<Entity::StoryNpc>(name.empty() ? "Gzib" : name, x, y);
+			auto mushroom = std::make_shared<Entity::MushroomNpc>(
+				name.empty() ? "Gzib" : name,
+				x,
+				y,
+				engine,
+				data.value("follow_checkpoint", "Checkpoint Gziba"));
 			mushroom->setAudioManager(&engine->getAudioManager());
-			mushroom->configureMushroom(engine, data.value("follow_checkpoint", "Checkpoint Gziba"));
 			return mushroom;
 		}
 
 		if (npc_class == "village_head") {
-			auto village_head = std::make_shared<Entity::StoryNpc>(name.empty() ? "Soltys" : name, x, y);
+			auto village_head = std::make_shared<Entity::VillageHeadNpc>(name.empty() ? "Soltys" : name, x, y, engine);
 			village_head->setAudioManager(&engine->getAudioManager());
-			village_head->configureVillageHead(engine);
 			return village_head;
 		}
 
 		if (npc_class == "szeptucha") {
-			auto szeptucha = std::make_shared<Entity::StoryNpc>(name.empty() ? "Szeptucha" : name, x, y);
+			auto szeptucha = std::make_shared<Entity::SzeptuchaNpc>(name.empty() ? "Szeptucha" : name, x, y, engine);
 			szeptucha->setAudioManager(&engine->getAudioManager());
-			szeptucha->configureSzeptucha(engine);
 			return szeptucha;
 		}
 

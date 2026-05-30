@@ -3,7 +3,7 @@
 namespace Nawia::Entity {
 
 	namespace {
-		constexpr const char* MODEL_PATH = "assets/models/mini_mushroom.glb";
+		constexpr const char* MODEL_PATH = "assets/models/actors/mini_mushroom/mini_mushroom.glb";
 	}
 
 	MiniMushroomProp::MiniMushroomProp()

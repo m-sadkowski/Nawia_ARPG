@@ -135,6 +135,129 @@
             "type": "checkpoint",
             "x": 28.960744857788086,
             "y": -2.368885040283203
+        },
+        {
+            "category": "nav_blockers",
+            "height": 2.4420013427734375,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 8.120500564575195,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 118.74687194824219,
+            "y": -105.73277282714844
+        },
+        {
+            "category": "nav_blockers",
+            "height": 2.4420013427734375,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 4.861000061035156,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 108.26210021972656,
+            "y": -110.488525390625
+        },
+        {
+            "category": "nav_blockers",
+            "height": 2.4420013427734375,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 7.245999813079834,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 139.79039001464844,
+            "y": -113.76941680908203
+        },
+        {
+            "category": "nav_blockers",
+            "height": 2.4420013427734375,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 4.065999984741211,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 137.00924682617188,
+            "y": -106.46123504638672
+        },
+        {
+            "category": "nav_blockers",
+            "depth": 12.106999397277832,
+            "height": 2.6040000915527344,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "shape": "box",
+            "type": "nav_blocker",
+            "width": 12.743000030517578,
+            "x": 150.21795654296875,
+            "y": -117.49052429199219
+        },
+        {
+            "category": "nav_blockers",
+            "depth": 2.249000072479248,
+            "height": 2.5915603637695313,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "shape": "box",
+            "type": "nav_blocker",
+            "width": 3.5209999084472656,
+            "x": 145.7440948486328,
+            "y": -110.31922149658203
+        },
+        {
+            "category": "nav_blockers",
+            "height": 3.4680004119873047,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 12.890499114990234,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 91.27874755859375,
+            "y": -21.15125274658203
+        },
+        {
+            "category": "nav_blockers",
+            "height": 3.5219993591308594,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 6.132999897003174,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 98.43694305419922,
+            "y": -37.365966796875
+        },
+        {
+            "category": "nav_blockers",
+            "height": 3.5915603637695313,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 4.622499942779541,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 101.71662139892578,
+            "y": -24.89570426940918
+        },
+        {
+            "category": "nav_blockers",
+            "height": 3.9915618896484375,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 4.065999984741211,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 99.455322265625,
+            "y": -28.17790985107422
+        },
+        {
+            "category": "chests",
+            "items": [
+                1
+            ],
+            "location": "Wczora",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": -5.074143886566162,
+            "y": -21.14720916748047
         }
     ],
     "location": "Wczora",
