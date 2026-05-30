@@ -24,6 +24,7 @@
 #include <memory>
 #include <raylib.h>
 #include <string>
+#include <vector>
 
 namespace Nawia::Core {
 
@@ -89,6 +90,10 @@ namespace Nawia::Core {
 		Game::SaveGameManager& getSaveGameManager() { return _save_game_manager; }
 		void setGameplayCameraZoom(float zoom_factor) { _gameplay_camera_zoom = zoom_factor; }
 		[[nodiscard]] float getGameplayCameraZoom() const { return _gameplay_camera_zoom; }
+		void queueWczoraCorpseInspected(const Vector2& corpse_position);
+		void queueWczoraSzeptuchaEncounter(const Vector2& corpse_position);
+		void startWczoraSzeptuchaEncounter(const Vector2& corpse_position);
+		void finishWczoraIntroSequence();
 
 		/**
 		 * @brief Zapisuje stan gry do aktywnego slotu, jesli jakikolwiek jest ustawiony.
@@ -113,9 +118,14 @@ namespace Nawia::Core {
 		void startWczoraIntroSequence();
 		void updateWczoraIntro(float delta_time);
 		void renderWczoraIntroOverlay() const;
-		void openWczoraIntroFirstDialogue();
-		void openWczoraIntroFinalDialogue();
+		void openWczoraAwakeningDialogue();
+		void openWczoraFinalDialogue();
 		void removeWczoraIntroNpc();
+		void spawnWczoraIntroCorpse();
+		void playWczoraIntroSlideVoice();
+		void stopWczoraIntroSlideVoice();
+		[[nodiscard]] bool isWczoraIntroInteractionOnly() const;
+		[[nodiscard]] bool isWczoraIntroBlockingControl() const;
 		void collectPendingSpawns();
 		void loadGameplaySounds();
 		void applySettings(const Settings& new_settings);
@@ -137,7 +147,14 @@ namespace Nawia::Core {
 			int default_slot
 		);
 		enum class LoadingKind { None, Startup, Level };
-		enum class WczoraIntroPhase { Inactive, FadeFromBlack, FirstDialogue, FadeToBlack, FullBlackPause, FadeFromBlackAfter, FinalDialogue };
+		enum class WczoraIntroPhase { Inactive, Slides, FadeFromBlackAfterSlides, AwakeningDialogue, InspectCorpse, SzeptuchaDialogue, FinalDialogue };
+		struct WczoraIntroSlide {
+			std::string text;
+			std::string voice_path;
+			std::string image_path;
+			std::shared_ptr<Texture2D> image_texture;
+			float duration = 6.0f;
+		};
 
 		LoadingKind _loading_kind = LoadingKind::Startup;
 		AssetLoadManifest _loading_manifest;
@@ -165,11 +182,22 @@ namespace Nawia::Core {
 		ResourceManager _resource_manager;
 		GameCamera _camera;
 		float _gameplay_camera_zoom = 0.75f;
+		float _current_camera_zoom = 0.75f;
 		WczoraIntroPhase _wczora_intro_phase = WczoraIntroPhase::Inactive;
 		float _wczora_intro_timer = 0.0f;
 		float _wczora_intro_overlay_alpha = 0.0f;
 		bool _wczora_intro_dialogue_opened = false;
 		std::weak_ptr<Entity::Entity> _wczora_intro_npc;
+		std::weak_ptr<Entity::Entity> _wczora_intro_corpse;
+		std::vector<WczoraIntroSlide> _wczora_intro_slides;
+		size_t _wczora_intro_slide_index = 0;
+		std::string _wczora_intro_slide_voice_id;
+		float _wczora_intro_flash_timer = 0.0f;
+		bool _wczora_pending_szeptucha_encounter = false;
+		bool _wczora_pending_final_dialogue = false;
+		bool _wczora_pending_corpse_completion = false;
+		float _wczora_pending_szeptucha_delay = 0.0f;
+		Vector2 _wczora_pending_szeptucha_position = {0.0f, 0.0f};
 		std::unique_ptr<World::LevelManager> _level_manager;
 		std::unique_ptr<EntityManager> _entity_manager;
 		std::shared_ptr<Entity::Player> _player;

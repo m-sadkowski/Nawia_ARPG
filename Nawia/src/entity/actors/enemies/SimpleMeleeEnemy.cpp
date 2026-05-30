@@ -1,8 +1,15 @@
 #include "SimpleMeleeEnemy.h"
 
+#include <Map.h>
+
 #include <raymath.h>
 
 namespace Nawia::Entity {
+
+	namespace {
+		constexpr float NAV_PATH_POINT_REACHED_DISTANCE_SQ = 0.16f;
+		constexpr float NAV_PATH_TARGET_CHANGE_DISTANCE_SQ = 0.64f;
+	}
 
 	SimpleMeleeEnemy::SimpleMeleeEnemy() {
 		setFaction(Faction::Enemy);
@@ -48,6 +55,7 @@ namespace Nawia::Entity {
 			_state_before_hit = _state;
 
 		_state = State::GettingHit;
+		clearNavigationPath();
 		setVelocity(0.0f, 0.0f);
 		_is_moving = false;
 		setAnimationSpeed(1.0f);
@@ -97,6 +105,7 @@ namespace Nawia::Entity {
 
 		if (!hasValidTarget()) {
 			_state = State::Idle;
+			clearNavigationPath();
 			setVelocity(0.0f, 0.0f);
 			_is_moving = false;
 			setAnimationSpeed(1.0f);
@@ -107,6 +116,7 @@ namespace Nawia::Entity {
 		const float distance = getDistanceToTarget();
 		if (distance > _vision_range * 1.6f) {
 			_state = State::Idle;
+			clearNavigationPath();
 			setVelocity(0.0f, 0.0f);
 			_is_moving = false;
 			setAnimationSpeed(1.0f);
@@ -114,9 +124,11 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		if (distance <= _attack_range && _attack_cooldown_timer <= 0.0f) {
+		const Vector2 target_pos = getTargetPosition();
+		if (distance <= _attack_range && _attack_cooldown_timer <= 0.0f && canReachPositionWithNav(target_pos)) {
 			_state = State::Attacking;
 			_attack_damage_applied = false;
+			clearNavigationPath();
 			setVelocity(0.0f, 0.0f);
 			_is_moving = false;
 			setAnimationSpeed(_attack_animation_speed);
@@ -124,9 +136,7 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		const Vector2 target_pos = getTargetPosition();
-		moveTo(target_pos.x, target_pos.y);
-		updateMovement(dt);
+		moveTowardPositionWithNav(target_pos, dt);
 
 		if (_is_moving) {
 			setAnimationSpeed(1.0f);
@@ -167,8 +177,58 @@ namespace Nawia::Entity {
 			return;
 
 		_state = _state_before_hit == State::Attacking ? State::Chasing : _state_before_hit;
+		clearNavigationPath();
 		setAnimationSpeed(1.0f);
 		playAnimation(_state == State::Idle ? _idle_animation : _walk_animation);
+	}
+
+	bool SimpleMeleeEnemy::moveTowardPositionWithNav(const Vector2 target_pos, const float dt, const float repath_interval) {
+		if (!_map || !_map->getNavMesh().isReady()) {
+			clearNavigationPath();
+			moveTo(target_pos.x, target_pos.y);
+			updateMovement(dt);
+			return _is_moving;
+		}
+
+		_path_recalc_timer -= dt;
+		const bool target_changed = !_has_current_nav_target ||
+			Vector2DistanceSqr(_current_nav_target, target_pos) > NAV_PATH_TARGET_CHANGE_DISTANCE_SQ;
+
+		if (_path_recalc_timer <= 0.0f || target_changed) {
+			_current_nav_path = _map->findPath(getWorldPos3D(), {target_pos.x, getAltitude(), target_pos.y});
+			_current_nav_target = target_pos;
+			_has_current_nav_target = true;
+			_path_recalc_timer = repath_interval;
+		}
+
+		const Vector2 current_pos = getCenter();
+		while (!_current_nav_path.empty() &&
+			   Vector2DistanceSqr(current_pos, _current_nav_path.front()) <= NAV_PATH_POINT_REACHED_DISTANCE_SQ) {
+			_current_nav_path.erase(_current_nav_path.begin());
+		}
+
+		if (_current_nav_path.empty()) {
+			setVelocity(0.0f, 0.0f);
+			_is_moving = false;
+			return false;
+		}
+
+		moveTo(_current_nav_path.front().x, _current_nav_path.front().y);
+		updateMovement(dt);
+		return _is_moving;
+	}
+
+	bool SimpleMeleeEnemy::canReachPositionWithNav(const Vector2 target_pos) const {
+		if (!_map || !_map->getNavMesh().isReady())
+			return true;
+
+		return !_map->findPath(getWorldPos3D(), {target_pos.x, getAltitude(), target_pos.y}).empty();
+	}
+
+	void SimpleMeleeEnemy::clearNavigationPath() {
+		_current_nav_path.clear();
+		_has_current_nav_target = false;
+		_path_recalc_timer = 0.0f;
 	}
 
 } // namespace Nawia::Entity

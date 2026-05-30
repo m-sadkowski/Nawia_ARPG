@@ -31,10 +31,14 @@ namespace Nawia::Entity {
 	void Frog::update(const float dt) {
 		if (_retreat_timer > 0.0f && !isDying()) {
 			_retreat_timer -= dt;
-			_retreat_repath_timer -= dt;
 
-			if (hasValidTarget() && (_retreat_repath_timer <= 0.0f || !_is_moving)) {
-				_retreat_repath_timer = 0.35f;
+			setSpeedMultiplier(1.75f);
+			if (!isAnimationLocked() && getAnimationFrameCount("walk") > 0)
+				playAnimation("walk");
+
+			Entity::update(dt);
+
+			if (hasValidTarget()) {
 				const auto target = getTarget();
 				Vector2 away = {
 					getCenter().x - target->getCenter().x,
@@ -56,18 +60,16 @@ namespace Nawia::Entity {
 				if (_map && _map->getNavMesh().isReady())
 					retreat_position = _map->getNavMesh().getClosestWalkablePosition(retreat_position);
 
-				moveTo(retreat_position.x, retreat_position.z);
+				moveTowardPositionWithNav({retreat_position.x, retreat_position.z}, dt);
+			} else {
+				clearNavigationPath();
+				_is_moving = false;
 			}
 
-			setSpeedMultiplier(1.75f);
-			if (!isAnimationLocked() && getAnimationFrameCount("walk") > 0)
-				playAnimation("walk");
-
-			Entity::update(dt);
-			updateMovement(dt);
 			updateMovementSound(Audio::SoundPath::DevilStep, _is_moving && !isDormant(), 0.32f, 1.25f);
 			if (_retreat_timer <= 0.0f || !_is_moving) {
 				_retreat_timer = 0.0f;
+				clearNavigationPath();
 				_attack_cooldown_timer = std::max(_attack_cooldown_timer, 1.0f);
 				_state = State::Chasing;
 				setAnimationSpeed(1.0f);
@@ -91,7 +93,7 @@ namespace Nawia::Entity {
 	void Frog::onAttackDamageApplied(Entity& target) {
 		playSoundEffect(Audio::SoundId::DevilPunch, 0.82f, true, 1.15f);
 		_retreat_timer = 1.25f;
-		_retreat_repath_timer = 0.0f;
+		clearNavigationPath();
 		_attack_cooldown_timer = std::max(_attack_cooldown_timer, 1.15f);
 		rotateTowardsCenter(target.getCenter().x, target.getCenter().y);
 	}

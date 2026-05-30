@@ -1,5 +1,6 @@
 #include "DialogueUI.h"
 
+#include <AudioManager.h>
 #include <GlobalScaling.h>
 #include <UIDefines.h>
 #include <UIRenderUtils.h>
@@ -132,21 +133,29 @@ namespace Nawia::UI
 
     void DialogueUI::open(const Game::DialogueTree& tree, const int start_node_id, std::function<void(int, bool)> on_close)
     {
+        stopCurrentVoice();
         _current_tree = tree;
         _current_node_id = _current_tree.getNode(start_node_id) ? start_node_id : 0;
         _on_close = std::move(on_close);
         _option_rectangles.clear();
         _is_open = true;
+        playCurrentNodeVoice();
     }
 
     void DialogueUI::close(const bool completed)
     {
-        if (_is_open && _on_close)
-            _on_close(_current_node_id, completed);
+        if (!_is_open)
+            return;
 
+        const int closed_node_id = _current_node_id;
+        auto on_close = std::move(_on_close);
+        stopCurrentVoice();
         _is_open = false;
         _on_close = nullptr;
         _option_rectangles.clear();
+
+        if (on_close)
+            on_close(closed_node_id, completed);
     }
 
     void DialogueUI::render(const Font& font)
@@ -220,11 +229,36 @@ namespace Nawia::UI
             if (option.next_node_id == -1)
                 close(true);
             else
+            {
                 _current_node_id = option.next_node_id;
+                playCurrentNodeVoice();
+            }
 
             return true;
         }
 
         return true;
+    }
+
+    void DialogueUI::playCurrentNodeVoice()
+    {
+        stopCurrentVoice();
+        if (!_audio_manager)
+            return;
+
+        const auto* node = _current_tree.getNode(_current_node_id);
+        if (!node || node->voice_path.empty())
+            return;
+
+        _current_voice_id = "dialogue_voice:" + node->voice_path;
+        _audio_manager->playSoundFile(_current_voice_id, node->voice_path, {1.0f, 1.0f, true});
+    }
+
+    void DialogueUI::stopCurrentVoice()
+    {
+        if (_audio_manager && !_current_voice_id.empty())
+            _audio_manager->stopSound(_current_voice_id);
+
+        _current_voice_id.clear();
     }
 } // namespace Nawia::UI

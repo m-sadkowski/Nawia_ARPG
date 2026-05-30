@@ -7,6 +7,8 @@
 #include <Logger.h>
 #include <MathUtils.h>
 #include <PlayerController.h>
+#include <UIDefines.h>
+#include <UIRenderUtils.h>
 
 #include <DemoLevel.h>
 #include <DevLevel.h>
@@ -27,6 +29,7 @@
 #include <fstream>
 #include <json.hpp>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -38,6 +41,63 @@ namespace Nawia::Core {
 		constexpr const char* MENU_MUSIC_PATH = "assets/audio/music/soulfuljamtracks-slavic-folk-308126.mp3";
 		constexpr float k_hover_update_interval = 0.05f;
 		constexpr float k_hover_mouse_move_threshold_sq = 1.0f;
+		constexpr float k_wczora_intro_camera_zoom_factor = 0.5f;
+		constexpr float k_camera_zoom_return_speed = 1.7f;
+
+		void drawWczoraIntroParticlesFx(const float width, const float height, const float time) {
+			for (int i = 0; i < UI::SMOKE_LAYER_COUNT; ++i) {
+				const float seed = static_cast<float>(i) * 11.73f + 3.1f;
+				const float travel = UI::fract(UI::hash01(seed) + time * (0.012f + UI::hash01(seed + 2.0f) * 0.016f));
+				const float pos_x = width * (0.05f + UI::hash01(seed + 1.0f) * 0.90f) + std::sin(time * (0.22f + UI::hash01(seed + 4.0f) * 0.18f) + seed) * width * 0.06f;
+				const float pos_y = height * (1.12f - travel * 1.24f);
+				const float radius = GlobalScaling::scaled(110.0f + UI::hash01(seed + 5.0f) * 150.0f);
+				const float alpha = (0.35f + (1.0f - travel) * 0.65f) * (0.035f + UI::hash01(seed + 6.0f) * 0.07f);
+				DrawCircleGradient(static_cast<int>(pos_x), static_cast<int>(pos_y), radius, UI::withAlpha(LIGHTGRAY, alpha), UI::withAlpha(DARKGRAY, 0.0f));
+			}
+
+			for (int i = 0; i < UI::FIRE_PARTICLE_COUNT; ++i) {
+				const float seed = static_cast<float>(i) * 17.13f + 8.0f;
+				const float cycle = UI::fract(UI::hash01(seed) + time * (0.10f + UI::hash01(seed + 1.0f) * 0.22f));
+				const float rise = 1.0f - cycle;
+				const float pos_x = width * (0.03f + UI::hash01(seed + 2.0f) * 0.94f) + std::sin(time * (1.0f + UI::hash01(seed + 3.0f) * 1.5f) + seed) * width * (0.01f + UI::hash01(seed + 9.0f) * 0.02f);
+				const float pos_y = height * (1.04f - rise * 1.18f);
+				const float radius = GlobalScaling::scaled(1.5f + UI::hash01(seed + 7.0f) * UI::hash01(seed + 7.0f) * 12.0f) * (0.45f + rise * 0.95f);
+				const float alpha = (0.10f + rise * 0.50f) * (0.55f + UI::hash01(seed + 6.0f) * 0.45f);
+				DrawCircleGradient(static_cast<int>(pos_x), static_cast<int>(pos_y), radius, UI::withAlpha(UI::COLOR_GOLDEN_TEXT, alpha), UI::withAlpha(UI::COLOR_SLAVIC_ORANGE, alpha * 0.35f));
+			}
+		}
+
+		void drawAnimatedWczoraIntroImage(const std::shared_ptr<Texture2D>& texture, const float screen_width, const float screen_height, const float time) {
+			if (!texture || texture->id <= 0) {
+				DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), BLACK);
+				return;
+			}
+
+			float source_width = static_cast<float>(texture->width);
+			float source_height = static_cast<float>(texture->height);
+			const float screen_aspect_ratio = screen_width / screen_height;
+			const float texture_aspect_ratio = source_width / source_height;
+
+			if (texture_aspect_ratio > screen_aspect_ratio)
+				source_width = source_height * screen_aspect_ratio;
+			else
+				source_height = source_width / screen_aspect_ratio;
+
+			const float zoom_factor = 0.10f + 0.018f * std::sin(time * 0.22f);
+			source_width *= (1.0f - zoom_factor);
+			source_height *= (1.0f - zoom_factor);
+
+			const float offset_x = std::max(0.0f, (static_cast<float>(texture->width) - source_width) * 0.5f) * std::sin(time * 0.11f + 0.8f);
+			const float offset_y = std::max(0.0f, (static_cast<float>(texture->height) - source_height) * 0.5f) * std::cos(time * 0.08f - 0.35f);
+			const Rectangle source_rectangle = {
+				(static_cast<float>(texture->width) - source_width) * 0.5f + offset_x,
+				(static_cast<float>(texture->height) - source_height) * 0.5f + offset_y,
+				source_width,
+				source_height
+			};
+
+			DrawTexturePro(*texture, source_rectangle, {0.0f, 0.0f, screen_width, screen_height}, {0.0f, 0.0f}, 0.0f, WHITE);
+		}
 
 	}
 
@@ -162,6 +222,7 @@ namespace Nawia::Core {
 
 		_ui_handler = std::make_unique<UI::UIHandler>();
 		_ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
+		_ui_handler->setDialogueAudioManager(&_audio_manager);
 		_ui_handler->setLevelManager(_level_manager.get());
 		_ui_handler->setSaveGameManager(&_save_game_manager);
 
@@ -307,28 +368,126 @@ namespace Nawia::Core {
 			return;
 
 		removeWczoraIntroNpc();
+		spawnWczoraIntroCorpse();
 
-		const Vector2 player_center = _player->getCenter();
-		const float facing_angle = -_player->getRotation() * DEG2RAD;
-		Vector2 forward = {std::cos(facing_angle), std::sin(facing_angle)};
-		if (forward.x * forward.x + forward.y * forward.y < 0.001f)
-			forward = {1.0f, 0.0f};
-
-		const Vector3 desired_spawn_position = {
-			player_center.x + forward.x * 2.8f,
-			_player->getAltitude(),
-			player_center.y + forward.y * 2.8f
+		_wczora_intro_slides = {
+			{"Okolo 2 tys. lat temu.\nDzisiejsze Kaszuby.", "assets/audio/dialogues/Intro/slide_01.wav", "assets/dzisiejsze_kaszuby.png", nullptr, 8.0f},
+			{"Slowianskie piesni unosza sie w powietrzu. Plomienie ognisk hulaja jak mlodziez tanczaca wokol nich. Noc radosci - zaslubiny Wandy. Leja sie trunki, slychac smiech, zargot i radosc rodziny.\n\nOgnisko trzeszczy.", "assets/audio/dialogues/Intro/slide_02.wav", "assets/dzisiejsze_kaszuby.png", nullptr, 20.0f},
+			{"Jarko szuka Mileny. Nie moze nigdzie znalezc swej lubej. W koncu jest - widzi ja jak wchodzi do obory. Podaza w jej strone.\n\nOgnisko trzeszczy.", "assets/audio/dialogues/Intro/slide_03.wav", "assets/jarko_szuka_mileny.png", nullptr, 16.0f},
+			{"Zrywa sie wiatr. Drzwi od obory trzaskaja za Jarkiem. Nie widzi Wandy, z zewnatrz dobiegaja krzyki, lecz nie radosne. Ognisko trzeszczy... nie, trzeszczy cos jeszcze.", "assets/audio/dialogues/Intro/slide_04.wav", "assets/zrywa_sie_wiatr.png", nullptr, 18.0f},
+			{"Jarko wybiega na dwor i widzi plomienie, lecz nie ogniska - pali sie chata, pala sie drzewa, wszystko stoi w ogniu. Ludzie uciekaja, niebo jest czarne i szaleje burza. Nagle cos uderza go w glowe.\n\nOgnisko trzeszczy.", "assets/audio/dialogues/Intro/slide_05.wav", "assets/jarko_wybiega_na_dwor.png", nullptr, 21.0f}
 		};
-		Vector3 spawn_position = desired_spawn_position;
-		if (getCurrentMap() && getCurrentMap()->getNavMesh().isReady()) {
-			const Vector3 snapped_position = getCurrentMap()->getNavMesh().getClosestWalkablePosition(desired_spawn_position);
-			const Vector2 player_to_snapped = {
-				snapped_position.x - player_center.x,
-				snapped_position.z - player_center.y
-			};
-			if (player_to_snapped.x * forward.x + player_to_snapped.y * forward.y > 0.8f)
-				spawn_position = snapped_position;
+		for (auto& slide : _wczora_intro_slides) {
+			if (!slide.image_path.empty()) {
+				slide.image_texture = _resource_manager.getTexture(slide.image_path);
+				if (slide.image_texture && slide.image_texture->id > 0)
+					SetTextureFilter(*slide.image_texture, TEXTURE_FILTER_TRILINEAR);
+			}
 		}
+		_wczora_intro_slide_index = 0;
+		_wczora_intro_phase = WczoraIntroPhase::Slides;
+		_wczora_intro_timer = 0.0f;
+		_wczora_intro_overlay_alpha = 1.0f;
+		_wczora_intro_dialogue_opened = false;
+		_wczora_intro_flash_timer = 0.0f;
+		_current_camera_zoom = _gameplay_camera_zoom * k_wczora_intro_camera_zoom_factor;
+		_camera.resetZoom(_current_camera_zoom);
+		playWczoraIntroSlideVoice();
+		_player->stop();
+	}
+
+	void Engine::spawnWczoraIntroCorpse() {
+		if (!_player)
+			return;
+
+		if (const auto corpse = _wczora_intro_corpse.lock())
+			corpse->setDormant(true);
+
+		const float angle = static_cast<float>(GetRandomValue(0, 628)) / 100.0f;
+		const float radius = static_cast<float>(GetRandomValue(300, 500)) / 100.0f;
+		Vector3 corpse_position = {
+			_player->getCenter().x + std::cos(angle) * radius,
+			_player->getAltitude(),
+			_player->getCenter().y + std::sin(angle) * radius
+		};
+
+		if (getCurrentMap() && getCurrentMap()->getNavMesh().isReady())
+			corpse_position = getCurrentMap()->getNavMesh().getClosestWalkablePosition(corpse_position);
+
+		auto corpse = std::make_shared<Entity::StoryNpc>("Zwloki Wandy", corpse_position.x, corpse_position.z);
+		corpse->setAltitude(corpse_position.y);
+		corpse->setAudioManager(&_audio_manager);
+		corpse->configureWandaCorpse(this);
+		spawnEntity(corpse);
+		_wczora_intro_corpse = corpse;
+	}
+
+	void Engine::openWczoraAwakeningDialogue() {
+		if (!_ui_handler)
+			return;
+
+		if (_player) {
+			_player->stop();
+			const int death_frames = _player->getAnimationFrameCount("Death01");
+			_player->setAnimationSpeed(0.0f);
+			_player->playAnimation("Death01", false, true, std::max(0, death_frames - 1), true);
+		}
+
+		Game::DialogueTree tree;
+		Game::DialogueNode node;
+		node.id = 0;
+		node.speaker_name = "Jarko";
+		node.text = "Strasznie wczoraj zachlalem. Palilem bagienne ziola do switu. Powiesc mi sie urwala jak lezalem w klodzie. Teraz mnie krzyz uwiera. Troche sie przespalem, ale juz jutrzenka, ale musialem wstac bo mam obowiazki. Chwila moment, gdzie ja jestem? Kto tu lezy? Czy to wszystko bylo naprawde?";
+		node.voice_path = "assets/audio/dialogues/Intro/awakening.wav";
+
+		Game::DialogueOption option;
+		option.text = "Wstac.";
+		option.next_node_id = -1;
+		node.options.push_back(option);
+		tree.addNode(node);
+
+		_wczora_intro_dialogue_opened = true;
+		_wczora_intro_phase = WczoraIntroPhase::AwakeningDialogue;
+		_wczora_intro_timer = 0.0f;
+		_ui_handler->openDialogue(tree, 0, [this](const int, const bool) {
+			if (_player) {
+				_player->setAnimationSpeed(Entity::Player::DEFAULT_ANIMATION_SPEED);
+				_player->playAnimation("LayToIdle", false, true, 0, true);
+			}
+			if (_quest_manager.startQuest("inspect_wanda_body"))
+				_ui_handler->showNotification("Nowy quest: Sprawdz zwloki kobiety", 4.0f);
+			_wczora_intro_phase = WczoraIntroPhase::InspectCorpse;
+			_wczora_intro_timer = 0.0f;
+			_wczora_intro_dialogue_opened = false;
+		});
+	}
+
+	void Engine::queueWczoraCorpseInspected(const Vector2& corpse_position) {
+		_wczora_pending_corpse_completion = true;
+		queueWczoraSzeptuchaEncounter(corpse_position);
+	}
+
+	void Engine::queueWczoraSzeptuchaEncounter(const Vector2& corpse_position) {
+		_wczora_pending_szeptucha_encounter = true;
+		_wczora_pending_szeptucha_position = corpse_position;
+		_wczora_pending_szeptucha_delay = 0.05f;
+	}
+
+	void Engine::startWczoraSzeptuchaEncounter(const Vector2& corpse_position) {
+		if (!_player || !_ui_handler)
+			return;
+
+		if (_ui_handler->isDialogueOpen()) {
+			queueWczoraSzeptuchaEncounter(corpse_position);
+			return;
+		}
+
+		removeWczoraIntroNpc();
+
+		Vector2 spawn_2d = {corpse_position.x + 1.8f, corpse_position.y + 0.8f};
+		Vector3 spawn_position = {spawn_2d.x, _player->getAltitude(), spawn_2d.y};
+		if (getCurrentMap() && getCurrentMap()->getNavMesh().isReady())
+			spawn_position = getCurrentMap()->getNavMesh().getClosestWalkablePosition(spawn_position);
 
 		auto szeptucha = std::make_shared<Entity::StoryNpc>("Szeptucha", spawn_position.x, spawn_position.z);
 		szeptucha->setAltitude(spawn_position.y);
@@ -338,51 +497,49 @@ namespace Nawia::Core {
 		_player->rotateTowardsCenter(szeptucha->getCenter().x, szeptucha->getCenter().y);
 		spawnEntity(szeptucha);
 		_wczora_intro_npc = szeptucha;
-
-		_wczora_intro_phase = WczoraIntroPhase::FadeFromBlack;
+		_wczora_intro_flash_timer = 0.55f;
+		_wczora_intro_phase = WczoraIntroPhase::SzeptuchaDialogue;
 		_wczora_intro_timer = 0.0f;
-		_wczora_intro_overlay_alpha = 1.0f;
-		_wczora_intro_dialogue_opened = false;
-		_player->stop();
-	}
-
-	void Engine::openWczoraIntroFirstDialogue() {
-		if (!_ui_handler)
-			return;
 
 		Game::DialogueTree tree;
-		Game::DialogueNode node;
-		node.id = 0;
-		node.speaker_name = "Szeptucha";
-		node.text = "...";
+		const std::vector<std::tuple<std::string, std::string, std::string>> lines = {
+			{"Szeptucha", "Glupis... uraduj bogow. Dziewczyna zginie tak czy siak.", "assets/audio/dialogues/Intro/szeptucha_glupis.wav"},
+			{"Jarko", "Kim jestes? O czym prawisz? Gdzie Milena?", "assets/audio/dialogues/Intro/player_kim_jestes.wav"},
+			{"Szeptucha", "Lud zapomnial kto nad nim panuje. Wznosza twierdze, baluja, a ofiar nie skladaja. Gniew bogow spadl na nas. Podazaj sciezka przeznaczenia do Nawii lub wszyscy zgina.", "assets/audio/dialogues/Intro/szeptucha_gniew_bogow.wav"}
+		};
+		for (size_t i = 0; i < lines.size(); ++i) {
+			Game::DialogueNode node;
+			node.id = static_cast<int>(i);
+			node.speaker_name = std::get<0>(lines[i]);
+			node.text = std::get<1>(lines[i]);
+			node.voice_path = std::get<2>(lines[i]);
+			Game::DialogueOption option;
+			option.text = (i + 1 < lines.size()) ? "..." : "Co?";
+			option.next_node_id = (i + 1 < lines.size()) ? static_cast<int>(i + 1) : -1;
+			node.options.push_back(option);
+			tree.addNode(node);
+		}
 
-		Game::DialogueOption option;
-		option.text = "Nic z tego nie rozumiem";
-		option.next_node_id = -1;
-		node.options.push_back(option);
-		tree.addNode(node);
-
-		_wczora_intro_dialogue_opened = true;
-		_wczora_intro_phase = WczoraIntroPhase::FirstDialogue;
 		_ui_handler->openDialogue(tree, 0, [this](const int, const bool) {
-			_wczora_intro_phase = WczoraIntroPhase::FadeToBlack;
-			_wczora_intro_timer = 0.0f;
-			_wczora_intro_dialogue_opened = false;
+			removeWczoraIntroNpc();
+			_wczora_intro_flash_timer = 0.55f;
+			_wczora_pending_final_dialogue = true;
 		});
 	}
 
-	void Engine::openWczoraIntroFinalDialogue() {
+	void Engine::openWczoraFinalDialogue() {
 		if (!_ui_handler)
 			return;
 
 		Game::DialogueTree tree;
 		Game::DialogueNode node;
 		node.id = 0;
-		node.speaker_name = "Gracz";
-		node.text = "...";
+		node.speaker_name = "Jarko";
+		node.text = "O co tu chodzi? Dlaczego akurat ja? Musze znalezc Milene i mieszkancow wioski...";
+		node.voice_path = "assets/audio/dialogues/Intro/player_final.wav";
 
 		Game::DialogueOption option;
-		option.text = "Co do licha? Gdzie ona jest?";
+		option.text = "Ruszac.";
 		option.next_node_id = -1;
 		node.options.push_back(option);
 		tree.addNode(node);
@@ -390,11 +547,21 @@ namespace Nawia::Core {
 		_wczora_intro_dialogue_opened = true;
 		_wczora_intro_phase = WczoraIntroPhase::FinalDialogue;
 		_ui_handler->openDialogue(tree, 0, [this](const int, const bool) {
-			_wczora_intro_phase = WczoraIntroPhase::Inactive;
-			_wczora_intro_timer = 0.0f;
-			_wczora_intro_overlay_alpha = 0.0f;
-			_wczora_intro_dialogue_opened = false;
+			finishWczoraIntroSequence();
 		});
+	}
+
+	void Engine::finishWczoraIntroSequence() {
+		stopWczoraIntroSlideVoice();
+		_wczora_intro_phase = WczoraIntroPhase::Inactive;
+		_wczora_intro_timer = 0.0f;
+		_wczora_intro_overlay_alpha = 0.0f;
+		_wczora_intro_dialogue_opened = false;
+		_wczora_intro_flash_timer = 0.0f;
+		_wczora_pending_szeptucha_encounter = false;
+		_wczora_pending_final_dialogue = false;
+		_wczora_pending_corpse_completion = false;
+		_wczora_pending_szeptucha_delay = 0.0f;
 	}
 
 	void Engine::removeWczoraIntroNpc() {
@@ -403,48 +570,108 @@ namespace Nawia::Core {
 		_wczora_intro_npc.reset();
 	}
 
+	void Engine::playWczoraIntroSlideVoice() {
+		stopWczoraIntroSlideVoice();
+		if (_wczora_intro_slide_index >= _wczora_intro_slides.size())
+			return;
+
+		const auto& slide = _wczora_intro_slides[_wczora_intro_slide_index];
+		if (slide.voice_path.empty())
+			return;
+
+		_wczora_intro_slide_voice_id = "intro_slide:" + slide.voice_path;
+		_audio_manager.playSoundFile(_wczora_intro_slide_voice_id, slide.voice_path, {1.0f, 1.0f, true});
+	}
+
+	void Engine::stopWczoraIntroSlideVoice() {
+		if (!_wczora_intro_slide_voice_id.empty())
+			_audio_manager.stopSound(_wczora_intro_slide_voice_id);
+		_wczora_intro_slide_voice_id.clear();
+	}
+
+	bool Engine::isWczoraIntroInteractionOnly() const {
+		return _wczora_intro_phase == WczoraIntroPhase::InspectCorpse;
+	}
+
+	bool Engine::isWczoraIntroBlockingControl() const {
+		return _wczora_intro_phase != WczoraIntroPhase::Inactive &&
+			_wczora_intro_phase != WczoraIntroPhase::InspectCorpse;
+	}
+
 	void Engine::updateWczoraIntro(const float delta_time) {
 		if (_wczora_intro_phase == WczoraIntroPhase::Inactive)
 			return;
 
-		if (_player)
+		if (_wczora_pending_szeptucha_delay > 0.0f)
+			_wczora_pending_szeptucha_delay = std::max(0.0f, _wczora_pending_szeptucha_delay - delta_time);
+
+		if (_ui_handler && !_ui_handler->isDialogueOpen()) {
+			if (_wczora_pending_szeptucha_encounter) {
+				if (_wczora_pending_szeptucha_delay > 0.0f)
+					return;
+
+				const Vector2 position = _wczora_pending_szeptucha_position;
+				_wczora_pending_szeptucha_encounter = false;
+				if (_wczora_pending_corpse_completion) {
+					_wczora_pending_corpse_completion = false;
+					_quest_manager.completeQuest("inspect_wanda_body", this);
+				}
+				startWczoraSzeptuchaEncounter(position);
+				return;
+			}
+
+			if (_wczora_pending_final_dialogue) {
+				_wczora_pending_final_dialogue = false;
+				openWczoraFinalDialogue();
+				return;
+			}
+		}
+
+		if (_player && _wczora_intro_phase != WczoraIntroPhase::InspectCorpse)
 			_player->stop();
+
+		if (_wczora_intro_flash_timer > 0.0f)
+			_wczora_intro_flash_timer = std::max(0.0f, _wczora_intro_flash_timer - delta_time);
 
 		_wczora_intro_timer += delta_time;
 		switch (_wczora_intro_phase) {
-			case WczoraIntroPhase::FadeFromBlack:
-				_wczora_intro_overlay_alpha = std::max(0.38f, 1.0f - _wczora_intro_timer / 2.4f);
-				if (!_wczora_intro_dialogue_opened && _wczora_intro_timer >= 0.75f)
-					openWczoraIntroFirstDialogue();
+			case WczoraIntroPhase::Slides:
+				_wczora_intro_overlay_alpha = 1.0f;
+				if (_wczora_intro_slide_index < _wczora_intro_slides.size() &&
+					_wczora_intro_timer >= _wczora_intro_slides[_wczora_intro_slide_index].duration) {
+					_wczora_intro_slide_index++;
+					_wczora_intro_timer = 0.0f;
+					if (_wczora_intro_slide_index < _wczora_intro_slides.size()) {
+						playWczoraIntroSlideVoice();
+					} else {
+						stopWczoraIntroSlideVoice();
+						if (_player) {
+							_player->stop();
+							const int death_frames = _player->getAnimationFrameCount("Death01");
+							_player->setAnimationSpeed(0.0f);
+							_player->playAnimation("Death01", false, true, std::max(0, death_frames - 1), true);
+						}
+						_wczora_intro_phase = WczoraIntroPhase::FadeFromBlackAfterSlides;
+						_wczora_intro_overlay_alpha = 1.0f;
+					}
+				}
 				break;
-			case WczoraIntroPhase::FirstDialogue:
+			case WczoraIntroPhase::FadeFromBlackAfterSlides:
+				_wczora_intro_overlay_alpha = std::max(0.38f, 1.0f - _wczora_intro_timer / 2.4f);
+				if (_wczora_intro_timer >= 2.4f)
+					openWczoraAwakeningDialogue();
+				break;
+			case WczoraIntroPhase::AwakeningDialogue:
 				_wczora_intro_overlay_alpha = 0.38f;
 				break;
-			case WczoraIntroPhase::FadeToBlack:
-				_wczora_intro_overlay_alpha = std::clamp(_wczora_intro_timer / 1.1f, 0.38f, 1.0f);
-				if (_wczora_intro_timer >= 1.1f) {
-					removeWczoraIntroNpc();
-					_wczora_intro_phase = WczoraIntroPhase::FullBlackPause;
-					_wczora_intro_timer = 0.0f;
-					_wczora_intro_overlay_alpha = 1.0f;
-				}
+			case WczoraIntroPhase::InspectCorpse:
+				_wczora_intro_overlay_alpha = 0.0f;
 				break;
-			case WczoraIntroPhase::FullBlackPause:
-				_wczora_intro_overlay_alpha = 1.0f;
-				if (_wczora_intro_timer >= 1.0f) {
-					_wczora_intro_phase = WczoraIntroPhase::FadeFromBlackAfter;
-					_wczora_intro_timer = 0.0f;
-				}
-				break;
-			case WczoraIntroPhase::FadeFromBlackAfter:
-				_wczora_intro_overlay_alpha = std::max(0.0f, 1.0f - _wczora_intro_timer / 1.4f);
-				if (_wczora_intro_timer >= 1.4f && !_wczora_intro_dialogue_opened) {
-					_wczora_intro_overlay_alpha = 0.0f;
-					openWczoraIntroFinalDialogue();
-				}
+			case WczoraIntroPhase::SzeptuchaDialogue:
+				_wczora_intro_overlay_alpha = 0.22f;
 				break;
 			case WczoraIntroPhase::FinalDialogue:
-				_wczora_intro_overlay_alpha = 0.0f;
+				_wczora_intro_overlay_alpha = 0.22f;
 				break;
 			case WczoraIntroPhase::Inactive:
 				break;
@@ -452,13 +679,77 @@ namespace Nawia::Core {
 	}
 
 	void Engine::renderWczoraIntroOverlay() const {
-		if (_wczora_intro_phase == WczoraIntroPhase::Inactive || _wczora_intro_overlay_alpha <= 0.0f)
+		if (_wczora_intro_phase == WczoraIntroPhase::Inactive && _wczora_intro_flash_timer <= 0.0f)
 			return;
 
 		const int width = GetScreenWidth();
 		const int height = GetScreenHeight();
 		const float alpha = std::clamp(_wczora_intro_overlay_alpha, 0.0f, 1.0f);
-		DrawRectangle(0, 0, width, height, Fade(BLACK, alpha));
+		const bool rendering_slide = _wczora_intro_phase == WczoraIntroPhase::Slides &&
+			_wczora_intro_slide_index < _wczora_intro_slides.size();
+		if (!rendering_slide && alpha > 0.0f)
+			DrawRectangle(0, 0, width, height, Fade(BLACK, alpha));
+
+		if (rendering_slide && _ui_handler) {
+			const auto& slide = _wczora_intro_slides[_wczora_intro_slide_index];
+			const float fade_in = std::clamp(_wczora_intro_timer / 1.2f, 0.0f, 1.0f);
+			const float fade_out = std::clamp((slide.duration - _wczora_intro_timer) / 1.2f, 0.0f, 1.0f);
+			const float text_alpha = std::min(fade_in, fade_out);
+			const float screen_width = static_cast<float>(width);
+			const float screen_height = static_cast<float>(height);
+			const float image_time = static_cast<float>(GetTime()) + static_cast<float>(_wczora_intro_slide_index) * 13.0f;
+
+			drawAnimatedWczoraIntroImage(slide.image_texture, screen_width, screen_height, image_time);
+			DrawRectangleGradientV(0, 0, width, height, UI::withAlpha({30, 14, 10, 255}, 0.10f), UI::withAlpha({5, 5, 8, 255}, 0.55f));
+			drawWczoraIntroParticlesFx(screen_width, screen_height, image_time);
+			DrawRectangleGradientV(0, 0, width, height, UI::withAlpha(UI::COLOR_ACCENT, 0.02f), UI::withAlpha(BLACK, 0.18f));
+			DrawRectangle(0, 0, width, height, Fade(BLACK, 0.22f + (1.0f - text_alpha) * 0.78f));
+
+			const Font& font = _ui_handler->getFont();
+			const float font_size = GlobalScaling::scaled(30.0f);
+			const float spacing = GlobalScaling::scaled(1.0f);
+			const float max_width = screen_width * 0.74f;
+
+			std::vector<std::string> lines;
+			std::istringstream paragraphs(slide.text);
+			std::string paragraph;
+			while (std::getline(paragraphs, paragraph)) {
+				if (paragraph.empty()) {
+					lines.emplace_back();
+					continue;
+				}
+				std::istringstream words(paragraph);
+				std::string word;
+				std::string current_line;
+				while (words >> word) {
+					const std::string candidate = current_line.empty() ? word : current_line + " " + word;
+					if (MeasureTextEx(font, candidate.c_str(), font_size, spacing).x <= max_width || current_line.empty()) {
+						current_line = candidate;
+					} else {
+						lines.push_back(current_line);
+						current_line = word;
+					}
+				}
+				if (!current_line.empty())
+					lines.push_back(current_line);
+			}
+
+			const float line_height = font_size + GlobalScaling::scaled(10.0f);
+			const float total_height = static_cast<float>(lines.size()) * line_height;
+			float y = (static_cast<float>(height) - total_height) * 0.5f;
+			for (const auto& line : lines) {
+				const Vector2 size = MeasureTextEx(font, line.c_str(), font_size, spacing);
+				const Vector2 text_position = {(screen_width - size.x) * 0.5f, y};
+				DrawTextEx(font, line.c_str(), {text_position.x + 2.0f, text_position.y + 2.0f}, font_size, spacing, Fade(BLACK, text_alpha * 0.72f));
+				DrawTextEx(font, line.c_str(), text_position, font_size, spacing, Fade(RAYWHITE, text_alpha));
+				y += line_height;
+			}
+		}
+
+		if (_wczora_intro_flash_timer > 0.0f) {
+			const float flash_alpha = std::clamp(_wczora_intro_flash_timer / 0.55f, 0.0f, 1.0f);
+			DrawRectangle(0, 0, width, height, Fade(WHITE, flash_alpha));
+		}
 	}
 
 	void Engine::run() {
@@ -697,7 +988,7 @@ namespace Nawia::Core {
 	}
 
 	void Engine::handlePlayingInput() {
-		if (_wczora_intro_phase != WczoraIntroPhase::Inactive) {
+		if (isWczoraIntroBlockingControl()) {
 			_show_pause_menu = false;
 			if (_player)
 				_player->stop();
@@ -706,7 +997,7 @@ namespace Nawia::Core {
 			return;
 		}
 
-		if (IsKeyPressed(KEY_ESCAPE)) {
+		if (!isWczoraIntroInteractionOnly() && IsKeyPressed(KEY_ESCAPE)) {
 			if (_ui_handler->closeOpenWindows())
 				return;
 
@@ -714,7 +1005,7 @@ namespace Nawia::Core {
 			return;
 		}
 
-		if (_show_pause_menu) {
+		if (!isWczoraIntroInteractionOnly() && _show_pause_menu) {
 			const auto* current_level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
 			const bool saves_enabled = current_level && current_level->allowsSaves();
 
@@ -744,14 +1035,14 @@ namespace Nawia::Core {
 			return;
 		}
 
+		const bool dialogue_was_open = _ui_handler->isDialogueOpen();
 		_ui_handler->handleInput();
+		if (dialogue_was_open || isWczoraIntroBlockingControl())
+			return;
 
 		const auto dev_level = dynamic_cast<World::DevLevel*>(_level_manager->getCurrentLevel());
 		if (dev_level)
 			_camera.handleInput();
-		else {
-			_camera.resetZoom(_gameplay_camera_zoom);
-		}
 
 		const Vector2 mouse_pos = GetMousePosition();
 		const float cursor_plane_height = _player ? _player->getAltitude() : 0.0f;
@@ -785,11 +1076,15 @@ namespace Nawia::Core {
 		if (dev_level && dev_level->isTyping())
 			return;
 
-		if (!_ui_handler->isInputBlocked() && IsKeyPressed(KEY_ONE) && _player)
-			(void)_player->consumeFood();
+		if (!isWczoraIntroInteractionOnly() && !_ui_handler->isInputBlocked() && IsKeyPressed(KEY_ONE) && _player)
+			(void)_player->startConsumeFood();
 
-		if (_controller)
-			_controller->handleInput(mouse_world_pos, mouse_pos.x, mouse_pos.y);
+		if (_controller) {
+			if (isWczoraIntroInteractionOnly())
+				_controller->handleInteractionOnly(mouse_world_pos, mouse_pos.x, mouse_pos.y);
+			else
+				_controller->handleInput(mouse_world_pos, mouse_pos.x, mouse_pos.y);
+		}
 	}
 
 	void Engine::update(const float delta_time) {
@@ -819,11 +1114,24 @@ namespace Nawia::Core {
 			return;
 		}
 
+		if (!dynamic_cast<World::DevLevel*>(_level_manager->getCurrentLevel())) {
+			const float target_zoom = (_wczora_intro_phase != WczoraIntroPhase::Inactive)
+				? _gameplay_camera_zoom * k_wczora_intro_camera_zoom_factor
+				: _gameplay_camera_zoom;
+			if (_wczora_intro_phase != WczoraIntroPhase::Inactive) {
+				_current_camera_zoom = target_zoom;
+			} else {
+				const float zoom_t = std::clamp(delta_time * k_camera_zoom_return_speed, 0.0f, 1.0f);
+				_current_camera_zoom += (target_zoom - _current_camera_zoom) * zoom_t;
+			}
+			_camera.resetZoom(_current_camera_zoom);
+		}
+
 		_camera.follow(_player.get());
 		_lighting_system.update(_camera.get());
 		if (_ui_handler) _ui_handler->update(delta_time);
 		updateWczoraIntro(delta_time);
-		if (_wczora_intro_phase != WczoraIntroPhase::Inactive) {
+		if (_wczora_intro_phase != WczoraIntroPhase::Inactive && !isWczoraIntroInteractionOnly()) {
 			_entity_manager->updateEntities(delta_time);
 			collectPendingSpawns();
 			return;
@@ -871,6 +1179,9 @@ namespace Nawia::Core {
 		_audio_manager.loadSound(Audio::SoundId::HumanDeath, Audio::SoundPath::HumanDeath);
 		_audio_manager.loadSound(Audio::SoundId::KnifeThrow, Audio::SoundPath::KnifeThrow);
 		_audio_manager.loadSound(Audio::SoundId::CatMeow, Audio::SoundPath::CatMeow);
+		_audio_manager.loadSound(Audio::SoundId::MiniMushroomAttack, Audio::SoundPath::MiniMushroomAttack);
+		_audio_manager.loadSound(Audio::SoundId::MiniMushroomWormExit, Audio::SoundPath::MiniMushroomWormExit);
+		_audio_manager.loadSound(Audio::SoundId::PlayerEatSupplies, Audio::SoundPath::PlayerEatSupplies);
 	}
 
 	void Engine::render() const {
@@ -934,7 +1245,7 @@ namespace Nawia::Core {
 		renderGameplayVignetteOverlay();
 		renderWczoraIntroOverlay();
 
-		if (_wczora_intro_phase != WczoraIntroPhase::Inactive) {
+		if (_wczora_intro_phase != WczoraIntroPhase::Inactive && !isWczoraIntroInteractionOnly()) {
 			if (_ui_handler)
 				_ui_handler->renderDialogueOnly();
 			return;

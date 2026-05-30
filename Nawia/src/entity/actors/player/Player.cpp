@@ -134,6 +134,21 @@ namespace Nawia::Entity {
 		if (isDying()) return;
 
 		updateAbilities(delta_time);
+
+		if (_is_consuming_food)
+		{
+			_consume_food_timer -= delta_time;
+			if (_consume_food_timer <= 0.0f)
+			{
+				_is_consuming_food = false;
+				_consume_food_timer = 0.0f;
+				(void)consumeFood();
+				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+				if (!isAnimationLocked())
+					playAnimation("Idle_Loop");
+			}
+			return;
+		}
 		
 		isLevelUp();
 		// Obsługa sekwencji powalenia.
@@ -226,6 +241,22 @@ namespace Nawia::Entity {
 		setHP(std::min(_max_hp, _hp + 25));
 		if (_engine)
 			_engine->getUIHandler().showNotification("Zjedzono zapasy: +25 HP", 2.0f);
+		return true;
+	}
+
+	bool Player::startConsumeFood() {
+		if (_is_consuming_food || _food_count <= 0 || isDying() || _hp >= _max_hp || isAnimationLocked())
+			return false;
+
+		stop();
+		_is_consuming_food = true;
+		_consume_food_timer = 1.0f;
+		playSoundEffect(Audio::SoundId::PlayerEatSupplies, 0.85f);
+		setAnimationSpeed(1.0f);
+		if (getAnimationFrameCount("Consume") > 0)
+			playAnimation("Consume", false, true, 0, true);
+		else
+			playAnimation("Interact", false, true, 0, true);
 		return true;
 	}
 

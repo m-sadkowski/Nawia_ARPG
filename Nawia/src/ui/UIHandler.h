@@ -22,6 +22,10 @@ namespace Nawia::Entity {
     class InteractiveClickable;
 }
 
+namespace Nawia::Audio {
+    class AudioManager;
+}
+
 namespace Nawia::Core {
     class EntityManager;
     class Settings;
@@ -137,6 +141,7 @@ namespace Nawia::UI {
         void openDialogue(const Game::DialogueTree& tree, int start_node_id = 0, std::function<void(int, bool)> on_close = nullptr) {
             _dialogueUI.open(tree, start_node_id, std::move(on_close));
         }
+        void setDialogueAudioManager(Audio::AudioManager* audio_manager) { _dialogueUI.setAudioManager(audio_manager); }
         void closeDialogue() { _dialogueUI.close(); }
         [[nodiscard]] bool isDialogueOpen() const { return _dialogueUI.isOpen(); }
 

@@ -93,6 +93,7 @@ namespace Nawia::Entity {
 		[[nodiscard]] int getFoodCount() const { return _food_count; }
 		void addFood(int amount);
 		[[nodiscard]] bool consumeFood();
+		[[nodiscard]] bool startConsumeFood();
 
 		/** @brief Próbuje wydać złoto i zwraca, czy operacja się udała. */
 		bool spendGold(int amount) {
@@ -177,6 +178,8 @@ namespace Nawia::Entity {
 
 		static constexpr int INIT_BACKPACK_SIZE = 20;
 		bool _is_knocked_down = false;
+		bool _is_consuming_food = false;
+		float _consume_food_timer = 0.0f;
 
 		enum class KnockdownPhase {
 			None,

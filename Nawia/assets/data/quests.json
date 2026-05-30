@@ -86,6 +86,27 @@
       }
     },
     {
+      "id": "inspect_wanda_body",
+      "name": "Sprawdz zwloki kobiety",
+      "description": "Podejdz do ciala lezacego nieopodal i sprawdz, kim byla ofiara.",
+      "level_name": "Wczora",
+      "prerequisites": [],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Zwloki Wandy",
+          "count": 1,
+          "description": "Sprawdz zwloki kobiety"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 0
+      }
+    },
+    {
       "id": "gzib_talk_intro",
       "name": "Porozmawiaj z Gzibem",
       "description": "Znajdz Gziba i dowiedz sie, co stalo sie z jego bracmi.",

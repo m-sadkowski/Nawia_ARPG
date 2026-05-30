@@ -3,6 +3,7 @@
 #include <EnemyInterface.h>
 
 #include <string>
+#include <vector>
 
 namespace Nawia::Entity {
 
@@ -38,6 +39,9 @@ namespace Nawia::Entity {
 			const std::string& hit_animation = ""
 		);
 		virtual void onAttackDamageApplied(Entity& target) {}
+		bool moveTowardPositionWithNav(Vector2 target_pos, float dt, float repath_interval = 0.35f);
+		[[nodiscard]] bool canReachPositionWithNav(Vector2 target_pos) const;
+		void clearNavigationPath();
 
 		State _state = State::Idle;
 		State _state_before_hit = State::Idle;
@@ -55,6 +59,9 @@ namespace Nawia::Entity {
 		std::string _walk_animation = "walk";
 		std::string _attack_animation = "attack";
 		std::string _hit_animation;
+		std::vector<Vector2> _current_nav_path;
+		Vector2 _current_nav_target = {0.0f, 0.0f};
+		bool _has_current_nav_target = false;
 
 	private:
 		void handleIdleState(float dt);

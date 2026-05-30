@@ -25,6 +25,7 @@ namespace Nawia::Game {
 		int id = 0;
 		std::string text;
 		std::string speaker_name;
+		std::string voice_path;
 		std::vector<DialogueOption> options;
 	};
 

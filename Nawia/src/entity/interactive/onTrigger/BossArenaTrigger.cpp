@@ -83,7 +83,7 @@ namespace Nawia::Entity {
         Game::DialogueTree tree;
         Game::DialogueNode node;
         node.id = 0;
-        node.speaker_name = "Gracz";
+        node.speaker_name = "Jarko";
         node.text = "Alez obrzydlistwo. CO ON MA W GNIEZDZIE? TO JEJ CHUSTA. Musze sie z nim rozprawic.";
 
         Game::DialogueOption option;

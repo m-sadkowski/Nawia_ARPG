@@ -19,7 +19,6 @@ namespace Nawia::Entity {
 	private:
 		Core::Engine* _engine = nullptr;
 		float _retreat_timer = 0.0f;
-		float _retreat_repath_timer = 0.0f;
 	};
 
 } // namespace Nawia::Entity

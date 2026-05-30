@@ -56,6 +56,20 @@ namespace Nawia::Core {
 		handleKeyboardInput(mouse_world_pos, screen_x, screen_y);
 	}
 
+	void PlayerController::handleInteractionOnly(Vector3 mouse_world_pos, const float screen_x, const float screen_y) {
+		if (!_engine || !_player) return;
+
+		_last_mouse_x = mouse_world_pos.x;
+		_last_mouse_y = mouse_world_pos.z;
+
+		if (_engine->getUIHandler().isInputBlocked()) {
+			_player->stop();
+			return;
+		}
+
+		handleMouseInput(mouse_world_pos, screen_x, screen_y);
+	}
+
 	void PlayerController::update(const float dt) {
 		processPendingAction();
 
@@ -112,7 +126,15 @@ namespace Nawia::Core {
 				[story_npc_ref, engine](const int node_id, const bool completed) {
 					if (const auto npc = story_npc_ref.lock()) {
 						npc->onDialogueClosed(node_id, completed);
-						if (completed && engine && npc->shouldNotifyQuestTalkOnDialogueComplete()) {
+						if (!completed || !engine)
+							return;
+
+						if (npc->isWandaCorpse()) {
+							npc->handleQuestTalkCompleted(*engine);
+							return;
+						}
+
+						if (npc->shouldNotifyQuestTalkOnDialogueComplete()) {
 							engine->getQuestManager().notifyNPCTalked(npc->getName());
 							engine->getQuestManager().update(engine);
 							npc->handleQuestTalkCompleted(*engine);
@@ -434,6 +456,9 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::updateRotation() const {
+		if (_engine && _engine->getUIHandler().isDialogueOpen())
+			return;
+
 		if (_target_enemy)
 			_player->rotateTowardsCenter(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		else if (!_player->isMoving() && !_player->isAnimationLocked())

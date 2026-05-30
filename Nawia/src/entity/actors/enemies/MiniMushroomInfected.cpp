@@ -1,5 +1,6 @@
 #include "MiniMushroomInfected.h"
 
+#include <SoundIds.h>
 #include <Worm.h>
 
 #include <raymath.h>
@@ -31,6 +32,7 @@ namespace Nawia::Entity {
 		if (_corruption_released || _purified)
 			return;
 
+		playSoundEffect(Audio::SoundId::MiniMushroomWormExit, 0.8f);
 		_corruption_released = true;
 		_corpse_frozen = false;
 		setType(EntityType::NPCStatic);
@@ -44,7 +46,11 @@ namespace Nawia::Entity {
 
 	void MiniMushroomInfected::update(const float dt) {
 		if (!_corruption_released) {
+			const State previous_state = _state;
 			SimpleMeleeEnemy::update(dt);
+			updateMovementSound(Audio::SoundPath::MiniMushroomWalk, _state == State::Chasing && _is_moving, 0.34f, 1.35f);
+			if (previous_state != State::Attacking && _state == State::Attacking)
+				playSoundEffect(Audio::SoundId::MiniMushroomAttack, 0.72f);
 			return;
 		}
 
@@ -154,6 +160,7 @@ namespace Nawia::Entity {
 		Entity::update(dt);
 
 		if (_purifying) {
+			updateMovementSound(Audio::SoundPath::MiniMushroomWalk, false);
 			if (!isAnimationLocked()) {
 				_purifying = false;
 				playAnimation("idle", true, false, 0, true);
@@ -163,6 +170,7 @@ namespace Nawia::Entity {
 
 		if (_has_prop_destination) {
 			updateMovement(dt);
+			updateMovementSound(Audio::SoundPath::MiniMushroomWalk, _is_moving, 0.34f, 1.45f);
 			if (_is_moving) {
 				if (getAnimationFrameCount("walk") > 0)
 					playAnimation("walk");
@@ -180,6 +188,8 @@ namespace Nawia::Entity {
 			_jump_timer = static_cast<float>(GetRandomValue(120, 300)) / 100.0f;
 			playAnimation("idle", true, false, 0, true);
 		}
+
+		updateMovementSound(Audio::SoundPath::MiniMushroomWalk, false);
 
 		if (_jumping) {
 			if (!isAnimationLocked()) {

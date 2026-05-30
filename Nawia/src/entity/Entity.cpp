@@ -452,7 +452,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				_equipment->draw(pos3d, visual_rotation, _rotation, _scale);
 			}
 
-			if (_hovered)
+			if (_hovered && _type != EntityType::Player)
 			{
 				// Drugi przebieg renderu daje subtelne przyciemnienie przy hoverze.
 				DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, Fade(BLACK, 0.2f));

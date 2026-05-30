@@ -37,7 +37,7 @@
       "name": "Strong Hit",
       "stats": {
         "damage": 8,
-        "cooldown": 1.15,
+        "cooldown": 2.3,
         "cast_range": 3.5,
         "projectile_speed": 0.0,
         "duration": 0.14,

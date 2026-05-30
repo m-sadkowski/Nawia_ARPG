@@ -30,6 +30,7 @@ namespace Nawia::Core {
 		 * @brief Obsluguje input myszy i klawiatury dla aktualnej pozycji kursora.
 		 */
 		void handleInput(Vector3 mouse_world_pos, float screen_x, float screen_y);
+		void handleInteractionOnly(Vector3 mouse_world_pos, float screen_x, float screen_y);
 
 		/**
 		 * @brief Aktualizuje akcje oczekujace, autoatak i ruch po sciezce.
