@@ -37,6 +37,11 @@ namespace Nawia::Core {
 		 */
 		void update(float dt);
 
+		/**
+		 * @brief Kasuje aktualny rozkaz ruchu, ataku lub interakcji.
+		 */
+		void stopCurrentAction();
+
 	private:
 		struct PendingAction {
 			enum class Type { None, Move, Ability, Interact } type = Type::None;
@@ -54,6 +59,8 @@ namespace Nawia::Core {
 		void processPendingAction();
 		void processAutoAttack();
 		bool processInteraction();
+		bool moveToInteractionRange(const std::shared_ptr<Entity::Entity>& target, float interaction_range_sq);
+		bool performInteraction();
 		void updateRotation() const;
 
 		bool trySelectEnemy(float screen_x, float screen_y);

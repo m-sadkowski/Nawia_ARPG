@@ -87,6 +87,13 @@ namespace Nawia::Entity {
 		playSoundEffect(Audio::SoundId::CatMeow, 0.8f);
 	}
 
+	void Cat::onInteractionCompleted(Entity& instigator, Core::Engine& engine) {
+		(void)instigator;
+
+		engine.getUIHandler().openDialogue(getDialogueTree());
+		engine.getQuestManager().notifyNPCTalked(getName());
+	}
+
 	void Cat::update(const float delta_time) {
 		Entity::update(delta_time);
 	}

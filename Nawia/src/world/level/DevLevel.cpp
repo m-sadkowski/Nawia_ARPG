@@ -2068,7 +2068,14 @@ namespace Nawia::World {
 			saveObject("npcs");
 			_current_mode = EditorMode::None;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 250, 300, 50, GRAY)) {
+		if (drawButton(font, "Zwloki Wandy", start_x, start_y + 240, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Zwloki Wandy";
+			_temp_extra_value = "wanda_corpse";
+			saveObject("npcs");
+			_current_mode = EditorMode::None;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 310, 300, 50, GRAY)) {
 			_current_mode = EditorMode::None;
 		}
 	}

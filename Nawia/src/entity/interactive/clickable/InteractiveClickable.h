@@ -26,6 +26,8 @@ namespace Nawia::Entity {
 		 * @brief Zwraca ekwipunek obiektu, jeśli dany obiekt go udostępnia.
 		 */
 		virtual Item::Backpack* getInventory() { return nullptr; }
+
+		void onInteractionCompleted(Entity& instigator, Core::Engine& engine) override;
 	};
 
 } // namespace Nawia::Entity

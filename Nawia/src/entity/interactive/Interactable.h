@@ -1,5 +1,7 @@
 #pragma once
 
+namespace Nawia::Core { class Engine; }
+
 namespace Nawia::Entity {
 
 	class Entity;
@@ -23,6 +25,11 @@ namespace Nawia::Entity {
 		 * @param instigator Encja inicjująca interakcję.
 		 */
 		virtual void onInteract(Entity& instigator) = 0;
+
+		/**
+		 * @brief Wywolywane po udanej interakcji, gdy obiekt moze otworzyc UI/dialog.
+		 */
+		virtual void onInteractionCompleted(Entity& instigator, Core::Engine& engine) {}
 
 		/**
 		 * @brief Wywoływane, gdy encja wchodzi w obszar aktywujący obiektu.

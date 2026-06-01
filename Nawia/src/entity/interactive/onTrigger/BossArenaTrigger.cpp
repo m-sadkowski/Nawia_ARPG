@@ -27,6 +27,7 @@ namespace Nawia::Entity {
 
                     const auto* boss_data = getBossData(engine);
                     if (boss_data && shouldRunIntro(engine, *boss_data)) {
+                        engine->cancelPlayerAction();
                         showBossPreview(engine, *boss_data);
                         openIntroDialogue(engine, *boss_data);
                         return;
@@ -131,6 +132,7 @@ namespace Nawia::Entity {
         if (!engine)
             return;
 
+        engine->cancelPlayerAction();
         hideBossPreview();
         engine->getBossManager().startBossFight(_boss_id, engine, getCenter(), getAltitude());
     }

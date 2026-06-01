@@ -33,6 +33,7 @@ namespace Nawia::Entity {
 
 		/** @brief Obsługuje oddanie ryby i zakończenie questu kota. */
 		void onInteract(Entity& instigator) override;
+		void onInteractionCompleted(Entity& instigator, Core::Engine& engine) override;
 
 		/** @brief Aktualizuje bazowy stan NPC. */
 		void update(float delta_time) override;

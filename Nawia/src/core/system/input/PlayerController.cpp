@@ -1,12 +1,9 @@
 #include "PlayerController.h"
 
 #include <Ability.h>
-#include <Cat.h>
 #include <Engine.h>
 #include <EnemyInterface.h>
 #include <Interactable.h>
-#include <InteractiveClickable.h>
-#include <StoryNpc.h>
 #include <InteractiveTrigger.h>
 #include <Logger.h>
 #include <Map.h>
@@ -84,6 +81,15 @@ namespace Nawia::Core {
 		updateRotation();
 	}
 
+	void PlayerController::stopCurrentAction() {
+		_target_interactable = nullptr;
+		_target_enemy = nullptr;
+		_current_path.clear();
+		_pending_action = {};
+		if (_player)
+			_player->stop();
+	}
+
 	bool PlayerController::processInteraction() {
 		if (!_target_interactable)
 			return false;
@@ -97,57 +103,29 @@ namespace Nawia::Core {
 		const float interaction_range_sq = _target_interactable->getInteractionRange();
 		const float distance_sq = getHorizontalDistanceToBoxSq(*target_entity, _player->getCenter());
 
-		if (distance_sq > interaction_range_sq) {
-			if (!_current_path.empty() || _player->isMoving()) {
-				updatePathMovement();
-			} else if (!moveTowardInteractable(target_entity, interaction_range_sq)) {
-				_player->stop();
-				_target_interactable = nullptr;
-			}
-			return true;
-		}
+		if (distance_sq > interaction_range_sq)
+			return moveToInteractionRange(target_entity, interaction_range_sq);
 
+		return performInteraction();
+	}
+
+	bool PlayerController::moveToInteractionRange(
+		const std::shared_ptr<Entity::Entity>& target,
+		const float interaction_range_sq
+	) {
+		if (!_current_path.empty() || _player->isMoving()) {
+			updatePathMovement();
+		} else if (!moveTowardInteractable(target, interaction_range_sq)) {
+			_player->stop();
+			_target_interactable = nullptr;
+		}
+		return true;
+	}
+
+	bool PlayerController::performInteraction() {
 		_player->stop();
 		_target_interactable->onInteract(*_player);
-
-		if (const auto cat = std::dynamic_pointer_cast<Entity::Cat>(_target_interactable)) {
-			_engine->getUIHandler().openDialogue(cat->getDialogueTree());
-			_engine->getQuestManager().notifyNPCTalked(cat->getName());
-			_target_interactable = nullptr;
-			return true;
-		}
-
-		if (const auto story_npc = std::dynamic_pointer_cast<Entity::StoryNpc>(_target_interactable)) {
-			std::weak_ptr<Entity::StoryNpc> story_npc_ref = story_npc;
-			Engine* engine = _engine;
-			_engine->getUIHandler().openDialogue(
-				story_npc->getDialogueTree(),
-				story_npc->getDialogueStartNode(),
-				[story_npc_ref, engine](const int node_id, const bool completed) {
-					if (const auto npc = story_npc_ref.lock()) {
-						npc->onDialogueClosed(node_id, completed);
-						if (!completed || !engine)
-							return;
-
-						if (npc->isWandaCorpse()) {
-							npc->handleQuestTalkCompleted(*engine);
-							return;
-						}
-
-						if (npc->shouldNotifyQuestTalkOnDialogueComplete()) {
-							engine->getQuestManager().notifyNPCTalked(npc->getName());
-							engine->getQuestManager().update(engine);
-							npc->handleQuestTalkCompleted(*engine);
-						}
-					}
-				});
-			_target_interactable = nullptr;
-			return true;
-		}
-
-		const auto clickable = std::dynamic_pointer_cast<Entity::InteractiveClickable>(_target_interactable);
-		if (clickable && clickable->getInventory() != nullptr)
-			_engine->getUIHandler().openContainer(clickable.get());
+		_target_interactable->onInteractionCompleted(*_player, *_engine);
 
 		_target_interactable = nullptr;
 		return true;

@@ -166,6 +166,8 @@ namespace Nawia::Core {
 			"assets/models/actors/mini_mushroom/mini_mushroom_infected.glb",
 			"assets/models/actors/gzib/mushroom_raylib_fixed.glb",
 			"assets/models/actors/village_head/village_head.glb",
+			"assets/models/actors/szeptucha/baba_yaga.glb",
+			"assets/models/actors/wanda/woman_dress.glb",
 			"assets/models/actors/devil/devil_idle.glb",
 			"assets/models/actors/devil/devil_walk.glb",
 			"assets/models/actors/devil/devil_run.glb",
@@ -282,11 +284,13 @@ namespace Nawia::Core {
 				addModel("assets/models/actors/gzib/mushroom_raylib_fixed.glb");
 				addAnimation("assets/models/actors/gzib/mushroom_raylib_fixed.glb");
 			} else if (npc_class == "szeptucha") {
-				addModel("assets/models/actors/gzib/mushroom_raylib_fixed.glb");
-				addAnimation("assets/models/actors/gzib/mushroom_raylib_fixed.glb");
+				addModel("assets/models/actors/szeptucha/baba_yaga.glb");
+				addAnimation("assets/models/actors/szeptucha/baba_yaga.glb");
 			} else if (npc_class == "village_head") {
 				addModel("assets/models/actors/village_head/village_head.glb");
 				addAnimation("assets/models/actors/village_head/village_head.glb");
+			} else if (npc_class == "wanda_corpse") {
+				addModel("assets/models/actors/wanda/woman_dress.glb");
 			} else {
 				addModel("assets/models/actors/cat/cat_bounce.glb");
 				addAnimation("assets/models/actors/cat/cat_bounce.glb");

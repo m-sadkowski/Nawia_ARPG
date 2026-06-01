@@ -22,6 +22,7 @@
 #include <Teleport.h>
 #include <VillageHeadNpc.h>
 #include <WalkingDead.h>
+#include <WandaCorpseNpc.h>
 #include <Worm.h>
 
 #include <KnifeThrowAbility.h>
@@ -363,6 +364,12 @@ namespace Nawia::World {
 			auto szeptucha = std::make_shared<Entity::SzeptuchaNpc>(name.empty() ? "Szeptucha" : name, x, y, engine);
 			szeptucha->setAudioManager(&engine->getAudioManager());
 			return szeptucha;
+		}
+
+		if (npc_class == "wanda_corpse") {
+			auto corpse = std::make_shared<Entity::WandaCorpseNpc>(name.empty() ? "Zwloki Wandy" : name, x, y, engine);
+			corpse->setAudioManager(&engine->getAudioManager());
+			return corpse;
 		}
 
 		Core::Logger::errorLog("EntityFactory: nieznana klasa NPC: " + npc_class);

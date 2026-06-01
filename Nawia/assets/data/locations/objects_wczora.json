@@ -3,6 +3,15 @@
         {
             "category": "npcs",
             "location": "Wczora",
+            "name": "Zwloki Wandy",
+            "npc_class": "wanda_corpse",
+            "type": "npc",
+            "x": -5.4,
+            "y": -3.2
+        },
+        {
+            "category": "npcs",
+            "location": "Wczora",
             "name": "Gzib",
             "npc_class": "mushroom",
             "type": "npc",
