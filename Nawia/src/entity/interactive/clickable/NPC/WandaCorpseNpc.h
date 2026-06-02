@@ -10,7 +10,6 @@ namespace Nawia::Entity {
 		[[nodiscard]] const char* getNpcClass() const override { return "wanda_corpse"; }
 		[[nodiscard]] bool shouldNotifyQuestTalkOnDialogueComplete() const override { return false; }
 		void onInteract(Entity& instigator) override;
-		[[nodiscard]] bool isMouseOver(float screen_x, float screen_y, const Camera3D& camera) const override;
 		[[nodiscard]] bool canInteract() const override;
 		float getInteractionRange() override;
 		void handleQuestTalkCompleted(Core::Engine& engine) override;

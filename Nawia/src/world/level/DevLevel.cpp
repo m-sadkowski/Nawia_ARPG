@@ -1465,8 +1465,16 @@ namespace Nawia::World {
 				}
 			} else {
 				auto entity = EntityFactory::create(object.type, entity_data, engine, _map.get());
-				if (entity)
+				if (entity) {
+					if (object.category == "npcs" && _map && _map->getNavMesh().isReady()) {
+						const Vector3 snapped_position =
+							_map->getNavMesh().getClosestWalkablePosition({entity->getX(), 0.0f, entity->getY()});
+						entity->setX(snapped_position.x);
+						entity->setY(snapped_position.z);
+						entity->setAltitude(snapped_position.y);
+					}
 					entity_manager.addEntity(entity);
+				}
 			}
 		}
 

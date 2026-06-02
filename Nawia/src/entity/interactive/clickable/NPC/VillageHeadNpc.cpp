@@ -18,9 +18,8 @@ namespace Nawia::Entity {
 		const float x,
 		const float y,
 		Core::Engine* engine)
-		: StoryNpc(name, x, y)
+		: StoryNpc(name, x, y, engine)
 	{
-		setEngine(engine);
 		_type = EntityType::NPCActor;
 		setScale(VILLAGE_HEAD_SCALE);
 		setMovementSpeed(2.0f);

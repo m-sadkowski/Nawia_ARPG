@@ -681,21 +681,30 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 		// Pudelko ograniczajace z rayliba jest lokalne wzgledem modelu.
 		const BoundingBox local_bb = _local_model_bounding_box_valid ? _local_model_bounding_box : GetModelBoundingBox(_model);
-		const Vector3 pos = getWorldPos3D();
-
-		// Skalujemy i przesuwamy pudełko do przestrzeni świata.
-		return BoundingBox{
-			Vector3{
-				local_bb.min.x * _scale + pos.x,
-				local_bb.min.y * _scale + pos.y,
-				local_bb.min.z * _scale + pos.z
-			},
-			Vector3{
-				local_bb.max.x * _scale + pos.x,
-				local_bb.max.y * _scale + pos.y,
-				local_bb.max.z * _scale + pos.z
-			}
+		const Matrix world_transform = getWorldTransformMatrix();
+		const Vector3 corners[] = {
+			{local_bb.min.x, local_bb.min.y, local_bb.min.z},
+			{local_bb.min.x, local_bb.min.y, local_bb.max.z},
+			{local_bb.min.x, local_bb.max.y, local_bb.min.z},
+			{local_bb.min.x, local_bb.max.y, local_bb.max.z},
+			{local_bb.max.x, local_bb.min.y, local_bb.min.z},
+			{local_bb.max.x, local_bb.min.y, local_bb.max.z},
+			{local_bb.max.x, local_bb.max.y, local_bb.min.z},
+			{local_bb.max.x, local_bb.max.y, local_bb.max.z},
 		};
+
+		BoundingBox world_box = {
+			Vector3{std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max()},
+			Vector3{std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest()}
+		};
+
+		for (const Vector3& corner : corners) {
+			const Vector3 transformed = Vector3Transform(corner, world_transform);
+			world_box.min = Vector3Min(world_box.min, transformed);
+			world_box.max = Vector3Max(world_box.max, transformed);
+		}
+
+		return world_box;
 	}
 
 	Vector2 Entity::getScreenPosition(const Camera3D& camera) const

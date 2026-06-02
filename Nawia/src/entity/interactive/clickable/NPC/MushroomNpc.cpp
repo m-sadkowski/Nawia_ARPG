@@ -32,10 +32,39 @@ namespace Nawia::Entity {
 		const float y,
 		Core::Engine* engine,
 		const std::string& follow_checkpoint_name)
-		: StoryNpc(name, x, y)
+		: StoryNpc(name, x, y, engine)
 	{
-		setEngine(engine);
-		configure(follow_checkpoint_name);
+		_follow_checkpoint_name = follow_checkpoint_name;
+		_type = EntityType::NPCActor;
+		_home_position = getCenter();
+		setMovementSpeed(3.2f);
+
+		replaceModel(MUSHROOM_MODEL, false);
+		if (!hasModelLoaded()) {
+			Core::Logger::errorLog("MushroomNpc: failed to load mushroom model " + std::string(MUSHROOM_MODEL));
+			return;
+		}
+
+		if (hasModelLoaded()) {
+			const BoundingBox bounds = GetModelBoundingBox(getModel());
+			const float model_height = bounds.max.y - bounds.min.y;
+			if (model_height > 1e-8f)
+				setScale(MUSHROOM_TARGET_HEIGHT / model_height);
+
+			const float center_x = 0.5f * (bounds.min.x + bounds.max.x);
+			const float center_z = 0.5f * (bounds.min.z + bounds.max.z);
+			getModel().transform = MatrixMultiply(
+				MatrixTranslate(-center_x, -bounds.min.y, -center_z),
+				getModel().transform);
+			setAltitude(0.0f);
+		}
+
+		addAnimation("idle", MUSHROOM_MODEL, MUSHROOM_IDLE_ANIMATION_INDEX);
+		addAnimation("walk", MUSHROOM_MODEL, MUSHROOM_WALK_ANIMATION_INDEX);
+		addAnimation("talk", MUSHROOM_MODEL, MUSHROOM_TALK_ANIMATION_INDEX);
+		playIdleAnimation();
+
+		setPlaceholderDialogue("Gzib", "Jeszcze ustawimy tu prawdziwy dialog Gziba.");
 	}
 
 	bool MushroomNpc::shouldNotifyQuestTalkOnDialogueComplete() const {
@@ -105,40 +134,6 @@ namespace Nawia::Entity {
 			engine.getQuestManager().notifyKill("Robal");
 
 		engine.getQuestManager().update(&engine);
-	}
-
-	void MushroomNpc::configure(const std::string& follow_checkpoint_name) {
-		_follow_checkpoint_name = follow_checkpoint_name;
-		_type = EntityType::NPCActor;
-		_home_position = getCenter();
-		setMovementSpeed(3.2f);
-
-		replaceModel(MUSHROOM_MODEL, false);
-		if (!hasModelLoaded()) {
-			Core::Logger::errorLog("MushroomNpc: failed to load mushroom model " + std::string(MUSHROOM_MODEL));
-			return;
-		}
-
-		if (hasModelLoaded()) {
-			const BoundingBox bounds = GetModelBoundingBox(getModel());
-			const float model_height = bounds.max.y - bounds.min.y;
-			if (model_height > 1e-8f)
-				setScale(MUSHROOM_TARGET_HEIGHT / model_height);
-
-			const float center_x = 0.5f * (bounds.min.x + bounds.max.x);
-			const float center_z = 0.5f * (bounds.min.z + bounds.max.z);
-			getModel().transform = MatrixMultiply(
-				MatrixTranslate(-center_x, -bounds.min.y, -center_z),
-				getModel().transform);
-			setAltitude(0.0f);
-		}
-
-		addAnimation("idle", MUSHROOM_MODEL, MUSHROOM_IDLE_ANIMATION_INDEX);
-		addAnimation("walk", MUSHROOM_MODEL, MUSHROOM_WALK_ANIMATION_INDEX);
-		addAnimation("talk", MUSHROOM_MODEL, MUSHROOM_TALK_ANIMATION_INDEX);
-		playIdleAnimation();
-
-		setPlaceholderDialogue("Gzib", "Jeszcze ustawimy tu prawdziwy dialog Gziba.");
 	}
 
 	void MushroomNpc::refreshDialogue() {

@@ -31,6 +31,7 @@ namespace Nawia::Core {
             return type == Entity::EntityType::Player ||
                    type == Entity::EntityType::Enemy ||
                    type == Entity::EntityType::Ally ||
+                   type == Entity::EntityType::NPCStatic ||
                    type == Entity::EntityType::NPCActor;
         }
 

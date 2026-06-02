@@ -15,9 +15,8 @@ namespace Nawia::Entity {
 		const float x,
 		const float y,
 		Core::Engine* engine)
-		: StoryNpc(name, x, y)
+		: StoryNpc(name, x, y, engine)
 	{
-		setEngine(engine);
 		_type = EntityType::NPCStatic;
 		setDialogueStageKey("szeptucha");
 		replaceModel(BABA_YAGA_MODEL, false);

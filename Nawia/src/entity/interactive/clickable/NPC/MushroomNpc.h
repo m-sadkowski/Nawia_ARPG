@@ -28,7 +28,6 @@ namespace Nawia::Entity {
 			ReturningHome
 		};
 
-		void configure(const std::string& follow_checkpoint_name);
 		void refreshDialogue();
 		void updateCompanionTravel(float delta_time);
 		void startRoute(TravelMode mode);

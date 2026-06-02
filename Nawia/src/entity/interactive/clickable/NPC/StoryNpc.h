@@ -13,7 +13,7 @@ namespace Nawia::Entity {
 
 	class StoryNpc : public InteractiveClickable {
 	public:
-		StoryNpc(const std::string& name, float x, float y);
+		StoryNpc(const std::string& name, float x, float y, Core::Engine* engine = nullptr);
 		[[nodiscard]] virtual const char* getNpcClass() const = 0;
 
 		void onInteract(Entity& instigator) override;

@@ -33,9 +33,10 @@ namespace Nawia::Entity {
 		}
 	}
 
-	StoryNpc::StoryNpc(const std::string& name, const float x, const float y)
+	StoryNpc::StoryNpc(const std::string& name, const float x, const float y, Core::Engine* engine)
 		: InteractiveClickable(name, x, y, nullptr, 1)
 	{
+		_engine = engine;
 		_type = EntityType::NPCStatic;
 		setFaction(Faction::None);
 	}
