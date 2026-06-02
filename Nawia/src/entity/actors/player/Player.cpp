@@ -127,6 +127,18 @@ namespace Nawia::Entity {
 		}
 	}
 
+	void Player::clearControlLocks()
+	{
+		_is_knocked_down = false;
+		_knockdown_phase = KnockdownPhase::None;
+		_is_consuming_food = false;
+		_consume_food_timer = 0.0f;
+		stop();
+		setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+		if (!isDying())
+			playAnimation("Idle_Loop", true, false, 0, true);
+	}
+
 	void Player::update(const float delta_time)
 	{
 		Entity::update(delta_time);

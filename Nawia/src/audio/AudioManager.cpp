@@ -190,6 +190,11 @@ namespace Nawia::Audio {
 		_effects_volume = clampVolume(volume);
 	}
 
+	void AudioManager::setMusicDuckingFactor(const float factor) {
+		_music_ducking_factor = clampVolume(factor);
+		updateMusicVolume();
+	}
+
 	bool AudioManager::loadAndPlayMusic(const std::string& path, const float volume) {
 		if (!_is_initialized || path.empty())
 			return false;
@@ -252,7 +257,7 @@ namespace Nawia::Audio {
 
 	void AudioManager::updateMusicVolume() const {
 		if (_is_initialized && _has_music)
-			SetMusicVolume(_current_music, _music_volume * _current_music_volume);
+			SetMusicVolume(_current_music, _music_volume * _current_music_volume * _music_ducking_factor);
 	}
 
 	float AudioManager::clampVolume(const float volume) {

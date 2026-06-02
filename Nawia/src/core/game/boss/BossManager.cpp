@@ -8,6 +8,7 @@
 #include <Frog.h>
 #include <Logger.h>
 #include <Map.h>
+#include <Player.h>
 #include <WalkingDead.h>
 #include <json.hpp>
 
@@ -749,6 +750,12 @@ namespace Nawia::Game {
         }
 
         removeMinions(engine);
+
+        if (victory && engine) {
+            engine->cancelPlayerAction();
+            if (auto player = engine->getPlayer())
+                player->clearControlLocks();
+        }
         
         _active_boss_data = nullptr;
         _active_boss_entity = nullptr;

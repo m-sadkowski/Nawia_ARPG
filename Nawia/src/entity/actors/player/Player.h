@@ -43,6 +43,9 @@ namespace Nawia::Entity {
 		/** @brief Natychmiast zatrzymuje ruch gracza. */
 		void stop();
 
+		/** @brief Czyści krótkotrwałe blokady sterowania po wymuszonych sekwencjach gameplayowych. */
+		void clearControlLocks();
+
 		/** @brief Przesuwa gracza po ścieżce wyznaczonej przez mapę. */
 		void updateMovement(float delta_time) override;
 

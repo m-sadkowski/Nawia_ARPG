@@ -30,6 +30,7 @@ namespace Nawia::World {
 			"assets/audio/music/soulfuljamtracks-slavic-folk-308126.mp3";
 		constexpr const char* FIRST_LEVEL_LIGHTING_FILE = "assets/maps/forest_lighting.json";
 		constexpr float WCZORA_INTRO_CAMERA_ZOOM_FACTOR = 0.5f;
+		constexpr float WCZORA_INTRO_CAMERA_TARGET_HEIGHT_FACTOR = 0.55f;
 
 		const std::vector<LevelLocationFile> FIRST_LEVEL_LOCATIONS = {
 			{"Wczora", "assets/data/locations/wczora.json"},
@@ -199,6 +200,10 @@ namespace Nawia::World {
 
 	float FirstLevel::getCameraZoomMultiplier() const {
 		return _intro_phase == IntroPhase::Inactive ? 1.0f : WCZORA_INTRO_CAMERA_ZOOM_FACTOR;
+	}
+
+	float FirstLevel::getCameraTargetHeightMultiplier() const {
+		return _intro_phase == IntroPhase::Inactive ? 1.0f : WCZORA_INTRO_CAMERA_TARGET_HEIGHT_FACTOR;
 	}
 
 	void FirstLevel::startIntroSequence(Core::Engine* engine) {

@@ -139,6 +139,8 @@ namespace Nawia::UI
         _on_close = std::move(on_close);
         _option_rectangles.clear();
         _is_open = true;
+        if (_audio_manager)
+            _audio_manager->setMusicDuckingFactor(0.5f);
         playCurrentNodeVoice();
     }
 
@@ -151,6 +153,8 @@ namespace Nawia::UI
         auto on_close = std::move(_on_close);
         stopCurrentVoice();
         _is_open = false;
+        if (_audio_manager)
+            _audio_manager->setMusicDuckingFactor(1.0f);
         _on_close = nullptr;
         _option_rectangles.clear();
 

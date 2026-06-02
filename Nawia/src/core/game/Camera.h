@@ -34,7 +34,7 @@ namespace Nawia::Core {
 		/**
 		 * @brief Ustawia kamere nad wskazanym celem.
 		 */
-		void follow(const Entity::Entity* target);
+		void follow(const Entity::Entity* target, float target_height_multiplier = 1.0f);
 
 		/**
 		 * @brief Zwraca kamere Raylib tylko do odczytu.

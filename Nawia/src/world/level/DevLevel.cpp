@@ -1058,7 +1058,10 @@ namespace Nawia::World {
 		return directory / ("objects_" + stem + ".json");
 	}
 
-	void DevLevel::requestSaveLocation() {
+	void DevLevel::requestSaveLocation(Core::Engine* engine) {
+		if (engine)
+			_camera_zoom = engine->getCamera().getZoomFactor();
+
 		if (!syncLocationStateFromBuffers())
 			return;
 
@@ -1646,7 +1649,7 @@ namespace Nawia::World {
 
 		if (drawButton(font, "Zapisz", x + 96, y + 226, 170, 48, GREEN)) {
 			_active_text_field = EditorTextField::None;
-			requestSaveLocation();
+			requestSaveLocation(engine);
 		}
 
 		const std::string status = _has_unsaved_changes ? "* " + _status_message : _status_message;

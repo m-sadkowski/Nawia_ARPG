@@ -146,6 +146,11 @@ namespace Nawia::Core {
 		return level ? std::max(0.05f, level->getCameraZoomMultiplier()) : 1.0f;
 	}
 
+	float Engine::getLevelCameraTargetHeightMultiplier() const {
+		const auto* level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
+		return level ? std::max(0.0f, level->getCameraTargetHeightMultiplier()) : 1.0f;
+	}
+
 	void Engine::processLoading() {
 		if (_loading_kind == LoadingKind::None)
 			return;
@@ -685,9 +690,18 @@ namespace Nawia::Core {
 				_current_camera_zoom += (target_zoom - _current_camera_zoom) * zoom_t;
 			}
 			_camera.resetZoom(_current_camera_zoom);
+
+			const float target_height_multiplier = getLevelCameraTargetHeightMultiplier();
+			if (std::abs(target_height_multiplier - 1.0f) > 0.001f) {
+				_current_camera_target_height_multiplier = target_height_multiplier;
+			} else {
+				const float height_t = std::clamp(delta_time * k_camera_zoom_return_speed, 0.0f, 1.0f);
+				_current_camera_target_height_multiplier +=
+					(1.0f - _current_camera_target_height_multiplier) * height_t;
+			}
 		}
 
-		_camera.follow(_player.get());
+		_camera.follow(_player.get(), _current_camera_target_height_multiplier);
 		_lighting_system.update(_camera.get());
 		if (_ui_handler) _ui_handler->update(delta_time);
 		_level_manager->update(this, delta_time);

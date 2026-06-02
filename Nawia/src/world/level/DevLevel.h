@@ -171,7 +171,7 @@ namespace Nawia::World {
 		[[nodiscard]] std::filesystem::path getObjectsFilePath(const std::filesystem::path& location_path) const;
 
 		/** @brief Rozpoczyna zapis, pytajac o nadpisanie gdy pliki istnieja. */
-		void requestSaveLocation();
+		void requestSaveLocation(Core::Engine* engine);
 
 		/** @brief Zapisuje plik lokacji oraz odpowiadajacy mu objects_*.json. */
 		void saveLocationFiles(const std::filesystem::path& location_path, const std::filesystem::path& objects_path);

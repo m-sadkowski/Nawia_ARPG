@@ -24,6 +24,10 @@ namespace Nawia::Entity {
                     auto* engine = player->getEngine();
                     auto& boss_mgr = engine->getBossManager();
                     if (boss_mgr.isFightActive() || _intro_dialogue_open) return;
+                    if (boss_mgr.isBossDefeated(_boss_id)) {
+                        setDormant(true);
+                        return;
+                    }
 
                     const auto* boss_data = getBossData(engine);
                     if (boss_data && shouldRunIntro(engine, *boss_data)) {
@@ -131,6 +135,11 @@ namespace Nawia::Entity {
     void BossArenaTrigger::startBoss(Core::Engine* engine) {
         if (!engine)
             return;
+
+        if (engine->getBossManager().isBossDefeated(_boss_id)) {
+            setDormant(true);
+            return;
+        }
 
         engine->cancelPlayerAction();
         hideBossPreview();

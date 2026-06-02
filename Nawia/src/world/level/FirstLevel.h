@@ -26,6 +26,7 @@ namespace Nawia::World {
 		[[nodiscard]] bool blocksPlayerControl() const override;
 		[[nodiscard]] bool isInteractionOnly() const override;
 		[[nodiscard]] float getCameraZoomMultiplier() const override;
+		[[nodiscard]] float getCameraTargetHeightMultiplier() const override;
 		[[nodiscard]] bool grantsStarterItemsOnNewGame() const override { return false; }
 
 	private:

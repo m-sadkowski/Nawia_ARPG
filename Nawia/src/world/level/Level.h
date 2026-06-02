@@ -87,6 +87,11 @@ namespace Nawia::World {
         [[nodiscard]] virtual float getCameraZoomMultiplier() const { return 1.0f; }
 
         /**
+         * @brief Mnoznik wysokosci celu kamery narzucony przez aktywna sekwencje poziomu.
+         */
+        [[nodiscard]] virtual float getCameraTargetHeightMultiplier() const { return 1.0f; }
+
+        /**
          * @brief Zwraca, czy nowa gra na tym poziomie daje standardowy ekwipunek startowy.
          */
         [[nodiscard]] virtual bool grantsStarterItemsOnNewGame() const { return true; }

@@ -88,7 +88,11 @@ namespace Nawia::Core {
 		Game::BossManager& getBossManager() { return _boss_manager; }
 		const Game::BossManager& getBossManager() const { return _boss_manager; }
 		Game::SaveGameManager& getSaveGameManager() { return _save_game_manager; }
-		void setGameplayCameraZoom(float zoom_factor) { _gameplay_camera_zoom = zoom_factor; }
+		void setGameplayCameraZoom(float zoom_factor) {
+			_gameplay_camera_zoom = zoom_factor;
+			_current_camera_zoom = zoom_factor;
+			_camera.resetZoom(zoom_factor);
+		}
 		[[nodiscard]] float getGameplayCameraZoom() const { return _gameplay_camera_zoom; }
 		void notifyStoryEvent(const std::string& event_id, Vector2 world_position);
 		void cancelPlayerAction();
@@ -116,6 +120,7 @@ namespace Nawia::Core {
 		[[nodiscard]] bool isLevelInteractionOnly() const;
 		[[nodiscard]] bool isLevelBlockingControl() const;
 		[[nodiscard]] float getLevelCameraZoomMultiplier() const;
+		[[nodiscard]] float getLevelCameraTargetHeightMultiplier() const;
 		void collectPendingSpawns();
 		void loadGameplaySounds();
 		void applySettings(const Settings& new_settings);
@@ -165,6 +170,7 @@ namespace Nawia::Core {
 		GameCamera _camera;
 		float _gameplay_camera_zoom = 0.75f;
 		float _current_camera_zoom = 0.75f;
+		float _current_camera_target_height_multiplier = 1.0f;
 		std::unique_ptr<World::LevelManager> _level_manager;
 		std::unique_ptr<EntityManager> _entity_manager;
 		std::shared_ptr<Entity::Player> _player;
