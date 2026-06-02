@@ -26,15 +26,5 @@
       "ping_pong_animation": true,
       "icon": "assets/textures/icons/strong_hit_icon.png"
     }
-  ],
-  "starter_fireball": {
-    "enabled": true,
-    "model": "assets/models/fireball.glb",
-    "scale": 0.5,
-    "icon": "assets/textures/icons/fireball_icon.png"
-  },
-  "starter_items": {
-    "equipment": [1, 2, 3, 8, 9],
-    "backpack": [4, 5, 6, 7, 10, 11, 12]
-  }
+  ]
 }

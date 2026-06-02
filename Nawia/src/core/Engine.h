@@ -124,7 +124,7 @@ namespace Nawia::Core {
 		void collectPendingSpawns();
 		void loadGameplaySounds();
 		void applySettings(const Settings& new_settings);
-		void createFreshPlayer(bool grant_starter_items);
+		void createFreshPlayer();
 		void startNewGame(const std::string& level_name, int default_slot);
 		bool saveCurrentGame(int slot);
 		/**

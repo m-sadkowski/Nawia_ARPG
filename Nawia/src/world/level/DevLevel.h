@@ -174,7 +174,7 @@ namespace Nawia::World {
 		void requestSaveLocation(Core::Engine* engine);
 
 		/** @brief Zapisuje plik lokacji oraz odpowiadajacy mu objects_*.json. */
-		void saveLocationFiles(const std::filesystem::path& location_path, const std::filesystem::path& objects_path);
+		void saveLocationFiles(Core::Engine* engine, const std::filesystem::path& location_path, const std::filesystem::path& objects_path);
 
 		/** @brief Rysuje markery i zasiegi postawionych obiektow. */
 		void renderPlacedObjects(Core::Engine* engine);
@@ -223,7 +223,7 @@ namespace Nawia::World {
 		void renderDropdownOverlays(Core::Engine* engine);
 
 		/** @brief Rysuje pytanie o potwierdzenie nadpisania plikow. */
-		void renderConfirmOverwriteDialog();
+		void renderConfirmOverwriteDialog(Core::Engine* engine);
 
 		/** @brief Rysuje menu wyboru typu przeciwnika dla spawnera. */
 		void renderSpawnerTypeMenu(Core::Engine* engine);

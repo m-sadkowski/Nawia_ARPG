@@ -27,7 +27,6 @@ namespace Nawia::World {
 		[[nodiscard]] bool isInteractionOnly() const override;
 		[[nodiscard]] float getCameraZoomMultiplier() const override;
 		[[nodiscard]] float getCameraTargetHeightMultiplier() const override;
-		[[nodiscard]] bool grantsStarterItemsOnNewGame() const override { return false; }
 
 	private:
 		enum class IntroPhase {

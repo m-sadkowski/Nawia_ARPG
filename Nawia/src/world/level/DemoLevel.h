@@ -12,6 +12,7 @@ namespace Nawia::World {
 	public:
 		/** @brief Wczytuje lokacje z plikow assets/data/locations. */
 		void onEnter(Core::Engine* engine) override;
+		void onNewGameStarted(Core::Engine* engine) override;
 
 		/** @brief Zwraca nazwe poziomu demo. */
 		[[nodiscard]] std::string getName() const override { return "Demo"; }

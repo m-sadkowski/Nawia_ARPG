@@ -31,6 +31,7 @@ namespace Nawia::World {
 
 		constexpr const char* PLACEHOLDER_MODEL = "placeholder";
 		constexpr const char* DEFAULT_LIGHTING_FILE = "assets/maps/forest_lighting.json";
+		constexpr const char* WCZORA_LIGHTING_FILE = "assets/maps/wczora_lighting.json";
 		constexpr float LIGHT_MOVE_STEP = 1.0f;
 		constexpr int PRIMARY_LIGHT_INDEX = 0;
 		constexpr int OVERLAY_MARGIN = 10;
@@ -503,6 +504,14 @@ namespace Nawia::World {
 			return fallback;
 		}
 
+		bool isWczoraLocation(const std::string& location_name, const std::filesystem::path& location_path = {}) {
+			return location_name == "Wczora" || location_path.filename().string() == "wczora.json";
+		}
+
+		const char* getLightingFileForLocation(const std::string& location_name, const std::filesystem::path& location_path = {}) {
+			return isWczoraLocation(location_name, location_path) ? WCZORA_LIGHTING_FILE : DEFAULT_LIGHTING_FILE;
+		}
+
 	} // namespace
 
 	std::vector<std::string> DevLevel::getLocations() const {
@@ -637,7 +646,7 @@ namespace Nawia::World {
 				renderKeySelectionMenu(engine);
 				break;
 			case EditorMode::ConfirmOverwrite:
-				renderConfirmOverwriteDialog();
+				renderConfirmOverwriteDialog(engine);
 				break;
 			case EditorMode::None:
 				break;
@@ -787,6 +796,9 @@ namespace Nawia::World {
 			_camera_zoom = readCameraZoom(root, _camera_zoom);
 			loadPlacedObjectsFromFile(option.objects_path, _active_location_name);
 		}
+
+		if (engine)
+			engine->getLightingSystem().loadLightingFromJson(getLightingFileForLocation(_active_location_name, option.path));
 
 		_selected_map_model_index = 0;
 		for (int index = 0; index < static_cast<int>(_map_model_options.size()); ++index) {
@@ -1076,10 +1088,10 @@ namespace Nawia::World {
 			return;
 		}
 
-		saveLocationFiles(_pending_location_save_path, _pending_objects_save_path);
+		saveLocationFiles(engine, _pending_location_save_path, _pending_objects_save_path);
 	}
 
-	void DevLevel::saveLocationFiles(const std::filesystem::path& location_path, const std::filesystem::path& objects_path) {
+	void DevLevel::saveLocationFiles(Core::Engine* engine, const std::filesystem::path& location_path, const std::filesystem::path& objects_path) {
 		try {
 			std::filesystem::create_directories(location_path.parent_path());
 		} catch (const std::filesystem::filesystem_error& error) {
@@ -1128,6 +1140,11 @@ namespace Nawia::World {
 			return;
 		}
 		objects_output << objects_data.dump(4);
+
+		if (engine && isWczoraLocation(_active_location_name, location_path)) {
+			engine->getLightingSystem().saveLightingToJson(WCZORA_LIGHTING_FILE);
+			Core::Logger::debugLog("DevLevel: zapisano oswietlenie Wczory.");
+		}
 
 		_has_unsaved_changes = false;
 		_current_mode = EditorMode::None;
@@ -1200,7 +1217,7 @@ namespace Nawia::World {
 				lighting_system.updateLightValues(PRIMARY_LIGHT_INDEX);
 
 			if (IsKeyPressed(KEY_S)) {
-				lighting_system.saveLightingToJson(DEFAULT_LIGHTING_FILE);
+				lighting_system.saveLightingToJson(getLightingFileForLocation(_active_location_name, getLocationFilePathFromBuffer()));
 				Core::Logger::debugLog("DevLevel: zapisano oswietlenie.");
 			}
 		}
@@ -1866,7 +1883,7 @@ namespace Nawia::World {
 		_status_message = "Anim gracza: " + animation_name;
 	}
 
-	void DevLevel::renderConfirmOverwriteDialog() {
+	void DevLevel::renderConfirmOverwriteDialog(Core::Engine* engine) {
 		const auto& font = GetFontDefault();
 		const int width = 520;
 		const int height = 210;
@@ -1881,7 +1898,7 @@ namespace Nawia::World {
 		drawDevText(font, _pending_objects_save_path.filename().string().c_str(), x + 34.0f, y + 104.0f, 20, RAYWHITE);
 
 		if (drawButton(font, "Tak, nadpisz", x + 54, y + 150, 190, 40, MAROON))
-			saveLocationFiles(_pending_location_save_path, _pending_objects_save_path);
+			saveLocationFiles(engine, _pending_location_save_path, _pending_objects_save_path);
 
 		if (drawButton(font, "Anuluj", x + 276, y + 150, 190, 40, DARKGRAY)) {
 			_current_mode = EditorMode::None;

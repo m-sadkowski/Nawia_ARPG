@@ -92,11 +92,6 @@ namespace Nawia::World {
         [[nodiscard]] virtual float getCameraTargetHeightMultiplier() const { return 1.0f; }
 
         /**
-         * @brief Zwraca, czy nowa gra na tym poziomie daje standardowy ekwipunek startowy.
-         */
-        [[nodiscard]] virtual bool grantsStarterItemsOnNewGame() const { return true; }
-
-        /**
          * @brief Zwraca mape poziomu albo nullptr, jesli poziom nie jest wczytany.
          */
         [[nodiscard]] Core::Map* getMap() const { return _map.get(); }

@@ -28,7 +28,7 @@ namespace Nawia::World {
 	namespace {
 		constexpr const char* FIRST_LEVEL_MUSIC =
 			"assets/audio/music/soulfuljamtracks-slavic-folk-308126.mp3";
-		constexpr const char* FIRST_LEVEL_LIGHTING_FILE = "assets/maps/forest_lighting.json";
+		constexpr const char* FIRST_LEVEL_LIGHTING_FILE = "assets/maps/wczora_lighting.json";
 		constexpr float WCZORA_INTRO_CAMERA_ZOOM_FACTOR = 0.5f;
 		constexpr float WCZORA_INTRO_CAMERA_TARGET_HEIGHT_FACTOR = 0.55f;
 

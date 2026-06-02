@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Ability.h>
-#include <FireballAbility.h>
 #include <UnarmedMeleeAbility.h>
 
 #include <json.hpp>
@@ -28,9 +27,5 @@ namespace Nawia::Entity::PlayerAbilityFactory {
 		const nlohmann::json& setup_json,
 		Core::ResourceManager& resource_manager,
 		const std::string& ability_name);
-
-	[[nodiscard]] std::shared_ptr<FireballAbility> createStarterFireball(
-		const nlohmann::json& setup_json,
-		Core::ResourceManager& resource_manager);
 
 } // namespace Nawia::Entity::PlayerAbilityFactory

@@ -105,21 +105,4 @@ namespace Nawia::Entity::PlayerAbilityFactory {
 		return nullptr;
 	}
 
-	std::shared_ptr<FireballAbility> createStarterFireball(
-		const nlohmann::json& setup_json,
-		Core::ResourceManager& resource_manager)
-	{
-		const auto fireball_it = setup_json.find("starter_fireball");
-		if (fireball_it == setup_json.end() || !fireball_it->is_object() || !fireball_it->value("enabled", true))
-			return nullptr;
-
-		const auto icon = resource_manager.getTexture(fireball_it->value("icon", ""));
-		return std::make_shared<FireballAbility>(
-			fireball_it->value("model", "assets/models/fireball.glb"),
-			fireball_it->value("scale", 0.5f),
-			nullptr,
-			icon,
-			&resource_manager);
-	}
-
 } // namespace Nawia::Entity::PlayerAbilityFactory

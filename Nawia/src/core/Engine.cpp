@@ -187,7 +187,7 @@ namespace Nawia::Core {
 		_boss_manager.loadFromJson("assets/data/bosses.json");
 
 		Entity::Entity::setSharedResourceManager(&_resource_manager);
-		createFreshPlayer(true);
+		createFreshPlayer();
 
 		_ui_handler = std::make_unique<UI::UIHandler>();
 		_ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
@@ -255,11 +255,11 @@ namespace Nawia::Core {
 			if (_ui_handler)
 				_ui_handler->onLevelLoaded();
 
-			if (_pending_is_new_game && _pending_new_game_slot > 0)
-				saveCurrentGame(_pending_new_game_slot);
-
 			if (_pending_is_new_game && _level_manager && _level_manager->getCurrentLevel())
 				_level_manager->getCurrentLevel()->onNewGameStarted(this);
+
+			if (_pending_is_new_game && _pending_new_game_slot > 0)
+				saveCurrentGame(_pending_new_game_slot);
 		}
 
 		_loading_kind = LoadingKind::None;
@@ -267,18 +267,13 @@ namespace Nawia::Core {
 		_pending_new_game_slot = 0;
 	}
 
-	void Engine::createFreshPlayer(const bool grant_starter_items) {
+	void Engine::createFreshPlayer() {
 		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
 		_player->setAudioManager(&_audio_manager);
 
 		const auto& player_setup = Entity::PlayerAbilityFactory::getPlayerSetupConfig();
 		for (const auto& ability : Entity::PlayerAbilityFactory::createUnarmedAbilities(player_setup, _resource_manager))
 			_player->addAbility(ability);
-
-		if (grant_starter_items) {
-			if (const auto fireball = Entity::PlayerAbilityFactory::createStarterFireball(player_setup, _resource_manager))
-				_player->addAbility(fireball);
-		}
 
 		_controller = std::make_unique<PlayerController>(this, _player);
 
@@ -289,32 +284,6 @@ namespace Nawia::Core {
 
 		if (_ui_handler)
 			_ui_handler->setPlayer(_player);
-
-		if (!grant_starter_items)
-			return;
-
-		if (const auto items_it = player_setup.find("starter_items");
-			items_it != player_setup.end() && items_it->is_object()) {
-			if (const auto equipment_it = items_it->find("equipment");
-				equipment_it != items_it->end() && equipment_it->is_array()) {
-				for (const auto& starter_item_id : *equipment_it) {
-					if (!starter_item_id.is_number_integer())
-						continue;
-					if (const auto item = _item_database.createItem(starter_item_id.get<int>()))
-						_player->equipItem(item);
-				}
-			}
-
-			if (const auto backpack_it = items_it->find("backpack");
-				backpack_it != items_it->end() && backpack_it->is_array()) {
-				for (const auto& backpack_item_id : *backpack_it) {
-					if (!backpack_item_id.is_number_integer())
-						continue;
-					if (const auto item = _item_database.createItem(backpack_item_id.get<int>()))
-						_player->getBackpack().addItem(item);
-				}
-			}
-		}
 	}
 
 	void Engine::run() {
@@ -493,8 +462,7 @@ namespace Nawia::Core {
 		_boss_manager.resetRuntimeState(this);
 		_boss_manager.clearDefeatedBosses();
 		_quest_manager.resetAll();
-		const auto level = _level_manager ? _level_manager->getRegisteredLevel(level_name) : nullptr;
-		createFreshPlayer(!level || level->grantsStarterItemsOnNewGame());
+		createFreshPlayer();
 
 		queueLevelLoad(level_name, "", true, default_slot);
 	}
@@ -546,7 +514,7 @@ namespace Nawia::Core {
 		_boss_manager.resetRuntimeState(this);
 		_boss_manager.clearDefeatedBosses();
 		_quest_manager.resetAll();
-		createFreshPlayer(false);
+		createFreshPlayer();
 
 		const std::string initial_location = _pending_save_state.value("current_location", "");
 		queueLevelLoad(current_level_name, initial_location, false, 0);
