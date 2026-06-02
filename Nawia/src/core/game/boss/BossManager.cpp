@@ -90,7 +90,7 @@ namespace Nawia::Game {
             intro.required_active_quest = ij.value("required_active_quest", "");
             intro.blocking_active_quest = ij.value("blocking_active_quest", "");
             intro.checkpoint_on_complete = ij.value("checkpoint_on_complete", "");
-            intro.final_option = ij.value("final_option", "...");
+            intro.final_option = ij.value("final_option", "Rozumiem.");
             intro.show_preview = ij.value("show_preview", false);
 
             if (ij.contains("lines") && ij["lines"].is_array()) {
@@ -379,10 +379,12 @@ namespace Nawia::Game {
                 .setTarget(player).setAudioManager(&engine->getAudioManager())
                 .build());
         } else if (type == "Bandit") {
-            entity = std::shared_ptr<Entity::Entity>(Entity::BanditBuilder()
+            auto bandit = Entity::BanditBuilder()
                 .setName(name).setMap(map).setMaxHp(max_hp)
                 .setTarget(player).setAudioManager(&engine->getAudioManager())
-                .build());
+                .build();
+            bandit->ensureKnifeThrowAbility(&engine->getResourceManager());
+            entity = std::shared_ptr<Entity::Entity>(std::move(bandit));
         } else if (type == "Frog") {
             entity = std::shared_ptr<Entity::Entity>(Entity::FrogBuilder()
                 .setName(name).setMap(map).setEngine(engine).setMaxHp(max_hp)

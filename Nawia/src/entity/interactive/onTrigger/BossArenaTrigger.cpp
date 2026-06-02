@@ -9,6 +9,23 @@
 
 namespace Nawia::Entity {
 
+    namespace {
+        bool isPlayerDialogueSpeaker(const std::string& speaker) {
+            return speaker == "Logos" || speaker == "Jarko" || speaker == "Player" || speaker == "Gracz";
+        }
+
+        bool isPlaceholderOption(const std::string& text) {
+            return text.empty() || text == "..." || text == "Dalej";
+        }
+
+        std::string resolveFinalOption(const std::string& configured_text, const std::string& current_speaker, const std::string& current_text) {
+            if (!isPlaceholderOption(configured_text))
+                return configured_text;
+
+            return isPlayerDialogueSpeaker(current_speaker) ? current_text : "Rozumiem.";
+        }
+    }
+
     BossArenaTrigger::BossArenaTrigger(const std::string& boss_id, float x, float y, float width, float height)
         : InteractiveTrigger("BossTrigger_" + boss_id, x, y, nullptr, 1), _boss_id(boss_id)
     {
@@ -111,8 +128,18 @@ namespace Nawia::Entity {
             node.voice_path = intro.lines[i].voice_path;
 
             Game::DialogueOption option;
-            option.text = (i + 1 < intro.lines.size()) ? "..." : intro.final_option;
-            option.next_node_id = (i + 1 < intro.lines.size()) ? static_cast<int>(i + 1) : -1;
+            size_t next_line = i + 1;
+            if (next_line < intro.lines.size() && isPlayerDialogueSpeaker(intro.lines[next_line].speaker)) {
+                option.text = intro.lines[next_line].text;
+                next_line++;
+            } else {
+                const bool is_final_node = next_line >= intro.lines.size();
+                if (is_final_node)
+                    option.text = resolveFinalOption(intro.final_option, node.speaker_name, node.text);
+                else
+                    option.text = isPlayerDialogueSpeaker(node.speaker_name) ? node.text : "Rozumiem.";
+            }
+            option.next_node_id = (next_line < intro.lines.size()) ? static_cast<int>(next_line) : -1;
             node.options.push_back(option);
             tree.addNode(node);
         }

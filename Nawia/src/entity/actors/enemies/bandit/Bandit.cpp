@@ -24,11 +24,27 @@ namespace Nawia::Entity {
 		addAnimation("death", "assets/models/actors/bandit/bandit_death.glb");
 	}
 
+	void Bandit::ensureKnifeThrowAbility(Core::ResourceManager* resource_manager) {
+		setAbility(0, std::make_shared<KnifeThrowAbility>(
+			"assets/models/knife.glb",
+			0.05f,
+			nullptr,
+			nullptr,
+			180.0f,
+			resource_manager));
+	}
+
 	void Bandit::takeDamage(const int dmg)
 	{
+		if (_state == State::Casting && !_knife_thrown_this_cast)
+			_pending_interrupted_knife_throw = true;
+
 		Entity::takeDamage(dmg);
 		
-		if (isDying()) return;
+		if (isDying()) {
+			_pending_interrupted_knife_throw = false;
+			return;
+		}
 		
 		if (_state != State::GettingHit)
 			_state_before_hit = _state;
@@ -111,17 +127,16 @@ namespace Nawia::Entity {
 		// Sprawdzenie gotowości rzutu nożem.
 		if (dist <= ATTACK_RANGE && _knife_cooldown_timer <= 0.0f) {
 			if (const auto knife = getAbility(0)) {
-				if (knife->isReady()) {
-					_state = State::Casting;
-		_knife_thrown_this_cast = false;  // Reset flagi dla nowej sekwencji rzutu.
-					setAnimationSpeed(THROW_ANIMATION_SPEED);
-					playAnimation("throw", false, true);
-					rotateTowards(target->getX(), target->getY());
-					setVelocity(0, 0);
-					_is_moving = false;
-					updateMovementSound(Audio::SoundPath::Footsteps, false);
-					return;
-				}
+				_state = State::Casting;
+				_knife_thrown_this_cast = false;  // Reset flagi dla nowej sekwencji rzutu.
+				_pending_interrupted_knife_throw = false;
+				setAnimationSpeed(THROW_ANIMATION_SPEED);
+				playAnimation("throw", false, true);
+				rotateTowards(target->getX(), target->getY());
+				setVelocity(0, 0);
+				_is_moving = false;
+				updateMovementSound(Audio::SoundPath::Footsteps, false);
+				return;
 			}
 		}
 
@@ -271,6 +286,11 @@ namespace Nawia::Entity {
 		
 		if (!isAnimationLocked())
 		{
+			if (_pending_interrupted_knife_throw) {
+				tryThrowKnifeAtTarget();
+				_pending_interrupted_knife_throw = false;
+			}
+
 			_state = _state_before_hit;
 			
 			switch (_state)

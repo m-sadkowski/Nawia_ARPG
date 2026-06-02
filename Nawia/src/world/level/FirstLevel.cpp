@@ -114,10 +114,24 @@ namespace Nawia::World {
 			return config;
 		}
 
+		bool isPlayerDialogueSpeaker(const std::string& speaker) {
+			return speaker == "Logos" || speaker == "Jarko" || speaker == "Player" || speaker == "Gracz";
+		}
+
+		bool isPlaceholderOption(const std::string& text) {
+			return text.empty() || text == "..." || text == "Dalej";
+		}
+
+		std::string resolveFinalOption(const std::string& configured_text, const std::string& current_speaker, const std::string& current_text) {
+			if (!isPlaceholderOption(configured_text))
+				return configured_text;
+
+			return isPlayerDialogueSpeaker(current_speaker) ? current_text : "Rozumiem.";
+		}
+
 		Game::DialogueTree buildLinearDialogueTreeFromJson(
 			const nlohmann::json& lines,
-			const std::string& final_option_text,
-			const std::string& continue_option_text = "..."
+			const std::string& final_option_text
 		) {
 			Game::DialogueTree tree;
 			if (!lines.is_array())
@@ -132,8 +146,18 @@ namespace Nawia::World {
 				node.voice_path = line.value("voice_path", "");
 
 				Game::DialogueOption option;
-				option.text = (i + 1 < lines.size()) ? continue_option_text : final_option_text;
-				option.next_node_id = (i + 1 < lines.size()) ? static_cast<int>(i + 1) : -1;
+				size_t next_line = i + 1;
+				if (next_line < lines.size() && isPlayerDialogueSpeaker(lines[next_line].value("speaker", ""))) {
+					option.text = lines[next_line].value("text", "");
+					next_line++;
+				} else {
+					const bool is_final_node = next_line >= lines.size();
+					if (is_final_node)
+						option.text = resolveFinalOption(final_option_text, node.speaker_name, node.text);
+					else
+						option.text = isPlayerDialogueSpeaker(node.speaker_name) ? node.text : "Rozumiem.";
+				}
+				option.next_node_id = (next_line < lines.size()) ? static_cast<int>(next_line) : -1;
 				node.options.push_back(option);
 				tree.addNode(node);
 			}
@@ -153,7 +177,7 @@ namespace Nawia::World {
 			node.voice_path = data.value("voice_path", "");
 
 			Game::DialogueOption option;
-			option.text = data.value("option", "...");
+			option.text = data.value("option", "Rozumiem.");
 			option.next_node_id = -1;
 			node.options.push_back(option);
 			tree.addNode(node);

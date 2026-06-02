@@ -40,7 +40,7 @@ namespace Nawia::Game {
         std::string required_active_quest;
         std::string blocking_active_quest;
         std::string checkpoint_on_complete;
-        std::string final_option = "...";
+        std::string final_option = "Rozumiem.";
         bool show_preview = false;
         std::vector<BossDialogueLine> lines;
     };

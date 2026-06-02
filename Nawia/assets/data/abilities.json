@@ -48,7 +48,7 @@
       "name": "KnifeThrow",
       "stats": {
         "damage": 15,
-        "cooldown": 6.0,
+        "cooldown": 0.0,
         "cast_range": 12.0,
         "projectile_speed": 10.0,
         "duration": 1.0,

@@ -10,6 +10,21 @@
 namespace Nawia::Entity {
 
 	namespace {
+		bool isPlayerDialogueSpeaker(const std::string& speaker) {
+			return speaker == "Logos" || speaker == "Jarko" || speaker == "Player" || speaker == "Gracz";
+		}
+
+		bool isPlaceholderOption(const std::string& text) {
+			return text.empty() || text == "..." || text == "Dalej";
+		}
+
+		std::string resolveFinalOption(const std::string& configured_text, const std::string& current_speaker, const std::string& current_text) {
+			if (!isPlaceholderOption(configured_text))
+				return configured_text;
+
+			return isPlayerDialogueSpeaker(current_speaker) ? current_text : "Rozumiem.";
+		}
+
 		nlohmann::json loadJsonDocument(const std::string& path) {
 			std::ifstream file(path);
 			if (!file.is_open()) {
@@ -160,11 +175,15 @@ namespace Nawia::Entity {
 
 			Game::DialogueOption option;
 			size_t next_line = i + 1;
-			if (next_line < lines.size() && lines[next_line].first == "Jarko") {
+			if (next_line < lines.size() && isPlayerDialogueSpeaker(lines[next_line].first)) {
 				option.text = lines[next_line].second;
 				next_line++;
 			} else {
-				option.text = (next_line < lines.size()) ? "..." : final_option_text;
+				const bool is_final_node = next_line >= lines.size();
+				if (is_final_node)
+					option.text = resolveFinalOption(final_option_text, lines[i].first, lines[i].second);
+				else
+					option.text = isPlayerDialogueSpeaker(lines[i].first) ? lines[i].second : "Rozumiem.";
 			}
 
 			option.next_node_id = (next_line < lines.size()) ? node_id + 1 : -1;
@@ -190,8 +209,18 @@ namespace Nawia::Entity {
 			node.voice_path = lines[i].voice_path;
 
 			Game::DialogueOption option;
-			option.text = (i + 1 < lines.size()) ? "..." : final_option_text;
-			option.next_node_id = (i + 1 < lines.size()) ? static_cast<int>(i + 1) : -1;
+			size_t next_line = i + 1;
+			if (next_line < lines.size() && isPlayerDialogueSpeaker(lines[next_line].speaker)) {
+				option.text = lines[next_line].text;
+				next_line++;
+			} else {
+				const bool is_final_node = next_line >= lines.size();
+				if (is_final_node)
+					option.text = resolveFinalOption(final_option_text, lines[i].speaker, lines[i].text);
+				else
+					option.text = isPlayerDialogueSpeaker(lines[i].speaker) ? lines[i].text : "Rozumiem.";
+			}
+			option.next_node_id = (next_line < lines.size()) ? static_cast<int>(next_line) : -1;
 			node.options.push_back(option);
 			tree.addNode(node);
 		}
@@ -205,7 +234,7 @@ namespace Nawia::Entity {
 			return {};
 
 		const auto& dialogue = config[key];
-		const std::string final_option = dialogue.value("final_option", "...");
+		const std::string final_option = dialogue.value("final_option", "Rozumiem.");
 		const auto& lines_json = dialogue["lines"];
 		if (!lines_json.is_array())
 			return {};
