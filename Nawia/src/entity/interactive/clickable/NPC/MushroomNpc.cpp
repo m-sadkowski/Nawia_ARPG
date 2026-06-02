@@ -17,12 +17,13 @@ namespace Nawia::Entity {
 
 	namespace {
 		constexpr const char* MUSHROOM_MODEL = "assets/models/actors/gzib/mushroom_raylib_fixed.glb";
-		constexpr const char* MUSHROOM_FALLBACK_MODEL = "assets/models/actors/cat/cat_bounce.glb";
 		constexpr float FOLLOW_STOP_DISTANCE = 0.45f;
 		constexpr float MUSHROOM_TARGET_HEIGHT = 3.6f;
-		constexpr float MUSHROOM_FALLBACK_SCALE = 15.0f;
-		constexpr float MUSHROOM_MAX_SCALE = 50000.0f;
 		constexpr float IDLE_LOOK_AT_PLAYER_INTERVAL = 0.25f;
+		constexpr float IDLE_LOOK_AT_PLAYER_RANGE = 5.0f;
+		constexpr int MUSHROOM_IDLE_ANIMATION_INDEX = 0;
+		constexpr int MUSHROOM_WALK_ANIMATION_INDEX = 11;
+		constexpr int MUSHROOM_TALK_ANIMATION_INDEX = 15;
 	}
 
 	MushroomNpc::MushroomNpc(
@@ -47,22 +48,8 @@ namespace Nawia::Entity {
 		instigator.rotateTowardsCenter(getCenter().x, getCenter().y);
 
 		refreshDialogue();
-
-		if (_use_procedural_mushroom_animation) {
-			_playing_talk = true;
-			return;
-		}
-
-		if (getAnimationFrameCount("talk") > 0) {
-			_playing_talk = true;
-			playAnimation("talk", true, false, 0, true);
-		} else if (getAnimationFrameCount("Interact") > 0) {
-			_playing_talk = true;
-			playAnimation("Interact", false, true, 0, true);
-		} else if (getAnimationFrameCount("Wave") > 0) {
-			_playing_talk = true;
-			playAnimation("Wave", false, true, 0, true);
-		}
+		_playing_talk = true;
+		playTalkAnimation();
 	}
 
 	bool MushroomNpc::canInteract() const {
@@ -75,13 +62,6 @@ namespace Nawia::Entity {
 
 		Entity::update(delta_time);
 
-		if (_pending_standup_after_die && !isAnimationLocked()) {
-			_pending_standup_after_die = false;
-			if (getAnimationFrameCount("stand_up") > 0)
-				playAnimation("stand_up", false, true, 0, true);
-			return;
-		}
-
 		if (isAnimationLocked())
 			return;
 
@@ -89,12 +69,10 @@ namespace Nawia::Entity {
 			const bool dialogue_open = _engine && _engine->getUIHandler().isDialogueOpen();
 			if (!dialogue_open) {
 				_playing_talk = false;
-				if (getAnimationFrameCount("idle") > 0)
-					playAnimation("idle");
+				playIdleAnimation();
 			}
 
 			rotateToPlayerOnInterval(delta_time);
-			updateProceduralIdleMotion(delta_time);
 			updateMovementSound(Audio::SoundPath::GzibWalk, false);
 			return;
 		}
@@ -102,12 +80,11 @@ namespace Nawia::Entity {
 		updateCompanionTravel(delta_time);
 		updateMovementSound(Audio::SoundPath::GzibWalk, _is_moving, 0.42f, 1.12f);
 
-		if (_use_procedural_mushroom_animation) {
-			if (!_is_moving)
-				rotateToPlayerOnInterval(delta_time);
-			updateProceduralIdleMotion(delta_time);
-		} else if (!_is_moving && getAnimationFrameCount("idle") > 0) {
-			playAnimation("idle");
+		if (_is_moving) {
+			playWalkAnimation();
+		} else {
+			rotateToPlayerOnInterval(delta_time);
+			playIdleAnimation();
 		}
 	}
 
@@ -124,12 +101,6 @@ namespace Nawia::Entity {
 		if (rescued_count <= 0)
 			return;
 
-		if (areAllMushroomsAlreadyRescued() && getAnimationFrameCount("die") > 0) {
-			_playing_talk = false;
-			_pending_standup_after_die = getAnimationFrameCount("stand_up") > 0;
-			playAnimation("die", false, true, 0, true);
-		}
-
 		for (int i = 0; i < rescued_count; ++i)
 			engine.getQuestManager().notifyKill("Robal");
 
@@ -142,22 +113,17 @@ namespace Nawia::Entity {
 		_home_position = getCenter();
 		setMovementSpeed(3.2f);
 
-		bool using_fallback_model = false;
 		replaceModel(MUSHROOM_MODEL, false);
 		if (!hasModelLoaded()) {
 			Core::Logger::errorLog("MushroomNpc: failed to load mushroom model " + std::string(MUSHROOM_MODEL));
-			using_fallback_model = true;
-			loadModel(MUSHROOM_FALLBACK_MODEL, false);
+			return;
 		}
 
 		if (hasModelLoaded()) {
 			const BoundingBox bounds = GetModelBoundingBox(getModel());
 			const float model_height = bounds.max.y - bounds.min.y;
-			float computed_scale = MUSHROOM_FALLBACK_SCALE;
 			if (model_height > 1e-8f)
-				computed_scale = std::clamp(MUSHROOM_TARGET_HEIGHT / model_height, 0.1f, MUSHROOM_MAX_SCALE);
-
-			setScale(computed_scale);
+				setScale(MUSHROOM_TARGET_HEIGHT / model_height);
 
 			const float center_x = 0.5f * (bounds.min.x + bounds.max.x);
 			const float center_z = 0.5f * (bounds.min.z + bounds.max.z);
@@ -167,25 +133,10 @@ namespace Nawia::Entity {
 			setAltitude(0.0f);
 		}
 
-		if (!using_fallback_model) {
-			addAnimation("talk", MUSHROOM_MODEL, 0);
-			addAnimation("stand_up", MUSHROOM_MODEL, 4);
-			addAnimation("die", MUSHROOM_MODEL, 6);
-			addAnimation("idle", MUSHROOM_MODEL, 8);
-			addAnimation("run", MUSHROOM_MODEL, 9);
-			addAnimation("walk", MUSHROOM_MODEL, 15);
-			addAnimation("walk_slow", MUSHROOM_MODEL, 11);
-
-			_use_procedural_mushroom_animation = getAnimationFrameCount("idle") <= 0;
-			if (_use_procedural_mushroom_animation) {
-				_base_altitude = getAltitude();
-				_procedural_base_altitude_initialized = false;
-			} else {
-				playAnimation("idle", true, false, 0, true);
-			}
-		} else {
-			playAnimation("default");
-		}
+		addAnimation("idle", MUSHROOM_MODEL, MUSHROOM_IDLE_ANIMATION_INDEX);
+		addAnimation("walk", MUSHROOM_MODEL, MUSHROOM_WALK_ANIMATION_INDEX);
+		addAnimation("talk", MUSHROOM_MODEL, MUSHROOM_TALK_ANIMATION_INDEX);
+		playIdleAnimation();
 
 		setPlaceholderDialogue("Gzib", "Jeszcze ustawimy tu prawdziwy dialog Gziba.");
 	}
@@ -282,9 +233,8 @@ namespace Nawia::Entity {
 		}
 
 		updatePathMovement(delta_time);
-
-		if (_is_moving && !_use_procedural_mushroom_animation && getAnimationFrameCount("walk") > 0)
-			playAnimation("walk");
+		if (_is_moving)
+			playWalkAnimation();
 	}
 
 	void MushroomNpc::startRoute(const TravelMode mode) {
@@ -322,8 +272,7 @@ namespace Nawia::Entity {
 			_engine->getQuestManager().notifyCheckpointReached(_follow_checkpoint_name);
 		}
 
-		if (!_use_procedural_mushroom_animation && getAnimationFrameCount("idle") > 0)
-			playAnimation("idle");
+		playIdleAnimation();
 	}
 
 	void MushroomNpc::buildPathToPoint(const Vector2 target) {
@@ -395,34 +344,32 @@ namespace Nawia::Entity {
 		}
 	}
 
-	void MushroomNpc::updateProceduralIdleMotion(const float delta_time) {
-		if (!_procedural_base_altitude_initialized) {
-			_base_altitude = getAltitude();
-			_procedural_base_altitude_initialized = true;
-		}
-
-		_procedural_anim_time += delta_time;
-
-		float bob = 0.0f;
-		if (_playing_talk) {
-			bob = 0.045f * std::sin(_procedural_anim_time * 7.0f);
-		} else if (_is_moving) {
-			bob = 0.075f * std::abs(std::sin(_procedural_anim_time * 8.5f));
-		} else {
-			bob = 0.03f * std::sin(_procedural_anim_time * 2.2f);
-		}
-
-		setAltitude(_base_altitude + bob);
-	}
-
 	void MushroomNpc::rotateToPlayerOnInterval(const float delta_time) {
 		_look_at_player_timer -= delta_time;
 		if (_look_at_player_timer > 0.0f)
 			return;
 
 		_look_at_player_timer = IDLE_LOOK_AT_PLAYER_INTERVAL;
-		if (const auto player = _engine ? _engine->getPlayer() : nullptr)
+		if (const auto player = _engine ? _engine->getPlayer() : nullptr) {
+			if (Vector2DistanceSqr(getCenter(), player->getCenter()) > IDLE_LOOK_AT_PLAYER_RANGE * IDLE_LOOK_AT_PLAYER_RANGE)
+				return;
 			rotateTowardsCenter(player->getCenter().x, player->getCenter().y);
+		}
+	}
+
+	void MushroomNpc::playIdleAnimation() {
+		if (getAnimationFrameCount("idle") > 0)
+			playAnimation("idle", true, false);
+	}
+
+	void MushroomNpc::playWalkAnimation() {
+		if (getAnimationFrameCount("walk") > 0)
+			playAnimation("walk", true, false);
+	}
+
+	void MushroomNpc::playTalkAnimation() {
+		if (getAnimationFrameCount("talk") > 0)
+			playAnimation("talk", true, false, 0, true);
 	}
 
 	std::vector<Vector2> MushroomNpc::collectOrderedFollowWaypoints(const bool reverse_to_home) const {

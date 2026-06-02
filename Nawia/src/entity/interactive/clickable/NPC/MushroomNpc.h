@@ -38,8 +38,10 @@ namespace Nawia::Entity {
 		void updatePathMovement(float delta_time);
 		void stopPathMovement();
 		void sendPurifiedFollowersHome();
-		void updateProceduralIdleMotion(float delta_time);
 		void rotateToPlayerOnInterval(float delta_time);
+		void playIdleAnimation();
+		void playWalkAnimation();
+		void playTalkAnimation();
 		[[nodiscard]] std::vector<Vector2> collectOrderedFollowWaypoints(bool reverse_to_home) const;
 		[[nodiscard]] int getRescuedMushroomCount() const;
 		[[nodiscard]] int getRequiredRescueCount() const;
@@ -50,11 +52,6 @@ namespace Nawia::Entity {
 		bool _reached_follow_checkpoint = false;
 		bool _follow_path_requested = false;
 		bool _return_started = false;
-		bool _use_procedural_mushroom_animation = false;
-		bool _procedural_base_altitude_initialized = false;
-		bool _pending_standup_after_die = false;
-		float _procedural_anim_time = 0.0f;
-		float _base_altitude = 0.0f;
 		float _look_at_player_timer = 0.0f;
 		std::vector<Vector2> _current_path;
 		std::vector<Vector2> _travel_waypoints;
