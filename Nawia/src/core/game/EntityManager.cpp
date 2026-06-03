@@ -47,6 +47,21 @@ namespace Nawia::Core {
                    type != Entity::EntityType::NPCActor;
         }
 
+        bool isValidCombatTarget(
+            const Entity::EntityType seeker_type,
+            const std::shared_ptr<Entity::Entity>& candidate) {
+            if (!candidate || candidate->isDead() || candidate->isDying() || candidate->isDormant())
+                return false;
+
+            const Entity::EntityType candidate_type = candidate->getType();
+            if (seeker_type == Entity::EntityType::Enemy)
+                return candidate_type == Entity::EntityType::Player || candidate_type == Entity::EntityType::Ally;
+            if (seeker_type == Entity::EntityType::Ally)
+                return candidate_type == Entity::EntityType::Enemy;
+
+            return false;
+        }
+
     }
 
     void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity) {
@@ -187,23 +202,15 @@ namespace Nawia::Core {
         float best_distance_sq = std::numeric_limits<float>::max();
         std::shared_ptr<Entity::Entity> best_target = nullptr;
 
+        if (const auto damage_source = seeker->getLastDamageSource(); isValidCombatTarget(seeker_type, damage_source))
+            return damage_source;
+
         for (const auto& candidate : _active_entities)
         {
             if (!candidate || candidate == seeker)
                 continue;
 
-            if (candidate->isDead() || candidate->isDying() || candidate->isDormant())
-                continue;
-
-            const Entity::EntityType candidate_type = candidate->getType();
-            bool is_valid_target = false;
-
-            if (seeker_type == Entity::EntityType::Enemy)
-                is_valid_target = candidate_type == Entity::EntityType::Player || candidate_type == Entity::EntityType::Ally;
-            else if (seeker_type == Entity::EntityType::Ally)
-                is_valid_target = candidate_type == Entity::EntityType::Enemy;
-
-            if (!is_valid_target)
+            if (!isValidCombatTarget(seeker_type, candidate))
                 continue;
 
             const float dx = seeker->getCenter().x - candidate->getCenter().x;

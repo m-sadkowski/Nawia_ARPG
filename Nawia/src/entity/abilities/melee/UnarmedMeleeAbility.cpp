@@ -60,6 +60,7 @@ namespace Nawia::Entity {
 				if (const auto player = dynamic_cast<Player*>(_caster))
 					final_damage += std::max(0, player->getStats().damage / 2);
 
+				enemy->rememberDamageSource(_caster);
 				enemy->takeDamage(final_damage);
 				Core::Logger::debugLog(
 					getName() + " trafil " + enemy->getName() + " za " + std::to_string(final_damage) + " obrazen.");

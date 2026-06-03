@@ -218,6 +218,11 @@ namespace Nawia::Entity {
 		void useSharedModel(const Model& model);
 
 		/**
+		 * @brief Skaluje zaladowany model do docelowej wysokosci, centrujac go na osi X/Z i opierajac o ziemie.
+		 */
+		bool fitLoadedModelToHeight(float target_height, bool center_xz = true, bool align_to_ground = true);
+
+		/**
 		 * @brief Rejestruje animację pod nazwą używaną później w `playAnimation`.
 		 */
 		void addAnimation(const std::string& name, const std::string& path);
@@ -353,6 +358,15 @@ namespace Nawia::Entity {
 		[[nodiscard]] std::shared_ptr<Entity> getTarget() const { return _target.lock(); }
 
 		/**
+		 * @brief Zapamietuje encje, ktora ostatnio zadala obrazenia.
+		 */
+		void rememberDamageSource(Entity* source) {
+			_last_damage_source = source ? source->weak_from_this() : std::weak_ptr<Entity>{};
+		}
+
+		[[nodiscard]] std::shared_ptr<Entity> getLastDamageSource() const { return _last_damage_source.lock(); }
+
+		/**
 		 * @brief Zwraca odległość do celu albo bardzo dużą wartość, gdy celu nie ma.
 		 */
 		[[nodiscard]] float getDistanceToTarget() const;
@@ -480,6 +494,7 @@ namespace Nawia::Entity {
 
 		// Śledzenie celu.
 		std::weak_ptr<Entity> _target;
+		std::weak_ptr<Entity> _last_damage_source;
 		float _path_recalc_timer = 0.0f;
 
 		Faction _faction = Faction::None;

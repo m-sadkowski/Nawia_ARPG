@@ -164,9 +164,9 @@ namespace Nawia::Core {
 			"assets/models/actors/worm/worm.glb",
 			"assets/models/actors/mini_mushroom/mini_mushroom.glb",
 			"assets/models/actors/mini_mushroom/mini_mushroom_infected.glb",
-			"assets/models/actors/gzib/mushroom_raylib_fixed.glb",
+			"assets/models/actors/mushroom/mushroom_raylib_fixed.glb",
 			"assets/models/actors/village_head/village_head.glb",
-			"assets/models/actors/szeptucha/baba_yaga.glb",
+			"assets/models/actors/baba_yaga/baba_yaga.glb",
 			"assets/models/actors/wanda/woman_dress.glb",
 			"assets/models/actors/devil/devil_idle.glb",
 			"assets/models/actors/devil/devil_walk.glb",
@@ -281,11 +281,10 @@ namespace Nawia::Core {
 		if (entity_type == "npc") {
 			const std::string npc_class = entity_data.value("npc_class", "cat");
 			if (npc_class == "mushroom") {
-				addModel("assets/models/actors/gzib/mushroom_raylib_fixed.glb");
-				addAnimation("assets/models/actors/gzib/mushroom_raylib_fixed.glb");
+				addModel("assets/models/actors/mushroom/mushroom_raylib_fixed.glb");
+				addAnimation("assets/models/actors/mushroom/mushroom_raylib_fixed.glb");
 			} else if (npc_class == "szeptucha") {
-				addModel("assets/models/actors/szeptucha/baba_yaga.glb");
-				addAnimation("assets/models/actors/szeptucha/baba_yaga.glb");
+				addModel("assets/models/actors/baba_yaga/baba_yaga.glb");
 			} else if (npc_class == "village_head") {
 				addModel("assets/models/actors/village_head/village_head.glb");
 				addAnimation("assets/models/actors/village_head/village_head.glb");

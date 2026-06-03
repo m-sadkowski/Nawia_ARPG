@@ -1,13 +1,10 @@
 #include "SzeptuchaNpc.h"
 
-#include <raymath.h>
-
-#include <algorithm>
-
 namespace Nawia::Entity {
 
 	namespace {
-		constexpr const char* BABA_YAGA_MODEL = "assets/models/actors/szeptucha/baba_yaga.glb";
+		constexpr const char* BABA_YAGA_MODEL = "assets/models/actors/baba_yaga/baba_yaga.glb";
+		constexpr float BABA_YAGA_TARGET_HEIGHT = 2.0f;
 	}
 
 	SzeptuchaNpc::SzeptuchaNpc(
@@ -20,9 +17,10 @@ namespace Nawia::Entity {
 		_type = EntityType::NPCStatic;
 		setDialogueStageKey("szeptucha");
 		replaceModel(BABA_YAGA_MODEL, false);
-		addAnimation("default", BABA_YAGA_MODEL, 0);
-		//playAnimation("default"); // nie działa
-		setScale(100.0f);
+
+		if (fitLoadedModelToHeight(BABA_YAGA_TARGET_HEIGHT)) {
+			setAltitude(0.0f);
+		}
 
 		setPlaceholderDialogue("Szeptucha", "...");
 	}

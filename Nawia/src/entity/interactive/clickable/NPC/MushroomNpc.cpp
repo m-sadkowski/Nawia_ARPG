@@ -16,7 +16,7 @@
 namespace Nawia::Entity {
 
 	namespace {
-		constexpr const char* MUSHROOM_MODEL = "assets/models/actors/gzib/mushroom_raylib_fixed.glb";
+		constexpr const char* MUSHROOM_MODEL = "assets/models/actors/mushroom/mushroom_raylib_fixed.glb";
 		constexpr float FOLLOW_STOP_DISTANCE = 0.45f;
 		constexpr float MUSHROOM_TARGET_HEIGHT = 3.6f;
 		constexpr float IDLE_LOOK_AT_PLAYER_INTERVAL = 0.25f;
@@ -45,19 +45,8 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		if (hasModelLoaded()) {
-			const BoundingBox bounds = GetModelBoundingBox(getModel());
-			const float model_height = bounds.max.y - bounds.min.y;
-			if (model_height > 1e-8f)
-				setScale(MUSHROOM_TARGET_HEIGHT / model_height);
-
-			const float center_x = 0.5f * (bounds.min.x + bounds.max.x);
-			const float center_z = 0.5f * (bounds.min.z + bounds.max.z);
-			getModel().transform = MatrixMultiply(
-				MatrixTranslate(-center_x, -bounds.min.y, -center_z),
-				getModel().transform);
+		if (fitLoadedModelToHeight(MUSHROOM_TARGET_HEIGHT))
 			setAltitude(0.0f);
-		}
 
 		addAnimation("idle", MUSHROOM_MODEL, MUSHROOM_IDLE_ANIMATION_INDEX);
 		addAnimation("walk", MUSHROOM_MODEL, MUSHROOM_WALK_ANIMATION_INDEX);

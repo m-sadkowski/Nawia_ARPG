@@ -360,22 +360,24 @@ namespace Nawia::World {
 		removeIntroNpc();
 
 		const auto& szeptucha_config = getIntroConfig()["szeptucha"];
-		const auto& spawn_offset = szeptucha_config["spawn_offset"];
-		const Vector2 offset = {
-			spawn_offset.value("x", 1.8f),
-			spawn_offset.value("y", 0.8f)
-		};
-		Vector2 spawn_2d = {corpse_position.x + offset.x, corpse_position.y + offset.y};
-		Vector3 spawn_position = {spawn_2d.x, engine->getPlayer()->getAltitude(), spawn_2d.y};
+		Vector3 spawn_position = {corpse_position.x, engine->getPlayer()->getAltitude(), corpse_position.y};
 		if (engine->getCurrentMap() && engine->getCurrentMap()->getNavMesh().isReady())
 			spawn_position = engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(spawn_position);
 
 		auto szeptucha = std::make_shared<Entity::SzeptuchaNpc>("Szeptucha", spawn_position.x, spawn_position.z, engine);
 		szeptucha->setAltitude(spawn_position.y);
 		szeptucha->setAudioManager(&engine->getAudioManager());
+		szeptucha->setDormant(false);
 		szeptucha->rotateTowardsCenter(engine->getPlayer()->getCenter().x, engine->getPlayer()->getCenter().y);
 		engine->getPlayer()->rotateTowardsCenter(szeptucha->getCenter().x, szeptucha->getCenter().y);
 		engine->spawnEntity(szeptucha);
+		Core::Logger::debugLog(
+			"FirstLevel: spawned Szeptucha at (" +
+			std::to_string(spawn_position.x) + ", " +
+			std::to_string(spawn_position.y) + ", " +
+			std::to_string(spawn_position.z) + "), corpse=(" +
+			std::to_string(corpse_position.x) + ", " +
+			std::to_string(corpse_position.y) + ")");
 		_intro_npc = szeptucha;
 		_intro_flash_timer = 0.55f;
 		_intro_phase = IntroPhase::SzeptuchaDialogue;

@@ -251,6 +251,25 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_local_model_bounding_box_valid = true;
 	}
 
+	bool Entity::fitLoadedModelToHeight(const float target_height, const bool center_xz, const bool align_to_ground)
+	{
+		if (!_model_loaded || target_height <= 0.0f)
+			return false;
+
+		const BoundingBox bounds = GetModelBoundingBox(_model);
+		const float model_height = bounds.max.y - bounds.min.y;
+		if (model_height <= 1e-8f)
+			return false;
+
+		setScale(target_height / model_height);
+
+		const float offset_x = center_xz ? -0.5f * (bounds.min.x + bounds.max.x) : 0.0f;
+		const float offset_y = align_to_ground ? -bounds.min.y : 0.0f;
+		const float offset_z = center_xz ? -0.5f * (bounds.min.z + bounds.max.z) : 0.0f;
+		_model.transform = MatrixMultiply(MatrixTranslate(offset_x, offset_y, offset_z), _model.transform);
+		return true;
+	}
+
 	void Entity::addAnimation(const std::string& name, const std::string& path)
 	{
 		addAnimation(name, path, 0);

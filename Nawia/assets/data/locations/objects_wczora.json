@@ -6,8 +6,8 @@
             "name": "Zwloki Wandy",
             "npc_class": "wanda_corpse",
             "type": "npc",
-            "x": -5.4,
-            "y": -3.2
+            "x": -5.400000095367432,
+            "y": -3.200000047683716
         },
         {
             "category": "npcs",
