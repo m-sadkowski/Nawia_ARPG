@@ -4,6 +4,12 @@
 
 namespace Nawia::Entity {
 
+	/**
+	 * @brief Klikalne zwloki z intro, ktore bramkuja pierwsze sceny Wczora.
+	 *
+	 * Uzywa mechaniki dialogu StoryNpc, ale nie wysyla zakonczenia rozmowy do
+	 * questow, bo sekwencja poziomu reaguje na wlasny event inspekcji zwlok.
+	 */
 	class WandaCorpseNpc : public StoryNpc {
 	public:
 		WandaCorpseNpc(const std::string& name, float x, float y, Core::Engine* engine);
@@ -15,7 +21,7 @@ namespace Nawia::Entity {
 		void handleQuestTalkCompleted(Core::Engine& engine) override;
 
 	private:
-		bool _inspected = false;
+		bool _inspected = false; ///< Chroni przed ponownym odpaleniem inspekcji zwlok.
 	};
 
 } // namespace Nawia::Entity

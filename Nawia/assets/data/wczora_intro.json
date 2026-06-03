@@ -15,7 +15,7 @@
     {
       "text": "Logos szuka Mileny. Nie moze nigdzie znalezc swej lubej. W koncu jest - widzi ja jak wchodzi do obory. Podaza w jej strone.\n\nOgnisko trzeszczy.",
       "voice_path": "assets/audio/dialogues/Intro/slide_03.wav",
-      "image_path": "assets/textures/intro/jarko_szuka_mileny.png",
+      "image_path": "assets/textures/intro/logos_szuka_mileny.png",
       "duration": 16.0
     },
     {
@@ -27,7 +27,7 @@
     {
       "text": "Logos wybiega na dwor i widzi plomienie, lecz nie ogniska - pali sie chata, pala sie drzewa, wszystko stoi w ogniu. Ludzie uciekaja, niebo jest czarne i szaleje burza. Nagle cos uderza go w glowe.\n\nOgnisko trzeszczy.",
       "voice_path": "assets/audio/dialogues/Intro/slide_05.wav",
-      "image_path": "assets/textures/intro/jarko_wybiega_na_dwor.png",
+      "image_path": "assets/textures/intro/logos_wybiega_na_dwor.png",
       "duration": 21.0
     }
   ],

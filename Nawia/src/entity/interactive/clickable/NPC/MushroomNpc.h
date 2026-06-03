@@ -6,6 +6,13 @@
 
 namespace Nawia::Entity {
 
+	/**
+	 * @brief Questowy NPC, ktory rozmawia, idzie po waypointach, wraca do domu i budzi uratowane grzyby.
+	 *
+	 * Kontrakt animacji jest celowo waski: idle poza akcja, walk podczas ruchu,
+	 * talk w trakcie interakcji. Stan trasy zostaje tutaj, bo to zachowanie
+	 * questowe Mushrooma, a nie ogolna odpowiedzialnosc StoryNpc.
+	 */
 	class MushroomNpc : public StoryNpc {
 	public:
 		MushroomNpc(
@@ -22,13 +29,16 @@ namespace Nawia::Entity {
 		void handleQuestTalkCompleted(Core::Engine& engine) override;
 
 	private:
+		/** @brief Wysokopoziomowa trasa obslugiwana przez logike questa Mushrooma. */
 		enum class TravelMode {
 			None,
 			ToBrothers,
 			ReturningHome
 		};
 
+		/** @brief Dobiera stage dialogu z aktualnego stanu questa/postepu. */
 		void refreshDialogue();
+		/** @brief Obsluguje trase po tym, jak Mushroom zostanie towarzyszem. */
 		void updateCompanionTravel(float delta_time);
 		void startRoute(TravelMode mode);
 		void advanceRoute();
@@ -47,12 +57,12 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool areAllMushroomsAlreadyRescued() const;
 		[[nodiscard]] bool hasDialogueAvailable() const;
 
-		std::string _follow_checkpoint_name;
+		std::string _follow_checkpoint_name; ///< Nazwany checkpoint uzywany jako cel trasy.
 		bool _reached_follow_checkpoint = false;
-		bool _follow_path_requested = false;
+		bool _follow_path_requested = false; ///< Chroni przed budowaniem tej samej trasy co klatke.
 		bool _return_started = false;
-		float _look_at_player_timer = 0.0f;
-		std::vector<Vector2> _current_path;
+		float _look_at_player_timer = 0.0f; ///< Ogranicza czestosc obracania sie do pobliskiego gracza.
+		std::vector<Vector2> _current_path; ///< Sciezka navmesha dla aktualnego odcinka.
 		std::vector<Vector2> _travel_waypoints;
 		size_t _travel_waypoint_index = 0;
 		TravelMode _travel_mode = TravelMode::None;

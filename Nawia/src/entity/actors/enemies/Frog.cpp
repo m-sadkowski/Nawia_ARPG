@@ -29,6 +29,7 @@ namespace Nawia::Entity {
 	}
 
 	void Frog::update(const float dt) {
+		// Po trafieniu Frog robi krotki odskok, zeby walka nie byla statycznym klepaniem w miejscu.
 		if (_retreat_timer > 0.0f && !isDying()) {
 			_retreat_timer -= dt;
 
@@ -104,6 +105,7 @@ namespace Nawia::Entity {
 		if (!_engine)
 			return;
 
+		// Wczesny boss Frog jest przejsciem do sceny z Soltysem, wiec NPC pojawia sie w miejscu smierci.
 		auto village_head = std::make_shared<VillageHeadNpc>("Soltys", getX(), getY(), _engine);
 		village_head->setAltitude(getAltitude());
 		village_head->setAudioManager(_audio_manager);

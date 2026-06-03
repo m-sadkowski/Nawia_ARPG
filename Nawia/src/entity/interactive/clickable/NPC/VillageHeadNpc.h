@@ -6,6 +6,12 @@
 
 namespace Nawia::Entity {
 
+	/**
+	 * @brief Fabularny NPC, ktory moze opuscic wies i dojsc do respawnu gracza.
+	 *
+	 * W odroznieniu od pasywnego StoryNpc soltys posiada krotka oskryptowana
+	 * trase po starcie questa z ocalałymi.
+	 */
 	class VillageHeadNpc : public StoryNpc {
 	public:
 		VillageHeadNpc(const std::string& name, float x, float y, Core::Engine* engine);
@@ -26,7 +32,7 @@ namespace Nawia::Entity {
 
 		bool _survivor_quest_started = false;
 		bool _walking_to_spawn = false;
-		bool _path_requested = false;
+		bool _path_requested = false; ///< Pilnuje, zeby generowac sciezke raz na cel.
 		Vector2 _destination = {0.0f, 0.0f};
 		std::vector<Vector2> _current_path;
 	};

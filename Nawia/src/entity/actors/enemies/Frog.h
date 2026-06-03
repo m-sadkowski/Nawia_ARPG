@@ -8,13 +8,22 @@ namespace Nawia::Core { class Engine; }
 
 namespace Nawia::Entity {
 
+	/**
+	 * @brief Skoczny przeciwnik walczacy w zwarciu i cofajacy sie po trafieniu celu.
+	 *
+	 * Frog korzysta z bazowego AI `SimpleMeleeEnemy`, ale po udanym ataku wykonuje
+	 * krotki odwrot po navmeshu. W wersji bossowej po smierci uwalnia Soltysa.
+	 */
 	class Frog : public SimpleMeleeEnemy {
 	public:
+		/** @brief Aktualizuje bazowe AI albo specjalny stan odwrotu po ataku. */
 		void update(float dt) override;
 		void setEngine(Core::Engine* engine) { _engine = engine; }
 
 	protected:
+		/** @brief Spawnuje NPC Soltysa po smierci ropucha-bossa. */
 		void onDeathStarted() override;
+		/** @brief Odtwarza feedback trafienia i uruchamia stan odwrotu. */
 		void onAttackDamageApplied(Entity& target) override;
 
 	private:
@@ -22,6 +31,7 @@ namespace Nawia::Entity {
 		friend class FrogBuilder;
 
 		Core::Engine* _engine = nullptr;
+		/** @brief Pozostaly czas ucieczki od celu po udanym ataku. */
 		float _retreat_timer = 0.0f;
 	};
 

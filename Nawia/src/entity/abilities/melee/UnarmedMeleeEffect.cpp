@@ -60,6 +60,7 @@ namespace Nawia::Entity {
 			return false;
 
 		if (_shape == Shape::ForwardRectangle) {
+			// Prostokat testujemy w plaszczyznie X/Z, sprawdzajac srodek i narozniki bounding boxa celu.
 			const BoundingBox box = target->getBoundingBox();
 			const Vector2 points[] = {
 				{0.5f * (box.min.x + box.max.x), 0.5f * (box.min.z + box.max.z)},
@@ -90,6 +91,7 @@ namespace Nawia::Entity {
 		if (AbilityEffect::checkCollision(target))
 			return true;
 
+		// ConeCollider daje szybki test bazowy, a ponizszy margines lagodzi trafienia na nieregularnych modelach.
 		const Vector2 origin = getCenter();
 		const Vector2 target_center = enemy->getCenter();
 		const Vector2 to_target = {target_center.x - origin.x, target_center.y - origin.y};
@@ -117,6 +119,7 @@ namespace Nawia::Entity {
 		enemy->takeDamage(final_damage);
 
 		if (_knockback_distance > 0.0f && _caster) {
+			// Knockback jest prosty i celowo nie liczy sciezki po navmeshu; to krotkie przesuniecie po trafieniu.
 			const Vector2 caster_center = _caster->getCenter();
 			const Vector2 target_center = enemy->getCenter();
 			Vector2 direction = {target_center.x - caster_center.x, target_center.y - caster_center.y};

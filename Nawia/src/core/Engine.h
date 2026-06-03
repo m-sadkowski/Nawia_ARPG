@@ -143,34 +143,36 @@ namespace Nawia::Core {
 		);
 		enum class LoadingKind { None, Startup, Level };
 
-		LoadingKind _loading_kind = LoadingKind::Startup;
-		AssetLoadManifest _loading_manifest;
+		LoadingKind _loading_kind = LoadingKind::Startup; ///< Rodzaj ladowania aktualnie obslugiwany przez ekran.
+		AssetLoadManifest _loading_manifest;              ///< Uporzadkowana lista assetow do preloadu.
 		size_t _loading_asset_index = 0;
 		float _loading_progress = 0.0f;
-		std::string _loading_status;
-		std::string _loading_title;
-		std::string _pending_level_name;
-		std::string _pending_initial_location;
+		std::string _loading_status; ///< Krotki status wyswietlany przez UI ladowania.
+		std::string _loading_title;  ///< Tytul ekranu ladowania.
+		std::string _pending_level_name;       ///< Zakolejkowany poziom docelowy do wczytania.
+		std::string _pending_initial_location; ///< Opcjonalna lokacja startowa w zakolejkowanym poziomie.
 		bool _pending_is_new_game = false;
 		int _pending_new_game_slot = 0;
-		bool _has_pending_save = false;
+		bool _has_pending_save = false; ///< Prawda, gdy wczytany zapis czeka na systemy poziomu.
 		nlohmann::json _pending_save_state;
 		int _pending_save_slot = 0;
 
 		bool _is_running = false;
-		GameState _game_state = GameState::Loading;
+		GameState _game_state = GameState::Loading; ///< Autorytatywny tryb ekranu/gry.
 		bool _show_pause_menu = false;
-		GameState _previous_state = GameState::Menu;
+		GameState _previous_state = GameState::Menu; ///< Uzywany przy powrocie ze stanow modalnych menu.
 		std::string _pending_new_game_level; ///< Niepusta wartosc oznacza, ze trwa flow nowej gry.
-		Settings _settings;
+		Settings _settings; ///< Robocza kopia stosowana do renderera, audio i okna.
 
+		// Serwisy posiadane przez Engine. Centralne posiadanie pozwala kodowi
+		// poziomow i encji uzywac wskaznikow bez przejmowania cyklu zycia.
 		Audio::AudioManager _audio_manager;
 		System::Renderer::LightingSystem _lighting_system;
 		ResourceManager _resource_manager;
 		GameCamera _camera;
-		float _gameplay_camera_zoom = 0.75f;
-		float _current_camera_zoom = 0.75f;
-		float _current_camera_target_height_multiplier = 1.0f;
+		float _gameplay_camera_zoom = 0.75f; ///< Bazowy zoom wczytany z aktualnej lokacji.
+		float _current_camera_zoom = 0.75f;  ///< Faktyczny zoom po mnoznikach specyficznych dla poziomu.
+		float _current_camera_target_height_multiplier = 1.0f; ///< Tymczasowa korekta pionowego kadrowania.
 		std::unique_ptr<World::LevelManager> _level_manager;
 		std::unique_ptr<EntityManager> _entity_manager;
 		std::shared_ptr<Entity::Player> _player;
@@ -182,8 +184,8 @@ namespace Nawia::Core {
 		Game::QuestManager _quest_manager;
 		Game::BossManager _boss_manager;
 		Game::SaveGameManager _save_game_manager;
-		Vector2 _last_hover_mouse_pos = {-10000.0f, -10000.0f};
-		float _hover_update_timer = 0.0f;
+		Vector2 _last_hover_mouse_pos = {-10000.0f, -10000.0f}; ///< Ostatnia pozycja myszy dla raycastow hover.
+		float _hover_update_timer = 0.0f; ///< Ogranicza kosztowne testy hover 3D.
 	};
 
 } // namespace Nawia::Core

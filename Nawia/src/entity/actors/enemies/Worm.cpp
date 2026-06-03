@@ -25,6 +25,7 @@ namespace Nawia::Entity {
 	}
 
 	void Worm::onDeathStarted() {
+		// Robal nie zna fabuly; tylko odblokowuje stan oczyszczenia w swojej skorupie.
 		if (const auto mushroom = _linked_mushroom.lock())
 			mushroom->purifyAfterWormDeath();
 	}

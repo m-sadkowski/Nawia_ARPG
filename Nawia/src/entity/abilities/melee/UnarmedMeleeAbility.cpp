@@ -53,6 +53,7 @@ namespace Nawia::Entity {
 			_caster->playAnimation(_animation_name, false, true, 0, true);
 
 		if (_direct_target_hit) {
+			// Najprostsze ciosy moga ominac efekt kolizyjny i uderzyc aktualny target w zasiegu.
 			const auto target = _caster->getTarget();
 			const auto enemy = std::dynamic_pointer_cast<EnemyInterface>(target);
 			if (enemy && _caster->getDistanceToTarget() <= _stats.cast_range) {
@@ -83,6 +84,7 @@ namespace Nawia::Entity {
 			return;
 
 		_active_time += dt;
+		// Hitbox pojawia sie w wybranym procencie animacji albo awaryjnie, gdy animacja odblokuje ruch szybciej.
 		if (!_has_spawned && (_active_time >= _spawn_delay || !_caster->isAnimationLocked()))
 			spawnEffect();
 
@@ -107,6 +109,7 @@ namespace Nawia::Entity {
 
 		_has_spawned = true;
 
+		// Efekt jest osobna encja, bo system kolizji ability przetwarza ja poza logika samego castera.
 		const Vector2 caster_center = _caster->getCenter();
 		const float angle = _caster->getRotation();
 		auto effect = std::make_shared<UnarmedMeleeEffect>(

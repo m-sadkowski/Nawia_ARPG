@@ -176,11 +176,7 @@ namespace Nawia::Core {
 			"assets/models/actors/player/player_idle.glb",
 			"assets/models/actors/player/player_walk.glb",
 			"assets/models/actors/player/player_auto_attack.glb",
-			"assets/models/actors/player/player_knocked.glb",
-			"assets/models/actors/dummy/dummy_idle.glb",
-			"assets/models/actors/dummy/dummy_walk.glb",
-			"assets/models/actors/dummy/dummy_cast_fireball.glb",
-			"assets/models/actors/dummy/dummy_death.glb"
+			"assets/models/actors/player/player_knocked.glb"
 		}) {
 			addAnimation(path);
 			addModel(path);

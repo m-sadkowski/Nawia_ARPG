@@ -359,6 +359,9 @@ namespace Nawia::Entity {
 
 		/**
 		 * @brief Zapamietuje encje, ktora ostatnio zadala obrazenia.
+		 *
+		 * Trzymamy weak_ptr, zeby AI moglo preferowac ostatniego agresora bez
+		 * wydluzania jego cyklu zycia.
 		 */
 		void rememberDamageSource(Entity* source) {
 			_last_damage_source = source ? source->weak_from_this() : std::weak_ptr<Entity>{};
@@ -470,7 +473,7 @@ namespace Nawia::Entity {
 		bool _model_loaded = false;
 		bool _owns_model = false;
 		bool _cloned_model = false; ///< Model pochodzi z cloneModel — nie zwalniaj tekstur.
-		BoundingBox _local_model_bounding_box = {};
+		BoundingBox _local_model_bounding_box = {}; ///< Granice w przestrzeni modelu po load/replace/fit.
 		bool _local_model_bounding_box_valid = false;
 		bool _anim_looping = true;
 		bool _anim_locked = false;
@@ -493,8 +496,8 @@ namespace Nawia::Entity {
 		float _damage_multiplier = 1.0f;
 
 		// Śledzenie celu.
-		std::weak_ptr<Entity> _target;
-		std::weak_ptr<Entity> _last_damage_source;
+		std::weak_ptr<Entity> _target;             ///< Aktualny cel AI/walki, nieposiadany.
+		std::weak_ptr<Entity> _last_damage_source; ///< Ostatni agresor uzywany przy wyborze celu.
 		float _path_recalc_timer = 0.0f;
 
 		Faction _faction = Faction::None;

@@ -32,6 +32,7 @@ namespace Nawia::Entity {
 		if (_corruption_released || _purified)
 			return;
 
+		// Ten przeciwnik jest de facto pojemnikiem na robala: pierwszy cios uwalnia pasozyta.
 		playSoundEffect(Audio::SoundId::MiniMushroomWormExit, 0.8f);
 		_corruption_released = true;
 		_corpse_frozen = false;
@@ -91,6 +92,7 @@ namespace Nawia::Entity {
 		if (_purified)
 			return;
 
+		// Po smierci robala cofamy "smierc" skorupy, a potem podmieniamy ja na czysty model.
 		_purified = true;
 		_purifying = true;
 		_corpse_frozen = false;
@@ -159,6 +161,7 @@ namespace Nawia::Entity {
 	void MiniMushroomInfected::updatePurifiedProp(const float dt) {
 		Entity::update(dt);
 
+		// Oczyszczony grzyb nie walczy; zachowuje sie jak maly prop z prostym idle/jump.
 		if (_purifying) {
 			updateMovementSound(Audio::SoundPath::MiniMushroomWalk, false);
 			if (!isAnimationLocked()) {

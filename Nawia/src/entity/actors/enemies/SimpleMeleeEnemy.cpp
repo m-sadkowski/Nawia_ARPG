@@ -150,6 +150,7 @@ namespace Nawia::Entity {
 		if (const auto target = _target.lock())
 			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
 
+		// Obrazenia sa podpiete pod klatke animacji, zeby prosty enemy mial czytelny timing ataku.
 		const int attack_frame_count = getAnimationFrameCount(_attack_animation);
 		const float damage_frame = static_cast<float>(attack_frame_count) * _attack_damage_frame_ratio;
 		if (!_attack_damage_applied && attack_frame_count > 0 && _anim_frame_counter >= damage_frame) {
@@ -194,6 +195,7 @@ namespace Nawia::Entity {
 		const bool target_changed = !_has_current_nav_target ||
 			Vector2DistanceSqr(_current_nav_target, target_pos) > NAV_PATH_TARGET_CHANGE_DISTANCE_SQ;
 
+		// Trasy nie liczymy co klatke; aktualizacja zalezy od czasu albo realnej zmiany celu.
 		if (_path_recalc_timer <= 0.0f || target_changed) {
 			_current_nav_path = _map->findPath(getWorldPos3D(), {target_pos.x, getAltitude(), target_pos.y});
 			_current_nav_target = target_pos;
