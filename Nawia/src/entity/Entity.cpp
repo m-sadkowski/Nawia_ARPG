@@ -97,6 +97,7 @@ namespace {
 
 		return &animation.bundle->clips[animation.clip_index];
 	}
+
 }
 
 	AnimationBundle::~AnimationBundle()
@@ -256,7 +257,9 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (!_model_loaded || target_height <= 0.0f)
 			return false;
 
-		const BoundingBox bounds = GetModelBoundingBox(_model);
+		_local_model_bounding_box = GetModelBoundingBox(_model);
+		_local_model_bounding_box_valid = true;
+		const BoundingBox bounds = _local_model_bounding_box;
 		const float model_height = bounds.max.y - bounds.min.y;
 		if (model_height <= 1e-8f)
 			return false;
