@@ -47,6 +47,14 @@ Thank you to all creators whose assets helped bring this project to life.
 | Iron Chair | iPoly3D | License not specified in the provided credits | [Poly Pizza](https://poly.pizza/m/pyzMThWvJi) |
 | Boulder | Poly by Google | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | [Poly Pizza](https://poly.pizza/m/3jql0qtape-) |
 
+https://poly.pizza/m/711AlCsueib
+
+https://poly.pizza/m/UlVnlvHPtv
+
+https://poly.pizza/m/uZ3GefauOE
+
+https://poly.pizza/m/7clFQGz5jH
+
 ---
 
 ## License Notes
