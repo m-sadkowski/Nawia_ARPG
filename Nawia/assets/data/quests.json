@@ -239,24 +239,114 @@
       }
     },
     {
-      "id": "find_survivors",
-      "name": "Znajdz ocalencow",
-      "description": "Znajdz mieszkancow, ktorzy przezyli atak, i odeslij ich do chaty medrca Jakuba.",
+      "id": "rescue_cemetery_survivors",
+      "name": "Ocaleni z cmentarza",
+      "description": "Znajdz dwoje mieszkancow ukrywajacych sie przy cmentarzu i odeslij ich do chaty zielarza.",
       "level_name": "Wczora",
       "prerequisites": ["recover_scarf"],
-      "auto_start": false,
+      "auto_start": true,
       "objectives": [
         {
-          "type": "talk_to_npc",
-          "target_name": "Ocalency",
+          "type": "reach_checkpoint",
+          "target_name": "cemetery_female_arrived",
           "count": 1,
-          "description": "Znajdz ocalalych mieszkancow"
+          "description": "Odeslij ocalona z cmentarza do chaty zielarza"
+        },
+        {
+          "type": "reach_checkpoint",
+          "target_name": "cemetery_male_arrived",
+          "count": 1,
+          "description": "Odeslij ocalonego z cmentarza do chaty zielarza"
         }
       ],
       "rewards": {
         "items": [],
         "gold": 0,
         "exp": 250
+      }
+    },
+    {
+      "id": "rescue_forest_survivors",
+      "name": "Zagubieni w lesie",
+      "description": "Znajdz troje ludzi zagubionych w lesie i pomoz im dotrzec do chaty zielarza.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "forest_lost_group_arrived",
+          "count": 1,
+          "description": "Doprowadz zagubiona grupe do chaty zielarza"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
+    },
+    {
+      "id": "enter_nawia_threshold",
+      "name": "Przedsionek Nawii",
+      "description": "Porozmawiaj z Czarownica i przejdz przez mgle do Przedsionka Nawii.",
+      "level_name": "Wczora",
+      "prerequisites": ["rescue_cemetery_survivors", "rescue_forest_survivors"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "witch_to_nawia",
+          "count": 1,
+          "description": "Wejdz do Przedsionka Nawii"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 150
+      }
+    },
+    {
+      "id": "defeat_bies",
+      "name": "Bies w mgle",
+      "description": "Pokonaj Biesa strzegacego Przedsionka Nawii.",
+      "level_name": "Wczora",
+      "prerequisites": ["enter_nawia_threshold"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Devil",
+          "count": 1,
+          "description": "Pokonaj Biesa"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 500
+      }
+    },
+    {
+      "id": "return_to_witch_after_bies",
+      "name": "Powrot z Nawii",
+      "description": "Wroc do Czarownicy po pokonaniu Biesa.",
+      "level_name": "Wczora",
+      "prerequisites": ["defeat_bies"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "witch_after_bies",
+          "count": 1,
+          "description": "Porozmawiaj z Czarownica po powrocie"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 100
       }
     }
   ]

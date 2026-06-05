@@ -116,6 +116,14 @@ namespace Nawia::Entity {
 		return !_walking_to_destination && !_arrived;
 	}
 
+	void GenericStoryNpc::render(const Camera3D& camera) {
+		// Po zakonczeniu trasy lub interakcji NPC nie powinien podswietlac sie na hover.
+		if (!canInteract())
+			setHovered(false);
+
+		Entity::render(camera);
+	}
+
 	void GenericStoryNpc::update(const float delta_time) {
 		if (isDormant())
 			return;

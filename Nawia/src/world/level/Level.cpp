@@ -64,7 +64,7 @@ namespace Nawia::World {
 		const std::string current_location = getCurrentLocationName();
 
 		// Lekka aktualizacja: tylko dystans do gracza i przelaczanie uspionych encji.
-		_spawn_manager.update(player_pos, current_location);
+		_spawn_manager.update(player_pos, current_location, engine);
 	}
 
 	std::string Level::getCurrentLocationName() const {
@@ -160,7 +160,7 @@ namespace Nawia::World {
 				location.source_path.generic_string()
 			);
 		} else {
-			_spawn_manager.updateLocationChange(location.name, _map.get());
+			_spawn_manager.updateLocationChange(location.name, engine, _map.get());
 		}
 
 		Vector2 active_player_pos = {0.0f, 0.0f};
@@ -190,7 +190,7 @@ namespace Nawia::World {
 		}
 
 		if (has_active_player_pos)
-			_spawn_manager.update(active_player_pos, location.name);
+			_spawn_manager.update(active_player_pos, location.name, engine);
 
 		Core::Logger::debugLog("Level: zaladowano lokacje " + location.name + " z " + location.source_path.generic_string());
 		return true;
@@ -217,7 +217,7 @@ namespace Nawia::World {
 		_spawn_manager.loadEntities(entities, engine, _map.get(), getCurrentLocationName(), "all location json files");
 
 		if (const auto player = engine->getPlayer())
-			_spawn_manager.update({player->getX(), player->getY()}, getCurrentLocationName());
+			_spawn_manager.update({player->getX(), player->getY()}, getCurrentLocationName(), engine);
 	}
 
 	void Level::preloadLocationMapModels() const {

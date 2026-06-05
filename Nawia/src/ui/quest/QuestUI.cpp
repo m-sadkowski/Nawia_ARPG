@@ -96,11 +96,13 @@ namespace Nawia::UI
         const float tab_height = Core::GlobalScaling::scaled(34.0f);
         
         const float active_tab_x = start_x + padding;
-        const float completed_tab_x = active_tab_x + Core::GlobalScaling::scaled(180.0f);
+        const float completed_tab_x = active_tab_x + Core::GlobalScaling::scaled(150.0f);
+        const float failed_tab_x = completed_tab_x + Core::GlobalScaling::scaled(150.0f);
         
         const float tab_y = start_y + menu_height + Core::GlobalScaling::scaled(8.0f);
-        const Rectangle tab_active_rect = { active_tab_x, tab_y, Core::GlobalScaling::scaled(170.0f), tab_height };
-        const Rectangle tab_completed_rect = { completed_tab_x, tab_y, Core::GlobalScaling::scaled(170.0f), tab_height };
+        const Rectangle tab_active_rect = { active_tab_x, tab_y, Core::GlobalScaling::scaled(140.0f), tab_height };
+        const Rectangle tab_completed_rect = { completed_tab_x, tab_y, Core::GlobalScaling::scaled(140.0f), tab_height };
+        const Rectangle tab_failed_rect = { failed_tab_x, tab_y, Core::GlobalScaling::scaled(140.0f), tab_height };
         
         const Vector2 mouse_position = GetMousePosition();
         
@@ -114,6 +116,11 @@ namespace Nawia::UI
             else if (CheckCollisionPointRec(mouse_position, tab_completed_rect))
             {
                 _current_tab = QuestTab::Completed;
+                _selected_quest_index = 0;
+            }
+            else if (CheckCollisionPointRec(mouse_position, tab_failed_rect))
+            {
+                _current_tab = QuestTab::Failed;
                 _selected_quest_index = 0;
             }
             
@@ -166,11 +173,13 @@ namespace Nawia::UI
         // Zakladki.
         const float tab_height = Core::GlobalScaling::scaled(34.0f);
         const float active_tab_x = start_x + padding;
-        const float completed_tab_x = active_tab_x + Core::GlobalScaling::scaled(180.0f);
+        const float completed_tab_x = active_tab_x + Core::GlobalScaling::scaled(150.0f);
+        const float failed_tab_x = completed_tab_x + Core::GlobalScaling::scaled(150.0f);
         
         const float tab_y = start_y + menu_height + Core::GlobalScaling::scaled(8.0f);
-        const Rectangle tab_active_rect = { active_tab_x, tab_y, Core::GlobalScaling::scaled(170.0f), tab_height };
-        const Rectangle tab_completed_rect = { completed_tab_x, tab_y, Core::GlobalScaling::scaled(170.0f), tab_height };
+        const Rectangle tab_active_rect = { active_tab_x, tab_y, Core::GlobalScaling::scaled(140.0f), tab_height };
+        const Rectangle tab_completed_rect = { completed_tab_x, tab_y, Core::GlobalScaling::scaled(140.0f), tab_height };
+        const Rectangle tab_failed_rect = { failed_tab_x, tab_y, Core::GlobalScaling::scaled(140.0f), tab_height };
         
         auto draw_tab = [&](const Rectangle& rect, const char* label, bool active)
         {
@@ -188,9 +197,16 @@ namespace Nawia::UI
 
         draw_tab(tab_active_rect, "Aktywne", _current_tab == QuestTab::Active);
         draw_tab(tab_completed_rect, "Ukonczone", _current_tab == QuestTab::Completed);
+        draw_tab(tab_failed_rect, "Nieudane", _current_tab == QuestTab::Failed);
 
         // Lista questow z aktualnej zakladki.
-        std::vector<Game::Quest*> quests = (_current_tab == QuestTab::Active) ? quest_manager->getActiveQuests() : quest_manager->getCompletedQuests();
+        std::vector<Game::Quest*> quests;
+        if (_current_tab == QuestTab::Active)
+            quests = quest_manager->getActiveQuests();
+        else if (_current_tab == QuestTab::Completed)
+            quests = quest_manager->getCompletedQuests();
+        else
+            quests = quest_manager->getFailedQuests();
         
         if (_selected_quest_index >= static_cast<int>(quests.size()))
             _selected_quest_index = quests.empty() ? 0 : static_cast<int>(quests.size()) - 1;

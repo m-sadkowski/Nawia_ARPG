@@ -51,12 +51,12 @@ namespace Nawia::World {
 		/**
 		 * @brief Sprawdza dystans gracza i aktywuje spawny w biezacej lokacji.
 		 */
-		void update(Vector2 player_pos, const std::string& current_location);
+		void update(Vector2 player_pos, const std::string& current_location, Core::Engine* engine);
 
 		/**
 		 * @brief Ustawia stany uspienia encji po zmianie lokacji.
 		 */
-		void updateLocationChange(const std::string& new_location, Core::Map* map = nullptr);
+		void updateLocationChange(const std::string& new_location, Core::Engine* engine, Core::Map* map = nullptr);
 
 		/**
 		 * @brief Czysci wszystkie spawny.

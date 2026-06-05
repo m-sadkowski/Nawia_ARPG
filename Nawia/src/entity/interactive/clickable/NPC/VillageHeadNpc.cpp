@@ -63,8 +63,14 @@ namespace Nawia::Entity {
 
 		engine.getQuestManager().update(&engine);
 		_survivor_quest_started = true;
-		if (engine.getQuestManager().startQuest("find_survivors"))
-			engine.getUIHandler().showNotification("Nowy quest: Znajdz ocalencow", 4.0f);
+		bool started_survivor_quest = engine.getQuestManager().startQuest("rescue_cemetery_survivors");
+		started_survivor_quest = engine.getQuestManager().startQuest("rescue_forest_survivors") || started_survivor_quest;
+		const auto* cemetery_quest = engine.getQuestManager().getQuest("rescue_cemetery_survivors");
+		const auto* forest_quest = engine.getQuestManager().getQuest("rescue_forest_survivors");
+		if (started_survivor_quest ||
+			(cemetery_quest && cemetery_quest->isActive()) ||
+			(forest_quest && forest_quest->isActive()))
+			engine.getUIHandler().showNotification("Nowe questy: Ocaleni z cmentarza, Zagubieni w lesie", 4.0f);
 		startRouteToPlayerRespawn();
 	}
 

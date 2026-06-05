@@ -270,7 +270,16 @@ namespace Nawia::Core {
 		}
 
 		if (entity_type == "teleport") {
+			addModel("assets/models/teleport.glb");
+			addAnimation("assets/models/teleport.glb");
+			return;
+		}
+
+		if (entity_type == "witch") {
+			addModel("assets/models/actors/witch/witch.glb");
+			addAnimation("assets/models/actors/witch/witch.glb");
 			addModel("assets/models/fireball.glb");
+			appendEntityTypeAssets("walking_dead", entity_data);
 			return;
 		}
 
@@ -286,6 +295,27 @@ namespace Nawia::Core {
 				addAnimation("assets/models/actors/village_head/village_head.glb");
 			} else if (npc_class == "wanda_corpse") {
 				addModel("assets/models/actors/wanda/woman_dress.glb");
+			} else if (npc_class == "forest_lost_group") {
+				addModel("assets/models/actors/npcs/female_npc_2.glb");
+				addAnimation("assets/models/actors/npcs/female_npc_2.glb");
+				addModel("assets/models/actors/npcs/male_npc_2.glb");
+				addAnimation("assets/models/actors/npcs/male_npc_2.glb");
+				addModel("assets/models/actors/milena_sister/milena_sister.glb");
+				addAnimation("assets/models/actors/milena_sister/milena_sister.glb");
+			} else if (npc_class == "story_human" || npc_class == "herbalist") {
+				const std::string model_path = resolveModelPath(
+					readStringAlias(entity_data, {"model", "model_path"}));
+				std::string animation_bundle = resolveModelPath(
+					readStringAlias(entity_data, {"animation_bundle"}));
+				if (!model_path.empty())
+					addModel(model_path);
+
+				if (animation_bundle.empty() && !model_path.empty()) {
+					animation_bundle = model_path;
+				}
+
+				if (!animation_bundle.empty())
+					addAnimation(animation_bundle);
 			} else {
 				addModel("assets/models/actors/cat/cat_bounce.glb");
 				addAnimation("assets/models/actors/cat/cat_bounce.glb");
@@ -309,8 +339,10 @@ namespace Nawia::Core {
 
 		if (entity_type == "boss_trigger") {
 			const std::string boss_id = entity_data.value("boss_id", "");
-			if (boss_id == "devil" || boss_id.find("devil") != std::string::npos) {
+			if (boss_id == "bies" || boss_id == "devil" || boss_id.find("devil") != std::string::npos) {
 				appendEntityTypeAssets("devil", entity_data);
+			} else if (boss_id == "czarownica" || boss_id == "witch" || boss_id.find("witch") != std::string::npos) {
+				appendEntityTypeAssets("witch", entity_data);
 			} else if (boss_id == "ropuch") {
 				appendEntityTypeAssets("frog", entity_data);
 			}

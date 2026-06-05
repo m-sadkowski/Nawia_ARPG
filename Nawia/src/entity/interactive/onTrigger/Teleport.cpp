@@ -10,20 +10,23 @@
 
 namespace Nawia::Entity {
 
+    namespace {
+        constexpr const char* TELEPORT_MODEL = "assets/models/teleport.glb";
+        constexpr const char* TELEPORT_IDLE_ANIMATION = "idle";
+    }
+
     Teleport::Teleport(const std::string& name, float x, float y, Core::Engine* engine, const std::string& target_location)
         : InteractiveTrigger(name, x, y, nullptr, 1), _engine(engine), _target_location(target_location)
     {
         _type = EntityType::Trigger;
         setFaction(Faction::None);
-        loadModel("assets/models/fireball.glb");
-        setScale(0.45f);
+        loadModel(TELEPORT_MODEL);
+        loadAnimationBundle(TELEPORT_MODEL);
+        addAnimation(TELEPORT_IDLE_ANIMATION, TELEPORT_MODEL, 0);
+        if (getAnimationFrameCount(TELEPORT_IDLE_ANIMATION) > 0)
+            playAnimation(TELEPORT_IDLE_ANIMATION, true, false, 0, true);
+        setScale(1.0f);
         setModelFacingOffset(0.0f);
-
-        if (_model_loaded) {
-            for (int i = 0; i < _model.materialCount; ++i) {
-                _model.materials[i].maps[MATERIAL_MAP_DIFFUSE].color = Color{45, 20, 80, 255};
-            }
-        }
 
         setCollider(std::make_unique<RectangleCollider>(this, 2.0f, 1.0f, 0.0f, 0.0f));
     }
@@ -48,7 +51,6 @@ namespace Nawia::Entity {
     }
 
     void Teleport::update(float delta_time) {
-        setRotation(getRotation() + 45.0f * delta_time);
         Entity::update(delta_time);
     }
 
@@ -57,11 +59,11 @@ namespace Nawia::Entity {
             const Vector3 pos3d = getWorldPos3D();
             DrawModelEx(
                 _model,
-                {pos3d.x, pos3d.y + 0.35f, pos3d.z},
+                pos3d,
                 {0.0f, 1.0f, 0.0f},
                 getRotation(),
                 {_scale, _scale, _scale},
-                Color{35, 18, 70, 235});
+                WHITE);
         }
 
 		if (DebugColliders && _collider) {

@@ -61,5 +61,59 @@
       {"speaker": "Logos", "text": "No chyba ty jestes jakis rozjebany muchmorze.", "voice_path": "assets/audio/dialogues/Player/rozjebany_muchomorze.wav"},
       {"speaker": "Gzib", "text": "CHODZ RATUJ GZIBY", "voice_path": "assets/audio/dialogues/Mushroom/chodz_ratuj_gziby.mp3"}
     ]
+  },
+  "cemetery_female_survivor": {
+    "final_option": "Idzcie do chaty zielarza.",
+    "lines": [
+      {"speaker": "Ocalona", "text": "Nie podchodz! Myslelismy, ze to znowu cienie z wioski."},
+      {"speaker": "Logos", "text": "Jestem Logos. Szukam ludzi, ktorzy przezyli noc. Co tu zaszlo?"},
+      {"speaker": "Ocalona", "text": "Najpierw przyszla mgla. Potem psy zaczely wyc, a ludzie wybiegali z chat jakby ktos wolal ich po imieniu."},
+      {"speaker": "Ocalona", "text": "Ci, ktorzy pobiegli za glosem, wracali juz nie swoi. Schowalismy sie miedzy grobami, bo nawet potwory boja sie zmarlych."},
+      {"speaker": "Logos", "text": "Przy chacie zielarza zbieraja sie ocaleni. Tam bedzie bezpieczniej."}
+    ]
+  },
+  "cemetery_male_survivor": {
+    "final_option": "Ruszajcie.",
+    "lines": [
+      {"speaker": "Ocalony", "text": "Widziales Soltysa? Przysiegam, cos wielkiego ciagnelo go w strone sadzawki."},
+      {"speaker": "Logos", "text": "Znalazlem go. Jeszcze zyje. Chce zebrac ludzi u zielarza."},
+      {"speaker": "Ocalony", "text": "Bogowie odwrocili od nas twarz. Nad wioska przeszla taka cisza, ze slyszalem, jak pekaja belki w stodole."},
+      {"speaker": "Ocalony", "text": "Jesli zielarz ma ogien i dach, pojdziemy. Tu zostaly tylko kruki i modlitwy bez odpowiedzi."}
+    ]
+  },
+  "forest_lost_group": {
+    "final_option": "Pomoge wam dojsc.",
+    "lines": [
+      {"speaker": "Zagubiona", "text": "Stoj! Nie rob halasu. Ona ledwo oddycha."},
+      {"speaker": "Logos", "text": "Kto jej to zrobil?"},
+      {"speaker": "Zagubiona", "text": "Nie wiem. W lesie cos szlo za nami bez krokow. Tylko galezie wyginaly sie w zla strone."},
+      {"speaker": "Zagubiona", "text": "Uciekalysmy z wioski na polnoc, ale mgla zawrocila nas trzy razy. Ona upadla, a my nie mamy juz sily jej niesc."},
+      {"speaker": "Logos", "text": "Przy chacie zielarza jest hub dla ocalonych. Wezcie ja, pokaze wam droge."}
+    ]
+  },
+  "herbalist_placeholder": {
+    "final_option": "Wroce pozniej.",
+    "lines": [
+      {"speaker": "Zielarz", "text": "Dach przecieka, ziola spleśnialy, ale zywych tu jeszcze przyjme."},
+      {"speaker": "Logos", "text": "Beda przychodzic ludzie z cmentarza i lasu. Jeden z rannych moze potrzebowac loza."},
+      {"speaker": "Zielarz", "text": "Nie pytam o nazwiska, kiedy krew idzie przez palce. Przyprowadz ich, a ja bede robil, co umiem."}
+    ]
+  },
+  "witch_to_nawia": {
+    "final_option": "Prowadz.",
+    "lines": [
+      {"speaker": "Czarownica", "text": "Zbierasz rozbitkow jak suche patyki. Myslisz, ze ognisko z tego wyjdzie?"},
+      {"speaker": "Logos", "text": "Mysle, ze ktos popchnal bogow do gniewu. Ty wiesz kto."},
+      {"speaker": "Czarownica", "text": "Wiem, gdzie zaczyna sie odpowiedz. Za progiem Nawii czeka Bies, ktory pozera cudze winy i wypluwa je jako klamstwa."},
+      {"speaker": "Czarownica", "text": "Przejdz przez mgle. Jesli wrocisz, porozmawiamy o tym, co naprawde spalilo Wczore."}
+    ]
+  },
+  "witch_after_bies_placeholder": {
+    "final_option": "Jeszcze pogadamy.",
+    "lines": [
+      {"speaker": "Czarownica", "text": "Wrociles. Czyli Bies nie znalazl w tobie dosc strachu, zeby cie zatrzymac."},
+      {"speaker": "Logos", "text": "Powiedz, skad gniew bogow i jak go odwrocic."},
+      {"speaker": "Czarownica", "text": "Jeszcze nie. Tu docelowo bedzie wybor: walka albo rozejscie sie w pokoju. Na razie zostawiam ci tylko cien odpowiedzi."}
+    ]
   }
 }

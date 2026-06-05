@@ -179,7 +179,7 @@ powrotnego, ktory pojawi sie dopiero po pokonaniu bossa:
 ```json
 {
     "type": "teleport",
-    "target_location": "Dolina Nędzy",
+    "target_location": "Dolina Nedzy",
     "conditions": {
         "required_boss_defeated": "bies"
     }
@@ -190,7 +190,7 @@ powrotnego, ktory pojawi sie dopiero po pokonaniu bossa:
 
 Poziom `Wczora` korzysta teraz z dwoch lokacji zapisanych w kreatorze:
 
-- `assets/data/locations/wczora.json` - `Dolina Nędzy`, mapa `wczora_las.glb`,
+- `assets/data/locations/wczora.json` - `Dolina Nedzy`, mapa `wczora_las.glb`,
   oswietlenie `assets/maps/wczora_las_lighting.json`.
 - `assets/data/locations/przedsionek_nawii.json` - `Przedsionek Nawii`, mapa
   `wczora_przedsionek_nawii.glb`, oswietlenie

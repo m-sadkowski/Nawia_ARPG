@@ -290,6 +290,10 @@ namespace Nawia::Entity {
 	}
 
 	void ForestLostGroupNpc::render(const Camera3D& camera) {
+		// Po zakonczeniu trasy NPC nie powinien podswietlac sie na hover.
+		if (!canInteract())
+			setHovered(false);
+
 		Entity::render(camera);
 		if (_milena_sister)
 			_milena_sister->render(camera);

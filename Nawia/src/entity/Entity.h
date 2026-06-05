@@ -266,6 +266,7 @@ namespace Nawia::Entity {
 		void setAnimationSpeed(float multiplier) { _anim_speed_multiplier = multiplier; }
 		[[nodiscard]] float getAnimationSpeed() const { return _anim_speed_multiplier; }
 		[[nodiscard]] int getAnimationFrameCount(const std::string& name) const;
+		void applyCurrentAnimationFrame();
 		[[nodiscard]] bool isAnimationLocked() const { return _anim_locked; }
 		static constexpr float ANIMATION_DURATION_SCALE = 1.5f;
 
@@ -276,6 +277,7 @@ namespace Nawia::Entity {
 		 * @brief Ustawia wizualny offset modelu względem matematycznego kierunku patrzenia.
 		 */
 		void setModelFacingOffset(float deg) { _model_facing_offset = deg; }
+		[[nodiscard]] float getModelFacingOffset() const { return _model_facing_offset; }
 
 		/**
 		 * @brief Obraca encję w stronę punktu świata.

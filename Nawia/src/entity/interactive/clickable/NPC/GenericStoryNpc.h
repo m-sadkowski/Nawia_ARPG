@@ -26,6 +26,7 @@ namespace Nawia::Entity {
 		void onInteract(Entity& instigator) override;
 		[[nodiscard]] bool canInteract() const override;
 		void update(float delta_time) override;
+		void render(const Camera3D& camera) override;
 		void handleQuestTalkCompleted(Core::Engine& engine) override;
 
 		[[nodiscard]] nlohmann::json serializeState() const override;

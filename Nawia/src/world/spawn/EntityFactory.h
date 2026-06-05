@@ -44,6 +44,7 @@ namespace Nawia::World {
 
 	private:
 		static std::shared_ptr<Entity::Entity> createDevil(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
+		static std::shared_ptr<Entity::Entity> createWitch(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
 		static std::shared_ptr<Entity::Entity> createBandit(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
 		static std::shared_ptr<Entity::Entity> createWalkingDead(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
 		static std::shared_ptr<Entity::Entity> createFrog(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
@@ -56,8 +57,11 @@ namespace Nawia::World {
 		static std::shared_ptr<Entity::Entity> createStaticObject(const nlohmann::json& data, Core::Engine* engine);
 		static std::shared_ptr<Entity::Entity> createCheckpoint(const nlohmann::json& data);
 		static std::shared_ptr<Entity::Entity> createMushroomWaypoint(const nlohmann::json& data);
+		static std::shared_ptr<Entity::Entity> createStoryAnchor(const nlohmann::json& data);
+		static std::shared_ptr<Entity::Entity> createHerbalistHub(const nlohmann::json& data);
 		static std::shared_ptr<Entity::Entity> createTeleport(const nlohmann::json& data, Core::Engine* engine);
 		static std::shared_ptr<Entity::Entity> createBossTrigger(const nlohmann::json& data, Core::Engine* engine);
+		static std::shared_ptr<Entity::Entity> createStoryTrigger(const nlohmann::json& data, Core::Engine* engine);
 	};
 
 } // namespace Nawia::World

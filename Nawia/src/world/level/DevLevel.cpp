@@ -31,7 +31,8 @@ namespace Nawia::World {
 
 		constexpr const char* PLACEHOLDER_MODEL = "placeholder";
 		constexpr const char* DEFAULT_LIGHTING_FILE = "assets/maps/forest_lighting.json";
-		constexpr const char* WCZORA_LIGHTING_FILE = "assets/maps/wczora_lighting.json";
+		constexpr const char* WCZORA_LIGHTING_FILE = "assets/maps/wczora_las_lighting.json";
+		constexpr const char* PRZEDSIONEK_NAWII_LIGHTING_FILE = "assets/maps/wczora_przedsionek_nawii_lighting.json";
 		constexpr float LIGHT_MOVE_STEP = 1.0f;
 		constexpr int PRIMARY_LIGHT_INDEX = 0;
 		constexpr int OVERLAY_MARGIN = 10;
@@ -248,6 +249,7 @@ namespace Nawia::World {
 
 		bool isEnemyType(const std::string& type) {
 			return type == "devil" ||
+				   type == "witch" ||
 				   type == "bandit" ||
 				   type == "walking_dead" ||
 				   type == "frog" ||
@@ -265,6 +267,8 @@ namespace Nawia::World {
 			if (type == "checkpoint") return "checkpoints";
 			if (type == "checkpoint_mushroom_npc") return "checkpoints";
 			if (type == "boss_trigger") return "boss_triggers";
+			if (type == "story_trigger") return "story_triggers";
+			if (type == "story_anchor") return "story_anchors";
 			if (type == "nav_blocker") return "nav_blockers";
 			return "props";
 		}
@@ -277,8 +281,30 @@ namespace Nawia::World {
 			if (category == "teleports") return PURPLE;
 			if (category == "checkpoints") return LIME;
 			if (category == "boss_triggers") return MAGENTA;
+			if (category == "story_triggers") return SKYBLUE;
+			if (category == "story_anchors") return BLUE;
 			if (category == "nav_blockers") return BLUE;
 			return GRAY;
+		}
+
+		std::string readFirstString(const json& data, const std::initializer_list<const char*> keys) {
+			for (const char* key : keys) {
+				const auto it = data.find(key);
+				if (it == data.end())
+					continue;
+
+				if (it->is_string())
+					return it->get<std::string>();
+
+				if (it->is_array()) {
+					for (const auto& entry : *it) {
+						if (entry.is_string())
+							return entry.get<std::string>();
+					}
+				}
+			}
+
+			return "";
 		}
 
 		NavMeshBlockerShape navBlockerShapeFromString(const std::string& shape) {
@@ -505,11 +531,26 @@ namespace Nawia::World {
 		}
 
 		bool isWczoraLocation(const std::string& location_name, const std::filesystem::path& location_path = {}) {
-			return location_name == "Wczora" || location_path.filename().string() == "wczora.json";
+			(void)location_name;
+			return location_path.filename().string() == "wczora.json";
+		}
+
+		bool isPrzedsionekNawiiLocation(const std::string& location_name, const std::filesystem::path& location_path = {}) {
+			(void)location_name;
+			return location_path.filename().string() == "przedsionek_nawii.json";
+		}
+
+		bool hasDedicatedLightingFile(const std::string& location_name, const std::filesystem::path& location_path = {}) {
+			return isWczoraLocation(location_name, location_path) ||
+				   isPrzedsionekNawiiLocation(location_name, location_path);
 		}
 
 		const char* getLightingFileForLocation(const std::string& location_name, const std::filesystem::path& location_path = {}) {
-			return isWczoraLocation(location_name, location_path) ? WCZORA_LIGHTING_FILE : DEFAULT_LIGHTING_FILE;
+			if (isWczoraLocation(location_name, location_path))
+				return WCZORA_LIGHTING_FILE;
+			if (isPrzedsionekNawiiLocation(location_name, location_path))
+				return PRZEDSIONEK_NAWII_LIGHTING_FILE;
+			return DEFAULT_LIGHTING_FILE;
 		}
 
 	} // namespace
@@ -627,6 +668,12 @@ namespace Nawia::World {
 			case EditorMode::NPCSelection:
 				renderNPCSelectionMenu(engine);
 				break;
+			case EditorMode::NPCStoryDetails:
+				renderNPCStoryDetailsMenu(engine);
+				break;
+			case EditorMode::HerbalistHubDetails:
+				renderHerbalistHubDetailsMenu(engine);
+				break;
 			case EditorMode::PropDetails:
 				renderPropDetailsMenu(engine);
 				break;
@@ -635,6 +682,9 @@ namespace Nawia::World {
 				break;
 			case EditorMode::BossTriggerDetails:
 				renderBossTriggerDetailsMenu(engine);
+				break;
+			case EditorMode::StoryTriggerDetails:
+				renderStoryTriggerDetailsMenu(engine);
 				break;
 			case EditorMode::NavBlockerDetails:
 				renderNavBlockerDetailsMenu(engine);
@@ -854,6 +904,15 @@ namespace Nawia::World {
 		placed_object.count = data.value("count", 1);
 		placed_object.locked = data.value("locked", false);
 		placed_object.key_id = data.value("key_id", -1);
+		const json conditions = data.value("conditions", json::object());
+		placed_object.required_quest_completed = readFirstString(data, {"required_quest_completed", "required_quests_completed"});
+		placed_object.required_boss_defeated = readFirstString(data, {"required_boss_defeated", "required_bosses_defeated"});
+		if (conditions.is_object()) {
+			if (placed_object.required_quest_completed.empty())
+				placed_object.required_quest_completed = readFirstString(conditions, {"required_quest_completed", "required_quests_completed"});
+			if (placed_object.required_boss_defeated.empty())
+				placed_object.required_boss_defeated = readFirstString(conditions, {"required_boss_defeated", "required_bosses_defeated"});
+		}
 		placed_object.blocker_width = data.value("width", 4.0f);
 		placed_object.blocker_depth = data.value("depth", 4.0f);
 		placed_object.blocker_height = data.value("height", 0.0f);
@@ -870,6 +929,21 @@ namespace Nawia::World {
 
 		if (placed_object.category == "npcs") {
 			placed_object.extra_value = data.value("npc_class", "");
+			if (placed_object.extra_value == "story_human" || placed_object.extra_value == "herbalist") {
+				placed_object.npc_model_path = readFirstString(data, {"model", "model_path"});
+				placed_object.npc_animation_bundle = data.value("animation_bundle", "");
+				placed_object.npc_idle_animation = data.value("idle_animation", "Idle");
+				placed_object.npc_walk_animation = data.value("walk_animation", "Walk");
+				placed_object.npc_talk_animation = data.value("talk_animation", "talk");
+				placed_object.npc_destination_name = data.value("destination_name", "");
+				placed_object.npc_can_talk = data.value("can_talk", true);
+				placed_object.npc_route_after_talk = data.value("route_after_talk", false);
+				placed_object.npc_disable_interaction_after_talk = data.value("disable_interaction_after_talk", false);
+				placed_object.story_start_quest = data.value("start_quest", "");
+				placed_object.story_complete_quest = data.value("complete_quest", "");
+				placed_object.story_fail_quest = data.value("fail_quest", "");
+				placed_object.story_checkpoint = data.value("checkpoint_on_talk", data.value("checkpoint_on_complete", ""));
+			}
 		} else if (placed_object.category == "props") {
 			if (data.contains("model") && data["model"].is_string())
 				placed_object.extra_value = data["model"].get<std::string>();
@@ -883,6 +957,18 @@ namespace Nawia::World {
 			placed_object.extra_value = data.value("boss_id", "");
 			placed_object.spawn_radius = data.value("width", 10.0f);
 			placed_object.trigger_radius = data.value("height", 4.0f);
+		} else if (placed_object.category == "story_triggers") {
+			placed_object.extra_value = data.value("dialogue_key", "");
+			placed_object.story_target_location = data.value("target_location", "");
+			placed_object.story_start_quest = data.value("start_quest", "");
+			placed_object.story_complete_quest = data.value("complete_quest", "");
+			placed_object.story_fail_quest = data.value("fail_quest", "");
+			placed_object.story_checkpoint = data.value("checkpoint_on_complete", data.value("notify_checkpoint", ""));
+			placed_object.story_start_boss = data.value("start_boss", "");
+			placed_object.spawn_radius = data.value("width", 4.0f);
+			placed_object.trigger_radius = data.value("height", 4.0f);
+		} else if (placed_object.category == "hubs") {
+			placed_object.spawn_radius = data.value("radius", data.value("spawn_radius", 5.0f));
 		} else if (placed_object.category == "nav_blockers") {
 			placed_object.blocker_width = data.value("width", 4.0f);
 			placed_object.blocker_depth = data.value("depth", 4.0f);
@@ -907,6 +993,25 @@ namespace Nawia::World {
 		data["type"] = object.type;
 		data["category"] = object.category;
 
+		if (!object.required_quest_completed.empty() || !object.required_boss_defeated.empty()) {
+			json conditions = json::object();
+			if (!object.required_quest_completed.empty())
+				conditions["required_quest_completed"] = object.required_quest_completed;
+			if (!object.required_boss_defeated.empty())
+				conditions["required_boss_defeated"] = object.required_boss_defeated;
+			data["conditions"] = std::move(conditions);
+			data.erase("required_quest_completed");
+			data.erase("required_quests_completed");
+			data.erase("required_boss_defeated");
+			data.erase("required_bosses_defeated");
+		} else {
+			data.erase("conditions");
+			data.erase("required_quest_completed");
+			data.erase("required_quests_completed");
+			data.erase("required_boss_defeated");
+			data.erase("required_bosses_defeated");
+		}
+
 		if (object.category == "spawners") {
 			data["count"] = object.count;
 			data["spawn_radius"] = object.spawn_radius;
@@ -926,6 +1031,53 @@ namespace Nawia::World {
 			}
 		} else if (object.category == "npcs") {
 			data["npc_class"] = object.extra_value;
+			if (object.extra_value == "story_human" || object.extra_value == "herbalist") {
+				if (!object.npc_model_path.empty())
+					data["model"] = object.npc_model_path;
+				else
+					data.erase("model");
+
+				if (!object.npc_animation_bundle.empty())
+					data["animation_bundle"] = object.npc_animation_bundle;
+				else
+					data.erase("animation_bundle");
+
+				if (!object.npc_idle_animation.empty())
+					data["idle_animation"] = object.npc_idle_animation;
+				if (!object.npc_walk_animation.empty())
+					data["walk_animation"] = object.npc_walk_animation;
+				if (!object.npc_talk_animation.empty())
+					data["talk_animation"] = object.npc_talk_animation;
+
+				if (!object.npc_destination_name.empty())
+					data["destination_name"] = object.npc_destination_name;
+				else
+					data.erase("destination_name");
+
+				data["can_talk"] = object.npc_can_talk;
+				data["route_after_talk"] = object.npc_route_after_talk;
+				data["disable_interaction_after_talk"] = object.npc_disable_interaction_after_talk;
+
+				if (!object.story_start_quest.empty())
+					data["start_quest"] = object.story_start_quest;
+				else
+					data.erase("start_quest");
+
+				if (!object.story_complete_quest.empty())
+					data["complete_quest"] = object.story_complete_quest;
+				else
+					data.erase("complete_quest");
+
+				if (!object.story_fail_quest.empty())
+					data["fail_quest"] = object.story_fail_quest;
+				else
+					data.erase("fail_quest");
+
+				if (!object.story_checkpoint.empty())
+					data["checkpoint_on_talk"] = object.story_checkpoint;
+				else
+					data.erase("checkpoint_on_talk");
+			}
 		} else if (object.category == "props") {
 			if (object.extra_value.empty())
 				data.erase("model");
@@ -939,6 +1091,44 @@ namespace Nawia::World {
 			data["boss_id"] = object.extra_value;
 			data["width"] = object.spawn_radius;
 			data["height"] = object.trigger_radius;
+		} else if (object.category == "story_triggers") {
+			data["dialogue_key"] = object.extra_value;
+			data["width"] = object.spawn_radius;
+			data["height"] = object.trigger_radius;
+
+			if (!object.story_target_location.empty())
+				data["target_location"] = object.story_target_location;
+			else
+				data.erase("target_location");
+
+			if (!object.story_start_quest.empty())
+				data["start_quest"] = object.story_start_quest;
+			else
+				data.erase("start_quest");
+
+			if (!object.story_complete_quest.empty())
+				data["complete_quest"] = object.story_complete_quest;
+			else
+				data.erase("complete_quest");
+
+			if (!object.story_fail_quest.empty())
+				data["fail_quest"] = object.story_fail_quest;
+			else
+				data.erase("fail_quest");
+
+			if (!object.story_checkpoint.empty())
+				data["checkpoint_on_complete"] = object.story_checkpoint;
+			else
+				data.erase("checkpoint_on_complete");
+
+			if (!object.story_start_boss.empty())
+				data["start_boss"] = object.story_start_boss;
+			else
+				data.erase("start_boss");
+		} else if (object.category == "hubs") {
+			data["radius"] = object.spawn_radius;
+			data.erase("spawn_radius");
+			data.erase("trigger_radius");
 		} else if (object.category == "nav_blockers") {
 			data["shape"] = object.blocker_shape == "circle" ? "circle" : "box";
 			if (object.blocker_shape == "circle") {
@@ -1141,9 +1331,10 @@ namespace Nawia::World {
 		}
 		objects_output << objects_data.dump(4);
 
-		if (engine && isWczoraLocation(_active_location_name, location_path)) {
-			engine->getLightingSystem().saveLightingToJson(WCZORA_LIGHTING_FILE);
-			Core::Logger::debugLog("DevLevel: zapisano oswietlenie Wczory.");
+		if (engine && hasDedicatedLightingFile(_active_location_name, location_path)) {
+			const char* lighting_file = getLightingFileForLocation(_active_location_name, location_path);
+			engine->getLightingSystem().saveLightingToJson(lighting_file);
+			Core::Logger::debugLog(std::string("DevLevel: zapisano oswietlenie lokacji do ") + lighting_file);
 		}
 
 		_has_unsaved_changes = false;
@@ -1293,6 +1484,17 @@ namespace Nawia::World {
 						ORANGE
 					);
 				}
+			} else if (object.category == "hubs") {
+				const Vector3 ground_position = {object.position.x, nav_position.y + 0.05f, object.position.y};
+				const float radius = std::max(0.1f, object.spawn_radius);
+				DrawCircle3D(
+					ground_position,
+					radius,
+					{1.0f, 0.0f, 0.0f},
+					90.0f,
+					ColorAlpha(GREEN, 0.24f)
+				);
+				DrawCylinderWires(ground_position, radius, radius, 0.35f, 28, GREEN);
 			} else if (object.category == "boss_triggers") {
 				const Vector3 trigger_center = {object.position.x, nav_position.y + 0.15f, object.position.y};
 				DrawCubeWires(
@@ -1801,11 +2003,37 @@ namespace Nawia::World {
 		}
 
 		button_y += object_button_step;
+		if (drawButton(font, "HUB zielarza", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
+			_temp_entity_type = "herbalist_hub";
+			_temp_name = "Herbalist Hub";
+			_spawn_radius_buffer = "5.0";
+			_current_mode = EditorMode::HerbalistHubDetails;
+		}
+
+		button_y += object_button_step;
+		if (drawButton(font, "Story Anchor", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
+			_temp_entity_type = "story_anchor";
+			_temp_name = "Story Anchor";
+			saveObject("story_anchors");
+			_current_mode = EditorMode::None;
+		}
+
+		button_y += object_button_step;
 		if (drawButton(font, "Boss Trigger", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
 			prepareObjectPlacementAtPlayer(engine);
 			_temp_entity_type = "boss_trigger";
 			_temp_name = "Boss Trigger";
 			_current_mode = EditorMode::BossTriggerDetails;
+		}
+
+		button_y += object_button_step;
+		if (drawButton(font, "Story Trigger", x + 28, button_y, 224, object_button_height, DARKGREEN)) {
+			prepareObjectPlacementAtPlayer(engine);
+			_temp_entity_type = "story_trigger";
+			_temp_name = "Story Trigger";
+			_current_mode = EditorMode::StoryTriggerDetails;
 		}
 
 		button_y += object_button_step;
@@ -1918,32 +2146,37 @@ namespace Nawia::World {
 			_temp_name = "Devil";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
-		if (drawButton(font, "Bandit", start_x, start_y + 50, 300, 40, BLUE)) {
+		if (drawButton(font, "Czarownica", start_x, start_y + 50, 300, 40, BLUE)) {
+			_temp_entity_type = "witch";
+			_temp_name = "Czarownica";
+			_current_mode = EditorMode::SpawnerDetails;
+		}
+		if (drawButton(font, "Bandit", start_x, start_y + 100, 300, 40, BLUE)) {
 			_temp_entity_type = "bandit";
 			_temp_name = "Bandit";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
-		if (drawButton(font, "Walking Dead", start_x, start_y + 100, 300, 40, BLUE)) {
+		if (drawButton(font, "Walking Dead", start_x, start_y + 150, 300, 40, BLUE)) {
 			_temp_entity_type = "walking_dead";
 			_temp_name = "Walking Dead";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
-		if (drawButton(font, "Ropuch (Frog)", start_x, start_y + 150, 300, 40, BLUE)) {
+		if (drawButton(font, "Ropuch (Frog)", start_x, start_y + 200, 300, 40, BLUE)) {
 			_temp_entity_type = "frog";
 			_temp_name = "Ropuch";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
-		if (drawButton(font, "Zly Gzibek", start_x, start_y + 200, 300, 40, BLUE)) {
+		if (drawButton(font, "Zly Gzibek", start_x, start_y + 250, 300, 40, BLUE)) {
 			_temp_entity_type = "mini_mushroom_infected";
 			_temp_name = "Zly Gzibek";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
-		if (drawButton(font, "Robal (Worm)", start_x, start_y + 250, 300, 40, BLUE)) {
+		if (drawButton(font, "Robal (Worm)", start_x, start_y + 300, 300, 40, BLUE)) {
 			_temp_entity_type = "worm";
 			_temp_name = "Robal";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 330, 300, 40, GRAY)) {
+		if (drawButton(font, "WSTECZ", start_x, start_y + 380, 300, 40, GRAY)) {
 			_current_mode = EditorMode::None;
 		}
 	}
@@ -2065,7 +2298,7 @@ namespace Nawia::World {
 	void DevLevel::renderNPCSelectionMenu(Core::Engine* engine) {
 		const auto& font = engine->getUIHandler().getFont();
 		const int start_x = GetScreenWidth() / 2 - 150;
-		const int start_y = GetScreenHeight() / 2 - 100;
+		const int start_y = GetScreenHeight() / 2 - 240;
 
 		drawDevText(font, "Wybierz NPC:", start_x, start_y - 40, 24, YELLOW);
 		if (drawButton(font, "KOT (Cat)", start_x, start_y, 300, 50, BLUE)) {
@@ -2103,7 +2336,184 @@ namespace Nawia::World {
 			saveObject("npcs");
 			_current_mode = EditorMode::None;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 310, 300, 50, GRAY)) {
+		if (drawButton(font, "Story Human", start_x, start_y + 300, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Ocalony";
+			_temp_extra_value = "story_human";
+			_prop_model_path_buffer.clear();
+			_npc_animation_bundle_buffer.clear();
+			_npc_idle_animation_buffer = "Idle";
+			_npc_walk_animation_buffer = "Walk";
+			_npc_talk_animation_buffer = "Idle";
+			_current_mode = EditorMode::NPCStoryDetails;
+		}
+		if (drawButton(font, "Zielarz", start_x, start_y + 360, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Zielarz";
+			_temp_extra_value = "herbalist";
+			_prop_model_path_buffer = "assets/models/actors/herbalist/herbalist.glb";
+			_npc_animation_bundle_buffer = "assets/models/actors/herbalist/herbalist.glb";
+			_npc_idle_animation_buffer = "Idle";
+			_npc_walk_animation_buffer = "Walk";
+			_npc_talk_animation_buffer = "Idle";
+			_story_dialogue_key_buffer = "herbalist_placeholder";
+			_current_mode = EditorMode::NPCStoryDetails;
+		}
+		if (drawButton(font, "Cmentarz: female_warrior", start_x, start_y + 420, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Ocalona z cmentarza";
+			_temp_extra_value = "story_human";
+			_prop_model_path_buffer = "assets/models/actors/friends/female_warrior/female_warrior.glb";
+			_npc_animation_bundle_buffer = "assets/models/actors/friends/female_warrior/female_warrior.glb";
+			_npc_idle_animation_buffer = "idle";
+			_npc_walk_animation_buffer = "walk";
+			_npc_talk_animation_buffer = "idle";
+			_story_dialogue_key_buffer = "cemetery_female_survivor";
+			_npc_destination_name_buffer = "Herbalist Hub";
+			_temp_npc_route_after_talk = true;
+			_temp_npc_disable_interaction_after_talk = true;
+			_current_mode = EditorMode::NPCStoryDetails;
+		}
+		if (drawButton(font, "Cmentarz: male_npc_1", start_x, start_y + 480, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Ocalony z cmentarza";
+			_temp_extra_value = "story_human";
+			_prop_model_path_buffer = "assets/models/actors/npcs/male_npc_1.glb";
+			_npc_animation_bundle_buffer = "assets/models/actors/npcs/male_npc_1.glb";
+			_npc_idle_animation_buffer = "idle";
+			_npc_walk_animation_buffer = "walk";
+			_npc_talk_animation_buffer = "idle";
+			_story_dialogue_key_buffer = "cemetery_male_survivor";
+			_npc_destination_name_buffer = "Herbalist Hub";
+			_temp_npc_route_after_talk = true;
+			_temp_npc_disable_interaction_after_talk = true;
+			_current_mode = EditorMode::NPCStoryDetails;
+		}
+		if (drawButton(font, "Forest Lost NPC", start_x, start_y + 540, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Forest Lost NPC";
+			_temp_extra_value = "forest_lost_group";
+			saveObject("npcs");
+			_current_mode = EditorMode::None;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 610, 300, 50, GRAY)) {
+			_current_mode = EditorMode::None;
+		}
+	}
+
+	void DevLevel::renderNPCStoryDetailsMenu(Core::Engine* engine) {
+		const auto& font = engine->getUIHandler().getFont();
+		const int start_x = GetScreenWidth() / 2 - 250;
+		const int start_y = GetScreenHeight() / 2 - 350;
+
+		drawDevText(font, "Konfiguracja Story Human:", start_x, start_y - 36, 24, YELLOW);
+
+		drawLabel(font, "Nazwa:", start_x, start_y);
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 500, 34, _active_text_field == EditorTextField::ObjectName))
+			_active_text_field = EditorTextField::ObjectName;
+
+		drawLabel(font, "Model path:", start_x, start_y + 58);
+		if (drawTextInput(font, _prop_model_path_buffer, start_x, start_y + 80, 500, 34, _active_text_field == EditorTextField::NPCModel))
+			_active_text_field = EditorTextField::NPCModel;
+
+		drawLabel(font, "Animation bundle:", start_x, start_y + 116);
+		if (drawTextInput(font, _npc_animation_bundle_buffer, start_x, start_y + 138, 500, 34, _active_text_field == EditorTextField::NPCAnimationBundle))
+			_active_text_field = EditorTextField::NPCAnimationBundle;
+
+		drawLabel(font, "Idle:", start_x, start_y + 176);
+		if (drawTextInput(font, _npc_idle_animation_buffer, start_x, start_y + 198, 150, 34, _active_text_field == EditorTextField::NPCIdleAnimation))
+			_active_text_field = EditorTextField::NPCIdleAnimation;
+
+		drawLabel(font, "Walk:", start_x + 175, start_y + 176);
+		if (drawTextInput(font, _npc_walk_animation_buffer, start_x + 175, start_y + 198, 150, 34, _active_text_field == EditorTextField::NPCWalkAnimation))
+			_active_text_field = EditorTextField::NPCWalkAnimation;
+
+		drawLabel(font, "Talk:", start_x + 350, start_y + 176);
+		if (drawTextInput(font, _npc_talk_animation_buffer, start_x + 350, start_y + 198, 150, 34, _active_text_field == EditorTextField::NPCTalkAnimation))
+			_active_text_field = EditorTextField::NPCTalkAnimation;
+
+		drawLabel(font, "Dialogue key:", start_x, start_y + 236);
+		if (drawTextInput(font, _story_dialogue_key_buffer, start_x, start_y + 258, 500, 34, _active_text_field == EditorTextField::StoryDialogueKey))
+			_active_text_field = EditorTextField::StoryDialogueKey;
+
+		drawLabel(font, "Destination anchor name:", start_x, start_y + 296);
+		if (drawTextInput(font, _npc_destination_name_buffer, start_x, start_y + 318, 500, 34, _active_text_field == EditorTextField::NPCDestinationName))
+			_active_text_field = EditorTextField::NPCDestinationName;
+
+		int row_y = start_y + 370;
+		if (drawButton(font, _temp_npc_can_talk ? "Can talk: TAK" : "Can talk: NIE", start_x, row_y, 155, 34, _temp_npc_can_talk ? DARKGREEN : MAROON)) {
+			_temp_npc_can_talk = !_temp_npc_can_talk;
+			_active_text_field = EditorTextField::None;
+		}
+		if (drawButton(font, _temp_npc_route_after_talk ? "Route: TAK" : "Route: NIE", start_x + 172, row_y, 155, 34, _temp_npc_route_after_talk ? DARKGREEN : MAROON)) {
+			_temp_npc_route_after_talk = !_temp_npc_route_after_talk;
+			_active_text_field = EditorTextField::None;
+		}
+		if (drawButton(font, _temp_npc_disable_interaction_after_talk ? "One talk: TAK" : "One talk: NIE", start_x + 344, row_y, 155, 34, _temp_npc_disable_interaction_after_talk ? DARKGREEN : MAROON)) {
+			_temp_npc_disable_interaction_after_talk = !_temp_npc_disable_interaction_after_talk;
+			_active_text_field = EditorTextField::None;
+		}
+
+		row_y += 52;
+		drawLabel(font, "Start quest:", start_x, row_y);
+		if (drawTextInput(font, _story_start_quest_buffer, start_x, row_y + 22, 240, 34, _active_text_field == EditorTextField::StoryStartQuest))
+			_active_text_field = EditorTextField::StoryStartQuest;
+
+		drawLabel(font, "Complete quest:", start_x + 260, row_y);
+		if (drawTextInput(font, _story_complete_quest_buffer, start_x + 260, row_y + 22, 240, 34, _active_text_field == EditorTextField::StoryCompleteQuest))
+			_active_text_field = EditorTextField::StoryCompleteQuest;
+
+		row_y += 62;
+		drawLabel(font, "Fail quest:", start_x, row_y);
+		if (drawTextInput(font, _story_fail_quest_buffer, start_x, row_y + 22, 240, 34, _active_text_field == EditorTextField::StoryFailQuest))
+			_active_text_field = EditorTextField::StoryFailQuest;
+
+		drawLabel(font, "Checkpoint on talk:", start_x + 260, row_y);
+		if (drawTextInput(font, _story_checkpoint_buffer, start_x + 260, row_y + 22, 240, 34, _active_text_field == EditorTextField::StoryCheckpoint))
+			_active_text_field = EditorTextField::StoryCheckpoint;
+
+		row_y += 78;
+		if (drawButton(font, "ZAPISZ STORY HUMAN", start_x, row_y, 500, 46, GREEN)) {
+			if (_temp_extra_value.empty())
+				_temp_extra_value = "story_human";
+			saveObject("npcs");
+			_active_text_field = EditorTextField::None;
+			_current_mode = EditorMode::None;
+		}
+
+		if (drawButton(font, "WSTECZ", start_x, row_y + 56, 500, 38, GRAY)) {
+			_active_text_field = EditorTextField::None;
+			_current_mode = EditorMode::NPCSelection;
+		}
+	}
+
+	void DevLevel::renderHerbalistHubDetailsMenu(Core::Engine* engine) {
+		const auto& font = engine->getUIHandler().getFont();
+		const int start_x = GetScreenWidth() / 2 - 200;
+		const int start_y = GetScreenHeight() / 2 - 130;
+
+		drawDevText(font, "Konfiguracja HUB-a zielarza:", start_x, start_y - 40, 24, YELLOW);
+		drawLabel(font, "Nazwa:", start_x, start_y);
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 400, 40, _active_text_field == EditorTextField::ObjectName))
+			_active_text_field = EditorTextField::ObjectName;
+
+		drawLabel(font, "Radius:", start_x, start_y + 72);
+		if (drawTextInput(font, _spawn_radius_buffer, start_x, start_y + 94, 180, 38, _active_text_field == EditorTextField::HubRadius))
+			_active_text_field = EditorTextField::HubRadius;
+
+		if (drawButton(font, "ZAPISZ HUB", start_x, start_y + 152, 400, 50, GREEN)) {
+			try {
+				_temp_spawn_radius = std::max(0.1f, std::stof(_spawn_radius_buffer.empty() ? "5.0" : _spawn_radius_buffer));
+				saveObject("hubs");
+				_active_text_field = EditorTextField::None;
+				_current_mode = EditorMode::None;
+			} catch (const std::exception& error) {
+				Core::Logger::errorLog("DevLevel: bledny radius HUB-a: " + std::string(error.what()));
+			}
+		}
+
+		if (drawButton(font, "WSTECZ", start_x, start_y + 212, 400, 40, GRAY)) {
+			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
 		}
 	}
@@ -2173,13 +2583,23 @@ namespace Nawia::World {
 			_active_text_field = EditorTextField::None;
 		}
 
-		if (!_teleport_target_dropdown_open && drawButton(font, "ZAPISZ TELEPORT", start_x, start_y + 150, 400, 50, GREEN)) {
+		drawLabel(font, "Warunek quest completed:", start_x, start_y + 142);
+		if (!_teleport_target_dropdown_open &&
+			drawTextInput(font, _condition_quest_completed_buffer, start_x, start_y + 164, 400, 34, _active_text_field == EditorTextField::ConditionQuestCompleted))
+			_active_text_field = EditorTextField::ConditionQuestCompleted;
+
+		drawLabel(font, "Warunek boss defeated:", start_x, start_y + 204);
+		if (!_teleport_target_dropdown_open &&
+			drawTextInput(font, _condition_boss_defeated_buffer, start_x, start_y + 226, 400, 34, _active_text_field == EditorTextField::ConditionBossDefeated))
+			_active_text_field = EditorTextField::ConditionBossDefeated;
+
+		if (!_teleport_target_dropdown_open && drawButton(font, "ZAPISZ TELEPORT", start_x, start_y + 278, 400, 50, GREEN)) {
 			_temp_extra_value = target_locations[_selected_teleport_target_index];
 			saveObject("teleports");
 			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
 		}
-		if (!_teleport_target_dropdown_open && drawButton(font, "WSTECZ", start_x, start_y + 210, 400, 40, GRAY)) {
+		if (!_teleport_target_dropdown_open && drawButton(font, "WSTECZ", start_x, start_y + 338, 400, 40, GRAY)) {
 			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
 		}
@@ -2259,6 +2679,120 @@ namespace Nawia::World {
 			);
 			if (selected_boss >= 0)
 				_selected_boss_index = selected_boss;
+		}
+	}
+
+	void DevLevel::renderStoryTriggerDetailsMenu(Core::Engine* engine) {
+		const auto& font = engine->getUIHandler().getFont();
+		const int start_x = GetScreenWidth() / 2 - 230;
+		const int start_y = GetScreenHeight() / 2 - 340;
+
+		std::vector<std::string> target_locations;
+		target_locations.push_back("Brak teleportu");
+		for (const auto& option : _location_options)
+			target_locations.push_back(option.location_name);
+		if (std::find(target_locations.begin(), target_locations.end(), _active_location_name) == target_locations.end())
+			target_locations.push_back(_active_location_name);
+		_selected_teleport_target_index = std::clamp(
+			_selected_teleport_target_index,
+			0,
+			static_cast<int>(target_locations.size()) - 1
+		);
+
+		drawDevText(font, "Konfiguracja Story Triggera:", start_x, start_y - 38, 24, YELLOW);
+
+		drawLabel(font, "Nazwa:", start_x, start_y);
+		if (drawTextInput(font, _temp_name, start_x, start_y + 20, 460, 34, _active_text_field == EditorTextField::ObjectName))
+			_active_text_field = EditorTextField::ObjectName;
+
+		drawLabel(font, "Dialogue key:", start_x, start_y + 58);
+		if (drawTextInput(font, _story_dialogue_key_buffer, start_x, start_y + 80, 460, 34, _active_text_field == EditorTextField::StoryDialogueKey))
+			_active_text_field = EditorTextField::StoryDialogueKey;
+
+		drawLabel(font, "Target location po dialogu:", start_x, start_y + 118);
+		const bool was_target_open = _teleport_target_dropdown_open;
+		drawDropdown(
+			font,
+			{static_cast<float>(start_x), static_cast<float>(start_y + 140), 460.0f, 36.0f},
+			target_locations,
+			_selected_teleport_target_index,
+			_teleport_target_dropdown_open,
+			8
+		);
+		if (_teleport_target_dropdown_open && !was_target_open) {
+			_boss_dropdown_open = false;
+			_active_text_field = EditorTextField::None;
+		}
+
+		if (!_teleport_target_dropdown_open) {
+			drawLabel(font, "Szerokosc:", start_x, start_y + 185);
+			if (drawTextInput(font, _boss_width_buffer, start_x, start_y + 207, 210, 34, _active_text_field == EditorTextField::BossTriggerWidth))
+				_active_text_field = EditorTextField::BossTriggerWidth;
+
+			drawLabel(font, "Wysokosc:", start_x + 250, start_y + 185);
+			if (drawTextInput(font, _boss_height_buffer, start_x + 250, start_y + 207, 210, 34, _active_text_field == EditorTextField::BossTriggerHeight))
+				_active_text_field = EditorTextField::BossTriggerHeight;
+
+			drawLabel(font, "Start quest:", start_x, start_y + 250);
+			if (drawTextInput(font, _story_start_quest_buffer, start_x, start_y + 272, 210, 34, _active_text_field == EditorTextField::StoryStartQuest))
+				_active_text_field = EditorTextField::StoryStartQuest;
+
+			drawLabel(font, "Complete quest:", start_x + 250, start_y + 250);
+			if (drawTextInput(font, _story_complete_quest_buffer, start_x + 250, start_y + 272, 210, 34, _active_text_field == EditorTextField::StoryCompleteQuest))
+				_active_text_field = EditorTextField::StoryCompleteQuest;
+
+			drawLabel(font, "Fail quest:", start_x, start_y + 315);
+			if (drawTextInput(font, _story_fail_quest_buffer, start_x, start_y + 337, 210, 34, _active_text_field == EditorTextField::StoryFailQuest))
+				_active_text_field = EditorTextField::StoryFailQuest;
+
+			drawLabel(font, "Checkpoint:", start_x + 250, start_y + 315);
+			if (drawTextInput(font, _story_checkpoint_buffer, start_x + 250, start_y + 337, 210, 34, _active_text_field == EditorTextField::StoryCheckpoint))
+				_active_text_field = EditorTextField::StoryCheckpoint;
+
+			drawLabel(font, "Start boss:", start_x, start_y + 380);
+			if (drawTextInput(font, _story_start_boss_buffer, start_x, start_y + 402, 210, 34, _active_text_field == EditorTextField::StoryStartBoss))
+				_active_text_field = EditorTextField::StoryStartBoss;
+
+			drawLabel(font, "Warunek quest completed:", start_x + 250, start_y + 380);
+			if (drawTextInput(font, _condition_quest_completed_buffer, start_x + 250, start_y + 402, 210, 34, _active_text_field == EditorTextField::ConditionQuestCompleted))
+				_active_text_field = EditorTextField::ConditionQuestCompleted;
+
+			drawLabel(font, "Warunek boss defeated:", start_x, start_y + 445);
+			if (drawTextInput(font, _condition_boss_defeated_buffer, start_x, start_y + 467, 460, 34, _active_text_field == EditorTextField::ConditionBossDefeated))
+				_active_text_field = EditorTextField::ConditionBossDefeated;
+
+			if (drawButton(font, "ZAPISZ STORY TRIGGER", start_x, start_y + 520, 460, 46, GREEN)) {
+				try {
+					_temp_extra_value = _story_dialogue_key_buffer;
+					_temp_story_target_location = _selected_teleport_target_index > 0
+						? target_locations[_selected_teleport_target_index]
+						: "";
+					_temp_spawn_radius = std::max(0.1f, std::stof(_boss_width_buffer.empty() ? "4.0" : _boss_width_buffer));
+					_temp_trigger_radius = std::max(0.1f, std::stof(_boss_height_buffer.empty() ? "4.0" : _boss_height_buffer));
+					saveObject("story_triggers");
+					_active_text_field = EditorTextField::None;
+					_current_mode = EditorMode::None;
+				} catch (const std::exception& error) {
+					Core::Logger::errorLog("DevLevel: bledne dane story triggera: " + std::string(error.what()));
+				}
+			}
+
+			if (drawButton(font, "WSTECZ", start_x, start_y + 576, 460, 38, GRAY)) {
+				_active_text_field = EditorTextField::None;
+				_current_mode = EditorMode::None;
+			}
+		}
+
+		if (_teleport_target_dropdown_open) {
+			const int selected_target = drawDropdownOptions(
+				font,
+				{static_cast<float>(start_x), static_cast<float>(start_y + 140), 460.0f, 36.0f},
+				target_locations,
+				_teleport_target_dropdown_open,
+				8
+			);
+			if (selected_target >= 0)
+				_selected_teleport_target_index = selected_target;
 		}
 	}
 
@@ -2415,13 +2949,30 @@ namespace Nawia::World {
 		_temp_chest_locked = false;
 		_temp_key_id = -1;
 		_temp_extra_value.clear();
+		_temp_story_target_location.clear();
+		_temp_npc_can_talk = true;
+		_temp_npc_route_after_talk = false;
+		_temp_npc_disable_interaction_after_talk = false;
 
 		_count_buffer = "1";
 		_spawn_radius_buffer = "5.0";
 		_trigger_radius_buffer = "15.0";
 		_prop_model_path_buffer.clear();
+		_npc_animation_bundle_buffer.clear();
+		_npc_idle_animation_buffer = "Idle";
+		_npc_walk_animation_buffer = "Walk";
+		_npc_talk_animation_buffer = "talk";
+		_npc_destination_name_buffer.clear();
 		_boss_width_buffer = "10.0";
 		_boss_height_buffer = "4.0";
+		_story_dialogue_key_buffer.clear();
+		_story_start_quest_buffer.clear();
+		_story_complete_quest_buffer.clear();
+		_story_fail_quest_buffer.clear();
+		_story_checkpoint_buffer.clear();
+		_story_start_boss_buffer.clear();
+		_condition_quest_completed_buffer.clear();
+		_condition_boss_defeated_buffer.clear();
 		_nav_blocker_width_buffer = "4.0";
 		_nav_blocker_depth_buffer = "4.0";
 		_nav_blocker_height_buffer = "0.0";
@@ -2456,13 +3007,59 @@ namespace Nawia::World {
 		placed_object.loot_ids = _temp_loot_ids;
 		placed_object.locked = _temp_chest_locked;
 		placed_object.key_id = _temp_key_id;
+		placed_object.required_quest_completed = _condition_quest_completed_buffer;
+		placed_object.required_boss_defeated = _condition_boss_defeated_buffer;
+		placed_object.npc_model_path = _prop_model_path_buffer;
+		placed_object.npc_animation_bundle = _npc_animation_bundle_buffer;
+		placed_object.npc_idle_animation = _npc_idle_animation_buffer;
+		placed_object.npc_walk_animation = _npc_walk_animation_buffer;
+		placed_object.npc_talk_animation = _npc_talk_animation_buffer;
+		placed_object.npc_destination_name = _npc_destination_name_buffer;
+		placed_object.npc_can_talk = _temp_npc_can_talk;
+		placed_object.npc_route_after_talk = _temp_npc_route_after_talk;
+		placed_object.npc_disable_interaction_after_talk = _temp_npc_disable_interaction_after_talk;
+		placed_object.story_start_quest = _story_start_quest_buffer;
+		placed_object.story_complete_quest = _story_complete_quest_buffer;
+		placed_object.story_fail_quest = _story_fail_quest_buffer;
+		placed_object.story_checkpoint = _story_checkpoint_buffer;
+		placed_object.story_start_boss = _story_start_boss_buffer;
 		placed_object.blocker_width = _temp_nav_blocker_width;
 		placed_object.blocker_depth = _temp_nav_blocker_depth;
 		placed_object.blocker_height = _temp_nav_blocker_height;
 		placed_object.blocker_radius = _temp_nav_blocker_radius;
 		placed_object.blocker_shape = _temp_nav_blocker_shape == "circle" ? "circle" : "box";
 		placed_object.extra_value = _temp_extra_value;
+		if (category == "story_triggers")
+			placed_object.story_target_location = _temp_story_target_location;
 		placed_object.raw_data = json::object();
+		if (category == "npcs" && placed_object.extra_value == "forest_lost_group") {
+			placed_object.raw_data["hub_name"] = "Herbalist Hub";
+			placed_object.raw_data["dialogue_key"] = "forest_lost_group";
+			placed_object.raw_data["checkpoint_on_arrival"] = "forest_lost_group_arrived";
+			placed_object.raw_data["sister_carry_height"] = 1.6;
+			placed_object.raw_data["sister_drop_duration"] = 0.6;
+			placed_object.raw_data["male_carry_spacing_multiplier"] = 2.4;
+			placed_object.raw_data["death_animation_index"] = 0;
+			placed_object.raw_data["idle_animation_index"] = 9;
+			placed_object.raw_data["walk_animation_index"] = 16;
+			placed_object.raw_data["walk_back_animation_index"] = 17;
+		}
+		if (category == "npcs" && placed_object.extra_value == "story_human" &&
+			placed_object.npc_idle_animation == "idle" && placed_object.npc_walk_animation == "walk") {
+			placed_object.raw_data["use_indexed_animation_aliases"] = true;
+			placed_object.raw_data["death_animation_index"] = 0;
+			placed_object.raw_data["idle_animation_index"] = 9;
+			placed_object.raw_data["walk_animation_index"] = 16;
+			placed_object.raw_data["walk_back_animation_index"] = 17;
+
+			if (placed_object.npc_model_path.find("female_warrior") != std::string::npos)
+				placed_object.raw_data["checkpoint_on_arrival"] = "cemetery_female_arrived";
+			else if (placed_object.npc_model_path.find("male_npc_1") != std::string::npos)
+				placed_object.raw_data["checkpoint_on_arrival"] = "cemetery_male_arrived";
+		}
+		if (category == "npcs" && placed_object.extra_value == "herbalist") {
+			placed_object.raw_data["target_height"] = 1.7;
+		}
 
 		_placed_objects.push_back(std::move(placed_object));
 		if (category == "nav_blockers")

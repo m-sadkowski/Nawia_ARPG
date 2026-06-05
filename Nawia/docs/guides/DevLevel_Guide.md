@@ -118,7 +118,7 @@ Dla aktualnego flow nie trzeba wypelniac wszystkich pol kreatora. Wystarcza:
   bez target location.
 
 W `Przedsionek Nawii` jest juz zapisany `boss_trigger` na `bies` i teleport
-powrotny do `Dolina Nędzy` odblokowywany po pokonaniu Biesa.
+powrotny do `Dolina Nedzy` odblokowywany po pokonaniu Biesa.
 
 ## Czarownica
 

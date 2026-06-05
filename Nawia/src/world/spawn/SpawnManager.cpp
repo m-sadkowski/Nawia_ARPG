@@ -7,6 +7,7 @@
 #include <ItemDatabase.h>
 #include <Logger.h>
 #include <Map.h>
+#include <StoryConditions.h>
 
 #include <json.hpp>
 
@@ -81,7 +82,8 @@ namespace Nawia::World {
 				}
 
 				// Inne lokacje i spawny dystansowe startuja uspione.
-				const bool should_be_active = is_current_location && (spawn_point.trigger_radius <= 0.0f);
+				const bool conditions_met = Game::areEntityConditionsMet(spawn_point.entity_data, engine);
+				const bool should_be_active = is_current_location && conditions_met && (spawn_point.trigger_radius <= 0.0f);
 
 				entity->setDormant(!should_be_active);
 				spawn_point.activated = should_be_active;
@@ -97,11 +99,19 @@ namespace Nawia::World {
 		return true;
 	}
 
-	void SpawnManager::update(const Vector2 player_pos, const std::string& current_location) {
+	void SpawnManager::update(const Vector2 player_pos, const std::string& current_location, Core::Engine* engine) {
 		for (auto& spawn_point : _spawn_points) {
 			if (spawn_point.location != current_location) continue;
-			if (spawn_point.activated) continue;
 			if (!spawn_point.entity) continue;
+
+			const bool conditions_met = Game::areEntityConditionsMet(spawn_point.entity_data, engine);
+			if (!conditions_met) {
+				spawn_point.entity->setDormant(true);
+				spawn_point.activated = false;
+				continue;
+			}
+
+			if (spawn_point.activated) continue;
 
 			if (spawn_point.trigger_radius > 0.0f) {
 				const float dx = player_pos.x - spawn_point.spawn_center.x;
@@ -120,11 +130,18 @@ namespace Nawia::World {
 		}
 	}
 
-	void SpawnManager::updateLocationChange(const std::string& new_location, Core::Map* map) {
+	void SpawnManager::updateLocationChange(const std::string& new_location, Core::Engine* engine, Core::Map* map) {
 		for (auto& spawn_point : _spawn_points) {
 			if (!spawn_point.entity) continue;
 
 			if (spawn_point.location == new_location) {
+				const bool conditions_met = Game::areEntityConditionsMet(spawn_point.entity_data, engine);
+				if (!conditions_met) {
+					spawn_point.entity->setDormant(true);
+					spawn_point.activated = false;
+					continue;
+				}
+
 				if (map) {
 					if (auto actor = std::dynamic_pointer_cast<Entity::ActorInterface>(spawn_point.entity))
 						actor->setMap(map);

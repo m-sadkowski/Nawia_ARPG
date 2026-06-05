@@ -27,9 +27,10 @@ namespace Nawia::World {
 		void renderOverlay(Core::Engine* engine) const override;
 
 		[[nodiscard]] std::string getName() const override { return "Wczora"; }
-		[[nodiscard]] std::vector<std::string> getLocations() const override { return {"Wczora"}; }
+		[[nodiscard]] std::vector<std::string> getLocations() const override;
 		[[nodiscard]] std::vector<LevelLocationFile> getLocationFiles() const override;
-		[[nodiscard]] std::string getDefaultInitialLocation() const override { return "Wczora"; }
+		[[nodiscard]] std::string getDefaultInitialLocation() const override { return ""; }
+		void changeLocation(Core::Engine* engine, const std::string& location_name) override;
 		[[nodiscard]] bool blocksPlayerControl() const override;
 		[[nodiscard]] bool isInteractionOnly() const override;
 		[[nodiscard]] float getCameraZoomMultiplier() const override;

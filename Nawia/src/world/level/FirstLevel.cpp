@@ -5,6 +5,7 @@
 #include <Engine.h>
 #include <EntityManager.h>
 #include <GlobalScaling.h>
+#include <LocationJsonLoader.h>
 #include <Logger.h>
 #include <Map.h>
 #include <MathUtils.h>
@@ -28,13 +29,28 @@ namespace Nawia::World {
 	namespace {
 		constexpr const char* FIRST_LEVEL_MUSIC =
 			"assets/audio/music/soulfuljamtracks-slavic-folk-308126.mp3";
-		constexpr const char* FIRST_LEVEL_LIGHTING_FILE = "assets/maps/wczora_lighting.json";
+		constexpr const char* FIRST_LEVEL_FOREST_LIGHTING_FILE = "assets/maps/wczora_las_lighting.json";
+		constexpr const char* FIRST_LEVEL_NAWIA_LIGHTING_FILE = "assets/maps/wczora_przedsionek_nawii_lighting.json";
 		constexpr float WCZORA_INTRO_CAMERA_ZOOM_FACTOR = 0.5f;
 		constexpr float WCZORA_INTRO_CAMERA_TARGET_HEIGHT_FACTOR = 0.55f;
 
 		const std::vector<LevelLocationFile> FIRST_LEVEL_LOCATIONS = {
-			{"Wczora", "assets/data/locations/wczora.json"},
+			{"", "assets/data/locations/wczora.json"},
+			{"", "assets/data/locations/przedsionek_nawii.json"},
 		};
+
+		const char* getLightingFileForLocation(const LocationDefinition& location) {
+			const std::string filename = location.source_path.filename().string();
+			if (filename == "przedsionek_nawii.json" || location.map.model == "wczora_przedsionek_nawii.glb")
+				return FIRST_LEVEL_NAWIA_LIGHTING_FILE;
+
+			return FIRST_LEVEL_FOREST_LIGHTING_FILE;
+		}
+
+		bool isPrzedsionekNawiiLocation(const LocationDefinition& location) {
+			return location.source_path.filename().string() == "przedsionek_nawii.json" ||
+				   location.map.model == "wczora_przedsionek_nawii.glb";
+		}
 
 		void drawIntroParticlesFx(const float width, const float height, const float time) {
 			for (int i = 0; i < UI::SMOKE_LAYER_COUNT; ++i) {
@@ -56,6 +72,25 @@ namespace Nawia::World {
 				const float radius = Core::GlobalScaling::scaled(1.5f + UI::hash01(seed + 7.0f) * UI::hash01(seed + 7.0f) * 12.0f) * (0.45f + rise * 0.95f);
 				const float alpha = (0.10f + rise * 0.50f) * (0.55f + UI::hash01(seed + 6.0f) * 0.45f);
 				DrawCircleGradient(static_cast<int>(pos_x), static_cast<int>(pos_y), radius, UI::withAlpha(UI::COLOR_GOLDEN_TEXT, alpha), UI::withAlpha(UI::COLOR_SLAVIC_ORANGE, alpha * 0.35f));
+			}
+		}
+
+		void drawNawiaFogFx(const float width, const float height, const float time) {
+			DrawRectangleGradientV(0, 0, static_cast<int>(width), static_cast<int>(height), Color{4, 5, 8, 185}, Color{0, 0, 0, 215});
+
+			for (int i = 0; i < 22; ++i) {
+				const float seed = static_cast<float>(i) * 19.41f + 5.7f;
+				const float drift = UI::fract(UI::hash01(seed) + time * (0.010f + UI::hash01(seed + 1.0f) * 0.014f));
+				const float pos_x = width * (UI::hash01(seed + 2.0f) * 1.15f - 0.08f) + std::sin(time * 0.09f + seed) * width * 0.07f;
+				const float pos_y = height * (0.10f + UI::hash01(seed + 3.0f) * 0.92f) + (drift - 0.5f) * height * 0.18f;
+				const float radius = Core::GlobalScaling::scaled(95.0f + UI::hash01(seed + 4.0f) * 190.0f);
+				const float alpha = 0.035f + UI::hash01(seed + 5.0f) * 0.07f;
+				DrawCircleGradient(
+					static_cast<int>(pos_x),
+					static_cast<int>(pos_y),
+					radius,
+					UI::withAlpha(Color{115, 124, 138, 255}, alpha),
+					UI::withAlpha(BLACK, 0.0f));
 			}
 		}
 
@@ -185,8 +220,40 @@ namespace Nawia::World {
 		}
 	}
 
+	std::vector<std::string> FirstLevel::getLocations() const {
+		// Jesli lokacje zostaly juz zaladowane, uzyj ich.
+		const auto loaded = Level::getLocations();
+		if (!loaded.empty())
+			return loaded;
+
+		// Fallback: odczytaj nazwy z plikow JSON, zanim poziom zostanie zaladowany
+		// (np. kiedy menu glowne pyta o liste lokacji).
+		std::vector<std::string> names;
+		for (const auto& location_file : FIRST_LEVEL_LOCATIONS) {
+			LocationDefinition definition;
+			if (LocationJsonLoader::loadLocation(location_file.path, definition))
+				names.push_back(definition.name);
+		}
+		return names;
+	}
+
 	std::vector<LevelLocationFile> FirstLevel::getLocationFiles() const {
 		return FIRST_LEVEL_LOCATIONS;
+	}
+
+	void FirstLevel::changeLocation(Core::Engine* engine, const std::string& location_name) {
+		// Stare zapisy i prototypowe triggery mogly jeszcze uzywac nazwy "Wczora".
+		const std::string resolved_location =
+			location_name == "Wczora" && !_location_definitions.empty()
+				? _location_definitions.front().name
+				: location_name;
+
+		Level::changeLocation(engine, resolved_location);
+
+		if (!engine || _current_location_index >= _location_definitions.size())
+			return;
+
+		engine->getLightingSystem().loadLightingFromJson(getLightingFileForLocation(_location_definitions[_current_location_index]));
 	}
 
 	void FirstLevel::onEnter(Core::Engine* engine) {
@@ -194,7 +261,8 @@ namespace Nawia::World {
 		activatePreparedLocations(engine);
 
 		if (engine) {
-			engine->getLightingSystem().loadLightingFromJson(FIRST_LEVEL_LIGHTING_FILE);
+			if (_current_location_index < _location_definitions.size())
+				engine->getLightingSystem().loadLightingFromJson(getLightingFileForLocation(_location_definitions[_current_location_index]));
 			engine->getAudioManager().playMusic(FIRST_LEVEL_MUSIC, true, 0.65f);
 		}
 	}
@@ -526,11 +594,21 @@ namespace Nawia::World {
 	}
 
 	void FirstLevel::renderOverlay(Core::Engine* engine) const {
-		if (_intro_phase == IntroPhase::Inactive && _intro_flash_timer <= 0.0f)
+		const bool render_nawia_fog =
+			_current_location_index < _location_definitions.size() &&
+			isPrzedsionekNawiiLocation(_location_definitions[_current_location_index]);
+
+		if (_intro_phase == IntroPhase::Inactive && _intro_flash_timer <= 0.0f && !render_nawia_fog)
 			return;
 
 		const int width = GetScreenWidth();
 		const int height = GetScreenHeight();
+		const float screen_width = static_cast<float>(width);
+		const float screen_height = static_cast<float>(height);
+		const float overlay_time = static_cast<float>(GetTime());
+		if (render_nawia_fog)
+			drawNawiaFogFx(screen_width, screen_height, overlay_time);
+
 		const float alpha = std::clamp(_intro_overlay_alpha, 0.0f, 1.0f);
 		const bool rendering_slide = _intro_phase == IntroPhase::Slides &&
 			_intro_slide_index < _intro_slides.size();
@@ -542,8 +620,6 @@ namespace Nawia::World {
 			const float fade_in = std::clamp(_intro_timer / 1.2f, 0.0f, 1.0f);
 			const float fade_out = std::clamp((slide.duration - _intro_timer) / 1.2f, 0.0f, 1.0f);
 			const float text_alpha = std::min(fade_in, fade_out);
-			const float screen_width = static_cast<float>(width);
-			const float screen_height = static_cast<float>(height);
 			const float image_time = static_cast<float>(GetTime()) + static_cast<float>(_intro_slide_index) * 13.0f;
 
 			drawAnimatedIntroImage(slide.image_texture, screen_width, screen_height, image_time);

@@ -10,6 +10,7 @@
 #include <Map.h>
 #include <Player.h>
 #include <WalkingDead.h>
+#include <witch/Witch.h>
 #include <json.hpp>
 
 #include <algorithm>
@@ -370,6 +371,11 @@ namespace Nawia::Game {
 
         if (type == "Devil") {
             entity = std::shared_ptr<Entity::Entity>(Entity::DevilBuilder()
+                .setName(name).setMap(map).setMaxHp(max_hp)
+                .setTarget(player).setAudioManager(&engine->getAudioManager())
+                .build());
+        } else if (type == "Witch") {
+            entity = std::shared_ptr<Entity::Entity>(Entity::WitchBuilder()
                 .setName(name).setMap(map).setMaxHp(max_hp)
                 .setTarget(player).setAudioManager(&engine->getAudioManager())
                 .build());

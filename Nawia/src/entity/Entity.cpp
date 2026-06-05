@@ -312,6 +312,18 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (!bundle || bundle->clips.empty())
 			return;
 
+		if (const auto cached_path = _animation_path_map.find(path); cached_path != _animation_path_map.end()) {
+			const int start_index = cached_path->second;
+			for (int i = 0; i < static_cast<int>(bundle->clips.size()); i++) {
+				std::string anim_name = bundle->clips[i].name;
+				if (anim_name.empty())
+					anim_name = "anim_" + std::to_string(start_index + i);
+
+				_animation_map[anim_name] = start_index + i;
+			}
+			return;
+		}
+
 		const int start_index = static_cast<int>(_animations.size());
 
 		for (int i = 0; i < static_cast<int>(bundle->clips.size()); i++) {
@@ -352,6 +364,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				_anim_direction = 1.0f;
 				_last_applied_anim_index = -1;
 				_last_applied_anim_frame = -1;
+				applyCurrentAnimationFrame();
 			}
 		}
 	}
@@ -384,6 +397,41 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 		const ModelAnimation* animation = resolveAnimation(_animations[index]);
 		return animation ? animation->frameCount : 0;
+	}
+
+	void Entity::applyCurrentAnimationFrame()
+	{
+		if (!_model_loaded || _animations.empty())
+			return;
+
+		if (_current_anim_index < 0 || static_cast<size_t>(_current_anim_index) >= _animations.size())
+			return;
+
+		const ModelAnimation* current_animation = resolveAnimation(_animations[_current_anim_index]);
+		if (!current_animation || current_animation->frameCount <= 0)
+			return;
+
+		// Walidacja: kazdy mesh musi miec boneWeights i boneIds, inaczej
+		// UpdateModelAnimation uderzy w nullptr (np. female_warrior.glb).
+		for (int i = 0; i < _model.meshCount; i++) {
+			if (_model.meshes[i].boneWeights == nullptr || _model.meshes[i].boneIds == nullptr)
+				return;
+		}
+
+		const int animation_frame = std::clamp(
+			static_cast<int>(_anim_frame_counter),
+			0,
+			current_animation->frameCount - 1
+		);
+		if (_last_applied_anim_index == _current_anim_index && _last_applied_anim_frame == animation_frame)
+			return;
+
+		UpdateModelAnimation(_model, *current_animation, animation_frame);
+		if (_equipment)
+			_equipment->updateAnimations(*current_animation, animation_frame);
+
+		_last_applied_anim_index = _current_anim_index;
+		_last_applied_anim_frame = animation_frame;
 	}
 
 	void Entity::update(const float delta_time)
@@ -432,6 +480,10 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 					_anim_frame_counter = 0;
 					if (getAnimationFrameCount("Idle_Loop") > 0)
 						playAnimation("Idle_Loop", true, false, 0, true);
+					else if (getAnimationFrameCount("Idle") > 0)
+						playAnimation("Idle", true, false, 0, true);
+					else if (getAnimationFrameCount("idle") > 0)
+						playAnimation("idle", true, false, 0, true);
 					else
 						playAnimation("default", true, false, 0, true);
 
@@ -449,6 +501,10 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 				if (getAnimationFrameCount("Idle_Loop") > 0)
 					playAnimation("Idle_Loop", true, false, 0, true);
+				else if (getAnimationFrameCount("Idle") > 0)
+					playAnimation("Idle", true, false, 0, true);
+				else if (getAnimationFrameCount("idle") > 0)
+					playAnimation("idle", true, false, 0, true);
 				else
 					playAnimation("default", true, false, 0, true);
 
@@ -457,16 +513,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 					return;
 			}
 
-			const int animation_frame = static_cast<int>(_anim_frame_counter);
-			if (_last_applied_anim_index != _current_anim_index || _last_applied_anim_frame != animation_frame)
-			{
-				UpdateModelAnimation(_model, *current_animation, animation_frame);
-				if (_equipment)
-					_equipment->updateAnimations(*current_animation, animation_frame);
-
-				_last_applied_anim_index = _current_anim_index;
-				_last_applied_anim_frame = animation_frame;
-			}
+			applyCurrentAnimationFrame();
 		}
 	}
 
