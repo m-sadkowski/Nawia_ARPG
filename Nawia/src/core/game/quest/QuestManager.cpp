@@ -1,7 +1,9 @@
 #include "QuestManager.h"
 
 #include <Engine.h>
+#include <Item.h>
 #include <Logger.h>
+#include <Player.h>
 
 #include <json.hpp>
 
@@ -225,7 +227,12 @@ namespace Nawia::Game {
 
 		for (const int item_id : quest->reward.item_ids) {
 			if (auto item = engine->getItemDatabase().createItem(item_id)) {
-				player->getBackpack().addItem(item);
+				if (item->isFood())
+					player->addFood(1);
+				else if (item->getSlot() == Item::EquipmentSlot::Weapon)
+					player->equipItem(item);
+				else
+					player->getBackpack().addItem(item);
 			}
 		}
 

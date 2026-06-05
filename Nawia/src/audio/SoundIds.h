@@ -19,6 +19,9 @@ namespace Nawia::Audio::SoundId {
 	inline constexpr const char* HumanDeath = "human_death";
 	inline constexpr const char* KnifeThrow = "knife_throw";
 	inline constexpr const char* CatMeow = "cat_meow";
+	inline constexpr const char* MiniMushroomAttack = "mini_mushroom_attack";
+	inline constexpr const char* MiniMushroomWormExit = "mini_mushroom_worm_exit";
+	inline constexpr const char* PlayerEatSupplies = "player_eat_supplies";
 } // namespace Nawia::Audio::SoundId
 
 namespace Nawia::Audio::SoundPath {
@@ -41,4 +44,9 @@ namespace Nawia::Audio::SoundPath {
 	inline constexpr const char* KnifeThrow = "assets/audio/sfx/u_dtbxmnju4i-taking-out-knife-217793.mp3";
 	inline constexpr const char* Footsteps = "assets/audio/sfx/freesound_community-pasos-steps-40285.mp3";
 	inline constexpr const char* CatMeow = "assets/audio/sfx/dragon-studio-cute-cat-meow-472372.mp3";
+	inline constexpr const char* GzibWalk = "assets/audio/sfx/gzib_walk.mp3";
+	inline constexpr const char* MiniMushroomWalk = "assets/audio/sfx/mini_mushroom_walk.mp3";
+	inline constexpr const char* MiniMushroomAttack = "assets/audio/sfx/mini_mushroom_attack.mp3";
+	inline constexpr const char* MiniMushroomWormExit = "assets/audio/sfx/mini_mushroom_worm_exit.mp3";
+	inline constexpr const char* PlayerEatSupplies = "assets/audio/sfx/player_eat_supplies.mp3";
 } // namespace Nawia::Audio::SoundPath

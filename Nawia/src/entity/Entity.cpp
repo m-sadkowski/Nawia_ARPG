@@ -57,6 +57,11 @@ namespace Nawia::Entity {
 namespace {
 	Core::ResourceManager* g_shared_resource_manager = nullptr;
 	std::map<std::string, std::shared_ptr<const AnimationBundle>> g_animation_cache;
+	std::weak_ptr<Entity> g_audio_listener;
+
+	constexpr float FULL_VOLUME_DISTANCE = 5.0f;
+	constexpr float MEDIUM_VOLUME_DISTANCE = 10.0f;
+	constexpr float LOW_VOLUME_DISTANCE = 15.0f;
 
 	std::shared_ptr<const AnimationBundle> getCachedAnimationBundle(const std::string& path)
 	{
@@ -92,6 +97,7 @@ namespace {
 
 		return &animation.bundle->clips[animation.clip_index];
 	}
+
 }
 
 	AnimationBundle::~AnimationBundle()
@@ -156,6 +162,10 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	Core::ResourceManager* Entity::getSharedResourceManager() {
 		return g_shared_resource_manager;
+	}
+
+	void Entity::setAudioListener(const std::shared_ptr<Entity>& listener) {
+		g_audio_listener = listener;
 	}
 
 	void Entity::loadModel(const std::string& path, const bool rotate_model)
@@ -240,6 +250,27 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_owns_model = false;
 		_local_model_bounding_box = GetModelBoundingBox(_model);
 		_local_model_bounding_box_valid = true;
+	}
+
+	bool Entity::fitLoadedModelToHeight(const float target_height, const bool center_xz, const bool align_to_ground)
+	{
+		if (!_model_loaded || target_height <= 0.0f)
+			return false;
+
+		_local_model_bounding_box = GetModelBoundingBox(_model);
+		_local_model_bounding_box_valid = true;
+		const BoundingBox bounds = _local_model_bounding_box;
+		const float model_height = bounds.max.y - bounds.min.y;
+		if (model_height <= 1e-8f)
+			return false;
+
+		setScale(target_height / model_height);
+
+		const float offset_x = center_xz ? -0.5f * (bounds.min.x + bounds.max.x) : 0.0f;
+		const float offset_y = align_to_ground ? -bounds.min.y : 0.0f;
+		const float offset_z = center_xz ? -0.5f * (bounds.min.z + bounds.max.z) : 0.0f;
+		_model.transform = MatrixMultiply(MatrixTranslate(offset_x, offset_y, offset_z), _model.transform);
+		return true;
 	}
 
 	void Entity::addAnimation(const std::string& name, const std::string& path)
@@ -452,7 +483,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				_equipment->draw(pos3d, visual_rotation, _rotation, _scale);
 			}
 
-			if (_hovered)
+			if (_hovered && _type != EntityType::Player)
 			{
 				// Drugi przebieg renderu daje subtelne przyciemnienie przy hoverze.
 				DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, Fade(BLACK, 0.2f));
@@ -620,6 +651,44 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		return closest;
 	}
 
+	bool Entity::isVisibleInCamera(const Camera3D& camera, const float screen_margin) const
+	{
+		if (_dormant)
+			return false;
+
+		if (!_model_loaded)
+			return DebugColliders;
+
+		const int screen_width = GetScreenWidth();
+		const int screen_height = GetScreenHeight();
+		if (screen_width <= 0 || screen_height <= 0)
+			return true;
+
+		const BoundingBox box = getBoundingBox();
+		const Vector3 corners[8] = {
+			{box.min.x, box.min.y, box.min.z},
+			{box.max.x, box.min.y, box.min.z},
+			{box.min.x, box.max.y, box.min.z},
+			{box.max.x, box.max.y, box.min.z},
+			{box.min.x, box.min.y, box.max.z},
+			{box.max.x, box.min.y, box.max.z},
+			{box.min.x, box.max.y, box.max.z},
+			{box.max.x, box.max.y, box.max.z}
+		};
+
+		for (const Vector3& corner : corners) {
+			const Vector2 projected = GetWorldToScreen(corner, camera);
+			if (projected.x >= -screen_margin &&
+				projected.x <= static_cast<float>(screen_width) + screen_margin &&
+				projected.y >= -screen_margin &&
+				projected.y <= static_cast<float>(screen_height) + screen_margin) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	BoundingBox Entity::getBoundingBox() const
 	{
 		if (!_model_loaded)
@@ -634,21 +703,30 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 		// Pudelko ograniczajace z rayliba jest lokalne wzgledem modelu.
 		const BoundingBox local_bb = _local_model_bounding_box_valid ? _local_model_bounding_box : GetModelBoundingBox(_model);
-		const Vector3 pos = getWorldPos3D();
-
-		// Skalujemy i przesuwamy pudełko do przestrzeni świata.
-		return BoundingBox{
-			Vector3{
-				local_bb.min.x * _scale + pos.x,
-				local_bb.min.y * _scale + pos.y,
-				local_bb.min.z * _scale + pos.z
-			},
-			Vector3{
-				local_bb.max.x * _scale + pos.x,
-				local_bb.max.y * _scale + pos.y,
-				local_bb.max.z * _scale + pos.z
-			}
+		const Matrix world_transform = getWorldTransformMatrix();
+		const Vector3 corners[] = {
+			{local_bb.min.x, local_bb.min.y, local_bb.min.z},
+			{local_bb.min.x, local_bb.min.y, local_bb.max.z},
+			{local_bb.min.x, local_bb.max.y, local_bb.min.z},
+			{local_bb.min.x, local_bb.max.y, local_bb.max.z},
+			{local_bb.max.x, local_bb.min.y, local_bb.min.z},
+			{local_bb.max.x, local_bb.min.y, local_bb.max.z},
+			{local_bb.max.x, local_bb.max.y, local_bb.min.z},
+			{local_bb.max.x, local_bb.max.y, local_bb.max.z},
 		};
+
+		BoundingBox world_box = {
+			Vector3{std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max()},
+			Vector3{std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest()}
+		};
+
+		for (const Vector3& corner : corners) {
+			const Vector3 transformed = Vector3Transform(corner, world_transform);
+			world_box.min = Vector3Min(world_box.min, transformed);
+			world_box.max = Vector3Max(world_box.max, transformed);
+		}
+
+		return world_box;
 	}
 
 	Vector2 Entity::getScreenPosition(const Camera3D& camera) const
@@ -697,6 +775,19 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 		ability->setCaster(this);
 		_abilities.push_back(ability);
+	}
+
+	void Entity::setAbility(const int index, const std::shared_ptr<Ability>& ability)
+	{
+		if (index < 0 || !ability)
+			return;
+
+		ability->setCaster(this);
+		const auto ability_index = static_cast<size_t>(index);
+		if (_abilities.size() <= ability_index)
+			_abilities.resize(ability_index + 1);
+
+		_abilities[ability_index] = ability;
 	}
 
 	std::shared_ptr<Ability> Entity::getAbility(const int index)
@@ -839,7 +930,11 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (!_audio_manager)
 			return;
 
-		_audio_manager->playSound(id, Audio::SoundOptions{volume, pitch, restart_if_playing});
+		const float spatial_volume = getSpatialAudioVolumeMultiplier();
+		if (spatial_volume <= 0.0f)
+			return;
+
+		_audio_manager->playSound(id, Audio::SoundOptions{volume * spatial_volume, pitch, restart_if_playing});
 	}
 
 	void Entity::stopSoundEffect(const std::string& id) const
@@ -858,10 +953,27 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (_movement_sound_id.empty())
 			_movement_sound_id = "movement:" + std::to_string(reinterpret_cast<std::uintptr_t>(this));
 
-		if (should_play)
-			_audio_manager->playSoundFile(_movement_sound_id, path, Audio::SoundOptions{volume, pitch, false});
+		const float spatial_volume = getSpatialAudioVolumeMultiplier();
+		if (should_play && spatial_volume > 0.0f)
+			_audio_manager->playSoundFile(_movement_sound_id, path, Audio::SoundOptions{volume * spatial_volume, pitch, false});
 		else
 			_audio_manager->stopSound(_movement_sound_id);
+	}
+
+	float Entity::getSpatialAudioVolumeMultiplier() const
+	{
+		const auto listener = g_audio_listener.lock();
+		if (!listener || listener.get() == this)
+			return 1.0f;
+
+		const float distance = Vector2Distance(getCenter(), listener->getCenter());
+		if (distance <= FULL_VOLUME_DISTANCE)
+			return 1.0f;
+		if (distance <= MEDIUM_VOLUME_DISTANCE)
+			return 2.0f / 3.0f;
+		if (distance <= LOW_VOLUME_DISTANCE)
+			return 1.0f / 3.0f;
+		return 0.0f;
 	}
 
 } // namespace Nawia::Entity

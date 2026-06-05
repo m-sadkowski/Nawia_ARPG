@@ -1,5 +1,6 @@
 #include "DialogueUI.h"
 
+#include <AudioManager.h>
 #include <GlobalScaling.h>
 #include <UIDefines.h>
 #include <UIRenderUtils.h>
@@ -7,13 +8,14 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Nawia::UI
 {
     namespace
     {
-        constexpr float PANEL_WIDTH_RATIO = 0.6f;
+        constexpr float PANEL_WIDTH_RATIO = 0.82f;
 
         struct DialogueLayout
         {
@@ -67,8 +69,8 @@ namespace Nawia::UI
             const float min_panel_height = Core::GlobalScaling::scaled(DIALOGUE_BOX_HEIGHT);
             const float content_padding_x = Core::GlobalScaling::scaled(30.0f);
             const float content_padding_y = Core::GlobalScaling::scaled(20.0f);
-            const float name_font_size = Core::GlobalScaling::scaled(32.0f);
-            const float text_font_size = Core::GlobalScaling::scaled(20.0f);
+            const float name_font_size = Core::GlobalScaling::scaled(42.0f);
+            const float text_font_size = Core::GlobalScaling::scaled(30.0f);
             const float text_spacing = Core::GlobalScaling::scaled(1.0f);
             const float line_height = text_font_size + Core::GlobalScaling::scaled(5.0f);
             const float option_height = text_font_size + Core::GlobalScaling::scaled(10.0f);
@@ -129,18 +131,35 @@ namespace Nawia::UI
         }
     }
 
-    void DialogueUI::open(const Game::DialogueTree& tree)
+    void DialogueUI::open(const Game::DialogueTree& tree, const int start_node_id, std::function<void(int, bool)> on_close)
     {
+        stopCurrentVoice();
         _current_tree = tree;
-        _current_node_id = 0;
+        _current_node_id = _current_tree.getNode(start_node_id) ? start_node_id : 0;
+        _on_close = std::move(on_close);
         _option_rectangles.clear();
         _is_open = true;
+        if (_audio_manager)
+            _audio_manager->setMusicDuckingFactor(0.5f);
+        playCurrentNodeVoice();
     }
 
-    void DialogueUI::close()
+    void DialogueUI::close(const bool completed)
     {
+        if (!_is_open)
+            return;
+
+        const int closed_node_id = _current_node_id;
+        auto on_close = std::move(_on_close);
+        stopCurrentVoice();
         _is_open = false;
+        if (_audio_manager)
+            _audio_manager->setMusicDuckingFactor(1.0f);
+        _on_close = nullptr;
         _option_rectangles.clear();
+
+        if (on_close)
+            on_close(closed_node_id, completed);
     }
 
     void DialogueUI::render(const Font& font)
@@ -212,13 +231,38 @@ namespace Nawia::UI
                 option.action();
 
             if (option.next_node_id == -1)
-                close();
+                close(true);
             else
+            {
                 _current_node_id = option.next_node_id;
+                playCurrentNodeVoice();
+            }
 
             return true;
         }
 
         return true;
+    }
+
+    void DialogueUI::playCurrentNodeVoice()
+    {
+        stopCurrentVoice();
+        if (!_audio_manager)
+            return;
+
+        const auto* node = _current_tree.getNode(_current_node_id);
+        if (!node || node->voice_path.empty())
+            return;
+
+        _current_voice_id = "dialogue_voice:" + node->voice_path;
+        _audio_manager->playSoundFile(_current_voice_id, node->voice_path, {1.0f, 1.0f, true});
+    }
+
+    void DialogueUI::stopCurrentVoice()
+    {
+        if (_audio_manager && !_current_voice_id.empty())
+            _audio_manager->stopSound(_current_voice_id);
+
+        _current_voice_id.clear();
     }
 } // namespace Nawia::UI

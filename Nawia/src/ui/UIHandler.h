@@ -11,13 +11,19 @@
 
 #include <raylib.h>
 
+#include <functional>
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace Nawia::Entity {
     class Player;
     class Entity;
     class InteractiveClickable;
+}
+
+namespace Nawia::Audio {
+    class AudioManager;
 }
 
 namespace Nawia::Core {
@@ -85,10 +91,14 @@ namespace Nawia::UI {
         UIHandler();
         ~UIHandler();
 
+        /** @brief Podpina UI do aktualnego gracza i dlugo zyjacych managerow Engine. */
         void initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager, const Core::Settings* settings);
         
+        /** @brief Aktualizuje przejsciowy stan UI, np. powiadomienia i gladkie paski. */
         void update(float dt);
+        /** @brief Renderuje HUD oraz otwarte panele rozgrywki. */
         void render(const Core::GameCamera& camera, const Game::BossManager* boss_manager = nullptr);
+        void renderDialogueOnly();
         void renderMainMenu() const;
         void renderSettingsMenu() const;
         void renderSaveSlotMenu() const;
@@ -107,12 +117,13 @@ namespace Nawia::UI {
         void openLevelSelect(const std::vector<World::LevelInfo>& levels);
         void closeLevelSelect();
         std::string handleLevelSelectInput();
-        
+
         void openSettings(const Core::Settings& settings);
         [[nodiscard]] bool wereSettingsApplied() const;
         [[nodiscard]] const Core::Settings& getAppliedSettings() const;
         void closeSettingsMenu();
 
+        /** @brief Aktualizuje nieposiadane referencje po zmianie systemow przez poziom/zapis. */
         void setLevelManager(World::LevelManager* level_manager) { _level_manager = level_manager; }
         void setSaveGameManager(const Game::SaveGameManager* save_game_manager) { _save_game_manager = save_game_manager; }
         void setPlayer(const std::shared_ptr<Entity::Player>& player);
@@ -131,13 +142,19 @@ namespace Nawia::UI {
         void openContainer(Entity::InteractiveClickable* container);
         void closeContainer();
 
-        void openDialogue(const Game::DialogueTree& tree) { _dialogueUI.open(tree); }
+        /** @brief Otwiera DialogueUI i zwraca koncowy wezel/stan ukonczenia przez on_close. */
+        void openDialogue(const Game::DialogueTree& tree, int start_node_id = 0, std::function<void(int, bool)> on_close = nullptr) {
+            _dialogueUI.open(tree, start_node_id, std::move(on_close));
+        }
+        void setDialogueAudioManager(Audio::AudioManager* audio_manager) { _dialogueUI.setAudioManager(audio_manager); }
         void closeDialogue() { _dialogueUI.close(); }
+        [[nodiscard]] bool isDialogueOpen() const { return _dialogueUI.isOpen(); }
 
         void openAuthors() { _is_authors_open = true; }
         void closeAuthors() { _is_authors_open = false; }
         [[nodiscard]] bool isAuthorsOpen() const { return _is_authors_open; }
 
+        /** @brief Dodaje krotki komunikat renderowany nad UI rozgrywki. */
         void showNotification(const std::string& text, float duration = 2.0f);
 
         /** @brief Zwraca, czy input gry powinien zostac zatrzymany przez otwarte UI. */
@@ -185,7 +202,7 @@ namespace Nawia::UI {
         [[nodiscard]] int getClickedButtonIndex(const std::vector<Rectangle>& rects) const;
 
         std::shared_ptr<Entity::Player> _player;
-        Core::EntityManager* _entity_manager;
+        Core::EntityManager* _entity_manager = nullptr;
         World::LevelManager* _level_manager = nullptr;
         const Game::SaveGameManager* _save_game_manager = nullptr;
         Font _font;
@@ -193,9 +210,11 @@ namespace Nawia::UI {
         std::shared_ptr<Texture2D> _menu_btn_idle;
         std::shared_ptr<Texture2D> _menu_btn_hover;
         std::shared_ptr<Texture2D> _ability_bar_frame;
+        std::shared_ptr<Texture2D> _empty_ability_icon;
+        std::shared_ptr<Texture2D> _food_icon;
         std::shared_ptr<Texture2D> _hp_orb_frame;
         std::shared_ptr<Texture2D> _level_orb_frame;
-        std::vector<float> _hover_timers;
+        std::vector<float> _hover_timers; ///< Timery animacji hover dla przyciskow menu.
         
         std::unique_ptr<SettingsMenu> _settings_menu;
         std::unique_ptr<LevelSelectMenu> _level_select_menu;
@@ -207,10 +226,10 @@ namespace Nawia::UI {
         bool _is_authors_open = false;
         Game::QuestManager* _quest_manager = nullptr;
         std::unique_ptr<ChestUI> _chest_ui;
-        Entity::InteractiveClickable* _current_container = nullptr;
+        Entity::InteractiveClickable* _current_container = nullptr; ///< Otwarta skrzynia/kontener, nieposiadane.
         std::unique_ptr<StatsUI> _stats_ui;
         DialogueUI _dialogueUI;
-        int _previous_hp = -1;
+        int _previous_hp = -1; ///< Ostatnie HP gracza do wykrywania flasha obrazen.
         float _damage_flash_timer = 0.0f;
 
         struct Notification {
@@ -221,11 +240,11 @@ namespace Nawia::UI {
         std::vector<Notification> _notifications;
         
         const Core::Settings* _settings = nullptr;
-        float _visual_hp_percent = 1.0f;
-        float _visual_exp_percent = 0.0f;
+        float _visual_hp_percent = 1.0f;  ///< Wygladzona wartosc HP pokazywana przez orb.
+        float _visual_exp_percent = 0.0f; ///< Wygladzona wartosc EXP pokazywana przez orb.
         float _location_banner_timer = 0.0f;
         std::string _last_location_name;
-        bool _ignore_next_dt = false;
+        bool _ignore_next_dt = false; ///< Pomija jedna klatke interpolacji UI po zaladowaniu poziomu.
     };
 
 } // namespace Nawia::UI

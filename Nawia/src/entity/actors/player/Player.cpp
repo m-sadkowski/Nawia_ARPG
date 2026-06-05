@@ -7,7 +7,9 @@
 #include <Logger.h>
 #include <Map.h>
 #include <MathUtils.h>
+#include <PlayerAbilityFactory.h>
 #include <SoundIds.h>
+#include <SwordSlashAbility.h>
 
 #include <algorithm>
 #include <cmath>
@@ -15,7 +17,7 @@
 namespace Nawia::Entity {
 
 	namespace {
-		constexpr const char* PLAYER_HEAD_MODEL = "assets/models/player/player_head.glb";
+		constexpr const char* PLAYER_HEAD_MODEL = "assets/models/actors/player/parts/player_head.glb";
 		constexpr const char* PLAYER_HEAD_WITH_SWORD_MODEL = "assets/models/items/player_head_with_sword.glb";
 
 		nlohmann::json statsToJson(const Stats& stats) {
@@ -125,6 +127,18 @@ namespace Nawia::Entity {
 		}
 	}
 
+	void Player::clearControlLocks()
+	{
+		_is_knocked_down = false;
+		_knockdown_phase = KnockdownPhase::None;
+		_is_consuming_food = false;
+		_consume_food_timer = 0.0f;
+		stop();
+		setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+		if (!isDying())
+			playAnimation("Idle_Loop", true, false, 0, true);
+	}
+
 	void Player::update(const float delta_time)
 	{
 		Entity::update(delta_time);
@@ -132,6 +146,21 @@ namespace Nawia::Entity {
 		if (isDying()) return;
 
 		updateAbilities(delta_time);
+
+		if (_is_consuming_food)
+		{
+			_consume_food_timer -= delta_time;
+			if (_consume_food_timer <= 0.0f)
+			{
+				_is_consuming_food = false;
+				_consume_food_timer = 0.0f;
+				(void)consumeFood();
+				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+				if (!isAnimationLocked())
+					playAnimation("Idle_Loop");
+			}
+			return;
+		}
 		
 		isLevelUp();
 		// Obsługa sekwencji powalenia.
@@ -193,6 +222,7 @@ namespace Nawia::Entity {
 
 		updateWeaponVisualModel();
 		playSoundEffect(Audio::SoundId::ItemEquip, 0.85f);
+		updatePrimaryAttackAbility();
 		recalculateStats();
 
 	}
@@ -206,7 +236,39 @@ namespace Nawia::Entity {
 			_backpack->addItem(old_item);
 
 		updateWeaponVisualModel();
+		updatePrimaryAttackAbility();
 		recalculateStats();
+		return true;
+	}
+
+	void Player::addFood(const int amount) {
+		_food_count = std::max(0, _food_count + amount);
+	}
+
+	bool Player::consumeFood() {
+		if (_food_count <= 0 || isDying() || _hp >= _max_hp)
+			return false;
+
+		_food_count--;
+		setHP(std::min(_max_hp, _hp + 25));
+		if (_engine)
+			_engine->getUIHandler().showNotification("Zjedzono zapasy: +25 HP", 2.0f);
+		return true;
+	}
+
+	bool Player::startConsumeFood() {
+		if (_is_consuming_food || _food_count <= 0 || isDying() || _hp >= _max_hp || isAnimationLocked())
+			return false;
+
+		stop();
+		_is_consuming_food = true;
+		_consume_food_timer = 1.0f;
+		playSoundEffect(Audio::SoundId::PlayerEatSupplies, 0.85f);
+		setAnimationSpeed(1.0f);
+		if (getAnimationFrameCount("Consume") > 0)
+			playAnimation("Consume", false, true, 0, true);
+		else
+			playAnimation("Interact", false, true, 0, true);
 		return true;
 	}
 
@@ -219,6 +281,7 @@ namespace Nawia::Entity {
 			_backpack->addItem(item);
 			_equipment->unequip(slot);
 			updateWeaponVisualModel();
+			updatePrimaryAttackAbility();
 			recalculateStats();
 		}
 	}
@@ -267,8 +330,30 @@ namespace Nawia::Entity {
 		if (_equipment)
 			_equipment->clear();
 
+		_food_count = 0;
 		updateWeaponVisualModel();
+		updatePrimaryAttackAbility();
 		recalculateStats();
+	}
+
+	void Player::updatePrimaryAttackAbility()
+	{
+		if (!_engine || !_equipment)
+			return;
+
+		const bool has_weapon = _equipment->getItemAt(Item::EquipmentSlot::Weapon) != nullptr;
+		if (has_weapon) {
+			const auto icon = _engine->getResourceManager().getTexture("assets/textures/icons/sword_slash_icon.png");
+			setAbility(0, std::make_shared<SwordSlashAbility>(nullptr, icon));
+			return;
+		}
+
+		if (const auto punch = PlayerAbilityFactory::createUnarmedAbilityByName(
+			PlayerAbilityFactory::getPlayerSetupConfig(),
+			_engine->getResourceManager(),
+			"Punch")) {
+			setAbility(0, punch);
+		}
 	}
 
 	nlohmann::json Player::serializeProfile() const
@@ -278,6 +363,7 @@ namespace Nawia::Entity {
 			{"exp", _exp},
 			{"exp_to_next_level", _exp_to_next_lvl},
 			{"gold", _gold},
+			{"food_count", _food_count},
 			{"base_stats", statsToJson(_base_stats)},
 			{"inventory", _backpack ? _backpack->serialize() : nlohmann::json::object()},
 			{"equipment", _equipment ? _equipment->serialize() : nlohmann::json::array()}
@@ -295,6 +381,7 @@ namespace Nawia::Entity {
 		_exp = data.value("exp", _exp);
 		_exp_to_next_lvl = data.value("exp_to_next_level", _exp_to_next_lvl);
 		_gold = data.value("gold", _gold);
+		_food_count = data.value("food_count", _food_count);
 		_base_stats = statsFromJson(data.value("base_stats", nlohmann::json::object()), _base_stats);
 
 		if (data.contains("inventory") && _backpack)

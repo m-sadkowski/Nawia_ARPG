@@ -1,7 +1,11 @@
 #pragma once
 #include <InteractiveTrigger.h>
 
+#include <memory>
 #include <string>
+
+namespace Nawia::Core { class Engine; }
+namespace Nawia::Game { struct BossData; }
 
 namespace Nawia::Entity {
 
@@ -38,7 +42,17 @@ namespace Nawia::Entity {
         float getInteractionRange() override;
 
     private:
+        [[nodiscard]] const Game::BossData* getBossData(Core::Engine* engine) const;
+        [[nodiscard]] bool shouldRunIntro(Core::Engine* engine, const Game::BossData& boss_data) const;
+        void showBossPreview(Core::Engine* engine, const Game::BossData& boss_data);
+        void hideBossPreview();
+        void openIntroDialogue(Core::Engine* engine, const Game::BossData& boss_data);
+        void startBoss(Core::Engine* engine);
+
         std::string _boss_id;
+        bool _intro_dialogue_open = false;
+        bool _intro_completed = false;
+        std::weak_ptr<Entity> _preview_boss;
     };
 
 } // namespace Nawia::Entity

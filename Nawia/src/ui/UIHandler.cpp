@@ -9,6 +9,7 @@
 #include <EnemyInterface.h>
 #include <GlobalScaling.h>
 #include <InteractiveClickable.h>
+#include <Item.h>
 #include <LevelSelectMenu.h>
 #include <LevelManager.h>
 #include <Player.h>
@@ -164,9 +165,12 @@ namespace Nawia::UI
         _menu_btn_idle = resource_manager.getTexture("assets/textures/ui/button.png");
         smoothUiTexture(_menu_btn_idle);
         _ability_bar_frame = resource_manager.getTexture("assets/textures/ui/ability_bar.png");
+        _empty_ability_icon = resource_manager.getTexture("assets/textures/icons/empty_ability_icon.png");
+        _food_icon = resource_manager.getTexture("assets/textures/icons/food_icon.png");
         _hp_orb_frame = resource_manager.getTexture("assets/textures/ui/hp_orb.png");
         _level_orb_frame = resource_manager.getTexture("assets/textures/ui/level_orb.png");
         smoothUiTexture(_ability_bar_frame);
+        smoothUiTexture(_food_icon);
         smoothUiTexture(_hp_orb_frame);
         smoothUiTexture(_level_orb_frame);
         
@@ -576,6 +580,11 @@ namespace Nawia::UI
             _quest_ui->render(_font, _quest_manager);
     }
 
+    void UIHandler::renderDialogueOnly()
+    {
+        _dialogueUI.render(_font);
+    }
+
     namespace
     {
         std::vector<MenuButtonDef> buildPauseMenuButtons(bool saves_enabled)
@@ -835,6 +844,20 @@ namespace Nawia::UI
                 if (container_slot != -1)
                 {
                     const auto item = container_inventory->getItem(container_slot);
+                    if (item && item->isFood())
+                    {
+                        _player->addFood(1);
+                        container_inventory->removeItem(container_slot);
+                        if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
+                        showNotification("Dodano jedzenie: " + item->getName(), 2.5f);
+                        if (container_inventory->getRemainingCapacity() == container_inventory->getCapacity())
+                        {
+                            showNotification("Ta skrzynia jest pusta", 3.0f);
+                            closeContainer();
+                        }
+                        return;
+                    }
+
                     if (item && _player->getBackpack().addItem(item))
                     {
                         container_inventory->removeItem(container_slot);
@@ -989,8 +1012,26 @@ namespace Nawia::UI
         const float frame_y = static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(126.0f);
         const float icon_size = frame_height * 0.55f;
 
-        const float slot_center_ratios[] = { 0.247f, 0.370f, 0.630f, 0.753f };
+        const float slot_center_ratios[] = { 0.247f, 0.370f, 0.650f, 0.780f };
+        const char* slot_keys[] = { "Q", "W", "E", "R" };
+        const float food_center_ratio = 0.500f;
         const float slot_center_y = frame_y + frame_height * 0.53f;
+
+        const float food_x = frame_x + frame_width * food_center_ratio - icon_size / 2.0f;
+        const float food_y = slot_center_y - icon_size / 2.0f;
+        const Rectangle food_rectangle = { food_x, food_y, icon_size, icon_size };
+
+        if (_food_icon && _food_icon->id > 0) {
+            const Rectangle source_rectangle = {
+                0.0f,
+                0.0f,
+                static_cast<float>(_food_icon->width),
+                static_cast<float>(_food_icon->height)
+            };
+            DrawTexturePro(*_food_icon, source_rectangle, food_rectangle, {0.0f, 0.0f}, 0.0f, WHITE);
+        } else {
+            DrawRectangleRec(food_rectangle, withAlpha(BROWN, 0.75f));
+        }
 
         for (int i = 0; i < 4; ++i)
         {
@@ -1002,11 +1043,30 @@ namespace Nawia::UI
             {
                 DrawRectangleRec(icon_rectangle, withAlpha(BLACK, 0.5f));
             }
+
+            const auto draw_empty_slot_icon = [&]() {
+                if (_empty_ability_icon && _empty_ability_icon->id > 0) {
+                    const Rectangle source_rectangle = {
+                        0.0f,
+                        0.0f,
+                        static_cast<float>(_empty_ability_icon->width),
+                        static_cast<float>(_empty_ability_icon->height)
+                    };
+                    DrawTexturePro(*_empty_ability_icon, source_rectangle, icon_rectangle, {0.0f, 0.0f}, 0.0f, Fade(WHITE, 0.72f));
+                }
+            };
             
-            if (static_cast<size_t>(i) >= abilities.size())
+            if (static_cast<size_t>(i) >= abilities.size()) {
+                draw_empty_slot_icon();
                 continue;
+            }
             
             const auto& ability = abilities[i];
+            if (!ability) {
+                draw_empty_slot_icon();
+                continue;
+            }
+
             if (const auto icon_texture = ability->getIcon())
             {
                 const Rectangle source_rectangle = { 0, 0, static_cast<float>(icon_texture->width), static_cast<float>(icon_texture->height) };
@@ -1044,6 +1104,35 @@ namespace Nawia::UI
                 DrawRectangleLinesEx({ pos_x, start_y, icon_size, icon_size }, 2.0f, DARKGRAY);
             }
         }
+
+        const auto draw_key_label = [&](const char* key_text, const Rectangle& icon_rect) {
+            const float font_size = Core::GlobalScaling::scaled(17.0f);
+            const Vector2 text_size = MeasureTextEx(_font, key_text, font_size, 1.0f);
+            const Vector2 text_pos = {
+                icon_rect.x + (icon_rect.width - text_size.x) * 0.5f,
+                icon_rect.y - Core::GlobalScaling::scaled(20.0f)
+            };
+            DrawTextEx(_font, key_text, { text_pos.x + 1.0f, text_pos.y + 1.0f }, font_size, 1.0f, Fade(BLACK, 0.85f));
+            DrawTextEx(_font, key_text, text_pos, font_size, 1.0f, COLOR_GOLDEN_TEXT);
+        };
+
+        for (int i = 0; i < 4; ++i) {
+            const float pos_x = frame_x + frame_width * slot_center_ratios[i] - icon_size / 2.0f - Core::GlobalScaling::scaled(4.0f);
+            const float start_y = slot_center_y - icon_size / 2.0f;
+            draw_key_label(slot_keys[i], { pos_x, start_y, icon_size, icon_size });
+        }
+
+        draw_key_label("1", food_rectangle);
+
+        const char* food_count_text = TextFormat("%d", _player->getFoodCount());
+        const float count_font_size = Core::GlobalScaling::scaled(18.0f);
+        const Vector2 count_size = MeasureTextEx(_font, food_count_text, count_font_size, 1.0f);
+        const Vector2 count_pos = {
+            food_rectangle.x + (food_rectangle.width - count_size.x) * 0.5f,
+            food_rectangle.y + food_rectangle.height - Core::GlobalScaling::scaled(2.0f)
+        };
+        DrawTextEx(_font, food_count_text, { count_pos.x + 1.0f, count_pos.y + 1.0f }, count_font_size, 1.0f, Fade(BLACK, 0.9f));
+        DrawTextEx(_font, food_count_text, count_pos, count_font_size, 1.0f, WHITE);
     }
 
     void UIHandler::renderPlayerExperienceBar() const

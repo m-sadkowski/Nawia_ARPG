@@ -37,12 +37,16 @@ namespace Nawia::Core {
 		_zoom_factor = k_default_zoom_factor;
 	}
 
-	void GameCamera::follow(const Entity::Entity* target) {
+	void GameCamera::resetZoom(const float zoom_factor) {
+		_zoom_factor = std::clamp(zoom_factor, k_min_zoom_factor, k_max_zoom_factor);
+	}
+
+	void GameCamera::follow(const Entity::Entity* target, const float target_height_multiplier) {
 		if (!target)
 			return;
 
 		Vector3 target_world_position = target->getWorldPos3D();
-		target_world_position.y += k_target_height_offset;
+		target_world_position.y += k_target_height_offset * std::clamp(target_height_multiplier, 0.0f, 2.0f);
 
 		_camera_3d.target = target_world_position;
 		_camera_3d.position = Vector3{

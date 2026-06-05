@@ -29,6 +29,22 @@ namespace Nawia::Game {
         int exp = 0;
     };
 
+    struct BossDialogueLine {
+        std::string speaker;
+        std::string text;
+        std::string voice_path;
+    };
+
+    struct BossIntroDialogue {
+        bool enabled = false;
+        std::string required_active_quest;
+        std::string blocking_active_quest;
+        std::string checkpoint_on_complete;
+        std::string final_option = "Rozumiem.";
+        bool show_preview = false;
+        std::vector<BossDialogueLine> lines;
+    };
+
     /**
      * @brief Opis pojedynczego typu miniona przywolywanego w fazie bossa.
      */
@@ -65,9 +81,12 @@ namespace Nawia::Game {
         std::string enemy_type; ///< Typ wroga, np. "Devil".
         int max_hp = 1000;
         float scale = 1.0f;
+        std::string music_path;
+        float music_volume = 0.85f;
 
         std::vector<BossPhase> phases;
         BossReward reward;
+        BossIntroDialogue intro_dialogue;
 
         /// Strategia po smierci gracza: "end_fight" = koniec walki, "retry" = mozliwosc ponowienia.
         std::string on_player_death = "end_fight";
@@ -170,6 +189,7 @@ namespace Nawia::Game {
         bool applyRuntimeState(const nlohmann::json& state, Core::Engine* engine);
 
         [[nodiscard]] const std::map<std::string, BossData>& getAllBosses() const { return _bosses; }
+        [[nodiscard]] std::shared_ptr<Entity::Entity> createPreviewEntity(const BossData& boss_data, Core::Engine* engine);
 
         /** @brief Zwraca pozostaly czas efektu blysku fazy, 0 gdy nieaktywny. */
         [[nodiscard]] float getPhaseFlashTimer() const { return _phase_flash_timer; }
@@ -221,9 +241,15 @@ namespace Nawia::Game {
         );
         [[nodiscard]] Vector3 resolveBossSpawnPosition(Core::Engine* engine) const;
         void placeEntityAtBossSpawn(const std::shared_ptr<Entity::Entity>& entity, Core::Engine* engine) const;
+        void startBossMusic(Core::Engine* engine);
+        void restoreMusicAfterBoss(Core::Engine* engine);
 
         Vector2 _active_boss_spawn_pos = {0.0f, 0.0f};
         float _active_boss_spawn_altitude = 0.0f;
+        bool _boss_music_overrode_track = false;
+        bool _had_music_before_boss = false;
+        std::string _music_before_boss_path;
+        float _music_before_boss_volume = 1.0f;
     };
 
 } // namespace Nawia::Game

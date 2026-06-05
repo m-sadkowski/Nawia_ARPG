@@ -38,7 +38,7 @@ namespace Nawia::Core {
 		/**
 		 * @brief Ustawia gracza przechowywanego przez manager.
 		 */
-		void setPlayer(std::shared_ptr<Entity::Entity> player) { _player = std::move(player); }
+		void setPlayer(std::shared_ptr<Entity::Entity> player);
 
 		/**
 		 * @brief Usuwa wszystkie encje poza graczem.

@@ -2,6 +2,8 @@
 
 #include <LocationJsonUtils.h>
 
+#include <algorithm>
+
 namespace Nawia::World {
 
 	namespace {
@@ -42,6 +44,24 @@ namespace Nawia::World {
 					continue;
 
 				nlohmann::json entity_data = entry;
+				const std::string type = entity_data.value("type", "");
+				const std::string category = entity_data.value("category", "");
+				if (type == "nav_blocker" || category == "nav_blockers") {
+					NavMeshBlocker blocker;
+					blocker.center = {
+						entity_data.value("x", 0.0f),
+						entity_data.value("y", 0.0f)
+					};
+					blocker.width = entity_data.value("width", 4.0f);
+					blocker.depth = entity_data.value("depth", 4.0f);
+					blocker.height = entity_data.value("height", 0.0f);
+					blocker.radius = entity_data.value("radius", std::max(blocker.width, blocker.depth) * 0.5f);
+					const std::string shape = entity_data.value("shape", "box");
+					blocker.shape = shape == "circle" ? NavMeshBlockerShape::Circle : NavMeshBlockerShape::Box;
+					location.navmesh_blockers.push_back(blocker);
+					continue;
+				}
+
 				entity_data["location"] = location.name;
 				location.entities.push_back(std::move(entity_data));
 			}
@@ -81,6 +101,17 @@ namespace Nawia::World {
 				location.navmesh_min_walkable_height = min_height_it->get<float>();
 				location.has_navmesh_min_walkable_height = true;
 			}
+		}
+
+		if (data.contains("camera") && data["camera"].is_object()) {
+			const auto zoom_it = data["camera"].find("zoom");
+			if (zoom_it != data["camera"].end() && zoom_it->is_number()) {
+				location.camera_zoom = zoom_it->get<float>();
+				location.has_camera_zoom = true;
+			}
+		} else if (data.contains("camera_zoom") && data["camera_zoom"].is_number()) {
+			location.camera_zoom = data["camera_zoom"].get<float>();
+			location.has_camera_zoom = true;
 		}
 
 		loadEntitiesFromObjectsFile(location);

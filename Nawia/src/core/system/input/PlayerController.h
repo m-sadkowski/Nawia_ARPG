@@ -30,11 +30,17 @@ namespace Nawia::Core {
 		 * @brief Obsluguje input myszy i klawiatury dla aktualnej pozycji kursora.
 		 */
 		void handleInput(Vector3 mouse_world_pos, float screen_x, float screen_y);
+		void handleInteractionOnly(Vector3 mouse_world_pos, float screen_x, float screen_y);
 
 		/**
 		 * @brief Aktualizuje akcje oczekujace, autoatak i ruch po sciezce.
 		 */
 		void update(float dt);
+
+		/**
+		 * @brief Kasuje aktualny rozkaz ruchu, ataku lub interakcji.
+		 */
+		void stopCurrentAction();
 
 	private:
 		struct PendingAction {
@@ -53,6 +59,8 @@ namespace Nawia::Core {
 		void processPendingAction();
 		void processAutoAttack();
 		bool processInteraction();
+		bool moveToInteractionRange(const std::shared_ptr<Entity::Entity>& target, float interaction_range_sq);
+		bool performInteraction();
 		void updateRotation() const;
 
 		bool trySelectEnemy(float screen_x, float screen_y);

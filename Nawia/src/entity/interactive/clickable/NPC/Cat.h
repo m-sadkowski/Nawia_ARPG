@@ -33,12 +33,10 @@ namespace Nawia::Entity {
 
 		/** @brief Obsługuje oddanie ryby i zakończenie questu kota. */
 		void onInteract(Entity& instigator) override;
+		void onInteractionCompleted(Entity& instigator, Core::Engine& engine) override;
 
 		/** @brief Aktualizuje bazowy stan NPC. */
 		void update(float delta_time) override;
-
-		/** @brief Sprawdza, czy kursor wskazuje kota lub jego logiczny obszar klikniecia. */
-		[[nodiscard]] bool isMouseOver(float screen_x, float screen_y, const Camera3D& camera) const override;
 
 		/** @brief Renderuje model kota. */
 		void render(const Camera3D& camera) override;

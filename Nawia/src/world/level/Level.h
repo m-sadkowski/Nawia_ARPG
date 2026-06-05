@@ -4,6 +4,7 @@
 #include <SpawnManager.h>
 
 #include <memory>
+#include <raylib.h>
 #include <string>
 #include <vector>
 
@@ -54,6 +55,41 @@ namespace Nawia::World {
          * @brief Rysuje dodatkowy interfejs poziomu.
          */
         virtual void renderUI(Core::Engine* engine) {}
+
+        /**
+         * @brief Uruchamia logike poziomu po starcie nowej gry na tym poziomie.
+         */
+        virtual void onNewGameStarted(Core::Engine* engine) {}
+
+        /**
+         * @brief Obsluguje zdarzenie fabularne zgloszone przez encje poziomu.
+         */
+        virtual void handleStoryEvent(Core::Engine* engine, const std::string& event_id, Vector2 world_position) {}
+
+        /**
+         * @brief Rysuje overlay fabularny poziomu nad rozgrywka.
+         */
+        virtual void renderOverlay(Core::Engine* engine) const {}
+
+        /**
+         * @brief Zwraca, czy poziom blokuje sterowanie gracza w aktualnej sekwencji.
+         */
+        [[nodiscard]] virtual bool blocksPlayerControl() const { return false; }
+
+        /**
+         * @brief Zwraca, czy poziom pozwala tylko na interakcje kliknieciem.
+         */
+        [[nodiscard]] virtual bool isInteractionOnly() const { return false; }
+
+        /**
+         * @brief Mnoznik zoomu kamery narzucony przez aktywna sekwencje poziomu.
+         */
+        [[nodiscard]] virtual float getCameraZoomMultiplier() const { return 1.0f; }
+
+        /**
+         * @brief Mnoznik wysokosci celu kamery narzucony przez aktywna sekwencje poziomu.
+         */
+        [[nodiscard]] virtual float getCameraTargetHeightMultiplier() const { return 1.0f; }
 
         /**
          * @brief Zwraca mape poziomu albo nullptr, jesli poziom nie jest wczytany.

@@ -142,8 +142,12 @@ namespace Nawia::World {
 		else
 			_map->loadMap(location.map.model, location.map.scale, location.map.offset, location.map.rotation);
 
+		_map->setNavMeshBlockers(location.navmesh_blockers);
+
 		if (location.has_navmesh_min_walkable_height)
 			_map->setNavMeshMinWalkableHeight(location.navmesh_min_walkable_height);
+
+		engine->setGameplayCameraZoom(location.has_camera_zoom ? location.camera_zoom : 0.75f);
 
 		if (reload_entities) {
 			engine->getEntityManager().clearNonPlayerEntities();

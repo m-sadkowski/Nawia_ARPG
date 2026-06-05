@@ -19,7 +19,7 @@ namespace Nawia::Entity {
 		_type = EntityType::NPCStatic;
 		setFaction(Faction::None);
 		setScale(0.03f);
-		loadModel("assets/models/cat_bounce.glb", false);
+		loadModel("assets/models/actors/cat/cat_bounce.glb", false);
 		playAnimation("default");
 
 		_inventory = std::make_unique<Item::Backpack>(INVENTORY_SIZE);
@@ -44,6 +44,9 @@ namespace Nawia::Entity {
 	}
 
 	void Cat::onInteract(Entity& instigator) {
+		rotateTowardsCenter(instigator.getCenter().x, instigator.getCenter().y);
+		instigator.rotateTowardsCenter(getCenter().x, getCenter().y);
+
 		if (_quest_completed)
 			return;
 
@@ -84,25 +87,15 @@ namespace Nawia::Entity {
 		playSoundEffect(Audio::SoundId::CatMeow, 0.8f);
 	}
 
-	void Cat::update(const float delta_time) {
-		Entity::update(delta_time);
+	void Cat::onInteractionCompleted(Entity& instigator, Core::Engine& engine) {
+		(void)instigator;
+
+		engine.getUIHandler().openDialogue(getDialogueTree());
+		engine.getQuestManager().notifyNPCTalked(getName());
 	}
 
-	bool Cat::isMouseOver(const float screen_x, const float screen_y, const Camera3D& camera) const {
-		if (Entity::isMouseOver(screen_x, screen_y, camera))
-			return true;
-
-		const Ray mouse_ray = GetScreenToWorldRay(Vector2{ screen_x, screen_y }, camera);
-		const Vector3 pos = getWorldPos3D();
-		constexpr float click_half_width = 0.7f;
-		constexpr float click_height = 1.45f;
-
-		const BoundingBox click_box = {
-			Vector3{ pos.x - click_half_width, pos.y, pos.z - click_half_width },
-			Vector3{ pos.x + click_half_width, pos.y + click_height, pos.z + click_half_width }
-		};
-
-		return GetRayCollisionBox(mouse_ray, click_box).hit;
+	void Cat::update(const float delta_time) {
+		Entity::update(delta_time);
 	}
 
 	void Cat::render(const Camera3D& camera) {

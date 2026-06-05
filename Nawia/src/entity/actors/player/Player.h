@@ -43,6 +43,9 @@ namespace Nawia::Entity {
 		/** @brief Natychmiast zatrzymuje ruch gracza. */
 		void stop();
 
+		/** @brief Czyści krótkotrwałe blokady sterowania po wymuszonych sekwencjach gameplayowych. */
+		void clearControlLocks();
+
 		/** @brief Przesuwa gracza po ścieżce wyznaczonej przez mapę. */
 		void updateMovement(float delta_time) override;
 
@@ -89,6 +92,11 @@ namespace Nawia::Entity {
 		/** @brief Dodaje złoto do portfela gracza. */
 		void addGold(int amount) { _gold += amount; }
 		void setGold(int amount) { _gold = amount; }
+
+		[[nodiscard]] int getFoodCount() const { return _food_count; }
+		void addFood(int amount);
+		[[nodiscard]] bool consumeFood();
+		[[nodiscard]] bool startConsumeFood();
 
 		/** @brief Próbuje wydać złoto i zwraca, czy operacja się udała. */
 		bool spendGold(int amount) {
@@ -167,11 +175,14 @@ namespace Nawia::Entity {
 		void onDeathStarted() override;
 		void attachEngine(Core::Engine* engine);
 		void updateWeaponVisualModel();
+		void updatePrimaryAttackAbility();
 
 		Core::Engine* _engine = nullptr;
 
 		static constexpr int INIT_BACKPACK_SIZE = 20;
 		bool _is_knocked_down = false;
+		bool _is_consuming_food = false;
+		float _consume_food_timer = 0.0f;
 
 		enum class KnockdownPhase {
 			None,
@@ -190,6 +201,7 @@ namespace Nawia::Entity {
 		Stats _current_stats;
 
 		int _gold = 0;
+		int _food_count = 0;
 		int _level = 1;
 		int _exp = 0;
 		int _exp_to_next_lvl = 100;

@@ -1,0 +1,162 @@
+#include "VillageHeadNpc.h"
+
+#include <Engine.h>
+#include <Map.h>
+
+#include <raymath.h>
+
+namespace Nawia::Entity {
+
+	namespace {
+		constexpr const char* VILLAGE_HEAD_MODEL = "assets/models/actors/village_head/village_head.glb";
+		constexpr float VILLAGE_HEAD_SCALE = 1.55f;
+		constexpr float VILLAGE_HEAD_STOP_DISTANCE = 0.65f;
+	}
+
+	VillageHeadNpc::VillageHeadNpc(
+		const std::string& name,
+		const float x,
+		const float y,
+		Core::Engine* engine)
+		: StoryNpc(name, x, y, engine)
+	{
+		_type = EntityType::NPCActor;
+		setScale(VILLAGE_HEAD_SCALE);
+		setMovementSpeed(2.0f);
+		loadModel(VILLAGE_HEAD_MODEL);
+		loadAnimationBundle(VILLAGE_HEAD_MODEL);
+		playAnimation("Idle", true, false, 0, true);
+		setDialogueStageKey("village_head");
+		setDialogue(buildDialogueFromConfig("village_head"));
+	}
+
+	void VillageHeadNpc::onInteract(Entity& instigator) {
+		rotateTowardsCenter(instigator.getCenter().x, instigator.getCenter().y);
+		instigator.rotateTowardsCenter(getCenter().x, getCenter().y);
+
+		if (getAnimationFrameCount("Idle") > 0)
+			playAnimation("Idle", true, false, 0, true);
+	}
+
+	bool VillageHeadNpc::isMouseOver(const float screen_x, const float screen_y, const Camera3D& camera) const {
+		return !_survivor_quest_started && StoryNpc::isMouseOver(screen_x, screen_y, camera);
+	}
+
+	bool VillageHeadNpc::canInteract() const {
+		return !_survivor_quest_started;
+	}
+
+	void VillageHeadNpc::update(const float delta_time) {
+		if (isDormant())
+			return;
+
+		Entity::update(delta_time);
+		if (isAnimationLocked())
+			return;
+
+		updateRouteToDestination(delta_time);
+	}
+
+	void VillageHeadNpc::handleQuestTalkCompleted(Core::Engine& engine) {
+		if (_survivor_quest_started)
+			return;
+
+		engine.getQuestManager().update(&engine);
+		_survivor_quest_started = true;
+		if (engine.getQuestManager().startQuest("find_survivors"))
+			engine.getUIHandler().showNotification("Nowy quest: Znajdz ocalencow", 4.0f);
+		startRouteToPlayerRespawn();
+	}
+
+	void VillageHeadNpc::startRouteToPlayerRespawn() {
+		if (!_engine)
+			return;
+
+		const auto player = _engine->getPlayer();
+		if (!player)
+			return;
+
+		Vector3 destination = {player->getRespawnPoint().x, getAltitude(), player->getRespawnPoint().y};
+		if (_engine->getCurrentMap() && _engine->getCurrentMap()->getNavMesh().isReady())
+			destination = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition({destination.x, 0.0f, destination.z});
+
+		_destination = {destination.x, destination.z};
+		_walking_to_spawn = true;
+		_path_requested = false;
+		buildPathToPoint(_destination);
+	}
+
+	void VillageHeadNpc::updateRouteToDestination(const float delta_time) {
+		if (!_walking_to_spawn)
+			return;
+
+		const float distance = Vector2Distance(getCenter(), _destination);
+		if (distance <= VILLAGE_HEAD_STOP_DISTANCE) {
+			stopPathMovement();
+			_walking_to_spawn = false;
+			if (getAnimationFrameCount("Idle") > 0)
+				playAnimation("Idle", true, false, 0, true);
+			return;
+		}
+
+		if (!_path_requested) {
+			buildPathToPoint(_destination);
+			_path_requested = true;
+		}
+
+		updatePathMovement(delta_time);
+
+		if (_is_moving) {
+			if (getAnimationFrameCount("Walk") > 0)
+				playAnimation("Walk");
+			else if (getAnimationFrameCount("walk") > 0)
+				playAnimation("walk");
+		}
+	}
+
+	void VillageHeadNpc::buildPathToPoint(const Vector2 target) {
+		_current_path.clear();
+
+		if (_engine && _engine->getCurrentMap() && _engine->getCurrentMap()->getNavMesh().isReady())
+			_current_path = _engine->getCurrentMap()->findPath(getWorldPos3D(), {target.x, getAltitude(), target.y});
+
+		if (_current_path.empty())
+			_current_path.push_back(target);
+
+		trimCurrentPathStart();
+
+		if (!_current_path.empty())
+			moveTo(_current_path.front().x, _current_path.front().y);
+		else
+			stopPathMovement();
+	}
+
+	void VillageHeadNpc::trimCurrentPathStart() {
+		if (_current_path.empty())
+			return;
+
+		const Vector2 first_path_point = _current_path.front();
+		const float dx = first_path_point.x - getCenter().x;
+		const float dy = first_path_point.y - getCenter().y;
+		if (dx * dx + dy * dy < 0.1f)
+			_current_path.erase(_current_path.begin());
+	}
+
+	void VillageHeadNpc::updatePathMovement(const float delta_time) {
+		if (!_is_moving && !_current_path.empty()) {
+			_current_path.erase(_current_path.begin());
+
+			if (!_current_path.empty())
+				moveTo(_current_path.front().x, _current_path.front().y);
+		}
+
+		updateMovement(delta_time);
+	}
+
+	void VillageHeadNpc::stopPathMovement() {
+		_current_path.clear();
+		_is_moving = false;
+		setVelocity(0.0f, 0.0f);
+	}
+
+} // namespace Nawia::Entity

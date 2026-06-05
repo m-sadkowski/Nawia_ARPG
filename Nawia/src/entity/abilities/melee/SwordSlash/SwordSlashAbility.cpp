@@ -1,6 +1,7 @@
 #include "SwordSlashAbility.h"
 
 #include <Entity.h>
+#include <Item.h>
 #include <Player.h>
 #include <SoundIds.h>
 #include <SwordSlashEffect.h>
@@ -21,6 +22,11 @@ namespace Nawia::Entity {
 		  _slash_tex(slash_tex) {}
 
 	AbilitySpawn SwordSlashAbility::cast(const float target_x, const float target_y) {
+		if (const auto player = dynamic_cast<Player*>(_caster)) {
+			if (player->getEquipment().getItemAt(Item::EquipmentSlot::Weapon) == nullptr)
+				return nullptr;
+		}
+
 		if (!beginCast())
 			return nullptr;
 

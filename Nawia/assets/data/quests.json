@@ -84,6 +84,180 @@
         "gold": 100,
         "exp": 1100
       }
+    },
+    {
+      "id": "inspect_wanda_body",
+      "name": "Sprawdz zwloki kobiety",
+      "description": "Podejdz do ciala lezacego nieopodal i sprawdz, kim byla ofiara.",
+      "level_name": "Wczora",
+      "prerequisites": [],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Zwloki Wandy",
+          "count": 1,
+          "description": "Sprawdz zwloki kobiety"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 0
+      }
+    },
+    {
+      "id": "gzib_talk_intro",
+      "name": "Porozmawiaj z Gzibem",
+      "description": "Znajdz Gziba i dowiedz sie, co stalo sie z jego bracmi.",
+      "level_name": "Wczora",
+      "prerequisites": [],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Gzib",
+          "count": 1,
+          "description": "Porozmawiaj z Gzibem"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 50
+      }
+    },
+    {
+      "id": "gzib_follow",
+      "name": "Podazaj za Gzibem",
+      "description": "Podazaj za Gzibem do miejsca, w ktorym czekaja jego zainfekowani bracia.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_talk_intro"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "Checkpoint Gziba",
+          "count": 1,
+          "description": "Dotrzyj za Gzibem na miejsce"
+        },
+        {
+          "type": "talk_to_npc",
+          "target_name": "Gzib",
+          "count": 1,
+          "description": "Porozmawiaj z Gzibem na miejscu"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 100
+      }
+    },
+    {
+      "id": "gzib_rescue_brothers",
+      "name": "Uratuj Gzibkow",
+      "description": "Pokonaj robale, ktore zatruwaja Gzibki.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_follow"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Robal",
+          "count": 5,
+          "description": "Zabij robale"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 300
+      }
+    },
+    {
+      "id": "gzib_report_brothers",
+      "name": "Powiadom Gziba o jego braciach",
+      "description": "Wroc do Gziba i powiedz mu, ze Gzibki sa bezpieczne.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_rescue_brothers"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Gzib",
+          "count": 1,
+          "description": "Powiadom Gziba"
+        }
+      ],
+      "rewards": {
+        "items": [13],
+        "gold": 0,
+        "exp": 200
+      }
+    },
+    {
+      "id": "find_ropuch",
+      "name": "Znajdz Ropucha",
+      "description": "Idz w strone sadzawki i znajdz legowisko Ropucha.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_report_brothers"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "Ropuch Trigger",
+          "count": 1,
+          "description": "Znajdz legowisko Ropucha"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 150
+      }
+    },
+    {
+      "id": "recover_scarf",
+      "name": "Odzyskaj chuste",
+      "description": "Pokonaj Ropucha i odzyskaj chuste ukochanej.",
+      "level_name": "Wczora",
+      "prerequisites": ["find_ropuch"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Frog",
+          "count": 1,
+          "description": "Zabij Ropucha"
+        }
+      ],
+      "rewards": {
+        "items": [14],
+        "gold": 0,
+        "exp": 650
+      }
+    },
+    {
+      "id": "find_survivors",
+      "name": "Znajdz ocalencow",
+      "description": "Znajdz mieszkancow, ktorzy przezyli atak, i odeslij ich do chaty medrca Jakuba.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Ocalency",
+          "count": 1,
+          "description": "Znajdz ocalalych mieszkancow"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
     }
   ]
 }

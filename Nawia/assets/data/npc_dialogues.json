@@ -1,0 +1,65 @@
+{
+  "village_head": {
+    "final_option": "Bywaj.",
+    "lines": [
+      {"speaker": "Logos", "text": "Alez smrod, chyba zjadl cos nieswiezego. Zaraz zaraz - Soltys?"},
+      {"speaker": "Soltys", "text": "Dzieki za ratunek. Przeklete monstrum zmienilo mnie w ta zabe. Nie panowalem nad soba, musialem patrzec co robi ten gad. Czulem smak wszystkich okropienstw ktore zjadal."},
+      {"speaker": "Logos", "text": "Rad jestem, ze zyjesz. Wiesz co sie stalo z moja ukochana? Lezy tu jej chusta... czy ty ja..."},
+      {"speaker": "Soltys", "text": "Na szczescie nie, uciekla. Ropuch nie siegnal jej jezykiem, zgarnal tylko chuste z jej szyi. Zwiala na polnoc. Moze biegnie do Twierdzy Kamiennej?"},
+      {"speaker": "Logos", "text": "Musze ja dogonic. Poradzisz sobie sam? Wrocisz do osady?"},
+      {"speaker": "Soltys", "text": "Nie ma do czego wracac, gniew Bogow spadl na nas. Musimy zebrac lud i odprawic dziady, prosic o przebaczenie."},
+      {"speaker": "Logos", "text": "Postaram sie znalezc tych co przezyli. Gdzie ich odsylac?"},
+      {"speaker": "Soltys", "text": "Do chaty medrca Jakuba. Ma tam obore i zielnik. Mysle, ze zgodzi sie na utworzenie tam osady tymczasowej. Powodzenia, spiesz sie - nie wiem ile mamy czasu."},
+      {"speaker": "Logos", "text": "Tobie rowniez, bywaj."}
+    ]
+  },
+  "wanda_corpse": {
+    "final_option": "Musze znalezc Milene.",
+    "lines": [
+      {
+        "speaker": "Logos",
+        "text": "O nie, to Wanda... slady wielkich pazurow... zaatakowalo ja jakies monstrum. Musze znalezc Milene.",
+        "voice_path": "assets/audio/dialogues/Intro/wanda_body.wav"
+      }
+    ]
+  },
+  "gzib_report": {
+    "final_option": "Wez.",
+    "lines": [
+      {"speaker": "Gzib", "text": "GZIBY URATOWANE! DZIEKUJE", "voice_path": "assets/audio/dialogues/Mushroom/gziby_uratowane_dziekuje.mp3"},
+      {"speaker": "Logos", "text": "Wydaje mi sie ze ten ropuch tez bral udzial w ataku na wioske. Pamietam jak przez mgle jakis rechot.", "voice_path": "assets/audio/dialogues/Player/ropuch_bral_udzial.wav"},
+      {"speaker": "Gzib", "text": "GZIBY MOWIA, ZE W SADZAWCE SLYCHAC RE RE KUM KUM", "voice_path": "assets/audio/dialogues/Mushroom/gziby_mowia_ze.mp3"},
+      {"speaker": "Logos", "text": "Pora go odwiedzic. Widziales moze innych mieszkancow wioski ktorzy tedy uciekali?", "voice_path": "assets/audio/dialogues/Player/pora_go_odwiedzic.wav"},
+      {"speaker": "Gzib", "text": "NIE WIDZIAL. ALE NAGRODA OD GZIBOW - WEZ", "voice_path": "assets/audio/dialogues/Mushroom/nie_widzial_ale.mp3"}
+    ]
+  },
+  "gzib_follow": {
+    "final_option": "Sprobuje.",
+    "lines": [
+      {"speaker": "Logos", "text": "One wygladaja jakby juz nie chcialy sie z toba kolegowac.", "voice_path": "assets/audio/dialogues/Player/one_wygladaja.wav"},
+      {"speaker": "Gzib", "text": "WYTNIJ ROBAKI RATUJ GZIBY, RATUJ GZIBYYY", "voice_path": "assets/audio/dialogues/Mushroom/wytnij_robaki_ratuj.mp3"},
+      {"speaker": "Logos", "text": "No dobra, sprobuje", "voice_path": "assets/audio/dialogues/Player/no_dobra_sprobuje.wav"}
+    ]
+  },
+  "gzib_follow_done": {
+    "final_option": "Dobra.",
+    "lines": [
+      {"speaker": "Logos", "text": "Robale juz wyciete. Gziby sa bezpieczne.", "voice_path": "assets/audio/dialogues/Player/robale_bezpieczne.wav"},
+      {"speaker": "Gzib", "text": "GZIBY URATOWANE! DZIEKUJE", "voice_path": "assets/audio/dialogues/Mushroom/gziby_uratowane_dziekuje.mp3"}
+    ]
+  },
+  "gzib_intro": {
+    "final_option": "Chodzmy.",
+    "lines": [
+      {"speaker": "Gzib", "text": "GZIBYYY, GDZIE MOJE GZIBYYY", "voice_path": "assets/audio/dialogues/Mushroom/gziby_gdzie_moje_gziby.mp3"},
+      {"speaker": "Logos", "text": "O, nie tylko ja mam omamy. Co sie stalo muchomorku?", "voice_path": "assets/audio/dialogues/Player/omamy_co_sie_stalo.wav"},
+      {"speaker": "Gzib", "text": "MOJE GZIBY, NIE MA GZIBOW", "voice_path": "assets/audio/dialogues/Mushroom/moje_gziby_nie_ma_gzibow.mp3"},
+      {"speaker": "Logos", "text": "Pomoc ci jakos?", "voice_path": "assets/audio/dialogues/Player/pomoc_ci_jakos.wav"},
+      {"speaker": "Gzib", "text": "GZIBY, URATUJ, ZATRUTANE, ZACZAROWANE", "voice_path": "assets/audio/dialogues/Mushroom/gziby_uratuj_zatrutane.mp3"},
+      {"speaker": "Logos", "text": "Kto zaczarowal twoich kolegow?", "voice_path": "assets/audio/dialogues/Player/kto_zaczarowal.wav"},
+      {"speaker": "Gzib", "text": "GRUBY ROPUCH. ROPUCH KRZYCZY ZE GO BRZUCH BOLI OD GZIBY", "voice_path": "assets/audio/dialogues/Mushroom/gruby_ropuch_ropuch.mp3"},
+      {"speaker": "Logos", "text": "No chyba ty jestes jakis rozjebany muchmorze.", "voice_path": "assets/audio/dialogues/Player/rozjebany_muchomorze.wav"},
+      {"speaker": "Gzib", "text": "CHODZ RATUJ GZIBY", "voice_path": "assets/audio/dialogues/Mushroom/chodz_ratuj_gziby.mp3"}
+    ]
+  }
+}

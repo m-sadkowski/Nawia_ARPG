@@ -4,6 +4,10 @@
 
 #include <memory>
 
+namespace Nawia::Core {
+	class ResourceManager;
+}
+
 namespace Nawia::Entity {
 
 	/**
@@ -20,6 +24,7 @@ namespace Nawia::Entity {
 
 		/** @brief Obsługuje obrażenia oraz przejście do animacji trafienia. */
 		void takeDamage(int dmg) override;
+		void ensureKnifeThrowAbility(Core::ResourceManager* resource_manager);
 
 	private:
 		Bandit();
@@ -48,6 +53,7 @@ namespace Nawia::Entity {
 		static constexpr float PATH_RECALC_INTERVAL = 0.3f;
 		float _knife_cooldown_timer = 0.0f;
 		bool _is_retreating = false;
+		bool _pending_interrupted_knife_throw = false;
 		bool _knife_thrown_this_cast = false; // Czy nóż został już rzucony w obecnej sekwencji.
 
 		// Obsługa stanów.

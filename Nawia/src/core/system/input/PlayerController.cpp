@@ -1,11 +1,9 @@
 #include "PlayerController.h"
 
 #include <Ability.h>
-#include <Cat.h>
 #include <Engine.h>
 #include <EnemyInterface.h>
 #include <Interactable.h>
-#include <InteractiveClickable.h>
 #include <InteractiveTrigger.h>
 #include <Logger.h>
 #include <Map.h>
@@ -55,6 +53,20 @@ namespace Nawia::Core {
 		handleKeyboardInput(mouse_world_pos, screen_x, screen_y);
 	}
 
+	void PlayerController::handleInteractionOnly(Vector3 mouse_world_pos, const float screen_x, const float screen_y) {
+		if (!_engine || !_player) return;
+
+		_last_mouse_x = mouse_world_pos.x;
+		_last_mouse_y = mouse_world_pos.z;
+
+		if (_engine->getUIHandler().isInputBlocked()) {
+			_player->stop();
+			return;
+		}
+
+		handleMouseInput(mouse_world_pos, screen_x, screen_y);
+	}
+
 	void PlayerController::update(const float dt) {
 		processPendingAction();
 
@@ -67,6 +79,15 @@ namespace Nawia::Core {
 		processAutoAttack();
 		updatePathMovement();
 		updateRotation();
+	}
+
+	void PlayerController::stopCurrentAction() {
+		_target_interactable = nullptr;
+		_target_enemy = nullptr;
+		_current_path.clear();
+		_pending_action = {};
+		if (_player)
+			_player->stop();
 	}
 
 	bool PlayerController::processInteraction() {
@@ -82,29 +103,29 @@ namespace Nawia::Core {
 		const float interaction_range_sq = _target_interactable->getInteractionRange();
 		const float distance_sq = getHorizontalDistanceToBoxSq(*target_entity, _player->getCenter());
 
-		if (distance_sq > interaction_range_sq) {
-			if (!_current_path.empty() || _player->isMoving()) {
-				updatePathMovement();
-			} else if (!moveTowardInteractable(target_entity, interaction_range_sq)) {
-				_player->stop();
-				_target_interactable = nullptr;
-			}
-			return true;
-		}
+		if (distance_sq > interaction_range_sq)
+			return moveToInteractionRange(target_entity, interaction_range_sq);
 
+		return performInteraction();
+	}
+
+	bool PlayerController::moveToInteractionRange(
+		const std::shared_ptr<Entity::Entity>& target,
+		const float interaction_range_sq
+	) {
+		if (!_current_path.empty() || _player->isMoving()) {
+			updatePathMovement();
+		} else if (!moveTowardInteractable(target, interaction_range_sq)) {
+			_player->stop();
+			_target_interactable = nullptr;
+		}
+		return true;
+	}
+
+	bool PlayerController::performInteraction() {
 		_player->stop();
 		_target_interactable->onInteract(*_player);
-
-		if (const auto cat = std::dynamic_pointer_cast<Entity::Cat>(_target_interactable)) {
-			_engine->getUIHandler().openDialogue(cat->getDialogueTree());
-			_engine->getQuestManager().notifyNPCTalked(cat->getName());
-			_target_interactable = nullptr;
-			return true;
-		}
-
-		const auto clickable = std::dynamic_pointer_cast<Entity::InteractiveClickable>(_target_interactable);
-		if (clickable && clickable->getInventory() != nullptr)
-			_engine->getUIHandler().openContainer(clickable.get());
+		_target_interactable->onInteractionCompleted(*_player, *_engine);
 
 		_target_interactable = nullptr;
 		return true;
@@ -413,6 +434,9 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::updateRotation() const {
+		if (_engine && _engine->getUIHandler().isDialogueOpen())
+			return;
+
 		if (_target_enemy)
 			_player->rotateTowardsCenter(_target_enemy->getCenter().x, _target_enemy->getCenter().y);
 		else if (!_player->isMoving() && !_player->isAnimationLocked())

@@ -10,18 +10,19 @@
 #include <DemoLevel.h>
 #include <DevLevel.h>
 #include <Entity.h>
-#include <FireballAbility.h>
+#include <FirstLevel.h>
 #include <Level.h>
 #include <LevelManager.h>
 #include <Map.h>
+#include <PlayerAbilityFactory.h>
 #include <SoundIds.h>
-#include <SwordSlashAbility.h>
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
-#include <fstream>
 #include <json.hpp>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -33,6 +34,7 @@ namespace Nawia::Core {
 		constexpr const char* MENU_MUSIC_PATH = "assets/audio/music/soulfuljamtracks-slavic-folk-308126.mp3";
 		constexpr float k_hover_update_interval = 0.05f;
 		constexpr float k_hover_mouse_move_threshold_sq = 1.0f;
+		constexpr float k_camera_zoom_return_speed = 1.7f;
 
 	}
 
@@ -60,6 +62,7 @@ namespace Nawia::Core {
 		_entity_manager = std::make_unique<EntityManager>(this);
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
+		_level_manager->registerLevel(std::make_shared<World::FirstLevel>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
 
 		_loading_kind = LoadingKind::Startup;
@@ -116,6 +119,38 @@ namespace Nawia::Core {
 		return nullptr;
 	}
 
+	void Engine::notifyStoryEvent(const std::string& event_id, const Vector2 world_position) {
+		if (_level_manager && _level_manager->getCurrentLevel())
+			_level_manager->getCurrentLevel()->handleStoryEvent(this, event_id, world_position);
+	}
+
+	void Engine::cancelPlayerAction() {
+		if (_controller)
+			_controller->stopCurrentAction();
+		if (_player)
+			_player->stop();
+	}
+
+	bool Engine::isLevelInteractionOnly() const {
+		const auto* level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
+		return level && level->isInteractionOnly();
+	}
+
+	bool Engine::isLevelBlockingControl() const {
+		const auto* level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
+		return level && level->blocksPlayerControl();
+	}
+
+	float Engine::getLevelCameraZoomMultiplier() const {
+		const auto* level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
+		return level ? std::max(0.05f, level->getCameraZoomMultiplier()) : 1.0f;
+	}
+
+	float Engine::getLevelCameraTargetHeightMultiplier() const {
+		const auto* level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
+		return level ? std::max(0.0f, level->getCameraTargetHeightMultiplier()) : 1.0f;
+	}
+
 	void Engine::processLoading() {
 		if (_loading_kind == LoadingKind::None)
 			return;
@@ -152,10 +187,11 @@ namespace Nawia::Core {
 		_boss_manager.loadFromJson("assets/data/bosses.json");
 
 		Entity::Entity::setSharedResourceManager(&_resource_manager);
-		createFreshPlayer(true);
+		createFreshPlayer();
 
 		_ui_handler = std::make_unique<UI::UIHandler>();
 		_ui_handler->initialize(_player, _entity_manager.get(), _resource_manager, &_quest_manager, &_settings);
+		_ui_handler->setDialogueAudioManager(&_audio_manager);
 		_ui_handler->setLevelManager(_level_manager.get());
 		_ui_handler->setSaveGameManager(&_save_game_manager);
 
@@ -219,6 +255,9 @@ namespace Nawia::Core {
 			if (_ui_handler)
 				_ui_handler->onLevelLoaded();
 
+			if (_pending_is_new_game && _level_manager && _level_manager->getCurrentLevel())
+				_level_manager->getCurrentLevel()->onNewGameStarted(this);
+
 			if (_pending_is_new_game && _pending_new_game_slot > 0)
 				saveCurrentGame(_pending_new_game_slot);
 		}
@@ -228,20 +267,13 @@ namespace Nawia::Core {
 		_pending_new_game_slot = 0;
 	}
 
-	void Engine::createFreshPlayer(const bool grant_starter_items) {
+	void Engine::createFreshPlayer() {
 		_player = Entity::PlayerBuilder(this).setPosition(k_initial_player_spawn).build();
 		_player->setAudioManager(&_audio_manager);
 
-		const auto sword_slash_icon = _resource_manager.getTexture("assets/textures/icons/sword_slash_icon.png");
-		_player->addAbility(std::make_shared<Entity::SwordSlashAbility>(nullptr, sword_slash_icon));
-
-		const auto fireball_icon = _resource_manager.getTexture("assets/textures/icons/fireball_icon.png");
-		_player->addAbility(std::make_shared<Entity::FireballAbility>(
-			"assets/models/fireball.glb",
-			0.5f,
-			nullptr,
-			fireball_icon,
-			&_resource_manager));
+		const auto& player_setup = Entity::PlayerAbilityFactory::getPlayerSetupConfig();
+		for (const auto& ability : Entity::PlayerAbilityFactory::createUnarmedAbilities(player_setup, _resource_manager))
+			_player->addAbility(ability);
 
 		_controller = std::make_unique<PlayerController>(this, _player);
 
@@ -252,19 +284,6 @@ namespace Nawia::Core {
 
 		if (_ui_handler)
 			_ui_handler->setPlayer(_player);
-
-		if (!grant_starter_items)
-			return;
-
-		for (const int starter_item_id : {1, 2, 3, 8, 9}) {
-			if (const auto item = _item_database.createItem(starter_item_id))
-				_player->equipItem(item);
-		}
-
-		for (const int backpack_item_id : {4, 5, 6, 7, 10, 11, 12}) {
-			if (const auto item = _item_database.createItem(backpack_item_id))
-				_player->getBackpack().addItem(item);
-		}
 	}
 
 	void Engine::run() {
@@ -443,7 +462,7 @@ namespace Nawia::Core {
 		_boss_manager.resetRuntimeState(this);
 		_boss_manager.clearDefeatedBosses();
 		_quest_manager.resetAll();
-		createFreshPlayer(true);
+		createFreshPlayer();
 
 		queueLevelLoad(level_name, "", true, default_slot);
 	}
@@ -495,7 +514,7 @@ namespace Nawia::Core {
 		_boss_manager.resetRuntimeState(this);
 		_boss_manager.clearDefeatedBosses();
 		_quest_manager.resetAll();
-		createFreshPlayer(false);
+		createFreshPlayer();
 
 		const std::string initial_location = _pending_save_state.value("current_location", "");
 		queueLevelLoad(current_level_name, initial_location, false, 0);
@@ -503,7 +522,16 @@ namespace Nawia::Core {
 	}
 
 	void Engine::handlePlayingInput() {
-		if (IsKeyPressed(KEY_ESCAPE)) {
+		if (isLevelBlockingControl()) {
+			_show_pause_menu = false;
+			if (_player)
+				_player->stop();
+			if (_ui_handler && _ui_handler->isDialogueOpen())
+				_ui_handler->handleInput();
+			return;
+		}
+
+		if (!isLevelInteractionOnly() && IsKeyPressed(KEY_ESCAPE)) {
 			if (_ui_handler->closeOpenWindows())
 				return;
 
@@ -511,7 +539,7 @@ namespace Nawia::Core {
 			return;
 		}
 
-		if (_show_pause_menu) {
+		if (!isLevelInteractionOnly() && _show_pause_menu) {
 			const auto* current_level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
 			const bool saves_enabled = current_level && current_level->allowsSaves();
 
@@ -541,13 +569,14 @@ namespace Nawia::Core {
 			return;
 		}
 
+		const bool dialogue_was_open = _ui_handler->isDialogueOpen();
 		_ui_handler->handleInput();
+		if (dialogue_was_open || isLevelBlockingControl())
+			return;
 
 		const auto dev_level = dynamic_cast<World::DevLevel*>(_level_manager->getCurrentLevel());
 		if (dev_level)
 			_camera.handleInput();
-		else
-			_camera.resetZoom();
 
 		const Vector2 mouse_pos = GetMousePosition();
 		const float cursor_plane_height = _player ? _player->getAltitude() : 0.0f;
@@ -581,8 +610,15 @@ namespace Nawia::Core {
 		if (dev_level && dev_level->isTyping())
 			return;
 
-		if (_controller)
-			_controller->handleInput(mouse_world_pos, mouse_pos.x, mouse_pos.y);
+		if (!isLevelInteractionOnly() && !_ui_handler->isInputBlocked() && IsKeyPressed(KEY_ONE) && _player)
+			(void)_player->startConsumeFood();
+
+		if (_controller) {
+			if (isLevelInteractionOnly())
+				_controller->handleInteractionOnly(mouse_world_pos, mouse_pos.x, mouse_pos.y);
+			else
+				_controller->handleInput(mouse_world_pos, mouse_pos.x, mouse_pos.y);
+		}
 	}
 
 	void Engine::update(const float delta_time) {
@@ -612,10 +648,36 @@ namespace Nawia::Core {
 			return;
 		}
 
-		_camera.follow(_player.get());
+		if (!dynamic_cast<World::DevLevel*>(_level_manager->getCurrentLevel())) {
+			const float level_zoom_multiplier = getLevelCameraZoomMultiplier();
+			const float target_zoom = _gameplay_camera_zoom * level_zoom_multiplier;
+			if (std::abs(level_zoom_multiplier - 1.0f) > 0.001f) {
+				_current_camera_zoom = target_zoom;
+			} else {
+				const float zoom_t = std::clamp(delta_time * k_camera_zoom_return_speed, 0.0f, 1.0f);
+				_current_camera_zoom += (target_zoom - _current_camera_zoom) * zoom_t;
+			}
+			_camera.resetZoom(_current_camera_zoom);
+
+			const float target_height_multiplier = getLevelCameraTargetHeightMultiplier();
+			if (std::abs(target_height_multiplier - 1.0f) > 0.001f) {
+				_current_camera_target_height_multiplier = target_height_multiplier;
+			} else {
+				const float height_t = std::clamp(delta_time * k_camera_zoom_return_speed, 0.0f, 1.0f);
+				_current_camera_target_height_multiplier +=
+					(1.0f - _current_camera_target_height_multiplier) * height_t;
+			}
+		}
+
+		_camera.follow(_player.get(), _current_camera_target_height_multiplier);
 		_lighting_system.update(_camera.get());
 		if (_ui_handler) _ui_handler->update(delta_time);
 		_level_manager->update(this, delta_time);
+		if (isLevelBlockingControl()) {
+			_entity_manager->updateEntities(delta_time);
+			collectPendingSpawns();
+			return;
+		}
 		_controller->update(delta_time);
 
 		_entity_manager->updateEntities(delta_time);
@@ -658,6 +720,9 @@ namespace Nawia::Core {
 		_audio_manager.loadSound(Audio::SoundId::HumanDeath, Audio::SoundPath::HumanDeath);
 		_audio_manager.loadSound(Audio::SoundId::KnifeThrow, Audio::SoundPath::KnifeThrow);
 		_audio_manager.loadSound(Audio::SoundId::CatMeow, Audio::SoundPath::CatMeow);
+		_audio_manager.loadSound(Audio::SoundId::MiniMushroomAttack, Audio::SoundPath::MiniMushroomAttack);
+		_audio_manager.loadSound(Audio::SoundId::MiniMushroomWormExit, Audio::SoundPath::MiniMushroomWormExit);
+		_audio_manager.loadSound(Audio::SoundId::PlayerEatSupplies, Audio::SoundPath::PlayerEatSupplies);
 	}
 
 	void Engine::render() const {
@@ -718,6 +783,15 @@ namespace Nawia::Core {
 			return;
 
 		renderWorld();
+		renderGameplayVignetteOverlay();
+		if (_level_manager && _level_manager->getCurrentLevel())
+			_level_manager->getCurrentLevel()->renderOverlay(const_cast<Engine*>(this));
+
+		if (isLevelBlockingControl()) {
+			if (_ui_handler)
+				_ui_handler->renderDialogueOnly();
+			return;
+		}
 
 		if (_ui_handler) _ui_handler->render(_camera, &_boss_manager);
 
@@ -727,6 +801,18 @@ namespace Nawia::Core {
 		}
 
 		_level_manager->renderUI(const_cast<Engine*>(this));
+	}
+
+	void Engine::renderGameplayVignetteOverlay() const {
+		const int width = GetScreenWidth();
+		const int height = GetScreenHeight();
+		const int edge_x = static_cast<int>(static_cast<float>(width) * 0.18f);
+		const int edge_y = static_cast<int>(static_cast<float>(height) * 0.18f);
+
+		DrawRectangleGradientH(0, 0, edge_x, height, Fade(BLACK, 0.24f), Fade(BLACK, 0.0f));
+		DrawRectangleGradientH(width - edge_x, 0, edge_x, height, Fade(BLACK, 0.0f), Fade(BLACK, 0.24f));
+		DrawRectangleGradientV(0, 0, width, edge_y, Fade(BLACK, 0.20f), Fade(BLACK, 0.0f));
+		DrawRectangleGradientV(0, height - edge_y, width, edge_y, Fade(BLACK, 0.0f), Fade(BLACK, 0.22f));
 	}
 
 	void Engine::applySettings(const Settings& new_settings) {

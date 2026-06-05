@@ -8,6 +8,7 @@
 #include <DetourNavMeshQuery.h>
 #include <raymath.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <memory>
@@ -26,6 +27,46 @@ namespace Nawia::World {
 			const int vertex_b = tris[tri_offset + 1] * 3 + 1;
 			const int vertex_c = tris[tri_offset + 2] * 3 + 1;
 			return (verts[vertex_a] + verts[vertex_b] + verts[vertex_c]) / 3.0f;
+		}
+
+		Vector3 getTriangleCenter(const std::vector<float>& verts, const std::vector<int>& tris, const int triangle_index) {
+			const int tri_offset = triangle_index * 3;
+			const int vertex_a = tris[tri_offset] * 3;
+			const int vertex_b = tris[tri_offset + 1] * 3;
+			const int vertex_c = tris[tri_offset + 2] * 3;
+			return {
+				(verts[vertex_a] + verts[vertex_b] + verts[vertex_c]) / 3.0f,
+				(verts[vertex_a + 1] + verts[vertex_b + 1] + verts[vertex_c + 1]) / 3.0f,
+				(verts[vertex_a + 2] + verts[vertex_b + 2] + verts[vertex_c + 2]) / 3.0f
+			};
+		}
+
+		bool triangleBlockedByNavPlane(const Vector3 center, const std::vector<NavMeshBlocker>& blockers) {
+			for (const auto& blocker : blockers) {
+				if (center.y > blocker.height)
+					continue;
+
+				if (blocker.shape == NavMeshBlockerShape::Circle) {
+					const float radius = std::max(0.05f, blocker.radius);
+					const float dx = center.x - blocker.center.x;
+					const float dz = center.z - blocker.center.y;
+					if (dx * dx + dz * dz <= radius * radius)
+						return true;
+
+					continue;
+				}
+
+				const float half_width = std::max(0.05f, blocker.width * 0.5f);
+				const float half_depth = std::max(0.05f, blocker.depth * 0.5f);
+				if (center.x >= blocker.center.x - half_width &&
+					center.x <= blocker.center.x + half_width &&
+					center.z >= blocker.center.y - half_depth &&
+					center.z <= blocker.center.y + half_depth) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		struct HeightfieldDeleter {
@@ -63,7 +104,12 @@ namespace Nawia::World {
 		_navQuery = nullptr;
 	}
 
-	bool NavMesh::buildFromModel(const Model& model, float scale, Vector3 offset) {
+	bool NavMesh::buildFromModel(
+		const Model& model,
+		float scale,
+		Vector3 offset,
+		const std::vector<NavMeshBlocker>& blockers
+	) {
 		cleanup();
 
 		if (model.meshCount == 0) {
@@ -166,6 +212,15 @@ namespace Nawia::World {
 					triangle_areas[triangle_index] = RC_NULL_AREA;
 			}
 		}
+		if (!blockers.empty()) {
+			for (int triangle_index = 0; triangle_index < ntris; ++triangle_index) {
+				if (triangle_areas[triangle_index] == RC_NULL_AREA)
+					continue;
+
+				if (triangleBlockedByNavPlane(getTriangleCenter(verts, tris, triangle_index), blockers))
+					triangle_areas[triangle_index] = RC_NULL_AREA;
+			}
+		}
 
 		if (!rcRasterizeTriangles(&ctx, verts.data(), nverts, tris.data(), triangle_areas.data(), ntris, *solid, cfg.walkableClimb)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie zrasteryzowac trojkatow.");
@@ -182,6 +237,41 @@ namespace Nawia::World {
 			return false;
 		}
 		solid.reset();
+
+		if (!blockers.empty()) {
+			constexpr float k_blocker_vertical_padding = 0.05f;
+			for (const auto& blocker : blockers) {
+				if (blocker.shape == NavMeshBlockerShape::Circle) {
+					const float position[3] = {
+						blocker.center.x,
+						cfg.bmin[1],
+						blocker.center.y
+					};
+					rcMarkCylinderArea(
+						&ctx,
+						position,
+						std::max(0.05f, blocker.radius),
+						std::max(k_blocker_vertical_padding, blocker.height - cfg.bmin[1] + k_blocker_vertical_padding),
+						RC_NULL_AREA,
+						*chf
+					);
+				} else {
+					const float half_width = std::max(0.05f, blocker.width * 0.5f);
+					const float half_depth = std::max(0.05f, blocker.depth * 0.5f);
+					const float bmin[3] = {
+						blocker.center.x - half_width,
+						cfg.bmin[1],
+						blocker.center.y - half_depth
+					};
+					const float bmax[3] = {
+						blocker.center.x + half_width,
+						blocker.height + k_blocker_vertical_padding,
+						blocker.center.y + half_depth
+					};
+					rcMarkBoxArea(&ctx, bmin, bmax, RC_NULL_AREA, *chf);
+				}
+			}
+		}
 
 		if (!rcErodeWalkableArea(&ctx, cfg.walkableRadius, *chf)) {
 			Core::Logger::errorLog("NavMesh: nie udalo sie zwezyc obszaru chodzenia.");

@@ -103,10 +103,14 @@ namespace Nawia::Audio {
 		void resumeMusic();
 
 		[[nodiscard]] bool isMusicPlaying() const;
+		[[nodiscard]] bool hasMusic() const { return _has_music; }
+		[[nodiscard]] const std::string& getCurrentMusicPath() const { return _current_music_path; }
+		[[nodiscard]] float getCurrentTrackVolume() const { return _current_music_volume; }
 
 		void setMasterVolume(float volume);
 		void setMusicVolume(float volume);
 		void setEffectsVolume(float volume);
+		void setMusicDuckingFactor(float factor);
 
 		[[nodiscard]] float getMasterVolume() const { return _master_volume; }
 		[[nodiscard]] float getMusicVolume() const { return _music_volume; }
@@ -129,6 +133,7 @@ namespace Nawia::Audio {
 		float _master_volume = 1.0f;
 		float _music_volume = 0.7f;
 		float _effects_volume = 1.0f;
+		float _music_ducking_factor = 1.0f;
 
 		std::unordered_map<std::string, CachedSound> _sounds;
 

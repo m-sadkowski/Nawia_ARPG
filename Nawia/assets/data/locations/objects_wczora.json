@@ -1,0 +1,274 @@
+{
+    "entities": [
+        {
+            "category": "npcs",
+            "location": "Wczora",
+            "name": "Zwloki Wandy",
+            "npc_class": "wanda_corpse",
+            "type": "npc",
+            "x": -5.400000095367432,
+            "y": -3.200000047683716
+        },
+        {
+            "category": "npcs",
+            "location": "Wczora",
+            "name": "Gzib",
+            "npc_class": "mushroom",
+            "type": "npc",
+            "x": 31.26576805114746,
+            "y": -2.6189374923706055
+        },
+        {
+            "category": "checkpoints",
+            "location": "Wczora",
+            "name": "Checkpoint Gziba",
+            "type": "checkpoint_mushroom_npc",
+            "x": 15.957840919494629,
+            "y": -27.788297653198242
+        },
+        {
+            "category": "checkpoints",
+            "location": "Wczora",
+            "name": "Checkpoint Gziba",
+            "type": "checkpoint_mushroom_npc",
+            "x": 29.311429977416992,
+            "y": -46.60541534423828
+        },
+        {
+            "category": "spawners",
+            "count": 5,
+            "location": "Wczora",
+            "name": "Zly Gzibek",
+            "spawn_radius": 5.0,
+            "trigger_radius": 20.0,
+            "type": "mini_mushroom_infected",
+            "x": 36.337188720703125,
+            "y": -59.00876998901367
+        },
+        {
+            "category": "chests",
+            "items": [
+                2,
+                15,
+                16,
+                17
+            ],
+            "location": "Wczora",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 34.430233001708984,
+            "y": -62.50339889526367
+        },
+        {
+            "category": "chests",
+            "items": [
+                3,
+                15,
+                16
+            ],
+            "location": "Wczora",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 30.34515380859375,
+            "y": -11.262310028076172
+        },
+        {
+            "category": "chests",
+            "items": [
+                8,
+                15,
+                17
+            ],
+            "location": "Wczora",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 96.71841430664063,
+            "y": -45.44831848144531
+        },
+        {
+            "boss_id": "ropuch",
+            "category": "boss_triggers",
+            "height": 14.0,
+            "location": "Wczora",
+            "name": "Ropuch Trigger",
+            "type": "boss_trigger",
+            "width": 14.0,
+            "x": 86.85816192626953,
+            "y": -39.160499572753906
+        },
+        {
+            "category": "chests",
+            "items": [
+                9,
+                15,
+                16,
+                17
+            ],
+            "location": "Wczora",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 118.98974609375,
+            "y": -71.56340789794922
+        },
+        {
+            "category": "spawners",
+            "count": 3,
+            "location": "Wczora",
+            "name": "Walking Dead",
+            "spawn_radius": 5.0,
+            "trigger_radius": 20.0,
+            "type": "walking_dead",
+            "x": 118.83037567138672,
+            "y": -71.46399688720703
+        },
+        {
+            "category": "checkpoints",
+            "location": "Wczora",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 80.77792358398438,
+            "y": -43.62266159057617
+        },
+        {
+            "category": "checkpoints",
+            "location": "Wczora",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 34.662330627441406,
+            "y": -60.36192321777344
+        },
+        {
+            "category": "checkpoints",
+            "location": "Wczora",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 28.960744857788086,
+            "y": -2.368885040283203
+        },
+        {
+            "category": "nav_blockers",
+            "height": 2.4420013427734375,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 8.120500564575195,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 118.74687194824219,
+            "y": -105.73277282714844
+        },
+        {
+            "category": "nav_blockers",
+            "height": 2.4420013427734375,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 4.861000061035156,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 108.26210021972656,
+            "y": -110.488525390625
+        },
+        {
+            "category": "nav_blockers",
+            "height": 2.4420013427734375,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 7.245999813079834,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 139.79039001464844,
+            "y": -113.76941680908203
+        },
+        {
+            "category": "nav_blockers",
+            "height": 2.4420013427734375,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 4.065999984741211,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 137.00924682617188,
+            "y": -106.46123504638672
+        },
+        {
+            "category": "nav_blockers",
+            "depth": 12.106999397277832,
+            "height": 2.6040000915527344,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "shape": "box",
+            "type": "nav_blocker",
+            "width": 12.743000030517578,
+            "x": 150.21795654296875,
+            "y": -117.49052429199219
+        },
+        {
+            "category": "nav_blockers",
+            "depth": 2.249000072479248,
+            "height": 2.5915603637695313,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "shape": "box",
+            "type": "nav_blocker",
+            "width": 3.5209999084472656,
+            "x": 145.7440948486328,
+            "y": -110.31922149658203
+        },
+        {
+            "category": "nav_blockers",
+            "height": 3.4680004119873047,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 12.890499114990234,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 91.27874755859375,
+            "y": -21.15125274658203
+        },
+        {
+            "category": "nav_blockers",
+            "height": 3.5219993591308594,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 6.132999897003174,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 98.43694305419922,
+            "y": -37.365966796875
+        },
+        {
+            "category": "nav_blockers",
+            "height": 3.5915603637695313,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 4.622499942779541,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 101.71662139892578,
+            "y": -24.89570426940918
+        },
+        {
+            "category": "nav_blockers",
+            "height": 3.9915618896484375,
+            "location": "Wczora",
+            "name": "Nav Blocker",
+            "radius": 4.065999984741211,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 99.455322265625,
+            "y": -28.17790985107422
+        },
+        {
+            "category": "chests",
+            "items": [
+                1
+            ],
+            "location": "Wczora",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": -5.074143886566162,
+            "y": -21.14720916748047
+        }
+    ],
+    "location": "Wczora",
+    "schema_version": 1
+}
