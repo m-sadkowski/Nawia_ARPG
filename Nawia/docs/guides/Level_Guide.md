@@ -88,6 +88,8 @@ checkpointy, propsy i boss triggery.
 Teleporty uzywaja pola `target_location`, ktore musi byc identyczne z nazwa
 lokacji podana w klasie levelu i w JSON lokacji. Przy przejsciu loader zmienia
 mape, przenosi gracza na spawn docelowej lokacji i aktywuje encje tej lokacji.
+Encja teleportu uzywa modelu `assets/models/teleport.glb` i petli animacji
+`rock_gate|gate_idle`.
 
 ## Typy encji
 

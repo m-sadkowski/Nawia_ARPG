@@ -135,6 +135,19 @@ addPendingSpawn(effect);
 4. Dodaj wpis w `assets/data/locations/objects_<lokacja>.json` albo ustaw encje w Kreatorze leveli.
 5. Sprawdz, czy encja dostaje mape, frakcje, model i HP.
 
+## Fabularni NPC
+
+Fabularne NPC dziedzicza zwykle po `StoryNpc`.
+
+- `GenericStoryNpc` obsluguje pojedynczych ludzi i zielarza konfigurowanych z JSON-a przez `model`, `animation_bundle`, nazwy animacji, `dialogue_key` oraz opcjonalna trase po dialogu.
+- `ForestLostGroupNpc` jest zlozona encja dla grupy z lasu. Encja glowna to `female_npc_2`, a dodatkowe wizuale to `male_npc_2` i `milena_sister`.
+
+`ForestLostGroupNpc` ma kilka etapow: oczekiwanie na rozmowe, niesienie siostry
+Mileny do `Herbalist Hub`, opuszczenie jej na ziemie, wstawanie z animacji
+`Death` od konca i rozejscie sie calej trojki do losowych punktow w hubie.
+Parametry niesienia trzymane sa w `CarryTuning`, a indeksy animacji w
+`AnimationIndices`, zeby strojenie JSON-em nie rozlewalo sie po logice stanu.
+
 ## Dobre praktyki
 
 - Factory sklada obiekt, nie prowadzi AI.
