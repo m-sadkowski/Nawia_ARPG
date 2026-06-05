@@ -1,0 +1,29 @@
+{
+    "camera": {
+        "zoom": 0.5
+    },
+    "map": {
+        "model": "wczora_przedsionek_nawii.glb",
+        "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "rotation": {
+            "x": 0.0,
+            "y": 270.0,
+            "z": 0.0
+        },
+        "scale": 2.232257843017578
+    },
+    "name": "Przedsionek Nawii",
+    "navmesh": {
+        "min_walkable_height": -15.0
+    },
+    "objects_file": "objects_przedsionek_nawii.json2.json",
+    "player_spawn": {
+        "x": -10.86701774597168,
+        "y": 1.683828353881836
+    },
+    "schema_version": 1
+}
