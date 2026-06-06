@@ -159,9 +159,9 @@ W kodzie levelu wskazujesz zawsze sciezke assetowa:
 
 Teleport dodajesz w miejscu, w ktorym stoi gracz. W formularzu teleportu
 wybierasz lokacje docelowa z listy istniejacych lokacji.
-Runtime renderuje teleport modelem `assets/models/teleport.glb` i stale odtwarza
-animacje `rock_gate|gate_idle`. W JSON mozna zostawic domyslna skale albo
-dopisac `scale` i `rotation`, jesli model wymaga dostrojenia w konkretnej mapie.
+Runtime renderuje teleport statycznym modelem `assets/models/teleport.glb`.
+W JSON mozna zostawic domyslna skale albo dopisac `scale` i `rotation`, jesli
+model wymaga dostrojenia w konkretnej mapie.
 
 Przyklad ukladu:
 
@@ -209,17 +209,29 @@ Do sekwencji z ocalonymi ustawiasz w kreatorze:
   powinna zostac `Herbalist Hub`, jesli `Forest Lost NPC` ma uzywac domyslnej
   konfiguracji.
 - `Zielarz` jako NPC przy chacie zielarza.
-- `Cmentarz: female_warrior` i `Cmentarz: male_npc_1` jako dwoje ocalonych z
-  cmentarza.
+- `Cmentarz: Ocaleni` jako jedna grupa dwojga ocalonych z cmentarza. Dialog z
+  rozmowna postacia wysyla oboje do `Herbalist Hub`.
 - `Forest Lost NPC` jako jedna grupa w lesie: kobieta do rozmowy, mezczyzna
   niosacy i siostra Mileny.
 
-Grupa lesna po dialogu rusza do `Herbalist Hub`. Po dotarciu nie teleportuje
-postaci do losowych miejsc: najpierw opuszcza siostre Mileny, odtwarza jej
-animacje wstawania, a dopiero potem wszystkie trzy postacie ida do losowych
-punktow w promieniu huba.
+Grupy po dialogu ruszaja do `Herbalist Hub`. Ocaleni z cmentarza po dotarciu
+rozchodza sie ruchem po losowych punktach huba. Grupa lesna po dotarciu nie
+teleportuje postaci do losowych miejsc: najpierw opuszcza siostre Mileny,
+odtwarza jej animacje wstawania, a dopiero potem wszystkie trzy postacie ida do
+losowych punktow w promieniu huba.
 
-Najwazniejsze pola JSON dla grupy:
+Najwazniejsze pola JSON dla grupy cmentarnej:
+
+```json
+{
+    "npc_class": "cemetery_survivor_group",
+    "hub_name": "Herbalist Hub",
+    "dialogue_key": "cemetery_survivors",
+    "checkpoint_on_arrival": "cemetery_survivors_arrived"
+}
+```
+
+Najwazniejsze pola JSON dla grupy lesnej:
 
 ```json
 {

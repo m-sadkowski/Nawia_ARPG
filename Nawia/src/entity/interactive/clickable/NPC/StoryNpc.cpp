@@ -2,14 +2,19 @@
 
 #include <Engine.h>
 #include <Logger.h>
+#include <Player.h>
 #include <UIHandler.h>
 
 #include <fstream>
 #include <json.hpp>
+#include <raymath.h>
 
 namespace Nawia::Entity {
 
 	namespace {
+		constexpr float LOOK_AT_PLAYER_INTERVAL = 0.25f;
+		constexpr float LOOK_AT_PLAYER_RANGE = 10.0f;
+
 		bool isPlayerDialogueSpeaker(const std::string& speaker) {
 			return speaker == "Logos" || speaker == "Jarko" || speaker == "Player" || speaker == "Gracz";
 		}
@@ -119,6 +124,9 @@ namespace Nawia::Entity {
 			else if (getAnimationFrameCount("idle") > 0)
 				playAnimation("idle", true, false, 0, true);
 		}
+
+		if (!_playing_talk && !isMoving() && canInteract() && shouldLookAtPlayerWhenNearby())
+			rotateToNearbyPlayer(delta_time);
 	}
 
 	float StoryNpc::getInteractionRange() {
@@ -177,20 +185,19 @@ namespace Nawia::Entity {
 			size_t next_line = i + 1;
 			if (next_line < lines.size() && isPlayerDialogueSpeaker(lines[next_line].first)) {
 				option.text = lines[next_line].second;
-				next_line++;
 			} else {
 				const bool is_final_node = next_line >= lines.size();
 				if (is_final_node)
 					option.text = resolveFinalOption(final_option_text, lines[i].first, lines[i].second);
 				else
-					option.text = isPlayerDialogueSpeaker(lines[i].first) ? lines[i].second : "Rozumiem.";
+					option.text = "Dalej";
 			}
 
-			option.next_node_id = (next_line < lines.size()) ? node_id + 1 : -1;
+			option.next_node_id = (next_line < lines.size()) ? static_cast<int>(next_line) : -1;
 			node.options.push_back(option);
 			tree.addNode(node);
 
-			i = next_line;
+			i++;
 			node_id++;
 		}
 
@@ -212,13 +219,12 @@ namespace Nawia::Entity {
 			size_t next_line = i + 1;
 			if (next_line < lines.size() && isPlayerDialogueSpeaker(lines[next_line].speaker)) {
 				option.text = lines[next_line].text;
-				next_line++;
 			} else {
 				const bool is_final_node = next_line >= lines.size();
 				if (is_final_node)
 					option.text = resolveFinalOption(final_option_text, lines[i].speaker, lines[i].text);
 				else
-					option.text = isPlayerDialogueSpeaker(lines[i].speaker) ? lines[i].text : "Rozumiem.";
+					option.text = "Dalej";
 			}
 			option.next_node_id = (next_line < lines.size()) ? static_cast<int>(next_line) : -1;
 			node.options.push_back(option);
@@ -255,6 +261,23 @@ namespace Nawia::Entity {
 		return has_voice
 			? buildVoicedLinearDialogue(voiced_lines, final_option)
 			: buildLinearDialogue(plain_lines, final_option);
+	}
+
+	void StoryNpc::rotateToNearbyPlayer(const float delta_time) {
+		if (!_engine)
+			return;
+
+		_look_at_player_timer -= delta_time;
+		if (_look_at_player_timer > 0.0f)
+			return;
+
+		_look_at_player_timer = LOOK_AT_PLAYER_INTERVAL;
+		const auto player = _engine->getPlayer();
+		if (!player || player->isDead() || player->isDying())
+			return;
+
+		if (Vector2DistanceSqr(getCenter(), player->getCenter()) <= LOOK_AT_PLAYER_RANGE * LOOK_AT_PLAYER_RANGE)
+			rotateTowardsCenter(player->getCenter().x, player->getCenter().y);
 	}
 
 } // namespace Nawia::Entity

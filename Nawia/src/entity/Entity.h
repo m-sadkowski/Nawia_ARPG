@@ -161,6 +161,7 @@ namespace Nawia::Entity {
 		[[nodiscard]] float getScale() const { return _scale; }
 		void setHovered(bool hovered) { _hovered = hovered; }
 		void setAudioManager(Audio::AudioManager* audio_manager) { _audio_manager = audio_manager; }
+		void hideMeshIndex(int mesh_index);
 
 		/**
 		 * @brief Ustawia docelowy punkt ruchu encji.
@@ -194,6 +195,8 @@ namespace Nawia::Entity {
 
 		[[nodiscard]] bool isDead() const { return _hp <= 0; }
 		[[nodiscard]] bool isDying() const { return _is_dying; }
+		[[nodiscard]] bool shouldPersistAfterDeath() const { return _persist_after_death; }
+		void setPersistAfterDeath(bool value) { _persist_after_death = value; }
 		[[nodiscard]] bool isMoving() const { return _is_moving; }
 		[[nodiscard]] int getHP() const { return _hp; }
 		[[nodiscard]] int getMaxHP() const { return _max_hp; }
@@ -262,6 +265,11 @@ namespace Nawia::Entity {
 			bool lock_movement = true,
 			int start_frame = 0,
 			bool force = false);
+		void playAnimationFreezeOnLastFrame(
+			const std::string& name,
+			bool lock_movement = false,
+			int start_frame = 0,
+			bool force = true);
 
 		void setAnimationSpeed(float multiplier) { _anim_speed_multiplier = multiplier; }
 		[[nodiscard]] float getAnimationSpeed() const { return _anim_speed_multiplier; }
@@ -481,9 +489,13 @@ namespace Nawia::Entity {
 		bool _anim_locked = false;
 		bool _anim_ping_pong = false;
 		bool _anim_reverse_phase = false;
+		bool _freeze_animation_on_completion = false;
+		bool _animation_frozen_at_last_frame = false;
 		float _anim_direction = 1.0f;
+		bool _persist_after_death = false;
 		bool _hovered = false;
 		bool _dormant = false;
+		std::vector<int> _hidden_mesh_indices;
 
 		bool _is_dying = false;
 		std::string _death_anim_name = "death";

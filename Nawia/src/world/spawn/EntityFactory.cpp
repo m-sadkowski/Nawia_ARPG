@@ -12,6 +12,7 @@
 #include <Friend.h>
 #include <BossArenaTrigger.h>
 #include <Cat.h>
+#include <CemeterySurvivorGroupNpc.h>
 #include <Chest.h>
 #include <Checkpoint.h>
 #include <Frog.h>
@@ -394,6 +395,12 @@ namespace Nawia::World {
 
 		if (npc_class == "forest_lost_group") {
 			auto group = std::make_shared<Entity::ForestLostGroupNpc>(name.empty() ? "Forest Lost NPC" : name, x, y, engine, data);
+			group->setAudioManager(&engine->getAudioManager());
+			return group;
+		}
+
+		if (npc_class == "cemetery_survivor_group") {
+			auto group = std::make_shared<Entity::CemeterySurvivorGroupNpc>(name.empty() ? "Ocaleni z cmentarza" : name, x, y, engine, data);
 			group->setAudioManager(&engine->getAudioManager());
 			return group;
 		}

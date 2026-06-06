@@ -1,6 +1,6 @@
 {
     "camera": {
-        "zoom": 0.5
+        "zoom": 0.6
     },
     "map": {
         "model": "wczora_przedsionek_nawii.glb",
@@ -20,7 +20,7 @@
     "navmesh": {
         "min_walkable_height": -15.0
     },
-    "objects_file": "objects_przedsionek_nawii.json2.json",
+    "objects_file": "objects_przedsionek_nawii.json",
     "player_spawn": {
         "x": -10.86701774597168,
         "y": 1.683828353881836

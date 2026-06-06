@@ -1,6 +1,7 @@
 #include "VillageHeadNpc.h"
 
 #include <Engine.h>
+#include <EntityManager.h>
 #include <Map.h>
 
 #include <raymath.h>
@@ -71,18 +72,31 @@ namespace Nawia::Entity {
 			(cemetery_quest && cemetery_quest->isActive()) ||
 			(forest_quest && forest_quest->isActive()))
 			engine.getUIHandler().showNotification("Nowe questy: Ocaleni z cmentarza, Zagubieni w lesie", 4.0f);
-		startRouteToPlayerRespawn();
+		startRouteToHerbalistHub();
 	}
 
-	void VillageHeadNpc::startRouteToPlayerRespawn() {
+	void VillageHeadNpc::startRouteToHerbalistHub() {
 		if (!_engine)
 			return;
 
-		const auto player = _engine->getPlayer();
-		if (!player)
-			return;
+		Vector3 destination = {0.0f, getAltitude(), 0.0f};
+		bool has_destination = false;
+		for (const auto& entity : _engine->getEntityManager().getEntities()) {
+			if (entity && entity->getName() == "Herbalist Hub") {
+				destination = {entity->getX(), getAltitude(), entity->getY()};
+				has_destination = true;
+				break;
+			}
+		}
 
-		Vector3 destination = {player->getRespawnPoint().x, getAltitude(), player->getRespawnPoint().y};
+		if (!has_destination) {
+			const auto player = _engine->getPlayer();
+			if (!player)
+				return;
+
+			destination = {player->getRespawnPoint().x, getAltitude(), player->getRespawnPoint().y};
+		}
+
 		if (_engine->getCurrentMap() && _engine->getCurrentMap()->getNavMesh().isReady())
 			destination = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition({destination.x, 0.0f, destination.z});
 

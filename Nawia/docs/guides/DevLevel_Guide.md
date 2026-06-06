@@ -65,15 +65,30 @@ przy ID. Zapis trafia do `objects_*.json` jako `locked: true` i `key_id`.
 W menu NPC sa dodatkowe presety fabularne:
 
 - `Story Human` - ogolny NPC oparty o pola `model`, `animation_bundle`, `idle_animation`, `walk_animation`, `dialogue_key` i opcjonalna trase po dialogu.
-- `Zielarz` - story NPC z modelem `assets/models/actors/herbalist/herbalist.glb` i domyslnym `dialogue_key: herbalist_placeholder`.
-- `Cmentarz: female_warrior` i `Cmentarz: male_npc_1` - gotowe presety ocalonych z cmentarza. Maja domyslny model, indeksowane animacje `idle/walk`, dialog, trase do `Herbalist Hub` i checkpoint dojscia.
+- `Zielarz` - story NPC z domyslnym `dialogue_key: herbalist_placeholder`. Tymczasowo uzywa modelu i animacji soltysa: `assets/models/actors/village_head/village_head.glb`.
+- `Wiedzma` - pasywny story NPC do sceny przed walka. Uzywa `assets/models/actors/witch/witch.glb`, indeksu idle `5`, walk `16`, cast `7`, `can_talk: false`; dialog uruchamia osobny `Story Trigger`.
+- `Cmentarz: Ocaleni` - jedna grupa dwoch ocalonych z cmentarza: `female_warrior` jako rozmowna encja glowna i `male_npc_1` jako dodatkowy wizual. Jeden dialog wysyla oboje do `Herbalist Hub` i zalicza checkpoint `cemetery_survivors_arrived`.
 - `Forest Lost NPC` - grupa trzech NPC z lasu: `female_npc_2`, `male_npc_2` i `milena_sister`.
 
 `HUB zielarza` zapisuje encje `herbalist_hub` z promieniem `radius`. Grupa
-`Forest Lost NPC` szuka domyslnie encji o nazwie `Herbalist Hub`. Po dialogu
-idzie do tego huba, opuszcza siostre Mileny na ziemie, odtwarza jej animacje
-`Death` od konca jako wstawanie, a potem cala trojka rozchodzi sie ruchem do
-losowych punktow w promieniu huba.
+`Cmentarz: Ocaleni` i `Forest Lost NPC` szukaja domyslnie encji o nazwie
+`Herbalist Hub`. Po dialogu grupa cmentarna idzie do huba i rozchodzi sie po
+jego promieniu. Grupa lesna idzie do tego huba, opuszcza siostre Mileny na
+ziemie, odtwarza jej animacje `Death` od konca jako wstawanie, a potem cala
+trojka rozchodzi sie ruchem do losowych punktow w promieniu huba.
+
+Domyslne parametry `Cmentarz: Ocaleni` zapisywane przez kreator:
+
+```json
+{
+  "npc_class": "cemetery_survivor_group",
+  "hub_name": "Herbalist Hub",
+  "dialogue_key": "cemetery_survivors",
+  "checkpoint_on_arrival": "cemetery_survivors_arrived",
+  "idle_animation_index": 9,
+  "walk_animation_index": 16
+}
+```
 
 Domyslne parametry `Forest Lost NPC` zapisywane przez kreator:
 
@@ -106,19 +121,31 @@ Dla aktualnego flow nie trzeba wypelniac wszystkich pol kreatora. Wystarcza:
 
 - `HUB zielarza`: nazwa `Herbalist Hub`, radius wedlug obszaru przy chacie.
 - `Zielarz`: zostaw domyslne pola presetu.
-- `Cmentarz: female_warrior`: zostaw domyslne pola presetu.
-- `Cmentarz: male_npc_1`: zostaw domyslne pola presetu.
+- `Wiedzma`: postaw w miejscu rozmowy przed teleportem do Nawii; pozycje ustawiasz jak kazdego NPC, czyli stajac graczem w docelowym miejscu i klikajac preset.
+- `Cmentarz: Ocaleni`: zostaw domyslne pola presetu.
 - `Forest Lost NPC`: zostaw domyslne pola presetu.
 - `Story Trigger` przy Czarownicy przed wejsciem do Nawii:
   `dialogue_key = witch_to_nawia`, `target_location = Przedsionek Nawii`,
   `checkpoint = witch_to_nawia`.
+  W aktualnym `objects_wczora.json` ten trigger ma tez `on_enter`, ktore
+  obraca NPC `Wiedzma` w strone gracza, odpala animacje `cast` i zatrzymuje ja
+  na ostatniej klatce przed teleportem.
 - `Story Trigger` po powrocie z Nawii:
   `dialogue_key = witch_after_bies_placeholder`,
   `condition boss defeated = bies`, `checkpoint = witch_after_bies`,
   bez target location.
+- Final przy chacie zielarza ma dwa zapisane triggery w `objects_wczora.json`:
+  `herbalist_final_success` odpala sie, gdy `return_to_herbalist_final` jest
+  aktywny i `rescue_forest_survivors` ukonczony; `herbalist_final_fail`
+  odpala sie, gdy ten quest nie jest ukonczony, failuje go i ukrywa
+  `Forest Lost NPC`.
 
 W `Przedsionek Nawii` jest juz zapisany `boss_trigger` na `bies` i teleport
 powrotny do `Dolina Nedzy` odblokowywany po pokonaniu Biesa.
+
+W formularzu skrzyni jest dedykowany przycisk `+ KSIEGA BABY JAGI / FIREBALL`,
+ktory dodaje item ID `18`. Ten item po zabraniu ze skrzyni odblokowuje Fireball
+i znika zamiast trafiac do plecaka.
 
 ## Czarownica
 
@@ -138,6 +165,11 @@ Animacje:
 AI Czarownicy trzyma dystans, strzela malymi fireballami, a po otrzymaniu
 obrazen odgrywa hit, potem animacje strzalu bez pocisku, powala gracza i
 przywoluje `WalkingDead`.
+
+Po powrocie z Nawii dialog `witch_after_bies_placeholder` ma wybory:
+start walki z `czarownica` albo pokojowe poznanie prawdy. Pokojowa sciezka
+wysyla checkpoint `witch_truth_resolved`; sciezka walki robi to po dialogu
+smierci bossa.
 
 ## Testowanie
 

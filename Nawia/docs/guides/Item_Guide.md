@@ -64,6 +64,18 @@ Subclassy itemow istnieja tylko tam, gdzie przedmiot ma wyspecjalizowane statyst
 
 Kazdy subclass powinien nadpisywac `clone()`.
 
+## Itemy odblokowujace umiejetnosci
+
+`Ksiega Baby Jagi` ma ID `18` i jest obslugiwana jako fabularny consumable przy
+zabraniu z kontenera. UI nie przenosi jej do plecaka: wywoluje
+`Player::unlockFireballAbility()`, usuwa item ze skrzyni i zapisuje permanentny
+unlock w profilu gracza jako `fireball_unlocked`. Fireball trafia do slotu
+ability `2`, zeby nie nadpisywac podstawowego ataku ani drugiego ciosu.
+
+`Cichobiegi` maja ID `19`. To prezentacyjny item typu `Feet` z bardzo duzym
+bonusem `movement_speed`; `FirstLevel` zaklada go graczowi automatycznie przy
+nowej grze na Wczorze.
+
 ## Backpack
 
 `Backpack`:
@@ -115,6 +127,7 @@ Przyklad:
 3. Uzyj istniejacego slotu albo dodaj nowy w `EquipmentSlot`.
 4. Jezeli potrzebny jest nowy typ statystyk, dodaj subclass i obsluge w `ItemDatabase`.
 5. Dodaj item do loottable albo level data.
+6. Jezeli item ma znikac przy zabraniu i zmieniac stan gracza, obsluz go w przeplywie transferu kontenera.
 
 ## Dobre praktyki
 

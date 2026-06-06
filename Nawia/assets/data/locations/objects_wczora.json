@@ -185,39 +185,18 @@
             "y": -67.0036849975586
         },
         {
-            "animation_bundle": "assets/models/actors/npcs/male_npc_1.glb",
-            "can_talk": true,
             "category": "npcs",
-            "checkpoint_on_arrival": "cemetery_male_arrived",
-            "death_animation_index": 0,
-            "destination_name": "Herbalist Hub",
-            "disable_interaction_after_talk": true,
-            "idle_animation": "idle",
+            "checkpoint_on_arrival": "cemetery_survivors_arrived",
+            "dialogue_key": "cemetery_survivors",
+            "hub_name": "Herbalist Hub",
             "idle_animation_index": 9,
             "location": "Dolina Nedzy",
-            "model": "assets/models/actors/npcs/male_npc_1.glb",
-            "name": "Ocalony z cmentarza",
-            "npc_class": "story_human",
-            "route_after_talk": true,
-            "talk_animation": "idle",
+            "name": "Ocaleni z cmentarza",
+            "npc_class": "cemetery_survivor_group",
             "type": "npc",
-            "use_indexed_animation_aliases": true,
-            "walk_animation": "walk",
             "walk_animation_index": 16,
-            "walk_back_animation_index": 17,
             "x": 126.81401062011719,
             "y": -68.41144561767578
-        },
-        {
-            "category": "spawners",
-            "count": 1,
-            "location": "Dolina Nedzy",
-            "name": "Czarownica",
-            "spawn_radius": 5.0,
-            "trigger_radius": 15.0,
-            "type": "witch",
-            "x": 122.93643188476563,
-            "y": -124.92439270019531
         },
         {
             "category": "nav_blockers",
@@ -288,37 +267,14 @@
             "y": 39.22502136230469
         },
         {
-            "animation_bundle": "assets/models/actors/friends/female_warrior/female_warrior.glb",
+            "animation_bundle": "assets/models/actors/village_head/village_head.glb",
             "can_talk": true,
             "category": "npcs",
-            "checkpoint_on_arrival": "cemetery_female_arrived",
-            "death_animation_index": 0,
-            "destination_name": "Herbalist Hub",
-            "disable_interaction_after_talk": true,
-            "idle_animation": "idle",
-            "idle_animation_index": 9,
-            "location": "Dolina Nedzy",
-            "model": "assets/models/actors/friends/female_warrior/female_warrior.glb",
-            "name": "Ocalona z cmentarza",
-            "npc_class": "story_human",
-            "route_after_talk": true,
-            "talk_animation": "idle",
-            "type": "npc",
-            "use_indexed_animation_aliases": true,
-            "walk_animation": "walk",
-            "walk_animation_index": 16,
-            "walk_back_animation_index": 17,
-            "x": 126.47895050048828,
-            "y": -71.78366088867188
-        },
-        {
-            "animation_bundle": "assets/models/actors/herbalist/herbalist.glb",
-            "can_talk": true,
-            "category": "npcs",
+            "complete_quest": "resolve_witch_truth",
             "disable_interaction_after_talk": false,
             "idle_animation": "Idle",
             "location": "Dolina Nedzy",
-            "model": "assets/models/actors/herbalist/herbalist.glb",
+            "model": "assets/models/actors/village_head/village_head.glb",
             "name": "Zielarz",
             "npc_class": "herbalist",
             "route_after_talk": false,
@@ -330,16 +286,94 @@
             "y": 46.54045486450195
         },
         {
+            "actions": [
+                {
+                    "name": "herbalist_final_report",
+                    "type": "notify_checkpoint"
+                }
+            ],
             "category": "story_triggers",
+            "conditions": {
+                "required_quest_completed": "rescue_forest_survivors"
+            },
+            "dialogue_key": "herbalist_final_success",
+            "height": 5.0,
+            "location": "Dolina Nedzy",
+            "name": "Final u zielarza - siostra Mileny zyje",
+            "type": "story_trigger",
+            "width": 5.0,
+            "x": 2.7108497619628906,
+            "y": 46.54045486450195
+        },
+        {
+            "actions": [
+                {
+                    "quest_id": "rescue_forest_survivors",
+                    "type": "fail_quest"
+                },
+                {
+                    "name": "Forest Lost NPC",
+                    "type": "hide_entity"
+                },
+                {
+                    "name": "herbalist_final_report",
+                    "type": "notify_checkpoint"
+                }
+            ],
+            "category": "story_triggers",
+            "dialogue_key": "herbalist_final_fail",
+            "height": 5.0,
+            "location": "Dolina Nedzy",
+            "name": "Final u zielarza - siostra Mileny martwa",
+            "type": "story_trigger",
+            "width": 5.0,
+            "x": 2.7108497619628906,
+            "y": 46.54045486450195
+        },
+        {
+            "animation_bundle": "assets/models/actors/witch/witch.glb",
+            "can_talk": false,
+            "category": "npcs",
+            "cast_animation_index": 7,
+            "death_animation_index": 0,
+            "disable_interaction_after_talk": false,
+            "idle_animation": "idle",
+            "idle_animation_index": 5,
+            "location": "Dolina Nedzy",
+            "model": "assets/models/actors/witch/witch.glb",
+            "name": "Wiedzma",
+            "npc_class": "story_human",
+            "route_after_talk": false,
+            "talk_animation": "idle",
+            "type": "npc",
+            "use_indexed_animation_aliases": true,
+            "walk_animation": "walk",
+            "walk_animation_index": 16,
+            "walk_back_animation_index": 17,
+            "x": 121.60905456542969,
+            "y": -124.7596664428711
+        },
+        {
+            "category": "story_triggers",
+            "checkpoint_on_complete": "witch_to_nawia",
             "dialogue_key": "witch_to_nawia",
-            "height": 4.0,
+            "height": 10.0,
             "location": "Dolina Nedzy",
             "name": "Story Trigger",
+            "on_enter": [
+                {
+                    "animation": "cast",
+                    "face_player": true,
+                    "freeze_last_frame": true,
+                    "name": "Wiedzma",
+                    "type": "play_entity_animation"
+                }
+            ],
             "target_location": "Przedsionek Nawii",
             "type": "story_trigger",
-            "width": 4.0,
-            "x": 109.01910400390625,
-            "y": -116.34317016601563
+            "width": 10.0,
+            "x": 116.0654296875,
+            "y": -122.52344512939453
         },
         {
             "category": "story_triggers",
@@ -348,13 +382,57 @@
                 "required_boss_defeated": "bies"
             },
             "dialogue_key": "witch_after_bies_placeholder",
-            "height": 4.0,
+            "height": 10.0,
             "location": "Dolina Nedzy",
             "name": "Story Trigger",
             "type": "story_trigger",
-            "width": 4.0,
-            "x": 110.96896362304688,
-            "y": -118.35813903808594
+            "width": 10.0,
+            "x": 116.0654296875,
+            "y": -122.52344512939453
+        },
+        {
+            "category": "chests",
+            "items": [
+                18
+            ],
+            "location": "Dolina Nedzy",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 131.97689819335938,
+            "y": -128.0570831298828
+        },
+        {
+            "category": "npcs",
+            "location": "Dolina Nedzy",
+            "name": "Kot",
+            "npc_class": "cat",
+            "type": "npc",
+            "x": 153.4325714111328,
+            "y": -79.18836212158203
+        },
+        {
+            "category": "chests",
+            "items": [
+                6
+            ],
+            "key_id": 5,
+            "location": "Dolina Nedzy",
+            "locked": true,
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 157.10801696777344,
+            "y": -111.115234375
+        },
+        {
+            "category": "spawners",
+            "count": 2,
+            "location": "Dolina Nedzy",
+            "name": "Bandit",
+            "spawn_radius": 3.0,
+            "trigger_radius": 15.0,
+            "type": "bandit",
+            "x": 155.17263793945313,
+            "y": -108.75289916992188
         }
     ],
     "location": "Dolina Nedzy",

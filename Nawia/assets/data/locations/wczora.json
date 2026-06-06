@@ -1,6 +1,6 @@
 {
     "camera": {
-        "zoom": 0.5
+        "zoom": 0.6000000238418579
     },
     "map": {
         "model": "wczora_las.glb",
@@ -20,7 +20,7 @@
     "navmesh": {
         "min_walkable_height": -15.0
     },
-    "objects_file": "objects_wczora_new_new.json",
+    "objects_file": "objects_wczora.json",
     "player_spawn": {
         "x": -6.913476467132568,
         "y": 0.19284676015377045

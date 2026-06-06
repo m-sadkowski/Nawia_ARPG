@@ -92,7 +92,41 @@
                     "damage_multiplier": 1.25,
                     "notification": "Bies wpada w szal!",
                     "screen_flash": true,
-                    "flash_color": [80, 30, 120, 200]
+                    "flash_color": [80, 30, 120, 200],
+                    "minions": [
+                        {
+                            "enemy_type": "WalkingDead",
+                            "count": 3,
+                            "hp": 50,
+                            "offset_x": 5.0,
+                            "offset_y": 5.0
+                        },
+                        {
+                            "enemy_type": "Bandit",
+                            "count": 1,
+                            "hp": 80,
+                            "offset_x": 3.0,
+                            "offset_y": 3.0
+                        }
+                    ]
+                },
+                {
+                    "hp_threshold": 0.2,
+                    "name": "Ostatni szept Nawii",
+                    "speed_multiplier": 1.65,
+                    "damage_multiplier": 1.45,
+                    "notification": "Bies wzywa ostatnia fale!",
+                    "screen_flash": true,
+                    "flash_color": [120, 20, 160, 220],
+                    "minions": [
+                        {
+                            "enemy_type": "WalkingDead",
+                            "count": 2,
+                            "hp": 40,
+                            "offset_x": 4.0,
+                            "offset_y": 4.0
+                        }
+                    ]
                 }
             ],
             "rewards": {
@@ -110,6 +144,8 @@
             "scale": 1.55,
             "music_path": "assets/audio/music/soundsbyamelia-baba-yaga-ritual-slavic-horror-with-hurdy-gurdy-amp-choir-422979.mp3",
             "music_volume": 0.8,
+            "victory_dialogue_key": "witch_death",
+            "checkpoint_on_victory": "witch_truth_resolved",
             "phases": [
                 {
                     "hp_threshold": 1.0,

@@ -169,6 +169,27 @@
         "texture": "assets/textures/icons/food_icon.png",
         "model_path": "",
         "food_value": 1
+    },
+    {
+        "id": 18,
+        "name": "Ksiega Baby Jagi",
+        "description": "Stara ksiega pachnaca dymem, zywica i spalonymi wlosami. Po przeczytaniu uczy zaklecia Fireball.",
+        "slot": "None",
+        "texture": "assets/textures/icons/fireball_icon.png",
+        "model_path": "",
+        "unlock_ability": "Fireball"
+    },
+    {
+        "id": 19,
+        "name": "Cichobiegi",
+        "description": "Prezentacyjne buty do przemieszczania sie z absurdalna predkoscia.",
+        "slot": "Feet",
+        "texture": "assets/textures/items/leather_boots_2.png",
+        "model_path": "assets/models/items/leather_boots_2.glb",
+        "stats": {
+            "defense": 1,
+            "movement_speed": 14.0
+        }
     }
 ]
 

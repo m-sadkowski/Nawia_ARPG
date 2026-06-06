@@ -131,13 +131,12 @@ namespace Nawia::Entity {
             size_t next_line = i + 1;
             if (next_line < intro.lines.size() && isPlayerDialogueSpeaker(intro.lines[next_line].speaker)) {
                 option.text = intro.lines[next_line].text;
-                next_line++;
             } else {
                 const bool is_final_node = next_line >= intro.lines.size();
                 if (is_final_node)
                     option.text = resolveFinalOption(intro.final_option, node.speaker_name, node.text);
                 else
-                    option.text = isPlayerDialogueSpeaker(node.speaker_name) ? node.text : "Rozumiem.";
+                    option.text = "Dalej";
             }
             option.next_node_id = (next_line < intro.lines.size()) ? static_cast<int>(next_line) : -1;
             node.options.push_back(option);

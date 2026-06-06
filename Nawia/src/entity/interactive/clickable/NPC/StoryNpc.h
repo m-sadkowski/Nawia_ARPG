@@ -62,6 +62,8 @@ namespace Nawia::Entity {
 			const std::string& final_option_text) const;
 		/** @brief Wczytuje etap dialogu NPC ze wspolnej konfiguracji dialogow. */
 		[[nodiscard]] Game::DialogueTree buildDialogueFromConfig(const std::string& key) const;
+		void rotateToNearbyPlayer(float delta_time);
+		[[nodiscard]] virtual bool shouldLookAtPlayerWhenNearby() const { return true; }
 
 		Core::Engine* _engine = nullptr; ///< Nieposiadany dostep do systemow gry.
 		bool _playing_talk = false;      ///< Prawda, gdy TALK ma nadpisac idle/walk.
@@ -71,6 +73,7 @@ namespace Nawia::Entity {
 		int _dialogue_resume_node = 0;     ///< Wezel ponownego otwarcia po zmianie etapu.
 		std::string _dialogue_stage_key;   ///< Klucz konfiguracji aktywnego etapu fabuly.
 		std::string _last_completed_dialogue_stage;
+		float _look_at_player_timer = 0.0f;
 	};
 
 } // namespace Nawia::Entity

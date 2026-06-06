@@ -157,6 +157,10 @@ void MyEnemy::takeDamage(const int damage)
 
 Najpierw zawsze wywolaj bazowe obrazenia, potem specjalna reakcje.
 
+`Witch` jest wyjatkiem w sekwencji smierci: po animacji `death` zostaje
+zamrozona na ostatniej klatce, zeby dialog po zwyciestwie pokazywal lezace
+cialo. BossManager ukrywa encje dopiero po zamknieciu dialogu zwyciestwa.
+
 ## Ruch i mapy
 
 `ActorInterface` daje dostep do `Map`, czyli mozna sprawdzac walkability i uzywac pathfindingu.

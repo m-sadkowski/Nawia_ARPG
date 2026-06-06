@@ -48,6 +48,8 @@ namespace Nawia::UI
 
     namespace
     {
+        constexpr int BABA_YAGA_BOOK_ITEM_ID = 18;
+
         /**
          * @brief Oblicza prostokaty pionowego stosu przyciskow menu.
          */
@@ -844,6 +846,23 @@ namespace Nawia::UI
                 if (container_slot != -1)
                 {
                     const auto item = container_inventory->getItem(container_slot);
+                    if (item && item->getId() == BABA_YAGA_BOOK_ITEM_ID)
+                    {
+                        if (_player->unlockFireballAbility())
+                            showNotification("Ksiega Baby Jagi rozsypala sie w popiol.", 3.0f);
+                        else
+                            showNotification("Znasz juz sekret tej ksiegi.", 2.5f);
+
+                        container_inventory->removeItem(container_slot);
+                        if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
+                        if (container_inventory->getRemainingCapacity() == container_inventory->getCapacity())
+                        {
+                            showNotification("Ta skrzynia jest pusta", 3.0f);
+                            closeContainer();
+                        }
+                        return;
+                    }
+
                     if (item && item->isFood())
                     {
                         _player->addFood(1);

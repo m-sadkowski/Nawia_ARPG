@@ -58,6 +58,8 @@ namespace Nawia::World {
 		};
 
 		void startIntroSequence(Core::Engine* engine);
+		void skipIntroSlides(Core::Engine* engine);
+		void equipPresentationBoots(Core::Engine* engine) const;
 		void spawnIntroCorpse(Core::Engine* engine);
 		void queueCorpseInspected(const Vector2& corpse_position);
 		void queueSzeptuchaEncounter(const Vector2& corpse_position);

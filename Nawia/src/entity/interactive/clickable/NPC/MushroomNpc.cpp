@@ -20,7 +20,7 @@ namespace Nawia::Entity {
 		constexpr float FOLLOW_STOP_DISTANCE = 0.45f;
 		constexpr float MUSHROOM_TARGET_HEIGHT = 3.6f;
 		constexpr float IDLE_LOOK_AT_PLAYER_INTERVAL = 0.25f;
-		constexpr float IDLE_LOOK_AT_PLAYER_RANGE = 5.0f;
+		constexpr float IDLE_LOOK_AT_PLAYER_RANGE = 10.0f;
 		constexpr int MUSHROOM_IDLE_ANIMATION_INDEX = 0;
 		constexpr int MUSHROOM_WALK_ANIMATION_INDEX = 11;
 		constexpr int MUSHROOM_TALK_ANIMATION_INDEX = 15;

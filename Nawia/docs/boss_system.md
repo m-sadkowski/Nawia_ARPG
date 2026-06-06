@@ -37,8 +37,9 @@ tej samej klasy przeciwnika i animacji.
 
 Boss `czarownica` uzywa `enemy_type: "Witch"`. To dystansowy boss placeholder:
 strzela malymi fireballami jako piorunami, po trafieniu powala gracza i
-przywoluje `WalkingDead`. Finałowy dialog po jej smierci jest osobna paczka
-fabularna.
+przywoluje `WalkingDead`. Definicja moze miec `victory_dialogue_key` oraz
+`checkpoint_on_victory`; Czarownica uzywa tego do dialogu po smierci i
+checkpointa `witch_truth_resolved`.
 
 ### Blokowanie teleportow
 

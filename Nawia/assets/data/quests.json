@@ -248,15 +248,9 @@
       "objectives": [
         {
           "type": "reach_checkpoint",
-          "target_name": "cemetery_female_arrived",
+          "target_name": "cemetery_survivors_arrived",
           "count": 1,
-          "description": "Odeslij ocalona z cmentarza do chaty zielarza"
-        },
-        {
-          "type": "reach_checkpoint",
-          "target_name": "cemetery_male_arrived",
-          "count": 1,
-          "description": "Odeslij ocalonego z cmentarza do chaty zielarza"
+          "description": "Odeslij ocalonych z cmentarza do chaty zielarza"
         }
       ],
       "rewards": {
@@ -291,7 +285,7 @@
       "name": "Przedsionek Nawii",
       "description": "Porozmawiaj z Czarownica i przejdz przez mgle do Przedsionka Nawii.",
       "level_name": "Wczora",
-      "prerequisites": ["rescue_cemetery_survivors", "rescue_forest_survivors"],
+      "prerequisites": ["recover_scarf"],
       "auto_start": true,
       "objectives": [
         {
@@ -347,6 +341,48 @@
         "items": [],
         "gold": 0,
         "exp": 100
+      }
+    },
+    {
+      "id": "resolve_witch_truth",
+      "name": "Prawda Wiedzmy",
+      "description": "Rozpraw sie z Wiedzma albo wydobadz od niej prawde o gniewie bogow.",
+      "level_name": "Wczora",
+      "prerequisites": ["return_to_witch_after_bies"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "witch_truth_resolved",
+          "count": 1,
+          "description": "Poznaj zrodlo gniewu bogow"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
+    },
+    {
+      "id": "return_to_herbalist_final",
+      "name": "Wiesci dla ocalonych",
+      "description": "Wroc do chaty zielarza i powiedz ludziom, czego dowiedziales sie od Wiedzmy.",
+      "level_name": "Wczora",
+      "prerequisites": ["resolve_witch_truth"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "herbalist_final_report",
+          "count": 1,
+          "description": "Porozmawiaj z medrcem przy chacie zielarza"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 300
       }
     }
   ]

@@ -19,6 +19,7 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool canInteract() const override;
 		float getInteractionRange() override;
 		void handleQuestTalkCompleted(Core::Engine& engine) override;
+		[[nodiscard]] bool shouldLookAtPlayerWhenNearby() const override { return false; }
 
 	private:
 		bool _inspected = false; ///< Chroni przed ponownym odpaleniem inspekcji zwlok.

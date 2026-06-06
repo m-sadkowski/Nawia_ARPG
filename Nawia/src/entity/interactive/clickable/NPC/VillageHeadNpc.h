@@ -7,7 +7,7 @@
 namespace Nawia::Entity {
 
 	/**
-	 * @brief Fabularny NPC, ktory moze opuscic wies i dojsc do respawnu gracza.
+	 * @brief Fabularny NPC, ktory moze opuscic wies i dojsc do huba zielarza.
 	 *
 	 * W odroznieniu od pasywnego StoryNpc soltys posiada krotka oskryptowana
 	 * trase po starcie questa z ocalałymi.
@@ -23,7 +23,7 @@ namespace Nawia::Entity {
 		void handleQuestTalkCompleted(Core::Engine& engine) override;
 
 	private:
-		void startRouteToPlayerRespawn();
+		void startRouteToHerbalistHub();
 		void updateRouteToDestination(float delta_time);
 		void buildPathToPoint(Vector2 target);
 		void trimCurrentPathStart();

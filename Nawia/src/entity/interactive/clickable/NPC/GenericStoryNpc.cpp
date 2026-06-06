@@ -71,6 +71,8 @@ namespace Nawia::Entity {
 		}
 
 		loadModel(_model_path, data.value("rotate_model", false));
+		if (_model_path.find("female_warrior") != std::string::npos)
+			hideMeshIndex(1); // Mesh 1 to miecz w female_warrior.glb.
 		if (!_animation_bundle_path.empty())
 			loadAnimationBundle(_animation_bundle_path);
 
@@ -79,6 +81,8 @@ namespace Nawia::Entity {
 			addAnimation("idle", _model_path, data.value("idle_animation_index", 4));
 			addAnimation("walk", _model_path, data.value("walk_animation_index", 22));
 			addAnimation("walk_back", _model_path, data.value("walk_back_animation_index", 17));
+			if (data.contains("cast_animation_index") || _model_path.find("witch") != std::string::npos)
+				addAnimation("cast", _model_path, data.value("cast_animation_index", 7));
 		}
 
 		const float target_height = data.value("target_height", 0.0f);
@@ -160,6 +164,8 @@ namespace Nawia::Entity {
 
 		if (!_complete_quest_id.empty())
 			engine.getQuestManager().completeQuest(_complete_quest_id, &engine);
+		if (!_complete_quest_id.empty())
+			engine.getQuestManager().update(&engine);
 
 		if (!_fail_quest_id.empty())
 			engine.getQuestManager().failQuest(_fail_quest_id, &engine);

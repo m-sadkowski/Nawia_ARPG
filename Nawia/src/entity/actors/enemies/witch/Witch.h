@@ -25,7 +25,8 @@ namespace Nawia::Entity {
 			Repositioning,
 			CastingBolt,
 			GettingHit,
-			Retaliating
+			Retaliating,
+			Summoning
 		};
 
 		void configureModel();
@@ -34,14 +35,17 @@ namespace Nawia::Entity {
 		void handleCastingBoltState(float dt);
 		void handleGettingHitState(float dt);
 		void handleRetaliatingState(float dt);
+		void handleSummoningState(float dt);
 		void startBoltCast();
 		void fireBolt();
 		void startRetaliation();
+		void startImmediateSummonRetaliation();
 		void applyRetaliation();
 		void summonHelper();
 		void moveAwayFromTarget(float dt);
 		void chaseToCastRange(float dt);
 		void stopMoving();
+		void updateDeathFreeze(float dt);
 		void playIdle();
 		void playRun();
 		void onDeathStarted() override;

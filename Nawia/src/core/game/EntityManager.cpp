@@ -164,10 +164,15 @@ namespace Nawia::Core {
             if (const auto ability_effect = dynamic_cast<Entity::AbilityEffect*>(entity.get()))
                 is_expired_spell = ability_effect->isExpired();
 
-            if (entity->isDead() || is_expired_spell) {
-                if (entity->isDead() && entity->getType() == Entity::EntityType::Enemy) {
-                    if (_engine) {
-                        _engine->getQuestManager().notifyKill(entity->getName());
+			if (entity->isDead() || is_expired_spell) {
+				if (entity->isDead() && entity->shouldPersistAfterDeath()) {
+					++it;
+					continue;
+				}
+
+				if (entity->isDead() && entity->getType() == Entity::EntityType::Enemy) {
+					if (_engine) {
+						_engine->getQuestManager().notifyKill(entity->getName());
                     }
                 }
                 

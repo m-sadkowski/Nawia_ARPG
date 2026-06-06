@@ -3,7 +3,9 @@
 #include <LocationDefinition.h>
 #include <SpawnManager.h>
 
+#include <map>
 #include <memory>
+#include <optional>
 #include <raylib.h>
 #include <string>
 #include <vector>
@@ -196,6 +198,8 @@ namespace Nawia::World {
         size_t _current_location_index = 0;
         SpawnManager _spawn_manager;
 		std::vector<LocationDefinition> _location_definitions;
+		std::map<std::string, Vector2> _location_return_positions;
+		std::optional<Vector2> _pending_player_position_override;
 		bool _uses_location_files = false;
     };
 

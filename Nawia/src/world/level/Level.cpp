@@ -165,7 +165,27 @@ namespace Nawia::World {
 
 		Vector2 active_player_pos = {0.0f, 0.0f};
 		bool has_active_player_pos = false;
-		if (move_player_to_spawn && location.has_player_spawn) {
+		if (move_player_to_spawn && _pending_player_position_override) {
+			if (auto player = engine->getPlayer()) {
+				Vector3 return_position = {
+					_pending_player_position_override->x,
+					player->getAltitude(),
+					_pending_player_position_override->y
+				};
+				if (_map->getNavMesh().isReady())
+					return_position = _map->getNavMesh().getClosestWalkablePosition({return_position.x, 0.0f, return_position.z});
+
+				const Vector2 return_2d = {return_position.x, return_position.z};
+				player->setX(return_2d.x);
+				player->setY(return_2d.y);
+				player->setAltitude(return_position.y);
+				player->setRespawnPoint(return_2d);
+				player->stop();
+				active_player_pos = return_2d;
+				has_active_player_pos = true;
+			}
+			_pending_player_position_override.reset();
+		} else if (move_player_to_spawn && location.has_player_spawn) {
 			if (auto player = engine->getPlayer()) {
 				Vector3 spawn_position = {location.player_spawn.x, player->getAltitude(), location.player_spawn.y};
 				if (_map->getNavMesh().isReady())
@@ -237,6 +257,12 @@ namespace Nawia::World {
 
 	void Level::changeLocation(Core::Engine* engine, const std::string& location_name) {
 		if (_uses_location_files) {
+			const std::string previous_location = getCurrentLocationName();
+			if (engine) {
+				if (const auto player = engine->getPlayer())
+					_location_return_positions[previous_location] = {player->getX(), player->getY()};
+			}
+
 			const auto location_it = std::ranges::find_if(_location_definitions, [&](const LocationDefinition& location) {
 				return location.name == location_name;
 			});
@@ -247,6 +273,10 @@ namespace Nawia::World {
 			}
 
 			_current_location_index = static_cast<size_t>(std::distance(_location_definitions.begin(), location_it));
+			if (const auto return_it = _location_return_positions.find(location_name); return_it != _location_return_positions.end()) {
+				_pending_player_position_override = return_it->second;
+				_location_return_positions.erase(return_it);
+			}
 			Core::Logger::debugLog("Level: Zmiana lokacji na " + location_name);
 			loadLocationDefinition(engine, _current_location_index, true, false);
 			return;

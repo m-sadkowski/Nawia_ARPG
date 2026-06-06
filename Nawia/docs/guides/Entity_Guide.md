@@ -140,13 +140,32 @@ addPendingSpawn(effect);
 Fabularne NPC dziedzicza zwykle po `StoryNpc`.
 
 - `GenericStoryNpc` obsluguje pojedynczych ludzi i zielarza konfigurowanych z JSON-a przez `model`, `animation_bundle`, nazwy animacji, `dialogue_key` oraz opcjonalna trase po dialogu.
+- `CemeterySurvivorGroupNpc` jest zlozona encja dla dwojga ocalonych z cmentarza. Encja glowna to `female_warrior`, a dodatkowy wizual to `male_npc_1`; jeden dialog wysyla oboje do huba zielarza i dopiero dotarcie grupy zalicza checkpoint.
 - `ForestLostGroupNpc` jest zlozona encja dla grupy z lasu. Encja glowna to `female_npc_2`, a dodatkowe wizuale to `male_npc_2` i `milena_sister`.
+
+`StoryNpc` obraca sie w strone pobliskiego gracza, jezeli w danej chwili
+`canInteract()` zwraca true i NPC nie idzie. Dzieki temu zachowanie dotyczy nie
+tylko Mushrooma, ale tez ludzi fabularnych i grup NPC. Wyjatkiem sa obiekty,
+ktore nadpisza `shouldLookAtPlayerWhenNearby()`, np. `WandaCorpseNpc`.
+
+`CemeterySurvivorGroupNpc` uzywa tych samych indeksow animacji co pozostali
+tymczasowi NPC: `9` dla idle i `16` dla chodu. Po dotarciu do `Herbalist Hub`
+ocaleni wybieraja losowe punkty w promieniu huba i dochodza tam ruchem.
 
 `ForestLostGroupNpc` ma kilka etapow: oczekiwanie na rozmowe, niesienie siostry
 Mileny do `Herbalist Hub`, opuszczenie jej na ziemie, wstawanie z animacji
 `Death` od konca i rozejscie sie calej trojki do losowych punktow w hubie.
 Parametry niesienia trzymane sa w `CarryTuning`, a indeksy animacji w
 `AnimationIndices`, zeby strojenie JSON-em nie rozlewalo sie po logice stanu.
+
+`Entity::loadModel` uzupelnia brakujace bufory animacji dla skinned modeli,
+ktore maja dodatkowe nieskinned meshe, np. miecz w `female_warrior.glb`.
+Bez tego jeden akcesoryjny mesh potrafil blokowac `UpdateModelAnimation` dla
+calej postaci i zostawial ja w T-pose.
+
+`female_warrior.glb` ma osobny mesh `1` dla miecza. Encje fabularne uzywajace
+tego modelu wywoluja `hideMeshIndex(1)`, zeby ocalona z cmentarza nie nosila
+broni.
 
 ## Dobre praktyki
 

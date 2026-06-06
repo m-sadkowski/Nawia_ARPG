@@ -92,6 +92,7 @@ namespace Nawia::Entity {
 		playIdle(*this);
 
 		initializeMembers();
+		snapGroupToNavmesh();
 
 		setDialogueStageKey(_dialogue_key);
 		if (!_dialogue_key.empty())
@@ -138,6 +139,17 @@ namespace Nawia::Entity {
 		// Siostra zaczyna jako bezwladne cialo niesione przez dwoje NPC.
 		freezeSisterOnDeathFrame();
 
+		snapMembersToFormation(_last_travel_direction);
+	}
+
+	void ForestLostGroupNpc::snapGroupToNavmesh() {
+		if (!_engine || !_engine->getCurrentMap() || !_engine->getCurrentMap()->getNavMesh().isReady())
+			return;
+
+		const Vector3 snapped = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(getWorldPos3D());
+		setX(snapped.x);
+		setY(snapped.z);
+		setAltitude(snapped.y);
 		snapMembersToFormation(_last_travel_direction);
 	}
 

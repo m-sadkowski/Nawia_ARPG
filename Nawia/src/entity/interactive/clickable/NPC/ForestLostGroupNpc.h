@@ -65,6 +65,7 @@ namespace Nawia::Entity {
 
 		void configureFromJson(const nlohmann::json& data);
 		void initializeMembers();
+		void snapGroupToNavmesh();
 		void loadGroupModelAndAnimations(Entity& entity, const std::string& model_path) const;
 		void freezeSisterOnDeathFrame();
 		void playIdle(Entity& entity) const;

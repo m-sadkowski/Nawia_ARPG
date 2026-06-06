@@ -11,6 +11,7 @@
 
 #include <raymath.h>
 
+#include <algorithm>
 #include <cmath>
 
 namespace Nawia::Entity {
@@ -30,7 +31,7 @@ namespace Nawia::Entity {
 			stats.damage = 18;
 			stats.duration = 2.0f;
 			stats.projectile_speed = 10.0f;
-			stats.hitbox_radius = 0.45f;
+			stats.hitbox_radius = 1.0f;
 			return stats;
 		}
 	}
@@ -38,6 +39,7 @@ namespace Nawia::Entity {
 	Witch::Witch() {
 		configureModel();
 		setFaction(Faction::Enemy);
+		setPersistAfterDeath(true);
 		setMovementSpeed(MOVE_SPEED);
 	}
 
@@ -46,6 +48,7 @@ namespace Nawia::Entity {
 	{
 		configureModel();
 		setFaction(Faction::Enemy);
+		setPersistAfterDeath(true);
 		setMovementSpeed(MOVE_SPEED);
 		setCollider(std::make_unique<RectangleCollider>(this, 1.0f, 1.25f, 0.0f, 0.0f));
 	}
@@ -69,6 +72,11 @@ namespace Nawia::Entity {
 		if (isDying())
 			return;
 
+		if (GetRandomValue(0, 99) < 50) {
+			startImmediateSummonRetaliation();
+			return;
+		}
+
 		_state = State::GettingHit;
 		_cast_projectile_spawned = false;
 		_retaliation_applied = false;
@@ -79,7 +87,7 @@ namespace Nawia::Entity {
 
 	void Witch::update(const float dt) {
 		if (isDying()) {
-			Entity::update(dt);
+			updateDeathFreeze(dt);
 			return;
 		}
 
@@ -104,6 +112,9 @@ namespace Nawia::Entity {
 				break;
 			case State::Retaliating:
 				handleRetaliatingState(dt);
+				break;
+			case State::Summoning:
+				handleSummoningState(dt);
 				break;
 		}
 	}
@@ -202,6 +213,26 @@ namespace Nawia::Entity {
 		}
 	}
 
+	void Witch::handleSummoningState(const float dt) {
+		Entity::update(dt);
+
+		if (const auto target = _target.lock())
+			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+
+		const int frame_count = getAnimationFrameCount("summon");
+		const float effect_frame = static_cast<float>(frame_count) * CAST_FRAME_RATIO;
+		if (!_retaliation_applied && frame_count > 0 && _anim_frame_counter >= effect_frame) {
+			summonHelper();
+			_retaliation_applied = true;
+		}
+
+		if (!isAnimationLocked()) {
+			_cast_cooldown_timer = CAST_COOLDOWN * 0.75f;
+			_state = State::Idle;
+			playIdle();
+		}
+	}
+
 	void Witch::startBoltCast() {
 		_state = State::CastingBolt;
 		_cast_projectile_spawned = false;
@@ -229,7 +260,7 @@ namespace Nawia::Entity {
 			target_pos.x,
 			target_pos.y,
 			FIREBALL_MODEL,
-			0.15f,
+			0.45f,
 			makeWitchBoltStats(),
 			this,
 			target_height,
@@ -246,6 +277,19 @@ namespace Nawia::Entity {
 		stopMoving();
 		setAnimationSpeed(1.0f);
 		playAnimation("bolt", false, true, 0, true);
+	}
+
+	void Witch::startImmediateSummonRetaliation() {
+		_state = State::Summoning;
+		_retaliation_applied = false;
+		_cast_projectile_spawned = false;
+		stopMoving();
+
+		if (const auto target = std::dynamic_pointer_cast<Player>(_target.lock()))
+			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * _damage_multiplier));
+
+		setAnimationSpeed(1.0f);
+		playAnimation("summon", false, true, 0, true);
 	}
 
 	void Witch::applyRetaliation() {
@@ -325,6 +369,24 @@ namespace Nawia::Entity {
 	void Witch::stopMoving() {
 		setVelocity(0.0f, 0.0f);
 		_is_moving = false;
+	}
+
+	void Witch::updateDeathFreeze(const float dt) {
+		const int frame_count = getAnimationFrameCount("death");
+		if (frame_count <= 0) {
+			die();
+			return;
+		}
+
+		const float final_frame = static_cast<float>(std::max(0, frame_count - 1));
+		_anim_frame_counter += dt * _anim_fps * _anim_speed_multiplier / ANIMATION_DURATION_SCALE;
+		if (_anim_frame_counter >= final_frame) {
+			_anim_frame_counter = final_frame;
+			_anim_locked = true;
+			_hp = 0;
+		}
+
+		applyCurrentAnimationFrame();
 	}
 
 	void Witch::playIdle() {

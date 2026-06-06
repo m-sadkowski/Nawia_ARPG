@@ -12,7 +12,6 @@ namespace Nawia::Entity {
 
     namespace {
         constexpr const char* TELEPORT_MODEL = "assets/models/teleport.glb";
-        constexpr const char* TELEPORT_IDLE_ANIMATION = "idle";
     }
 
     Teleport::Teleport(const std::string& name, float x, float y, Core::Engine* engine, const std::string& target_location)
@@ -21,10 +20,6 @@ namespace Nawia::Entity {
         _type = EntityType::Trigger;
         setFaction(Faction::None);
         loadModel(TELEPORT_MODEL);
-        loadAnimationBundle(TELEPORT_MODEL);
-        addAnimation(TELEPORT_IDLE_ANIMATION, TELEPORT_MODEL, 0);
-        if (getAnimationFrameCount(TELEPORT_IDLE_ANIMATION) > 0)
-            playAnimation(TELEPORT_IDLE_ANIMATION, true, false, 0, true);
         setScale(1.0f);
         setModelFacingOffset(0.0f);
 
@@ -51,7 +46,7 @@ namespace Nawia::Entity {
     }
 
     void Teleport::update(float delta_time) {
-        Entity::update(delta_time);
+        (void)delta_time;
     }
 
     void Teleport::render(const Camera3D& camera) {

@@ -48,6 +48,8 @@ namespace Nawia::World {
 		constexpr float NAV_BLOCKER_HEIGHT_MAX = 12.0f;
 		constexpr float WATER_PLANE_HALF_SIZE = 90.0f;
 		constexpr int MAX_VISIBLE_ITEMS = 11;
+		constexpr int BABA_YAGA_BOOK_ITEM_ID = 18;
+		constexpr const char* WITCH_STORY_MODEL = "assets/models/actors/witch/witch.glb";
 
 		constexpr Rectangle LEFT_PANEL = {20.0f, 20.0f, 330.0f, 430.0f};
 		constexpr Rectangle CENTER_PANEL = {0.0f, 20.0f, 360.0f, 310.0f};
@@ -2272,7 +2274,14 @@ namespace Nawia::World {
 			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::ItemSelection;
 		}
-		if (drawButton(font, "ZAPISZ SKRZYNIE", start_x, start_y + 298, 400, 50, GREEN)) {
+		if (drawButton(font, "+ KSIEGA BABY JAGI / FIREBALL", start_x, start_y + 286, 400, 38, PURPLE)) {
+			if (engine->getItemDatabase().getItemTemplate(BABA_YAGA_BOOK_ITEM_ID))
+				_temp_loot_ids.push_back(BABA_YAGA_BOOK_ITEM_ID);
+			else
+				_status_message = "Brak itemu 18: Ksiega Baby Jagi w bazie itemow.";
+			_active_text_field = EditorTextField::None;
+		}
+		if (drawButton(font, "ZAPISZ SKRZYNIE", start_x, start_y + 346, 400, 50, GREEN)) {
 			if (_temp_chest_locked) {
 				int key_id = -1;
 				if (!tryParseInt(_key_id_buffer, key_id) || !engine->getItemDatabase().getItemTemplate(key_id)) {
@@ -2289,7 +2298,7 @@ namespace Nawia::World {
 			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 358, 400, 40, GRAY)) {
+		if (drawButton(font, "WSTECZ", start_x, start_y + 406, 400, 40, GRAY)) {
 			_active_text_field = EditorTextField::None;
 			_current_mode = EditorMode::None;
 		}
@@ -2351,52 +2360,44 @@ namespace Nawia::World {
 			_temp_entity_type = "npc";
 			_temp_name = "Zielarz";
 			_temp_extra_value = "herbalist";
-			_prop_model_path_buffer = "assets/models/actors/herbalist/herbalist.glb";
-			_npc_animation_bundle_buffer = "assets/models/actors/herbalist/herbalist.glb";
+			_prop_model_path_buffer = "assets/models/actors/village_head/village_head.glb";
+			_npc_animation_bundle_buffer = "assets/models/actors/village_head/village_head.glb";
 			_npc_idle_animation_buffer = "Idle";
 			_npc_walk_animation_buffer = "Walk";
 			_npc_talk_animation_buffer = "Idle";
 			_story_dialogue_key_buffer = "herbalist_placeholder";
 			_current_mode = EditorMode::NPCStoryDetails;
 		}
-		if (drawButton(font, "Cmentarz: female_warrior", start_x, start_y + 420, 300, 50, BLUE)) {
+		if (drawButton(font, "Cmentarz: Ocaleni", start_x, start_y + 420, 300, 50, BLUE)) {
 			_temp_entity_type = "npc";
-			_temp_name = "Ocalona z cmentarza";
-			_temp_extra_value = "story_human";
-			_prop_model_path_buffer = "assets/models/actors/friends/female_warrior/female_warrior.glb";
-			_npc_animation_bundle_buffer = "assets/models/actors/friends/female_warrior/female_warrior.glb";
-			_npc_idle_animation_buffer = "idle";
-			_npc_walk_animation_buffer = "walk";
-			_npc_talk_animation_buffer = "idle";
-			_story_dialogue_key_buffer = "cemetery_female_survivor";
-			_npc_destination_name_buffer = "Herbalist Hub";
-			_temp_npc_route_after_talk = true;
-			_temp_npc_disable_interaction_after_talk = true;
-			_current_mode = EditorMode::NPCStoryDetails;
+			_temp_name = "Ocaleni z cmentarza";
+			_temp_extra_value = "cemetery_survivor_group";
+			saveObject("npcs");
+			_current_mode = EditorMode::None;
 		}
-		if (drawButton(font, "Cmentarz: male_npc_1", start_x, start_y + 480, 300, 50, BLUE)) {
-			_temp_entity_type = "npc";
-			_temp_name = "Ocalony z cmentarza";
-			_temp_extra_value = "story_human";
-			_prop_model_path_buffer = "assets/models/actors/npcs/male_npc_1.glb";
-			_npc_animation_bundle_buffer = "assets/models/actors/npcs/male_npc_1.glb";
-			_npc_idle_animation_buffer = "idle";
-			_npc_walk_animation_buffer = "walk";
-			_npc_talk_animation_buffer = "idle";
-			_story_dialogue_key_buffer = "cemetery_male_survivor";
-			_npc_destination_name_buffer = "Herbalist Hub";
-			_temp_npc_route_after_talk = true;
-			_temp_npc_disable_interaction_after_talk = true;
-			_current_mode = EditorMode::NPCStoryDetails;
-		}
-		if (drawButton(font, "Forest Lost NPC", start_x, start_y + 540, 300, 50, BLUE)) {
+		if (drawButton(font, "Forest Lost NPC", start_x, start_y + 480, 300, 50, BLUE)) {
 			_temp_entity_type = "npc";
 			_temp_name = "Forest Lost NPC";
 			_temp_extra_value = "forest_lost_group";
 			saveObject("npcs");
 			_current_mode = EditorMode::None;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 610, 300, 50, GRAY)) {
+		if (drawButton(font, "Wiedzma", start_x, start_y + 540, 300, 50, BLUE)) {
+			_temp_entity_type = "npc";
+			_temp_name = "Wiedzma";
+			_temp_extra_value = "story_human";
+			_prop_model_path_buffer = WITCH_STORY_MODEL;
+			_npc_animation_bundle_buffer = WITCH_STORY_MODEL;
+			_npc_idle_animation_buffer = "idle";
+			_npc_walk_animation_buffer = "walk";
+			_npc_talk_animation_buffer = "idle";
+			_temp_npc_can_talk = false;
+			_temp_npc_route_after_talk = false;
+			_temp_npc_disable_interaction_after_talk = false;
+			saveObject("npcs");
+			_current_mode = EditorMode::None;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 600, 300, 50, GRAY)) {
 			_current_mode = EditorMode::None;
 		}
 	}
@@ -2897,20 +2898,27 @@ namespace Nawia::World {
 
 		drawDevText(font, "Wybierz przedmiot do dodania:", start_x, start_y - 40, 24, YELLOW);
 
+		if (engine->getItemDatabase().getItemTemplate(BABA_YAGA_BOOK_ITEM_ID) &&
+			drawButton(font, "18: Ksiega Baby Jagi / Fireball", start_x, start_y, 500, 40, PURPLE)) {
+			_temp_loot_ids.push_back(BABA_YAGA_BOOK_ITEM_ID);
+			_current_mode = EditorMode::ChestDetails;
+			return;
+		}
+
 		int row = 0;
 		for (const auto& [item_id, item] : engine->getItemDatabase().getAllTemplates()) {
 			if (row >= MAX_VISIBLE_ITEMS)
 				break;
 
 			const std::string button_text = std::to_string(item_id) + ": " + item->getName();
-			if (drawButton(font, button_text.c_str(), start_x, start_y + row * 45, 500, 40, DARKBLUE)) {
+			if (drawButton(font, button_text.c_str(), start_x, start_y + 50 + row * 45, 500, 40, DARKBLUE)) {
 				_temp_loot_ids.push_back(item_id);
 				_current_mode = EditorMode::ChestDetails;
 			}
 			++row;
 		}
 
-		if (drawButton(font, "WSTECZ", start_x, start_y + 500, 500, 40, GRAY))
+		if (drawButton(font, "WSTECZ", start_x, start_y + 550, 500, 40, GRAY))
 			_current_mode = EditorMode::ChestDetails;
 	}
 
@@ -3044,18 +3052,23 @@ namespace Nawia::World {
 			placed_object.raw_data["walk_animation_index"] = 16;
 			placed_object.raw_data["walk_back_animation_index"] = 17;
 		}
+		if (category == "npcs" && placed_object.extra_value == "cemetery_survivor_group") {
+			placed_object.raw_data["hub_name"] = "Herbalist Hub";
+			placed_object.raw_data["dialogue_key"] = "cemetery_survivors";
+			placed_object.raw_data["checkpoint_on_arrival"] = "cemetery_survivors_arrived";
+			placed_object.raw_data["idle_animation_index"] = 9;
+			placed_object.raw_data["walk_animation_index"] = 16;
+		}
 		if (category == "npcs" && placed_object.extra_value == "story_human" &&
 			placed_object.npc_idle_animation == "idle" && placed_object.npc_walk_animation == "walk") {
 			placed_object.raw_data["use_indexed_animation_aliases"] = true;
 			placed_object.raw_data["death_animation_index"] = 0;
-			placed_object.raw_data["idle_animation_index"] = 9;
+			placed_object.raw_data["idle_animation_index"] =
+				placed_object.npc_model_path.find("witch") != std::string::npos ? 5 : 9;
 			placed_object.raw_data["walk_animation_index"] = 16;
 			placed_object.raw_data["walk_back_animation_index"] = 17;
-
-			if (placed_object.npc_model_path.find("female_warrior") != std::string::npos)
-				placed_object.raw_data["checkpoint_on_arrival"] = "cemetery_female_arrived";
-			else if (placed_object.npc_model_path.find("male_npc_1") != std::string::npos)
-				placed_object.raw_data["checkpoint_on_arrival"] = "cemetery_male_arrived";
+			if (placed_object.npc_model_path.find("witch") != std::string::npos)
+				placed_object.raw_data["cast_animation_index"] = 7;
 		}
 		if (category == "npcs" && placed_object.extra_value == "herbalist") {
 			placed_object.raw_data["target_height"] = 1.7;
