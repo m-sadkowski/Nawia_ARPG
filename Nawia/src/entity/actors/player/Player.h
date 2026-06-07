@@ -39,6 +39,7 @@ namespace Nawia::Entity {
 
 		/** @brief Ustawia cel ruchu gracza. */
 		void moveTo(float x, float y) override;
+		void applyRoot(float duration) override;
 
 		/** @brief Natychmiast zatrzymuje ruch gracza. */
 		void stop();
@@ -97,6 +98,8 @@ namespace Nawia::Entity {
 		void addFood(int amount);
 		[[nodiscard]] bool consumeFood();
 		[[nodiscard]] bool startConsumeFood();
+		[[nodiscard]] bool hasUnlockedFireball() const { return _fireball_unlocked; }
+		bool unlockFireballAbility(bool show_notification = true);
 
 		/** @brief Próbuje wydać złoto i zwraca, czy operacja się udała. */
 		bool spendGold(int amount) {
@@ -176,6 +179,7 @@ namespace Nawia::Entity {
 		void attachEngine(Core::Engine* engine);
 		void updateWeaponVisualModel();
 		void updatePrimaryAttackAbility();
+		void ensureUnlockedFireballAbility();
 
 		Core::Engine* _engine = nullptr;
 
@@ -206,6 +210,7 @@ namespace Nawia::Entity {
 		int _exp = 0;
 		int _exp_to_next_lvl = 100;
 		std::string _active_visual_model_path;
+		bool _fireball_unlocked = false;
 	};
 
 	/**

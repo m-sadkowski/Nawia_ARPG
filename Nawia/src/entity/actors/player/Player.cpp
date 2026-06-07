@@ -3,6 +3,7 @@
 
 #include <Constants.h>
 #include <Engine.h>
+#include <FireballAbility.h>
 #include <ItemDatabase.h>
 #include <Logger.h>
 #include <Map.h>
@@ -19,6 +20,9 @@ namespace Nawia::Entity {
 	namespace {
 		constexpr const char* PLAYER_HEAD_MODEL = "assets/models/actors/player/parts/player_head.glb";
 		constexpr const char* PLAYER_HEAD_WITH_SWORD_MODEL = "assets/models/items/player_head_with_sword.glb";
+		constexpr const char* FIREBALL_MODEL = "assets/models/fireball.glb";
+		constexpr const char* FIREBALL_ICON = "assets/textures/icons/fireball_icon.png";
+		constexpr int FIREBALL_ABILITY_SLOT = 2;
 
 		nlohmann::json statsToJson(const Stats& stats) {
 			return {
@@ -95,6 +99,12 @@ namespace Nawia::Entity {
 
 	void Player::moveTo(const float x, const float y)
 	{
+		if (isMovementRooted())
+		{
+			stop();
+			return;
+		}
+
 		Entity::moveTo(x, y);
 
 		if (_is_moving) 
@@ -115,6 +125,18 @@ namespace Nawia::Entity {
 		}
 	}
 
+	void Player::applyRoot(const float duration)
+	{
+		Entity::applyRoot(duration);
+		_path.clear();
+		updateMovementSound(Audio::SoundPath::Footsteps, false);
+		if (!isAnimationLocked())
+		{
+			setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+			playAnimation("Idle_Loop");
+		}
+	}
+
 	void Player::stop()
 	{
 		_is_moving = false;
@@ -129,6 +151,7 @@ namespace Nawia::Entity {
 
 	void Player::clearControlLocks()
 	{
+		clearStatusEffects();
 		_is_knocked_down = false;
 		_knockdown_phase = KnockdownPhase::None;
 		_is_consuming_food = false;
@@ -189,7 +212,7 @@ namespace Nawia::Entity {
 
 	void Player::updateMovement(const float delta_time)
 	{
-		if (!_is_moving || _is_knocked_down)
+		if (!_is_moving || _is_knocked_down || isMovementRooted())
 		{
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
@@ -269,6 +292,19 @@ namespace Nawia::Entity {
 			playAnimation("Consume", false, true, 0, true);
 		else
 			playAnimation("Interact", false, true, 0, true);
+		return true;
+	}
+
+	bool Player::unlockFireballAbility(const bool show_notification) {
+		if (_fireball_unlocked) {
+			ensureUnlockedFireballAbility();
+			return false;
+		}
+
+		_fireball_unlocked = true;
+		ensureUnlockedFireballAbility();
+		if (show_notification && _engine)
+			_engine->getUIHandler().showNotification("Nauczono zaklecia: Fireball", 4.0f);
 		return true;
 	}
 
@@ -356,6 +392,22 @@ namespace Nawia::Entity {
 		}
 	}
 
+	void Player::ensureUnlockedFireballAbility() {
+		if (!_fireball_unlocked || !_engine)
+			return;
+
+		if (const auto existing = getAbility(FIREBALL_ABILITY_SLOT); existing && existing->getName() == "Fireball")
+			return;
+
+		const auto icon = _engine->getResourceManager().getTexture(FIREBALL_ICON);
+		setAbility(FIREBALL_ABILITY_SLOT, std::make_shared<FireballAbility>(
+			FIREBALL_MODEL,
+			0.5f,
+			nullptr,
+			icon,
+			&_engine->getResourceManager()));
+	}
+
 	nlohmann::json Player::serializeProfile() const
 	{
 		return {
@@ -364,6 +416,7 @@ namespace Nawia::Entity {
 			{"exp_to_next_level", _exp_to_next_lvl},
 			{"gold", _gold},
 			{"food_count", _food_count},
+			{"fireball_unlocked", _fireball_unlocked},
 			{"base_stats", statsToJson(_base_stats)},
 			{"inventory", _backpack ? _backpack->serialize() : nlohmann::json::object()},
 			{"equipment", _equipment ? _equipment->serialize() : nlohmann::json::array()}
@@ -382,6 +435,7 @@ namespace Nawia::Entity {
 		_exp_to_next_lvl = data.value("exp_to_next_level", _exp_to_next_lvl);
 		_gold = data.value("gold", _gold);
 		_food_count = data.value("food_count", _food_count);
+		_fireball_unlocked = data.value("fireball_unlocked", _fireball_unlocked);
 		_base_stats = statsFromJson(data.value("base_stats", nlohmann::json::object()), _base_stats);
 
 		if (data.contains("inventory") && _backpack)
@@ -399,14 +453,16 @@ namespace Nawia::Entity {
 		}
 
 		recalculateStats();
+		ensureUnlockedFireballAbility();
 	}
 
 	nlohmann::json Player::serializeLocationView() const
 	{
+		const int safe_hp = isDead() ? std::max(1, _max_hp / 2) : std::clamp(_hp, 1, _max_hp);
 		return {
 			{"position", vector2ToJson({_pos.x, _pos.y})},
 			{"altitude", _altitude},
-			{"hp", _hp},
+			{"hp", safe_hp},
 			{"max_hp", _max_hp},
 			{"respawn_point", vector2ToJson(_respawn_point)}
 		};
@@ -480,7 +536,8 @@ namespace Nawia::Entity {
 
 	void Player::respawn()
 	{
-		_hp = _max_hp;
+		clearStatusEffects();
+		_hp = std::max(1, _max_hp / 2);
 		_is_dying = false;
 		_is_knocked_down = false;
 		_knockdown_phase = KnockdownPhase::None;

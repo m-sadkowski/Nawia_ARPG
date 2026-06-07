@@ -1,6 +1,8 @@
 #pragma once
 #include <InteractiveTrigger.h>
 
+#include <json.hpp>
+
 #include <memory>
 #include <string>
 
@@ -40,6 +42,8 @@ namespace Nawia::Entity {
 
         /** @brief Trigger nie obsluguje bezposredniej interakcji, zwraca 0. */
         float getInteractionRange() override;
+        [[nodiscard]] nlohmann::json serializeState() const override;
+        void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
     private:
         [[nodiscard]] const Game::BossData* getBossData(Core::Engine* engine) const;

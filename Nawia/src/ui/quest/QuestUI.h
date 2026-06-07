@@ -23,7 +23,8 @@ namespace Nawia::UI {
      */
     enum class QuestTab {
         Active,
-        Completed
+        Completed,
+        Failed
     };
 
     /**

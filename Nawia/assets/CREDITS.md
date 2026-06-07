@@ -46,6 +46,15 @@ Thank you to all creators whose assets helped bring this project to life.
 | Wizard Table | mario tofani | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | [Poly Pizza](https://poly.pizza/m/fpd7imG8Vxa) |
 | Iron Chair | iPoly3D | License not specified in the provided credits | [Poly Pizza](https://poly.pizza/m/pyzMThWvJi) |
 | Boulder | Poly by Google | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | [Poly Pizza](https://poly.pizza/m/3jql0qtape-) |
+| Unlabeled Poly Pizza Asset | Unknown | License not specified in the provided credits | [Poly Pizza](https://poly.pizza/m/711AlCsueib) |
+| Unlabeled Poly Pizza Asset | Unknown | License not specified in the provided credits | [Poly Pizza](https://poly.pizza/m/UlVnlvHPtv) |
+| Unlabeled Poly Pizza Asset | Unknown | License not specified in the provided credits | [Poly Pizza](https://poly.pizza/m/uZ3GefauOE) |
+| Unlabeled Poly Pizza Asset | Unknown | License not specified in the provided credits | [Poly Pizza](https://poly.pizza/m/7clFQGz5jH) |
+| Spider Web | Poly by Google | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | [Poly Pizza](https://poly.pizza/m/cM0NzColM_0) |
+| Water Lilies | Poly by Google | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | [Poly Pizza](https://poly.pizza/m/birD7XV2A44) |
+| Lily Pad | Poly by Google | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | [Poly Pizza](https://poly.pizza/m/8xHS2Js0MA_) |
+| Japanese Sedge | Zsky | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | [Poly Pizza](https://poly.pizza/m/bTMJc47EiE) |
+| Cattail | Poly by Google | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | [Poly Pizza](https://poly.pizza/m/9uT74BMpRrl) |
 
 ---
 

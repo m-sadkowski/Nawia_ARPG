@@ -131,6 +131,11 @@ namespace Nawia::Core {
 			_player->stop();
 	}
 
+	void Engine::requestReturnToMainMenu(std::string notification) {
+		_pending_return_to_main_menu = true;
+		_pending_return_notification = std::move(notification);
+	}
+
 	bool Engine::isLevelInteractionOnly() const {
 		const auto* level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
 		return level && level->isInteractionOnly();
@@ -348,12 +353,17 @@ namespace Nawia::Core {
 	void Engine::handleGameOverInput() {
 		const UI::MenuAction action = _ui_handler->handleGameOverInput();
 		if (action == UI::MenuAction::Respawn) {
+			const bool boss_retry = _boss_manager.isFightActive();
+			if (boss_retry)
+				_boss_manager.retryActiveBossFight(this);
 			_player->respawn();
 			_entity_manager->addEntity(_player);
-			if (_level_manager && _level_manager->getCurrentLevel())
+			if (!boss_retry && _level_manager && _level_manager->getCurrentLevel())
 				_level_manager->getCurrentLevel()->prepareForRespawn(this);
 			_game_state = GameState::Playing;
 		} else if (action == UI::MenuAction::Exit) {
+			if (_boss_manager.isFightActive())
+				_boss_manager.endBossFight(false, this);
 			_audio_manager.playMusic(MENU_MUSIC_PATH, true, 0.45f);
 			_game_state = GameState::Menu;
 		}
@@ -629,6 +639,17 @@ namespace Nawia::Core {
 			return;
 		}
 
+		if (_pending_return_to_main_menu && (!_ui_handler || !_ui_handler->isDialogueOpen())) {
+			_pending_return_to_main_menu = false;
+			if (!_pending_return_notification.empty())
+				_ui_handler->showNotification(_pending_return_notification, 6.0f);
+			_pending_return_notification.clear();
+			_audio_manager.playMusic(MENU_MUSIC_PATH, true, 0.45f);
+			_show_pause_menu = false;
+			_game_state = GameState::Menu;
+			return;
+		}
+
 		if (_game_state == GameState::Menu ||
 			_game_state == GameState::SettingsMenu ||
 			_game_state == GameState::LevelSelect ||
@@ -641,9 +662,6 @@ namespace Nawia::Core {
 			return;
 
 		if (_player->isDead()) {
-			if (_boss_manager.isFightActive()) {
-				_boss_manager.endBossFight(false, this);
-			}
 			_game_state = GameState::GameOver;
 			return;
 		}

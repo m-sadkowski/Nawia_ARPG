@@ -280,6 +280,8 @@ namespace Nawia::Game {
 		save_state["allies"] = serializeAllies(engine.getEntityManager());
 		save_state["quests"] = engine.getQuestManager().serializeState();
 		save_state["defeated_bosses"] = engine.getBossManager().getDefeatedBossIds();
+		if (const auto current_level = engine.getLevelManager().getCurrentLevel())
+			save_state["level_state"] = current_level->serializeRuntimeState();
 		save_state["locations"] = serializeLocations(engine, location_name);
 
 		if (!writeJsonFile(getSlotFilePath(slot), save_state))
@@ -315,8 +317,10 @@ namespace Nawia::Game {
 		if (save_state.contains("allies"))
 			applyAllies(engine.getEntityManager(), save_state["allies"]);
 
-		if (save_state.contains("quests"))
+		if (save_state.contains("quests")) {
 			engine.getQuestManager().applyState(save_state["quests"]);
+			engine.getQuestManager().update(&engine);
+		}
 
 		if (save_state.contains("defeated_bosses") && save_state["defeated_bosses"].is_array()) {
 			std::vector<std::string> defeated_bosses;
@@ -325,6 +329,11 @@ namespace Nawia::Game {
 					defeated_bosses.push_back(boss_id.get<std::string>());
 			}
 			engine.getBossManager().setDefeatedBossIds(defeated_bosses);
+		}
+
+		if (save_state.contains("level_state")) {
+			if (auto current_level = engine.getLevelManager().getCurrentLevel())
+				current_level->applyRuntimeState(save_state["level_state"]);
 		}
 
 		if (save_state.contains("locations"))

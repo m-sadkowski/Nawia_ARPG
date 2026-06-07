@@ -3,13 +3,17 @@
 #include <ActorInterface.h>
 #include <Bandit.h>
 #include <Collider.h>
+#include <Dialogue.h>
 #include <Devil.h>
 #include <Engine.h>
 #include <Frog.h>
 #include <Logger.h>
 #include <Map.h>
 #include <Player.h>
+#include <QuestManager.h>
+#include <UIHandler.h>
 #include <WalkingDead.h>
+#include <witch/Witch.h>
 #include <json.hpp>
 
 #include <algorithm>
@@ -107,6 +111,81 @@ namespace Nawia::Game {
             return intro;
         }
 
+        bool isPlayerDialogueSpeaker(const std::string& speaker) {
+            return speaker == "Logos" || speaker == "Jarko" || speaker == "Player" || speaker == "Gracz";
+        }
+
+        bool isPlaceholderOption(const std::string& text) {
+            return text.empty() || text == "..." || text == "Dalej";
+        }
+
+        std::string resolveFinalOption(
+            const std::string& configured_text,
+            const std::string& current_speaker,
+            const std::string& current_text
+        ) {
+            if (!isPlaceholderOption(configured_text))
+                return configured_text;
+
+            return isPlayerDialogueSpeaker(current_speaker) ? current_text : "Rozumiem.";
+        }
+
+        nlohmann::json loadJsonDocument(const std::string& path) {
+            std::ifstream file(path);
+            if (!file.is_open()) {
+                Core::Logger::errorLog("BossManager: nie mozna otworzyc JSON: " + path);
+                return {};
+            }
+
+            nlohmann::json data;
+            try {
+                file >> data;
+            } catch (const nlohmann::json::parse_error&) {
+                Core::Logger::errorLog("BossManager: blad parsowania JSON: " + path);
+                return {};
+            }
+            return data;
+        }
+
+        DialogueTree buildDialogueFromNpcConfig(const std::string& dialogue_key) {
+            DialogueTree tree;
+            static const nlohmann::json config = loadJsonDocument("assets/data/npc_dialogues.json");
+            if (dialogue_key.empty() || !config.contains(dialogue_key) || !config[dialogue_key].is_object())
+                return tree;
+
+            const auto& dialogue_json = config[dialogue_key];
+            const auto lines_it = dialogue_json.find("lines");
+            if (lines_it == dialogue_json.end() || !lines_it->is_array())
+                return tree;
+
+            const std::string final_option = dialogue_json.value("final_option", "Rozumiem.");
+            for (size_t i = 0; i < lines_it->size(); ++i) {
+                const auto& line = (*lines_it)[i];
+                DialogueNode node;
+                node.id = static_cast<int>(i);
+                node.speaker_name = line.value("speaker", "");
+                node.text = line.value("text", "");
+                node.voice_path = line.value("voice_path", "");
+
+                DialogueOption option;
+                size_t next_line = i + 1;
+                if (next_line < lines_it->size() && isPlayerDialogueSpeaker((*lines_it)[next_line].value("speaker", ""))) {
+                    option.text = (*lines_it)[next_line].value("text", "");
+                } else {
+                    const bool is_final_node = next_line >= lines_it->size();
+                    option.text = is_final_node
+                        ? resolveFinalOption(final_option, node.speaker_name, node.text)
+                        : "Dalej";
+                }
+
+                option.next_node_id = (next_line < lines_it->size()) ? static_cast<int>(next_line) : -1;
+                node.options.push_back(option);
+                tree.addNode(node);
+            }
+
+            return tree;
+        }
+
         int getPhaseRestartHp(const BossData& boss, const int phase_index, const int max_hp) {
             if (max_hp <= 0)
                 return 1;
@@ -183,6 +262,8 @@ namespace Nawia::Game {
             boss.music_volume = bj.value("music_volume", 0.85f);
             boss.on_player_death = bj.value("on_player_death", "end_fight");
             boss.intro_dialogue = parseBossIntroDialogue(bj);
+            boss.victory_dialogue_key = bj.value("victory_dialogue_key", "");
+            boss.checkpoint_on_victory = bj.value("checkpoint_on_victory", "");
 
             // Fazy.
             if (bj.contains("phases")) {
@@ -373,6 +454,11 @@ namespace Nawia::Game {
                 .setName(name).setMap(map).setMaxHp(max_hp)
                 .setTarget(player).setAudioManager(&engine->getAudioManager())
                 .build());
+        } else if (type == "Witch") {
+            entity = std::shared_ptr<Entity::Entity>(Entity::WitchBuilder()
+                .setName(name).setMap(map).setMaxHp(max_hp)
+                .setTarget(player).setAudioManager(&engine->getAudioManager())
+                .build());
         } else if (type == "WalkingDead") {
             entity = std::shared_ptr<Entity::Entity>(Entity::WalkingDeadBuilder()
                 .setName(name).setMap(map).setMaxHp(max_hp)
@@ -425,6 +511,9 @@ namespace Nawia::Game {
 
     void BossManager::resetRuntimeState(Core::Engine* engine) {
         removeMinions(engine);
+
+        if (_active_boss_entity)
+            _active_boss_entity->setHealToFullOnKill(false);
 
         if (_active_boss_entity && !_active_boss_entity->isDead())
             _active_boss_entity->die();
@@ -552,6 +641,7 @@ namespace Nawia::Game {
             0.0f,
             0.0f));
         enemy->setMap(engine->getCurrentMap());
+        enemy->setHealToFullOnKill(true);
         _active_boss_entity = enemy;
         engine->getEntityManager().addEntity(_active_boss_entity);
         return true;
@@ -576,6 +666,7 @@ namespace Nawia::Game {
             _active_boss_data->enemy_type == "Frog" ? 2.0f : 1.4f,
             0.0f,
             0.0f));
+        enemy->setHealToFullOnKill(true);
         _active_boss_entity = enemy;
         placeEntityAtBossSpawn(_active_boss_entity, engine);
         engine->getEntityManager().addEntity(_active_boss_entity);
@@ -648,7 +739,44 @@ namespace Nawia::Game {
         startBossMusic(engine);
 
         engine->getUIHandler().showNotification("WALKA Z BOSSEM: " + _active_boss_data->name, 4.0f);
+        if (const auto player = engine->getPlayer())
+            player->setRespawnPoint({player->getX(), player->getY()});
+        engine->saveGameToActiveSlot();
 
+        return true;
+    }
+
+    bool BossManager::retryActiveBossFight(Core::Engine* engine) {
+        if (!isFightActive() || !_active_boss_data || !engine)
+            return false;
+
+        removeMinions(engine);
+
+        if (!_active_boss_entity) {
+            if (!activateBossFromPool(_active_boss_data->id, engine) && !buildAndActivateBoss(engine)) {
+                _active_boss_data = nullptr;
+                return false;
+            }
+        }
+
+        if (!_active_boss_entity)
+            return false;
+
+        _current_phase_index = 0;
+        _fight_timer = 0.0f;
+        _phase_flash_timer = 0.0f;
+
+        placeEntityAtBossSpawn(std::dynamic_pointer_cast<Entity::Entity>(_active_boss_entity), engine);
+        _active_boss_entity->setMaxHp(_active_boss_data->max_hp);
+        _active_boss_entity->setHP(_active_boss_data->max_hp);
+        _active_boss_entity->setTarget(engine->getPlayer());
+        _active_boss_entity->setDormant(false);
+        _active_boss_entity->setHealToFullOnKill(true);
+
+        if (!_active_boss_data->phases.empty())
+            applyPhase(_active_boss_data->phases[0], engine);
+
+        engine->getUIHandler().showNotification("Walka z bossem zaczyna sie od nowa.", 3.0f);
         return true;
     }
 
@@ -720,6 +848,10 @@ namespace Nawia::Game {
     void BossManager::endBossFight(bool victory, Core::Engine* engine) {
         if (!isFightActive()) return;
 
+        const std::string victory_dialogue_key = _active_boss_data ? _active_boss_data->victory_dialogue_key : "";
+        const std::string checkpoint_on_victory = _active_boss_data ? _active_boss_data->checkpoint_on_victory : "";
+        const std::shared_ptr<Entity::Entity> defeated_boss_entity = _active_boss_entity;
+
         if (victory) {
             Core::Logger::debugLog("BossManager: Zwyciestwo! Boss pokonany: " + _active_boss_data->name);
             engine->getUIHandler().showNotification("ZWYCIESTWO! Boss pokonany.", 5.0f);
@@ -758,6 +890,9 @@ namespace Nawia::Game {
             if (auto player = engine->getPlayer())
                 player->clearControlLocks();
         }
+
+        if (_active_boss_entity)
+            _active_boss_entity->setHealToFullOnKill(false);
         
         _active_boss_data = nullptr;
         _active_boss_entity = nullptr;
@@ -766,6 +901,31 @@ namespace Nawia::Game {
         _phase_flash_timer = 0.0f;
         _minion_pools.clear();
         restoreMusicAfterBoss(engine);
+
+        if (victory && engine && !victory_dialogue_key.empty()) {
+            DialogueTree tree = buildDialogueFromNpcConfig(victory_dialogue_key);
+            if (tree.getNode(0)) {
+                engine->getUIHandler().openDialogueFacing(tree, defeated_boss_entity, 0, [engine, checkpoint_on_victory, defeated_boss_entity](const int, const bool completed) {
+                    if (defeated_boss_entity)
+                        defeated_boss_entity->setDormant(true);
+
+                    if (!completed || checkpoint_on_victory.empty())
+                        return;
+
+                    engine->getQuestManager().notifyCheckpointReached(checkpoint_on_victory);
+                    engine->getQuestManager().update(engine);
+                });
+                return;
+            }
+        }
+
+        if (victory && engine && !checkpoint_on_victory.empty()) {
+            engine->getQuestManager().notifyCheckpointReached(checkpoint_on_victory);
+            engine->getQuestManager().update(engine);
+        }
+
+        if (victory && defeated_boss_entity)
+            defeated_boss_entity->setDormant(true);
 
     }
 

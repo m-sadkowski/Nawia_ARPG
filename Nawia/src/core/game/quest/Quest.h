@@ -103,6 +103,7 @@ namespace Nawia::Game {
 		[[nodiscard]] bool isActive() const { return state == QuestState::Active; }
 		[[nodiscard]] bool isAvailable() const { return state == QuestState::Available; }
 		[[nodiscard]] bool isLocked() const { return state == QuestState::Locked; }
+		[[nodiscard]] bool isFailed() const { return state == QuestState::Failed; }
 
 		/**
 		 * @brief Przenosi questa z dostepnego do aktywnego.
@@ -117,6 +118,13 @@ namespace Nawia::Game {
 		 */
 		void complete() {
 			state = QuestState::Completed;
+		}
+
+		/**
+		 * @brief Oznacza quest jako nieudany.
+		 */
+		void fail() {
+			state = QuestState::Failed;
 		}
 
 		/**

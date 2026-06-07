@@ -13,6 +13,8 @@
 #include <cmath>
 #include <algorithm>
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <limits>
 #include <map>
@@ -20,6 +22,56 @@
 
 namespace {
 	constexpr const char* ABILITIES_PATH = "assets/data/abilities.json";
+
+	void* cloneRawBuffer(const void* src, const size_t size_bytes) {
+		if (!src || size_bytes == 0)
+			return nullptr;
+
+		void* dst = std::malloc(size_bytes);
+		if (dst)
+			std::memcpy(dst, src, size_bytes);
+		return dst;
+	}
+
+	void ensureMeshAnimationBuffers(Model& model) {
+		if (model.meshCount <= 0 || model.boneCount <= 0)
+			return;
+
+		for (int mesh_index = 0; mesh_index < model.meshCount; ++mesh_index) {
+			Mesh& mesh = model.meshes[mesh_index];
+			const auto vertex_count = static_cast<size_t>(mesh.vertexCount);
+			if (vertex_count == 0)
+				continue;
+
+			if (!mesh.animVertices && mesh.vertices)
+				mesh.animVertices = static_cast<float*>(cloneRawBuffer(mesh.vertices, vertex_count * 3 * sizeof(float)));
+
+			if (!mesh.animNormals && mesh.normals)
+				mesh.animNormals = static_cast<float*>(cloneRawBuffer(mesh.normals, vertex_count * 3 * sizeof(float)));
+
+			if (!mesh.boneIds)
+				mesh.boneIds = static_cast<unsigned char*>(std::calloc(vertex_count * 4, sizeof(unsigned char)));
+
+			if (!mesh.boneWeights) {
+				mesh.boneWeights = static_cast<float*>(std::calloc(vertex_count * 4, sizeof(float)));
+				if (mesh.boneWeights) {
+					for (size_t vertex_index = 0; vertex_index < vertex_count; ++vertex_index)
+						mesh.boneWeights[vertex_index * 4] = 1.0f;
+				}
+			}
+
+			if (mesh.boneCount <= 0)
+				mesh.boneCount = model.boneCount;
+
+			if (!mesh.boneMatrices && mesh.boneCount > 0) {
+				mesh.boneMatrices = static_cast<Matrix*>(std::calloc(static_cast<size_t>(mesh.boneCount), sizeof(Matrix)));
+				if (mesh.boneMatrices) {
+					for (int bone_index = 0; bone_index < mesh.boneCount; ++bone_index)
+						mesh.boneMatrices[bone_index] = MatrixIdentity();
+				}
+			}
+		}
+	}
 
 	nlohmann::json loadAbilitiesData()
 	{
@@ -168,6 +220,14 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		g_audio_listener = listener;
 	}
 
+	void Entity::hideMeshIndex(const int mesh_index) {
+		if (mesh_index < 0)
+			return;
+
+		if (std::find(_hidden_mesh_indices.begin(), _hidden_mesh_indices.end(), mesh_index) == _hidden_mesh_indices.end())
+			_hidden_mesh_indices.push_back(mesh_index);
+	}
+
 	void Entity::loadModel(const std::string& path, const bool rotate_model)
 	{
 		unloadModelData();
@@ -183,6 +243,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 					cloned.transform = MatrixRotateX(-PI / 2.0f);
 
 				_model = cloned;
+				ensureMeshAnimationBuffers(_model);
 				_model_loaded = true;
 				_owns_model = true;
 				_cloned_model = true;
@@ -228,6 +289,8 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		// Korekta dla modeli zapisanych w układzie Z-up.
 		if (rotate_model)
 			_model.transform = MatrixRotateX(-PI / 2.0f);
+
+		ensureMeshAnimationBuffers(_model);
 
 		_model_loaded = true;
 		_owns_model = true;
@@ -312,6 +375,18 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (!bundle || bundle->clips.empty())
 			return;
 
+		if (const auto cached_path = _animation_path_map.find(path); cached_path != _animation_path_map.end()) {
+			const int start_index = cached_path->second;
+			for (int i = 0; i < static_cast<int>(bundle->clips.size()); i++) {
+				std::string anim_name = bundle->clips[i].name;
+				if (anim_name.empty())
+					anim_name = "anim_" + std::to_string(start_index + i);
+
+				_animation_map[anim_name] = start_index + i;
+			}
+			return;
+		}
+
 		const int start_index = static_cast<int>(_animations.size());
 
 		for (int i = 0; i < static_cast<int>(bundle->clips.size()); i++) {
@@ -349,11 +424,25 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				_anim_locked = lock_movement;
 				_anim_ping_pong = false;
 				_anim_reverse_phase = false;
+				_freeze_animation_on_completion = false;
+				_animation_frozen_at_last_frame = false;
 				_anim_direction = 1.0f;
 				_last_applied_anim_index = -1;
 				_last_applied_anim_frame = -1;
+				applyCurrentAnimationFrame();
 			}
 		}
+	}
+
+	void Entity::playAnimationFreezeOnLastFrame(
+		const std::string& name,
+		const bool lock_movement,
+		const int start_frame,
+		const bool force)
+	{
+		playAnimation(name, false, lock_movement, start_frame, force);
+		if (_animation_map.find(name) != _animation_map.end())
+			_freeze_animation_on_completion = true;
 	}
 
 	void Entity::playAnimationPingPong(
@@ -386,9 +475,46 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		return animation ? animation->frameCount : 0;
 	}
 
+	void Entity::applyCurrentAnimationFrame()
+	{
+		if (!_model_loaded || _animations.empty())
+			return;
+
+		if (_current_anim_index < 0 || static_cast<size_t>(_current_anim_index) >= _animations.size())
+			return;
+
+		const ModelAnimation* current_animation = resolveAnimation(_animations[_current_anim_index]);
+		if (!current_animation || current_animation->frameCount <= 0)
+			return;
+
+		// Walidacja: kazdy mesh musi miec boneWeights i boneIds, inaczej
+		// UpdateModelAnimation uderzy w nullptr (np. female_warrior.glb).
+		for (int i = 0; i < _model.meshCount; i++) {
+			if (_model.meshes[i].boneWeights == nullptr || _model.meshes[i].boneIds == nullptr)
+				return;
+		}
+
+		const int animation_frame = std::clamp(
+			static_cast<int>(_anim_frame_counter),
+			0,
+			current_animation->frameCount - 1
+		);
+		if (_last_applied_anim_index == _current_anim_index && _last_applied_anim_frame == animation_frame)
+			return;
+
+		UpdateModelAnimation(_model, *current_animation, animation_frame);
+		if (_equipment)
+			_equipment->updateAnimations(*current_animation, animation_frame);
+
+		_last_applied_anim_index = _current_anim_index;
+		_last_applied_anim_frame = animation_frame;
+	}
+
 	void Entity::update(const float delta_time)
 	{
 		if (_dormant) return;
+
+		updateStatusEffects(delta_time);
 
 		if (_is_dying)
 		{
@@ -404,6 +530,63 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		updateAnimation(delta_time);
 	}
 
+	void Entity::updateStatusEffects(const float dt)
+	{
+		if (_root_timer > 0.0f) {
+			_root_timer = std::max(0.0f, _root_timer - dt);
+			if (_root_timer > 0.0f) {
+				_velocity = {0.0f, 0.0f};
+				_is_moving = false;
+			}
+		}
+
+		if (_poison_timer <= 0.0f || _poison_damage_per_tick <= 0 || isDead() || isDying())
+			return;
+
+		const float poison_timer_before_update = _poison_timer;
+		_poison_timer = std::max(0.0f, _poison_timer - dt);
+		_poison_tick_timer -= dt;
+		const int max_ticks_this_update = static_cast<int>(std::ceil(
+			poison_timer_before_update / std::max(0.05f, _poison_tick_interval)));
+		int ticks_applied = 0;
+		while (_poison_tick_timer <= 0.0f &&
+			   ticks_applied < max_ticks_this_update &&
+			   poison_timer_before_update > 0.0f &&
+			   !isDead() &&
+			   !isDying()) {
+			takeDamage(_poison_damage_per_tick);
+			_poison_tick_timer += std::max(0.05f, _poison_tick_interval);
+			++ticks_applied;
+		}
+	}
+
+	void Entity::applyRoot(const float duration)
+	{
+		_root_timer = std::max(_root_timer, duration);
+		_velocity = {0.0f, 0.0f};
+		_is_moving = false;
+	}
+
+	void Entity::applyPoison(const float duration, const int damage_per_tick, const float tick_interval)
+	{
+		if (duration <= 0.0f || damage_per_tick <= 0)
+			return;
+
+		_poison_timer = std::max(_poison_timer, duration);
+		_poison_tick_interval = std::max(0.05f, tick_interval);
+		_poison_tick_timer = std::min(_poison_tick_timer > 0.0f ? _poison_tick_timer : _poison_tick_interval, _poison_tick_interval);
+		_poison_damage_per_tick = std::max(_poison_damage_per_tick, damage_per_tick);
+	}
+
+	void Entity::clearStatusEffects()
+	{
+		_root_timer = 0.0f;
+		_poison_timer = 0.0f;
+		_poison_tick_timer = 0.0f;
+		_poison_tick_interval = 1.0f;
+		_poison_damage_per_tick = 0;
+	}
+
 	void Entity::updateAnimation(const float dt)
 	{
 		if (_model_loaded && !_animations.empty())
@@ -413,6 +596,9 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 			const ModelAnimation* current_animation = resolveAnimation(_animations[_current_anim_index]);
 			if (!current_animation || current_animation->frameCount <= 0)
+				return;
+
+			if (_animation_frozen_at_last_frame)
 				return;
 
 			_anim_frame_counter += dt * _anim_fps * _anim_speed_multiplier * _anim_direction / ANIMATION_DURATION_SCALE;
@@ -428,10 +614,20 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 					_anim_direction = -1.0f;
 					_anim_frame_counter = static_cast<float>(current_animation->frameCount - 1);
 				}
+				else if (_freeze_animation_on_completion) {
+					_freeze_animation_on_completion = false;
+					_anim_frame_counter = static_cast<float>(current_animation->frameCount - 1);
+					_anim_locked = false;
+					_animation_frozen_at_last_frame = true;
+				}
 				else {
 					_anim_frame_counter = 0;
 					if (getAnimationFrameCount("Idle_Loop") > 0)
 						playAnimation("Idle_Loop", true, false, 0, true);
+					else if (getAnimationFrameCount("Idle") > 0)
+						playAnimation("Idle", true, false, 0, true);
+					else if (getAnimationFrameCount("idle") > 0)
+						playAnimation("idle", true, false, 0, true);
 					else
 						playAnimation("default", true, false, 0, true);
 
@@ -449,6 +645,10 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 				if (getAnimationFrameCount("Idle_Loop") > 0)
 					playAnimation("Idle_Loop", true, false, 0, true);
+				else if (getAnimationFrameCount("Idle") > 0)
+					playAnimation("Idle", true, false, 0, true);
+				else if (getAnimationFrameCount("idle") > 0)
+					playAnimation("idle", true, false, 0, true);
 				else
 					playAnimation("default", true, false, 0, true);
 
@@ -457,16 +657,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 					return;
 			}
 
-			const int animation_frame = static_cast<int>(_anim_frame_counter);
-			if (_last_applied_anim_index != _current_anim_index || _last_applied_anim_frame != animation_frame)
-			{
-				UpdateModelAnimation(_model, *current_animation, animation_frame);
-				if (_equipment)
-					_equipment->updateAnimations(*current_animation, animation_frame);
-
-				_last_applied_anim_index = _current_anim_index;
-				_last_applied_anim_frame = animation_frame;
-			}
+			applyCurrentAnimationFrame();
 		}
 	}
 
@@ -478,7 +669,37 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		{
 			const Vector3 pos3d = getWorldPos3D();
 			const float visual_rotation = _rotation + _model_facing_offset;
-			DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, WHITE);
+			auto draw_model = [this, pos3d, visual_rotation](const Color tint) {
+				if (_hidden_mesh_indices.empty()) {
+					DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, tint);
+					return;
+				}
+
+				Model model = _model;
+				const Matrix mat_scale = MatrixScale(_scale, _scale, _scale);
+				const Matrix mat_rotation = MatrixRotate({0.0f, 1.0f, 0.0f}, visual_rotation * DEG2RAD);
+				const Matrix mat_translation = MatrixTranslate(pos3d.x, pos3d.y, pos3d.z);
+				model.transform = MatrixMultiply(model.transform, MatrixMultiply(MatrixMultiply(mat_scale, mat_rotation), mat_translation));
+
+				for (int mesh_index = 0; mesh_index < model.meshCount; ++mesh_index) {
+					if (std::find(_hidden_mesh_indices.begin(), _hidden_mesh_indices.end(), mesh_index) != _hidden_mesh_indices.end())
+						continue;
+
+					const int material_index = model.meshMaterial ? model.meshMaterial[mesh_index] : 0;
+					Color original = model.materials[material_index].maps[MATERIAL_MAP_DIFFUSE].color;
+					Color color_tint = {
+						static_cast<unsigned char>((static_cast<int>(original.r) * static_cast<int>(tint.r)) / 255),
+						static_cast<unsigned char>((static_cast<int>(original.g) * static_cast<int>(tint.g)) / 255),
+						static_cast<unsigned char>((static_cast<int>(original.b) * static_cast<int>(tint.b)) / 255),
+						static_cast<unsigned char>((static_cast<int>(original.a) * static_cast<int>(tint.a)) / 255)
+					};
+					model.materials[material_index].maps[MATERIAL_MAP_DIFFUSE].color = color_tint;
+					DrawMesh(model.meshes[mesh_index], model.materials[material_index], model.transform);
+					model.materials[material_index].maps[MATERIAL_MAP_DIFFUSE].color = original;
+				}
+			};
+
+			draw_model(WHITE);
 			if (_equipment) {
 				_equipment->draw(pos3d, visual_rotation, _rotation, _scale);
 			}
@@ -486,7 +707,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			if (_hovered && _type != EntityType::Player)
 			{
 				// Drugi przebieg renderu daje subtelne przyciemnienie przy hoverze.
-				DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, Fade(BLACK, 0.2f));
+				draw_model(Fade(BLACK, 0.2f));
 			}
 		}
 
@@ -511,11 +732,15 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		Core::Logger::debugLog("Entity " + getName() + " otrzymuje obrażenia: " + std::to_string(dmg) + ". Obecne HP: " + std::to_string(_hp));
 		if (_hp - dmg <= 0) 
 		{
+			const bool killed_player_side = _type == EntityType::Player || _type == EntityType::Ally;
+			const auto killer = _last_damage_source.lock();
 			_hp = 1; // Utrzymujemy encję przy życiu do końca animacji śmierci.
 			_is_dying = true;
 			playAnimation(_death_anim_name, false, true, 0, true);
 			setFaction(Faction::None);
 			onDeathStarted();
+			if (killed_player_side && killer && killer->healsToFullOnKill() && !killer->isDead() && !killer->isDying())
+				killer->setHP(killer->getMaxHP());
 			Core::Logger::debugLog("Entity " + getName() + " rozpoczęła sekwencję śmierci.");
 		}
 		else
@@ -664,6 +889,17 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (screen_width <= 0 || screen_height <= 0)
 			return true;
 
+		const auto isProjectedOnScreen = [&](const Vector3 point) {
+			const Vector2 projected = GetWorldToScreen(point, camera);
+			return projected.x >= -screen_margin &&
+				projected.x <= static_cast<float>(screen_width) + screen_margin &&
+				projected.y >= -screen_margin &&
+				projected.y <= static_cast<float>(screen_height) + screen_margin;
+		};
+
+		if (isProjectedOnScreen(getWorldPos3D()))
+			return true;
+
 		const BoundingBox box = getBoundingBox();
 		const Vector3 corners[8] = {
 			{box.min.x, box.min.y, box.min.z},
@@ -677,16 +913,17 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		};
 
 		for (const Vector3& corner : corners) {
-			const Vector2 projected = GetWorldToScreen(corner, camera);
-			if (projected.x >= -screen_margin &&
-				projected.x <= static_cast<float>(screen_width) + screen_margin &&
-				projected.y >= -screen_margin &&
-				projected.y <= static_cast<float>(screen_height) + screen_margin) {
+			if (isProjectedOnScreen(corner)) {
 				return true;
 			}
 		}
 
-		return false;
+		const Vector3 center = {
+			(box.min.x + box.max.x) * 0.5f,
+			(box.min.y + box.max.y) * 0.5f,
+			(box.min.z + box.max.z) * 0.5f
+		};
+		return isProjectedOnScreen(center);
 	}
 
 	BoundingBox Entity::getBoundingBox() const
@@ -840,6 +1077,12 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	void Entity::moveTo(const float x, const float y)
 	{
+		if (isMovementRooted()) {
+			_velocity = {0.0f, 0.0f};
+			_is_moving = false;
+			return;
+		}
+
 		_target_x = x;
 		_target_y = y;
 
@@ -851,6 +1094,12 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	void Entity::updateMovement(const float dt)
 	{
+		if (isMovementRooted()) {
+			_velocity = {0.0f, 0.0f};
+			_is_moving = false;
+			return;
+		}
+
 		if (!_is_moving) return;
 
 		const float dx = _target_x - getX();

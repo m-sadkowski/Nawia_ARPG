@@ -24,6 +24,7 @@ namespace Nawia::Entity {
     private:
         Core::Engine* _engine;
         std::string _target_location;
+        bool _snapped_to_navmesh = false;
     };
 
 } // namespace Nawia::Entity

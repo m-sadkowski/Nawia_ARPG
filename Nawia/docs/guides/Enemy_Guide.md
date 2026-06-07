@@ -75,6 +75,35 @@ Ally dziala analogicznie, ale:
 
 Aktualny wzorzec to `Friend`, ktory ma `SwordSlashAbility` i prosty fallback bez braina.
 
+## Czarownica
+
+`Witch` to dystansowy enemy dla Czarownicy. Uzywa modelu
+`assets/models/actors/witch/witch.glb` i indeksowanych animacji:
+
+- `death`: 0,
+- `get_hit`: 2,
+- `idle`: 5,
+- `bolt`: 7,
+- `summon`: 10,
+- `run`: 16.
+
+Walka:
+
+- stara sie utrzymac dystans od celu,
+- strzela malym fireballem jako placeholder pioruna,
+- po trafieniu odgrywa hit, a potem kontruje: powala gracza i przywoluje
+  `WalkingDead`.
+
+JSON spawnera:
+
+```json
+{
+    "type": "witch",
+    "name": "Czarownica",
+    "hp": 160
+}
+```
+
 ## Typowy `update`
 
 ```cpp
@@ -127,6 +156,10 @@ void MyEnemy::takeDamage(const int damage)
 ```
 
 Najpierw zawsze wywolaj bazowe obrazenia, potem specjalna reakcje.
+
+`Witch` jest wyjatkiem w sekwencji smierci: po animacji `death` zostaje
+zamrozona na ostatniej klatce, zeby dialog po zwyciestwie pokazywal lezace
+cialo. BossManager ukrywa encje dopiero po zamknieciu dialogu zwyciestwa.
 
 ## Ruch i mapy
 

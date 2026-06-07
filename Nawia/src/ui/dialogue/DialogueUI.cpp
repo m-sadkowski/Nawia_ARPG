@@ -15,7 +15,7 @@ namespace Nawia::UI
 {
     namespace
     {
-        constexpr float PANEL_WIDTH_RATIO = 0.82f;
+        constexpr float PANEL_WIDTH_RATIO = 0.74f;
 
         struct DialogueLayout
         {
@@ -23,6 +23,7 @@ namespace Nawia::UI
             Vector2 name_position;
             Vector2 text_position;
             std::vector<std::string> text_lines;
+            std::vector<std::vector<std::string>> option_lines;
             std::vector<Rectangle> option_rectangles;
             float name_font_size = 0.0f;
             float text_font_size = 0.0f;
@@ -67,15 +68,16 @@ namespace Nawia::UI
             const float panel_width = screen_width * PANEL_WIDTH_RATIO;
             const float bottom_margin = Core::GlobalScaling::scaled(DIALOGUE_BOX_MARGIN);
             const float min_panel_height = Core::GlobalScaling::scaled(DIALOGUE_BOX_HEIGHT);
-            const float content_padding_x = Core::GlobalScaling::scaled(30.0f);
-            const float content_padding_y = Core::GlobalScaling::scaled(20.0f);
-            const float name_font_size = Core::GlobalScaling::scaled(42.0f);
-            const float text_font_size = Core::GlobalScaling::scaled(30.0f);
+            const float content_padding_x = Core::GlobalScaling::scaled(34.0f);
+            const float content_padding_y = Core::GlobalScaling::scaled(22.0f);
+            const float name_font_size = Core::GlobalScaling::scaled(34.0f);
+            const float text_font_size = Core::GlobalScaling::scaled(24.0f);
             const float text_spacing = Core::GlobalScaling::scaled(1.0f);
-            const float line_height = text_font_size + Core::GlobalScaling::scaled(5.0f);
-            const float option_height = text_font_size + Core::GlobalScaling::scaled(10.0f);
-            const float option_spacing = Core::GlobalScaling::scaled(8.0f);
+            const float line_height = text_font_size + Core::GlobalScaling::scaled(7.0f);
+            const float option_height = text_font_size + Core::GlobalScaling::scaled(16.0f);
+            const float option_spacing = Core::GlobalScaling::scaled(10.0f);
             const float text_width = panel_width - content_padding_x * 2.0f;
+            const float option_text_width = text_width - Core::GlobalScaling::scaled(28.0f);
 
             DialogueLayout layout;
             layout.name_font_size = name_font_size;
@@ -84,9 +86,17 @@ namespace Nawia::UI
             layout.text_lines = wrapText(font, node.text, text_font_size, text_spacing, text_width);
 
             const float text_height = static_cast<float>(layout.text_lines.size()) * line_height;
-            const float options_height = node.options.empty()
-                ? 0.0f
-                : static_cast<float>(node.options.size()) * option_height + static_cast<float>(node.options.size() - 1) * option_spacing;
+            float options_height = 0.0f;
+            layout.option_lines.reserve(node.options.size());
+            for (size_t i = 0; i < node.options.size(); ++i)
+            {
+                auto lines = wrapText(font, node.options[i].text, text_font_size, text_spacing, option_text_width);
+                const float height = std::max(option_height, static_cast<float>(lines.size()) * line_height + Core::GlobalScaling::scaled(12.0f));
+                options_height += height;
+                if (i + 1 < node.options.size())
+                    options_height += option_spacing;
+                layout.option_lines.push_back(std::move(lines));
+            }
 
             const float desired_panel_height =
                 content_padding_y +
@@ -109,13 +119,16 @@ namespace Nawia::UI
             float current_option_y = layout.text_position.y + text_height + Core::GlobalScaling::scaled(16.0f);
             for (size_t i = 0; i < node.options.size(); ++i)
             {
+                const float dynamic_option_height = std::max(
+                    option_height,
+                    static_cast<float>(layout.option_lines[i].size()) * line_height + Core::GlobalScaling::scaled(12.0f));
                 layout.option_rectangles.push_back({
                     panel_x + content_padding_x,
                     current_option_y,
                     text_width,
-                    option_height
+                    dynamic_option_height
                 });
-                current_option_y += option_height + option_spacing;
+                current_option_y += dynamic_option_height + option_spacing;
             }
 
             return layout;
@@ -178,15 +191,25 @@ namespace Nawia::UI
         const Vector2 mouse_position = GetMousePosition();
         _option_rectangles = layout.option_rectangles;
 
-        DrawRectangleRec(layout.panel_rect, withAlpha(COLOR_PANEL_BG, 0.98f));
-        DrawRectangleLinesEx(layout.panel_rect, 2.0f, withAlpha(COLOR_ACCENT, 0.8f));
+        const Rectangle shadow_rect = {
+            layout.panel_rect.x + Core::GlobalScaling::scaled(5.0f),
+            layout.panel_rect.y + Core::GlobalScaling::scaled(7.0f),
+            layout.panel_rect.width,
+            layout.panel_rect.height
+        };
+        DrawRectangleRounded(shadow_rect, 0.08f, 10, withAlpha(BLACK, 0.45f));
+        DrawRectangleRounded(layout.panel_rect, 0.08f, 10, withAlpha(Color{18, 20, 24, 255}, 0.96f));
+        DrawRectangleRoundedLinesEx(layout.panel_rect, 0.08f, 10, Core::GlobalScaling::scaled(1.5f), withAlpha(COLOR_ACCENT, 0.72f));
         DrawRectangleGradientV(
             static_cast<int>(layout.panel_rect.x),
             static_cast<int>(layout.panel_rect.y),
             static_cast<int>(layout.panel_rect.width),
-            static_cast<int>(layout.panel_rect.height / 3.0f),
-            withAlpha(WHITE, 0.05f),
+            static_cast<int>(std::min(layout.panel_rect.height, Core::GlobalScaling::scaled(96.0f))),
+            withAlpha(Color{98, 76, 43, 255}, 0.24f),
             withAlpha(WHITE, 0.0f));
+        DrawRectangleRec(
+            {layout.panel_rect.x, layout.text_position.y - Core::GlobalScaling::scaled(13.0f), layout.panel_rect.width, Core::GlobalScaling::scaled(1.0f)},
+            withAlpha(COLOR_ACCENT, 0.34f));
 
         DrawTextEx(font, node->speaker_name.c_str(), layout.name_position, layout.name_font_size, layout.text_spacing, COLOR_ACCENT);
         drawWrappedText(font, layout.text_lines, layout.text_position, layout.text_font_size, layout.text_spacing, COLOR_PARCHMENT);
@@ -195,13 +218,23 @@ namespace Nawia::UI
         {
             const Rectangle option_rect = layout.option_rectangles[i];
             const bool is_hovered = CheckCollisionPointRec(mouse_position, option_rect);
-            const std::string option_text = "> " + node->options[i].text;
             const Color option_color = is_hovered ? COLOR_ACCENT : withAlpha(COLOR_PARCHMENT, 0.6f);
 
-            if (is_hovered)
-                DrawRectangleRec(option_rect, withAlpha(WHITE, 0.03f));
+            DrawRectangleRounded(option_rect, 0.18f, 8, is_hovered ? withAlpha(COLOR_ACCENT, 0.12f) : withAlpha(BLACK, 0.20f));
+            DrawRectangleRoundedLinesEx(
+                option_rect,
+                0.18f,
+                8,
+                Core::GlobalScaling::scaled(1.0f),
+                is_hovered ? withAlpha(COLOR_ACCENT, 0.72f) : withAlpha(COLOR_ACCENT, 0.22f));
 
-            DrawTextEx(font, option_text.c_str(), { option_rect.x, option_rect.y }, layout.text_font_size, layout.text_spacing, option_color);
+            drawWrappedText(
+                font,
+                layout.option_lines[i],
+                { option_rect.x + Core::GlobalScaling::scaled(14.0f), option_rect.y + Core::GlobalScaling::scaled(6.0f) },
+                layout.text_font_size,
+                layout.text_spacing,
+                option_color);
         }
     }
 

@@ -31,6 +31,16 @@ System walk z bossami jest oparty na danych i zarzadzany przez `BossManager`. De
 
 Trigger rozpoczyna skonfigurowana walke z bossem, gdy gracz wejdzie w jego obszar. Nie restartuje juz aktywnej walki, a `BossManager` uniemozliwia ponowne uruchomienie walki z pokonanym bossem.
 
+W Przedsionku Nawii uzywamy `boss_id: "bies"`. To osobna definicja bossa o
+nazwie wyswietlanej `Bies`, ale `enemy_type` zostaje `Devil`, wiec korzysta z
+tej samej klasy przeciwnika i animacji.
+
+Boss `czarownica` uzywa `enemy_type: "Witch"`. To dystansowy boss placeholder:
+strzela malymi fireballami jako piorunami, po trafieniu powala gracza i
+przywoluje `WalkingDead`. Definicja moze miec `victory_dialogue_key` oraz
+`checkpoint_on_victory`; Czarownica uzywa tego do dialogu po smierci i
+checkpointa `witch_truth_resolved`.
+
 ### Blokowanie teleportow
 
 Obecna implementacja nie posiada dynamicznych scian areny. Teleporty sa blokowane podczas aktywnej walki z bossem, wiec gracz nie moze opuscic starcia przez przejscia miedzy lokacjami.

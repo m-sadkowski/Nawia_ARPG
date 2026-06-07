@@ -2,6 +2,7 @@
 
 #include <SpawnPoint.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -51,12 +52,12 @@ namespace Nawia::World {
 		/**
 		 * @brief Sprawdza dystans gracza i aktywuje spawny w biezacej lokacji.
 		 */
-		void update(Vector2 player_pos, const std::string& current_location);
+		void update(Vector2 player_pos, const std::string& current_location, Core::Engine* engine);
 
 		/**
 		 * @brief Ustawia stany uspienia encji po zmianie lokacji.
 		 */
-		void updateLocationChange(const std::string& new_location, Core::Map* map = nullptr);
+		void updateLocationChange(const std::string& new_location, Core::Engine* engine, Core::Map* map = nullptr);
 
 		/**
 		 * @brief Czysci wszystkie spawny.
@@ -84,6 +85,12 @@ namespace Nawia::World {
 			Item::ItemDatabase& item_database);
 
 	private:
+		[[nodiscard]] static std::shared_ptr<Entity::Entity> createEntityForSpawn(
+			SpawnPoint& spawn_point,
+			Core::Engine* engine,
+			Core::Map* map,
+			const std::string& current_location,
+			bool dormant);
 		[[nodiscard]] static std::string makeStableId(const SpawnPoint& spawn_point, size_t index);
 		[[nodiscard]] static nlohmann::json serializeSpawn(const SpawnPoint& spawn_point, size_t index);
 		void applySpawn(SpawnPoint& spawn_point, const nlohmann::json& state, Item::ItemDatabase& item_database);

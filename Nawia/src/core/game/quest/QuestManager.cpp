@@ -243,6 +243,20 @@ namespace Nawia::Game {
 		engine->getUIHandler().showNotification(notification, 4.0f);
 	}
 
+	bool QuestManager::failQuest(const std::string& id, Core::Engine* engine) {
+		Quest* quest = getQuest(id);
+		if (!quest || quest->isCompleted() || quest->isFailed())
+			return false;
+
+		quest->fail();
+		Core::Logger::debugLog("QuestManager: quest '" + id + "' nieudany");
+
+		if (engine)
+			engine->getUIHandler().showNotification("Quest nieudany: " + quest->name, 4.0f);
+
+		return true;
+	}
+
 	Quest* QuestManager::getQuest(const std::string& id) {
 		const auto quest_it = _quests.find(id);
 		return quest_it != _quests.end() ? &quest_it->second : nullptr;
@@ -272,6 +286,10 @@ namespace Nawia::Game {
 
 	std::vector<Quest*> QuestManager::getCompletedQuests() {
 		return getQuestsByState(QuestState::Completed);
+	}
+
+	std::vector<Quest*> QuestManager::getFailedQuests() {
+		return getQuestsByState(QuestState::Failed);
 	}
 
 	std::vector<Quest*> QuestManager::getQuestsForLevel(const std::string& level_name) {
@@ -354,7 +372,7 @@ namespace Nawia::Game {
 				quest.state = QuestState::Available;
 				Core::Logger::debugLog("QuestManager: quest '" + id + "' jest teraz dostepny.");
 
-				if (engine)
+				if (engine && quest.auto_start)
 					engine->getUIHandler().showNotification("Nowy quest dostepny: " + quest.name, 3.0f);
 
 				if (quest.auto_start) {

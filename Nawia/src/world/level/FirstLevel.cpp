@@ -5,6 +5,7 @@
 #include <Engine.h>
 #include <EntityManager.h>
 #include <GlobalScaling.h>
+#include <LocationJsonLoader.h>
 #include <Logger.h>
 #include <Map.h>
 #include <MathUtils.h>
@@ -28,13 +29,29 @@ namespace Nawia::World {
 	namespace {
 		constexpr const char* FIRST_LEVEL_MUSIC =
 			"assets/audio/music/soulfuljamtracks-slavic-folk-308126.mp3";
-		constexpr const char* FIRST_LEVEL_LIGHTING_FILE = "assets/maps/wczora_lighting.json";
+		constexpr const char* FIRST_LEVEL_FOREST_LIGHTING_FILE = "assets/maps/wczora_las_lighting.json";
+		constexpr const char* FIRST_LEVEL_NAWIA_LIGHTING_FILE = "assets/maps/wczora_przedsionek_nawii_lighting.json";
 		constexpr float WCZORA_INTRO_CAMERA_ZOOM_FACTOR = 0.5f;
 		constexpr float WCZORA_INTRO_CAMERA_TARGET_HEIGHT_FACTOR = 0.55f;
+		constexpr int PRESENTATION_BOOTS_ITEM_ID = 19;
 
 		const std::vector<LevelLocationFile> FIRST_LEVEL_LOCATIONS = {
-			{"Wczora", "assets/data/locations/wczora.json"},
+			{"", "assets/data/locations/wczora.json"},
+			{"", "assets/data/locations/przedsionek_nawii.json"},
 		};
+
+		const char* getLightingFileForLocation(const LocationDefinition& location) {
+			const std::string filename = location.source_path.filename().string();
+			if (filename == "przedsionek_nawii.json" || location.map.model == "wczora_przedsionek_nawii.glb")
+				return FIRST_LEVEL_NAWIA_LIGHTING_FILE;
+
+			return FIRST_LEVEL_FOREST_LIGHTING_FILE;
+		}
+
+		bool isPrzedsionekNawiiLocation(const LocationDefinition& location) {
+			return location.source_path.filename().string() == "przedsionek_nawii.json" ||
+				   location.map.model == "wczora_przedsionek_nawii.glb";
+		}
 
 		void drawIntroParticlesFx(const float width, const float height, const float time) {
 			for (int i = 0; i < UI::SMOKE_LAYER_COUNT; ++i) {
@@ -56,6 +73,25 @@ namespace Nawia::World {
 				const float radius = Core::GlobalScaling::scaled(1.5f + UI::hash01(seed + 7.0f) * UI::hash01(seed + 7.0f) * 12.0f) * (0.45f + rise * 0.95f);
 				const float alpha = (0.10f + rise * 0.50f) * (0.55f + UI::hash01(seed + 6.0f) * 0.45f);
 				DrawCircleGradient(static_cast<int>(pos_x), static_cast<int>(pos_y), radius, UI::withAlpha(UI::COLOR_GOLDEN_TEXT, alpha), UI::withAlpha(UI::COLOR_SLAVIC_ORANGE, alpha * 0.35f));
+			}
+		}
+
+		void drawNawiaFogFx(const float width, const float height, const float time) {
+			DrawRectangleGradientV(0, 0, static_cast<int>(width), static_cast<int>(height), Color{4, 5, 8, 185}, Color{0, 0, 0, 215});
+
+			for (int i = 0; i < 22; ++i) {
+				const float seed = static_cast<float>(i) * 19.41f + 5.7f;
+				const float drift = UI::fract(UI::hash01(seed) + time * (0.010f + UI::hash01(seed + 1.0f) * 0.014f));
+				const float pos_x = width * (UI::hash01(seed + 2.0f) * 1.15f - 0.08f) + std::sin(time * 0.09f + seed) * width * 0.07f;
+				const float pos_y = height * (0.10f + UI::hash01(seed + 3.0f) * 0.92f) + (drift - 0.5f) * height * 0.18f;
+				const float radius = Core::GlobalScaling::scaled(95.0f + UI::hash01(seed + 4.0f) * 190.0f);
+				const float alpha = 0.035f + UI::hash01(seed + 5.0f) * 0.07f;
+				DrawCircleGradient(
+					static_cast<int>(pos_x),
+					static_cast<int>(pos_y),
+					radius,
+					UI::withAlpha(Color{115, 124, 138, 255}, alpha),
+					UI::withAlpha(BLACK, 0.0f));
 			}
 		}
 
@@ -91,6 +127,39 @@ namespace Nawia::World {
 			DrawTexturePro(*texture, source_rectangle, {0.0f, 0.0f, screen_width, screen_height}, {0.0f, 0.0f}, 0.0f, WHITE);
 		}
 
+		Rectangle getIntroSkipButtonRect(const int screen_width, const int screen_height) {
+			const float margin = Core::GlobalScaling::scaled(24.0f);
+			const float width = Core::GlobalScaling::scaled(150.0f);
+			const float height = Core::GlobalScaling::scaled(42.0f);
+			return {
+				margin,
+				static_cast<float>(screen_height) - margin - height,
+				width,
+				height
+			};
+		}
+
+		void drawIntroSkipButton(const Font& font, const Rectangle rect) {
+			const Vector2 mouse = GetMousePosition();
+			const bool hovered = CheckCollisionPointRec(mouse, rect);
+			const Color fill = hovered ? Color{74, 65, 55, 232} : Color{43, 39, 34, 220};
+			const Color border = hovered ? UI::COLOR_GOLDEN_TEXT : Color{138, 119, 87, 220};
+			DrawRectangleRounded(rect, 0.12f, 8, fill);
+			DrawRectangleRoundedLinesEx(rect, 0.12f, 8, Core::GlobalScaling::scaled(1.5f), border);
+
+			const char* text = "Pomin";
+			const float font_size = Core::GlobalScaling::scaled(20.0f);
+			const float spacing = Core::GlobalScaling::scaled(1.0f);
+			const Vector2 text_size = MeasureTextEx(font, text, font_size, spacing);
+			DrawTextEx(
+				font,
+				text,
+				{rect.x + rect.width * 0.5f - text_size.x * 0.5f, rect.y + rect.height * 0.5f - text_size.y * 0.5f},
+				font_size,
+				spacing,
+				RAYWHITE);
+		}
+
 		nlohmann::json loadJsonDocument(const std::string& path) {
 			std::ifstream file(path);
 			if (!file.is_open()) {
@@ -111,6 +180,11 @@ namespace Nawia::World {
 
 		const nlohmann::json& getIntroConfig() {
 			static const nlohmann::json config = loadJsonDocument("assets/data/wczora_intro.json");
+			return config;
+		}
+
+		const nlohmann::json& getOutroConfig() {
+			static const nlohmann::json config = loadJsonDocument("assets/data/wczora_outro.json");
 			return config;
 		}
 
@@ -149,13 +223,12 @@ namespace Nawia::World {
 				size_t next_line = i + 1;
 				if (next_line < lines.size() && isPlayerDialogueSpeaker(lines[next_line].value("speaker", ""))) {
 					option.text = lines[next_line].value("text", "");
-					next_line++;
 				} else {
 					const bool is_final_node = next_line >= lines.size();
 					if (is_final_node)
 						option.text = resolveFinalOption(final_option_text, node.speaker_name, node.text);
 					else
-						option.text = isPlayerDialogueSpeaker(node.speaker_name) ? node.text : "Rozumiem.";
+						option.text = "Dalej";
 				}
 				option.next_node_id = (next_line < lines.size()) ? static_cast<int>(next_line) : -1;
 				node.options.push_back(option);
@@ -185,8 +258,52 @@ namespace Nawia::World {
 		}
 	}
 
+	std::vector<std::string> FirstLevel::getLocations() const {
+		// Jesli lokacje zostaly juz zaladowane, uzyj ich.
+		const auto loaded = Level::getLocations();
+		if (!loaded.empty())
+			return loaded;
+
+		// Fallback: odczytaj nazwy z plikow JSON, zanim poziom zostanie zaladowany
+		// (np. kiedy menu glowne pyta o liste lokacji).
+		std::vector<std::string> names;
+		for (const auto& location_file : FIRST_LEVEL_LOCATIONS) {
+			LocationDefinition definition;
+			if (LocationJsonLoader::loadLocation(location_file.path, definition))
+				names.push_back(definition.name);
+		}
+		return names;
+	}
+
 	std::vector<LevelLocationFile> FirstLevel::getLocationFiles() const {
 		return FIRST_LEVEL_LOCATIONS;
+	}
+
+	void FirstLevel::changeLocation(Core::Engine* engine, const std::string& location_name) {
+		// Stare zapisy i prototypowe triggery mogly jeszcze uzywac nazwy "Wczora".
+		const std::string resolved_location =
+			location_name == "Wczora" && !_location_definitions.empty()
+				? _location_definitions.front().name
+				: location_name;
+
+		Level::changeLocation(engine, resolved_location);
+
+		if (!engine || _current_location_index >= _location_definitions.size())
+			return;
+
+		engine->getLightingSystem().loadLightingFromJson(getLightingFileForLocation(_location_definitions[_current_location_index]));
+		if (engine->getCurrentMap())
+			engine->getLightingSystem().applyToModel(engine->getCurrentMap()->getModel());
+	}
+
+	void FirstLevel::prepareForRespawn(Core::Engine* engine) {
+		Level::prepareForRespawn(engine);
+		if (!engine || _current_location_index >= _location_definitions.size())
+			return;
+
+		engine->getLightingSystem().loadLightingFromJson(getLightingFileForLocation(_location_definitions[_current_location_index]));
+		if (engine->getCurrentMap())
+			engine->getLightingSystem().applyToModel(engine->getCurrentMap()->getModel());
 	}
 
 	void FirstLevel::onEnter(Core::Engine* engine) {
@@ -194,7 +311,10 @@ namespace Nawia::World {
 		activatePreparedLocations(engine);
 
 		if (engine) {
-			engine->getLightingSystem().loadLightingFromJson(FIRST_LEVEL_LIGHTING_FILE);
+			if (_current_location_index < _location_definitions.size())
+				engine->getLightingSystem().loadLightingFromJson(getLightingFileForLocation(_location_definitions[_current_location_index]));
+			if (engine->getCurrentMap())
+				engine->getLightingSystem().applyToModel(engine->getCurrentMap()->getModel());
 			engine->getAudioManager().playMusic(FIRST_LEVEL_MUSIC, true, 0.65f);
 		}
 	}
@@ -205,13 +325,15 @@ namespace Nawia::World {
 	}
 
 	void FirstLevel::onNewGameStarted(Core::Engine* engine) {
+		equipPresentationBoots(engine);
 		startIntroSequence(engine);
 	}
 
 	void FirstLevel::handleStoryEvent(Core::Engine* engine, const std::string& event_id, const Vector2 world_position) {
 		if (event_id == "wanda_corpse_inspected")
 			queueCorpseInspected(world_position);
-		(void)engine;
+		else if (event_id == "wczora_outro_requested")
+			startOutroSequence(engine);
 	}
 
 	bool FirstLevel::blocksPlayerControl() const {
@@ -270,6 +392,33 @@ namespace Nawia::World {
 		}
 		playSlideVoice(engine);
 		engine->getPlayer()->stop();
+	}
+
+	void FirstLevel::skipIntroSlides(Core::Engine* engine) {
+		if (!engine || !engine->getPlayer())
+			return;
+
+		stopSlideVoice(engine);
+		_intro_slides.clear();
+		_intro_slide_index = 0;
+		_intro_timer = 0.0f;
+		_intro_overlay_alpha = 0.38f;
+		_intro_flash_timer = 0.0f;
+		_pending_szeptucha_encounter = false;
+		_pending_final_dialogue = false;
+		_pending_corpse_completion = false;
+		_pending_szeptucha_delay = 0.0f;
+		removeIntroNpc();
+		spawnIntroCorpse(engine);
+		openAwakeningDialogue(engine);
+	}
+
+	void FirstLevel::equipPresentationBoots(Core::Engine* engine) const {
+		if (!engine || !engine->getPlayer())
+			return;
+
+		if (const auto boots = engine->getItemDatabase().createItem(PRESENTATION_BOOTS_ITEM_ID))
+			engine->getPlayer()->equipItem(boots);
 	}
 
 	void FirstLevel::spawnIntroCorpse(Core::Engine* engine) {
@@ -420,6 +569,63 @@ namespace Nawia::World {
 		_pending_szeptucha_delay = 0.0f;
 	}
 
+	void FirstLevel::startOutroSequence(Core::Engine* engine) {
+		if (!engine)
+			return;
+
+		stopSlideVoice(engine);
+		removeIntroNpc();
+		_intro_slides.clear();
+
+		const auto& config = getOutroConfig();
+		if (config.contains("slides") && config["slides"].is_array()) {
+			for (const auto& slide_json : config["slides"]) {
+				IntroSlide slide;
+				slide.text = slide_json.value("text", "");
+				slide.voice_path = slide_json.value("voice_path", "");
+				slide.image_path = slide_json.value("image_path", "");
+				slide.duration = slide_json.value("duration", 7.0f);
+				_intro_slides.push_back(std::move(slide));
+			}
+		}
+
+		for (auto& slide : _intro_slides) {
+			if (!slide.image_path.empty()) {
+				slide.image_texture = engine->getResourceManager().getTexture(slide.image_path);
+				if (slide.image_texture && slide.image_texture->id > 0)
+					SetTextureFilter(*slide.image_texture, TEXTURE_FILTER_TRILINEAR);
+			}
+		}
+
+		_intro_slide_index = 0;
+		_intro_phase = _intro_slides.empty() ? IntroPhase::OutroFadeToMenu : IntroPhase::OutroSlides;
+		_intro_timer = 0.0f;
+		_intro_overlay_alpha = 1.0f;
+		_intro_dialogue_opened = false;
+		_intro_flash_timer = 0.0f;
+		_pending_szeptucha_encounter = false;
+		_pending_final_dialogue = false;
+		_pending_corpse_completion = false;
+		_pending_szeptucha_delay = 0.0f;
+
+		if (const auto player = engine->getPlayer())
+			player->stop();
+
+		playSlideVoice(engine);
+	}
+
+	void FirstLevel::finishOutroSequence(Core::Engine* engine) {
+		stopSlideVoice(engine);
+		_intro_phase = IntroPhase::Inactive;
+		_intro_timer = 0.0f;
+		_intro_overlay_alpha = 0.0f;
+		_intro_slides.clear();
+		_intro_slide_index = 0;
+
+		if (engine)
+			engine->requestReturnToMainMenu(getOutroConfig().value("beta_message", "Twierdza Kamienna nie jest dostepna w wersji Beta."));
+	}
+
 	void FirstLevel::removeIntroNpc() {
 		if (const auto npc = _intro_npc.lock())
 			npc->setDormant(true);
@@ -450,6 +656,15 @@ namespace Nawia::World {
 
 		if (_intro_phase == IntroPhase::Inactive || !engine)
 			return;
+
+		if ((_intro_phase == IntroPhase::Slides || _intro_phase == IntroPhase::FadeFromBlackAfterSlides) &&
+			IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			const Rectangle skip_rect = getIntroSkipButtonRect(GetScreenWidth(), GetScreenHeight());
+			if (CheckCollisionPointRec(GetMousePosition(), skip_rect)) {
+				skipIntroSlides(engine);
+				return;
+			}
+		}
 
 		if (_pending_szeptucha_delay > 0.0f)
 			_pending_szeptucha_delay = std::max(0.0f, _pending_szeptucha_delay - dt);
@@ -485,6 +700,7 @@ namespace Nawia::World {
 		_intro_timer += dt;
 		switch (_intro_phase) {
 			case IntroPhase::Slides:
+			case IntroPhase::OutroSlides:
 				_intro_overlay_alpha = 1.0f;
 				if (_intro_slide_index < _intro_slides.size() &&
 					_intro_timer >= _intro_slides[_intro_slide_index].duration) {
@@ -492,6 +708,11 @@ namespace Nawia::World {
 					_intro_timer = 0.0f;
 					if (_intro_slide_index < _intro_slides.size()) {
 						playSlideVoice(engine);
+					} else if (_intro_phase == IntroPhase::OutroSlides) {
+						stopSlideVoice(engine);
+						_intro_phase = IntroPhase::OutroFadeToMenu;
+						_intro_timer = 0.0f;
+						_intro_overlay_alpha = 0.0f;
 					} else {
 						stopSlideVoice(engine);
 						if (const auto player = engine->getPlayer()) {
@@ -520,19 +741,35 @@ namespace Nawia::World {
 			case IntroPhase::FinalDialogue:
 				_intro_overlay_alpha = 0.22f;
 				break;
+			case IntroPhase::OutroFadeToMenu:
+				_intro_overlay_alpha = std::clamp(_intro_timer / 2.5f, 0.0f, 1.0f);
+				if (_intro_timer >= 2.5f)
+					finishOutroSequence(engine);
+				break;
 			case IntroPhase::Inactive:
 				break;
 		}
 	}
 
 	void FirstLevel::renderOverlay(Core::Engine* engine) const {
-		if (_intro_phase == IntroPhase::Inactive && _intro_flash_timer <= 0.0f)
+		const bool render_nawia_fog =
+			_current_location_index < _location_definitions.size() &&
+			isPrzedsionekNawiiLocation(_location_definitions[_current_location_index]);
+
+		if (_intro_phase == IntroPhase::Inactive && _intro_flash_timer <= 0.0f && !render_nawia_fog)
 			return;
 
 		const int width = GetScreenWidth();
 		const int height = GetScreenHeight();
+		const float screen_width = static_cast<float>(width);
+		const float screen_height = static_cast<float>(height);
+		const float overlay_time = static_cast<float>(GetTime());
+		if (render_nawia_fog)
+			drawNawiaFogFx(screen_width, screen_height, overlay_time);
+
 		const float alpha = std::clamp(_intro_overlay_alpha, 0.0f, 1.0f);
-		const bool rendering_slide = _intro_phase == IntroPhase::Slides &&
+		const bool rendering_slide =
+			(_intro_phase == IntroPhase::Slides || _intro_phase == IntroPhase::OutroSlides) &&
 			_intro_slide_index < _intro_slides.size();
 		if (!rendering_slide && alpha > 0.0f)
 			DrawRectangle(0, 0, width, height, Fade(BLACK, alpha));
@@ -542,8 +779,6 @@ namespace Nawia::World {
 			const float fade_in = std::clamp(_intro_timer / 1.2f, 0.0f, 1.0f);
 			const float fade_out = std::clamp((slide.duration - _intro_timer) / 1.2f, 0.0f, 1.0f);
 			const float text_alpha = std::min(fade_in, fade_out);
-			const float screen_width = static_cast<float>(width);
-			const float screen_height = static_cast<float>(height);
 			const float image_time = static_cast<float>(GetTime()) + static_cast<float>(_intro_slide_index) * 13.0f;
 
 			drawAnimatedIntroImage(slide.image_texture, screen_width, screen_height, image_time);
@@ -596,6 +831,9 @@ namespace Nawia::World {
 				text_y += line_height;
 			}
 		}
+
+		if ((_intro_phase == IntroPhase::Slides || _intro_phase == IntroPhase::FadeFromBlackAfterSlides) && engine)
+			drawIntroSkipButton(engine->getUIHandler().getFont(), getIntroSkipButtonRect(width, height));
 
 		if (_intro_flash_timer > 0.0f) {
 			const float flash_alpha = std::clamp(_intro_flash_timer / 0.55f, 0.0f, 1.0f);

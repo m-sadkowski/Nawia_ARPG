@@ -2,6 +2,8 @@
 
 #include <StoryNpc.h>
 
+#include <json.hpp>
+
 namespace Nawia::Entity {
 
 	/**
@@ -19,6 +21,9 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool canInteract() const override;
 		float getInteractionRange() override;
 		void handleQuestTalkCompleted(Core::Engine& engine) override;
+		[[nodiscard]] bool shouldLookAtPlayerWhenNearby() const override { return false; }
+		[[nodiscard]] nlohmann::json serializeState() const override;
+		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
 	private:
 		bool _inspected = false; ///< Chroni przed ponownym odpaleniem inspekcji zwlok.

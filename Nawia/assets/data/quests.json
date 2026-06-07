@@ -59,7 +59,7 @@
         }
       ],
       "rewards": {
-        "items": [ 7 ],
+        "items": [],
         "gold": 50,
         "exp": 250
       }
@@ -239,24 +239,234 @@
       }
     },
     {
-      "id": "find_survivors",
-      "name": "Znajdz ocalencow",
-      "description": "Znajdz mieszkancow, ktorzy przezyli atak, i odeslij ich do chaty medrca Jakuba.",
+      "id": "rescue_cemetery_survivors",
+      "name": "Ocaleni z cmentarza",
+      "description": "Znajdz dwoje mieszkancow ukrywajacych sie przy cmentarzu i odeslij ich do chaty zielarza.",
       "level_name": "Wczora",
       "prerequisites": ["recover_scarf"],
       "auto_start": false,
       "objectives": [
         {
-          "type": "talk_to_npc",
-          "target_name": "Ocalency",
+          "type": "reach_checkpoint",
+          "target_name": "cemetery_survivors_arrived",
           "count": 1,
-          "description": "Znajdz ocalalych mieszkancow"
+          "description": "Odeslij ocalonych z cmentarza do chaty zielarza"
         }
       ],
       "rewards": {
         "items": [],
         "gold": 0,
         "exp": 250
+      }
+    },
+    {
+      "id": "talk_to_village_head_after_ropuch",
+      "name": "Porozmawiaj z Soltysem",
+      "description": "Porozmawiaj z Soltysem po odzyskaniu chusty Mileny.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Soltys",
+          "count": 1,
+          "description": "Porozmawiaj z Soltysem"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 100
+      }
+    },
+    {
+      "id": "rescue_forest_survivors",
+      "name": "Zagubieni w lesie",
+      "description": "Znajdz troje ludzi zagubionych w lesie i pomoz im dotrzec do chaty zielarza.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "forest_lost_group_arrived",
+          "count": 1,
+          "description": "Doprowadz zagubiona grupe do chaty zielarza"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
+    },
+    {
+      "id": "enter_nawia_threshold",
+      "name": "Przedsionek Nawii",
+      "description": "Porozmawiaj z Czarownica i przejdz przez mgle do Przedsionka Nawii.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "witch_to_nawia",
+          "count": 1,
+          "description": "Wejdz do Przedsionka Nawii"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 150
+      }
+    },
+    {
+      "id": "defeat_bies",
+      "name": "Bies w mgle",
+      "description": "Pokonaj Biesa strzegacego Przedsionka Nawii.",
+      "level_name": "Wczora",
+      "prerequisites": ["enter_nawia_threshold"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Devil",
+          "count": 1,
+          "description": "Pokonaj Biesa"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 500
+      }
+    },
+    {
+      "id": "return_to_witch_after_bies",
+      "name": "Powrot z Nawii",
+      "description": "Wroc do Czarownicy po pokonaniu Biesa.",
+      "level_name": "Wczora",
+      "prerequisites": ["defeat_bies"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "witch_after_bies",
+          "count": 1,
+          "description": "Porozmawiaj z Czarownica po powrocie"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 100
+      }
+    },
+    {
+      "id": "resolve_witch_truth",
+      "name": "Prawda Wiedzmy",
+      "description": "Rozpraw sie z Wiedzma albo wydobadz od niej prawde o gniewie bogow.",
+      "level_name": "Wczora",
+      "prerequisites": ["return_to_witch_after_bies"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "witch_truth_resolved",
+          "count": 1,
+          "description": "Poznaj zrodlo gniewu bogow"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
+    },
+    {
+      "id": "return_to_herbalist_final",
+      "name": "Wiesci dla ocalonych",
+      "description": "Wroc do chaty zielarza i powiedz ludziom, czego dowiedziales sie od Wiedzmy.",
+      "level_name": "Wczora",
+      "prerequisites": ["resolve_witch_truth"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "herbalist_final_report",
+          "count": 1,
+          "description": "Porozmawiaj z medrcem przy chacie zielarza"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 300
+      }
+    },
+    {
+      "id": "clear_spider_nest",
+      "name": "Wielki katnik",
+      "description": "Zabij wielkiego katnika, ktory urzadzil gniazdo przy zawalonym przejsciu.",
+      "level_name": "Wczora",
+      "prerequisites": ["return_to_herbalist_final"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Straszny pajak",
+          "count": 1,
+          "description": "Zabij wielkiego katnika"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 450
+      }
+    },
+    {
+      "id": "return_to_herbalist_after_spider",
+      "name": "Wroc do Zielarza",
+      "description": "Powiedz Zielarzowi, ze katnik nie zyje i mozna odgruzowac przejscie.",
+      "level_name": "Wczora",
+      "prerequisites": ["clear_spider_nest"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Zielarz",
+          "count": 1,
+          "description": "Wroc do Zielarza"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
+    },
+    {
+      "id": "talk_to_milena_sister",
+      "name": "Siostra Mileny",
+      "description": "Porozmawiaj z siostra Mileny i dowiedz sie, co widziala podczas ucieczki.",
+      "level_name": "Wczora",
+      "prerequisites": ["return_to_herbalist_final"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Siostra Mileny",
+          "count": 1,
+          "description": "Porozmawiaj z siostra Mileny"
+        }
+      ],
+      "rewards": {
+        "items": [20],
+        "gold": 0,
+        "exp": 150
       }
     }
   ]

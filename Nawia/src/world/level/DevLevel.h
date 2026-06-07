@@ -21,9 +21,12 @@ namespace Nawia::World {
 		SpawnerDetails,
 		ChestDetails,
 		NPCSelection,
+		NPCStoryDetails,
+		HerbalistHubDetails,
 		PropDetails,
 		TeleportDetails,
 		BossTriggerDetails,
+		StoryTriggerDetails,
 		NavBlockerDetails,
 		ItemSelection,
 		KeySelection,
@@ -50,8 +53,23 @@ namespace Nawia::World {
 		SpawnerRadius,
 		TriggerRadius,
 		ObjectName,
+		NPCModel,
+		NPCAnimationBundle,
+		NPCIdleAnimation,
+		NPCWalkAnimation,
+		NPCTalkAnimation,
+		NPCDestinationName,
 		PropModel,
 		TeleportTarget,
+		StoryDialogueKey,
+		StoryStartQuest,
+		StoryCompleteQuest,
+		StoryFailQuest,
+		StoryCheckpoint,
+		StoryStartBoss,
+		HubRadius,
+		ConditionQuestCompleted,
+		ConditionBossDefeated,
 		BossTriggerWidth,
 		BossTriggerHeight,
 		NavBlockerWidth,
@@ -109,6 +127,23 @@ namespace Nawia::World {
 			std::vector<int> loot_ids;
 			bool locked = false;
 			int key_id = -1;
+			std::string required_quest_completed;
+			std::string required_boss_defeated;
+			std::string npc_model_path;
+			std::string npc_animation_bundle;
+			std::string npc_idle_animation;
+			std::string npc_walk_animation;
+			std::string npc_talk_animation;
+			std::string npc_destination_name;
+			bool npc_can_talk = true;
+			bool npc_route_after_talk = false;
+			bool npc_disable_interaction_after_talk = false;
+			std::string story_target_location;
+			std::string story_start_quest;
+			std::string story_complete_quest;
+			std::string story_fail_quest;
+			std::string story_checkpoint;
+			std::string story_start_boss;
 			float blocker_width = 4.0f;
 			float blocker_depth = 4.0f;
 			float blocker_height = 0.0f;
@@ -237,6 +272,12 @@ namespace Nawia::World {
 		/** @brief Rysuje menu wyboru NPC. */
 		void renderNPCSelectionMenu(Core::Engine* engine);
 
+		/** @brief Rysuje formularz konfigurowalnego NPC fabularnego. */
+		void renderNPCStoryDetailsMenu(Core::Engine* engine);
+
+		/** @brief Rysuje formularz HUB-a zielarza. */
+		void renderHerbalistHubDetailsMenu(Core::Engine* engine);
+
 		/** @brief Rysuje formularz obiektu statycznego. */
 		void renderPropDetailsMenu(Core::Engine* engine);
 
@@ -245,6 +286,9 @@ namespace Nawia::World {
 
 		/** @brief Rysuje formularz triggera bossa. */
 		void renderBossTriggerDetailsMenu(Core::Engine* engine);
+
+		/** @brief Rysuje formularz triggera fabularnego. */
+		void renderStoryTriggerDetailsMenu(Core::Engine* engine);
 
 		/** @brief Rysuje formularz blokera navmesha. */
 		void renderNavBlockerDetailsMenu(Core::Engine* engine);
@@ -292,13 +336,30 @@ namespace Nawia::World {
 		bool _temp_chest_locked = false;
 		int _temp_key_id = -1;
 		std::string _temp_extra_value;
+		std::string _temp_story_target_location;
+		bool _temp_npc_can_talk = true;
+		bool _temp_npc_route_after_talk = false;
+		bool _temp_npc_disable_interaction_after_talk = false;
 
 		std::string _count_buffer = "1";
 		std::string _spawn_radius_buffer = "5.0";
 		std::string _trigger_radius_buffer = "15.0";
 		std::string _prop_model_path_buffer;
+		std::string _npc_animation_bundle_buffer;
+		std::string _npc_idle_animation_buffer = "Idle";
+		std::string _npc_walk_animation_buffer = "Walk";
+		std::string _npc_talk_animation_buffer = "talk";
+		std::string _npc_destination_name_buffer;
 		std::string _boss_width_buffer = "10.0";
 		std::string _boss_height_buffer = "4.0";
+		std::string _story_dialogue_key_buffer;
+		std::string _story_start_quest_buffer;
+		std::string _story_complete_quest_buffer;
+		std::string _story_fail_quest_buffer;
+		std::string _story_checkpoint_buffer;
+		std::string _story_start_boss_buffer;
+		std::string _condition_quest_completed_buffer;
+		std::string _condition_boss_defeated_buffer;
 		std::string _nav_blocker_width_buffer = "4.0";
 		std::string _nav_blocker_depth_buffer = "4.0";
 		std::string _nav_blocker_height_buffer = "0.0";

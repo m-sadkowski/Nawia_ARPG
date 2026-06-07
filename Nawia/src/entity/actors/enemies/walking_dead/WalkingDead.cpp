@@ -205,6 +205,7 @@ namespace Nawia::Entity {
 			{
 				if (getDistanceToTarget() <= ATTACK_RANGE * 1.7f)
 				{
+					target->rememberDamageSource(this);
 					target->takeDamage(ATTACK_DAMAGE);
 					_attack_damage_applied = true;
 				}
@@ -218,6 +219,7 @@ namespace Nawia::Entity {
 			{
 				if (!_attack_damage_applied && getDistanceToTarget() <= ATTACK_RANGE * 1.7f)
 				{
+					target->rememberDamageSource(this);
 					target->takeDamage(ATTACK_DAMAGE);
 				}
 			}

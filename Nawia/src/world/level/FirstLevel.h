@@ -27,9 +27,11 @@ namespace Nawia::World {
 		void renderOverlay(Core::Engine* engine) const override;
 
 		[[nodiscard]] std::string getName() const override { return "Wczora"; }
-		[[nodiscard]] std::vector<std::string> getLocations() const override { return {"Wczora"}; }
+		[[nodiscard]] std::vector<std::string> getLocations() const override;
 		[[nodiscard]] std::vector<LevelLocationFile> getLocationFiles() const override;
-		[[nodiscard]] std::string getDefaultInitialLocation() const override { return "Wczora"; }
+		[[nodiscard]] std::string getDefaultInitialLocation() const override { return ""; }
+		void changeLocation(Core::Engine* engine, const std::string& location_name) override;
+		void prepareForRespawn(Core::Engine* engine) override;
 		[[nodiscard]] bool blocksPlayerControl() const override;
 		[[nodiscard]] bool isInteractionOnly() const override;
 		[[nodiscard]] float getCameraZoomMultiplier() const override;
@@ -44,7 +46,9 @@ namespace Nawia::World {
 			AwakeningDialogue,
 			InspectCorpse,
 			SzeptuchaDialogue,
-			FinalDialogue
+			FinalDialogue,
+			OutroSlides,
+			OutroFadeToMenu
 		};
 
 		/** @brief Pojedynczy slajd intro z opcjonalnym glosem i zaladowanym obrazem. */
@@ -57,6 +61,8 @@ namespace Nawia::World {
 		};
 
 		void startIntroSequence(Core::Engine* engine);
+		void skipIntroSlides(Core::Engine* engine);
+		void equipPresentationBoots(Core::Engine* engine) const;
 		void spawnIntroCorpse(Core::Engine* engine);
 		void queueCorpseInspected(const Vector2& corpse_position);
 		void queueSzeptuchaEncounter(const Vector2& corpse_position);
@@ -64,6 +70,8 @@ namespace Nawia::World {
 		void openAwakeningDialogue(Core::Engine* engine);
 		void openFinalDialogue(Core::Engine* engine);
 		void finishIntroSequence(Core::Engine* engine);
+		void startOutroSequence(Core::Engine* engine);
+		void finishOutroSequence(Core::Engine* engine);
 		void removeIntroNpc();
 		void playSlideVoice(Core::Engine* engine);
 		void stopSlideVoice(Core::Engine* engine);

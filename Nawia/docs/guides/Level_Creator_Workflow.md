@@ -159,6 +159,9 @@ W kodzie levelu wskazujesz zawsze sciezke assetowa:
 
 Teleport dodajesz w miejscu, w ktorym stoi gracz. W formularzu teleportu
 wybierasz lokacje docelowa z listy istniejacych lokacji.
+Runtime renderuje teleport statycznym modelem `assets/models/teleport.glb`.
+W JSON mozna zostawic domyslna skale albo dopisac `scale` i `rotation`, jesli
+model wymaga dostrojenia w konkretnej mapie.
 
 Przyklad ukladu:
 
@@ -170,7 +173,79 @@ Po wejsciu w teleport runtime przeladuje model mapy i navmesh, przeniesie
 gracza na spawn lokacji docelowej oraz aktywuje encje tej lokacji z puli
 zaladowanej przy starcie levelu.
 
-## 6. Format plikow
+Teleporty moga byc bramkowane warunkami fabularnymi. Przyklad teleportu
+powrotnego, ktory pojawi sie dopiero po pokonaniu bossa:
+
+```json
+{
+    "type": "teleport",
+    "target_location": "Dolina Nedzy",
+    "conditions": {
+        "required_boss_defeated": "bies"
+    }
+}
+```
+
+## 6. Wczora: lokacje fabularne
+
+Poziom `Wczora` korzysta teraz z dwoch lokacji zapisanych w kreatorze:
+
+- `assets/data/locations/wczora.json` - `Dolina Nedzy`, mapa `wczora_las.glb`,
+  oswietlenie `assets/maps/wczora_las_lighting.json`.
+- `assets/data/locations/przedsionek_nawii.json` - `Przedsionek Nawii`, mapa
+  `wczora_przedsionek_nawii.glb`, oswietlenie
+  `assets/maps/wczora_przedsionek_nawii_lighting.json`.
+
+W Przedsionku stoi `boss_trigger` z `boss_id: "bies"` oraz teleport powrotny do
+Doliny, odblokowywany warunkiem `required_boss_defeated: "bies"`.
+FirstLevel naklada tam tez ciemny overlay z wolna mgla; to efekt runtime, a nie
+obiekt zapisywany w kreatorze.
+
+## 7. Fabularne NPC i huby
+
+Do sekwencji z ocalonymi ustawiasz w kreatorze:
+
+- `HUB zielarza` w miejscu, gdzie maja finalnie zebrac sie ocaleni. Nazwa huba
+  powinna zostac `Herbalist Hub`, jesli `Forest Lost NPC` ma uzywac domyslnej
+  konfiguracji.
+- `Zielarz` jako NPC przy chacie zielarza.
+- `Cmentarz: Ocaleni` jako jedna grupa dwojga ocalonych z cmentarza. Dialog z
+  rozmowna postacia wysyla oboje do `Herbalist Hub`.
+- `Forest Lost NPC` jako jedna grupa w lesie: kobieta do rozmowy, mezczyzna
+  niosacy i siostra Mileny.
+
+Grupy po dialogu ruszaja do `Herbalist Hub`. Ocaleni z cmentarza po dotarciu
+rozchodza sie ruchem po losowych punktach huba. Grupa lesna po dotarciu nie
+teleportuje postaci do losowych miejsc: najpierw opuszcza siostre Mileny,
+odtwarza jej animacje wstawania, a dopiero potem wszystkie trzy postacie ida do
+losowych punktow w promieniu huba.
+
+Najwazniejsze pola JSON dla grupy cmentarnej:
+
+```json
+{
+    "npc_class": "cemetery_survivor_group",
+    "hub_name": "Herbalist Hub",
+    "dialogue_key": "cemetery_survivors",
+    "checkpoint_on_arrival": "cemetery_survivors_arrived"
+}
+```
+
+Najwazniejsze pola JSON dla grupy lesnej:
+
+```json
+{
+    "npc_class": "forest_lost_group",
+    "hub_name": "Herbalist Hub",
+    "dialogue_key": "forest_lost_group",
+    "checkpoint_on_arrival": "forest_lost_group_arrived",
+    "sister_carry_height": 1.6,
+    "sister_drop_duration": 0.6,
+    "male_carry_spacing_multiplier": 2.4
+}
+```
+
+## 8. Format plikow
 
 Plik lokacji:
 
@@ -212,7 +287,7 @@ Loader dopisuje lokacje obiektom automatycznie na podstawie aktualnie ladowanej
 lokacji, wiec w `objects_*.json` nie trzeba recznie uzupelniac pola
 `location`.
 
-## 7. Co jest teraz obslugiwane
+## 9. Co jest teraz obslugiwane
 
 Runtime loader czyta:
 
@@ -221,12 +296,13 @@ Runtime loader czyta:
 - `player_spawn`,
 - plik `objects_*.json`,
 - encje tworzone przez `EntityFactory`, w tym teleporty i boss triggery.
+- story NPC, story triggery, story anchory i huby zielarza.
 
 Modele map oraz encje ze wszystkich lokacji levelu sa ladowane przy starcie.
 Przy zmianie lokacji przeladowywana jest geometria mapy, a encje sa tylko
 usypiane albo aktywowane.
 
-## 8. Szybki checklist
+## 10. Szybki checklist
 
 Nowy poziom dziala, gdy:
 

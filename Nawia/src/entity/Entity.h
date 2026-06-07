@@ -117,6 +117,13 @@ namespace Nawia::Entity {
 		void setY(float y) { _pos.y = y; }
 		void setAltitude(float altitude) { _altitude = altitude; }
 		[[nodiscard]] Vector2 getCenter() const;
+		virtual void applyRoot(float duration);
+		void applyPoison(float duration, int damage_per_tick, float tick_interval = 1.0f);
+		void clearStatusEffects();
+		[[nodiscard]] bool isMovementRooted() const { return _root_timer > 0.0f; }
+		[[nodiscard]] bool isPoisoned() const { return _poison_timer > 0.0f; }
+		[[nodiscard]] float getRootRemaining() const { return _root_timer; }
+		[[nodiscard]] float getPoisonRemaining() const { return _poison_timer; }
 
 		/**
 		 * @brief Zwraca pozycję encji w świecie 3D.
@@ -161,6 +168,7 @@ namespace Nawia::Entity {
 		[[nodiscard]] float getScale() const { return _scale; }
 		void setHovered(bool hovered) { _hovered = hovered; }
 		void setAudioManager(Audio::AudioManager* audio_manager) { _audio_manager = audio_manager; }
+		void hideMeshIndex(int mesh_index);
 
 		/**
 		 * @brief Ustawia docelowy punkt ruchu encji.
@@ -194,6 +202,8 @@ namespace Nawia::Entity {
 
 		[[nodiscard]] bool isDead() const { return _hp <= 0; }
 		[[nodiscard]] bool isDying() const { return _is_dying; }
+		[[nodiscard]] bool shouldPersistAfterDeath() const { return _persist_after_death; }
+		void setPersistAfterDeath(bool value) { _persist_after_death = value; }
 		[[nodiscard]] bool isMoving() const { return _is_moving; }
 		[[nodiscard]] int getHP() const { return _hp; }
 		[[nodiscard]] int getMaxHP() const { return _max_hp; }
@@ -262,10 +272,16 @@ namespace Nawia::Entity {
 			bool lock_movement = true,
 			int start_frame = 0,
 			bool force = false);
+		void playAnimationFreezeOnLastFrame(
+			const std::string& name,
+			bool lock_movement = false,
+			int start_frame = 0,
+			bool force = true);
 
 		void setAnimationSpeed(float multiplier) { _anim_speed_multiplier = multiplier; }
 		[[nodiscard]] float getAnimationSpeed() const { return _anim_speed_multiplier; }
 		[[nodiscard]] int getAnimationFrameCount(const std::string& name) const;
+		void applyCurrentAnimationFrame();
 		[[nodiscard]] bool isAnimationLocked() const { return _anim_locked; }
 		static constexpr float ANIMATION_DURATION_SCALE = 1.5f;
 
@@ -276,6 +292,7 @@ namespace Nawia::Entity {
 		 * @brief Ustawia wizualny offset modelu względem matematycznego kierunku patrzenia.
 		 */
 		void setModelFacingOffset(float deg) { _model_facing_offset = deg; }
+		[[nodiscard]] float getModelFacingOffset() const { return _model_facing_offset; }
 
 		/**
 		 * @brief Obraca encję w stronę punktu świata.
@@ -368,6 +385,8 @@ namespace Nawia::Entity {
 		}
 
 		[[nodiscard]] std::shared_ptr<Entity> getLastDamageSource() const { return _last_damage_source.lock(); }
+		void setHealToFullOnKill(const bool value) { _heal_to_full_on_kill = value; }
+		[[nodiscard]] bool healsToFullOnKill() const { return _heal_to_full_on_kill; }
 
 		/**
 		 * @brief Zwraca odległość do celu albo bardzo dużą wartość, gdy celu nie ma.
@@ -405,6 +424,7 @@ namespace Nawia::Entity {
 		 */
 		void setDormant(bool dormant) { _dormant = dormant; }
 		[[nodiscard]] bool isDormant() const { return _dormant; }
+		[[nodiscard]] virtual bool shouldWakeOnLocationChange() const { return true; }
 
 		// Zapis stanu encji.
 		/**
@@ -479,9 +499,14 @@ namespace Nawia::Entity {
 		bool _anim_locked = false;
 		bool _anim_ping_pong = false;
 		bool _anim_reverse_phase = false;
+		bool _freeze_animation_on_completion = false;
+		bool _animation_frozen_at_last_frame = false;
 		float _anim_direction = 1.0f;
+		bool _persist_after_death = false;
 		bool _hovered = false;
 		bool _dormant = false;
+		bool _heal_to_full_on_kill = false;
+		std::vector<int> _hidden_mesh_indices;
 
 		bool _is_dying = false;
 		std::string _death_anim_name = "death";
@@ -494,6 +519,11 @@ namespace Nawia::Entity {
 
 		float _speed_multiplier = 1.0f;
 		float _damage_multiplier = 1.0f;
+		float _root_timer = 0.0f;
+		float _poison_timer = 0.0f;
+		float _poison_tick_timer = 0.0f;
+		float _poison_tick_interval = 1.0f;
+		int _poison_damage_per_tick = 0;
 
 		// Śledzenie celu.
 		std::weak_ptr<Entity> _target;             ///< Aktualny cel AI/walki, nieposiadany.
@@ -504,6 +534,7 @@ namespace Nawia::Entity {
 		std::string _name;
 
 		void updateAnimation(float dt);
+		void updateStatusEffects(float dt);
 		void updateMovementSound(const std::string& path, bool should_play, float volume = 0.55f, float pitch = 1.0f);
 		[[nodiscard]] float getSpatialAudioVolumeMultiplier() const;
 		void unloadModelData();

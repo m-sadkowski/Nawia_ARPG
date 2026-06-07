@@ -27,10 +27,10 @@
       "stats": {
         "damage": 5,
         "cooldown": 0.45,
-        "cast_range": 4.8,
+        "cast_range": 3.36,
         "projectile_speed": 0.0,
         "duration": 0.12,
-        "hitbox_radius": 3.8
+        "hitbox_radius": 2.66
       }
     },
     {

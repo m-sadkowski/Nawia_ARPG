@@ -48,6 +48,8 @@ namespace Nawia::UI
 
     namespace
     {
+        constexpr int BABA_YAGA_BOOK_ITEM_ID = 18;
+
         /**
          * @brief Oblicza prostokaty pionowego stosu przyciskow menu.
          */
@@ -147,6 +149,25 @@ namespace Nawia::UI
         _previous_hp = _player ? _player->getHP() : 0;
         _visual_hp_percent = 1.0f;
         _visual_exp_percent = 0.0f;
+    }
+
+    void UIHandler::openDialogue(const Game::DialogueTree& tree, const int start_node_id, std::function<void(int, bool)> on_close)
+    {
+        _dialogueUI.open(tree, start_node_id, std::move(on_close));
+    }
+
+    void UIHandler::openDialogueFacing(
+        const Game::DialogueTree& tree,
+        const std::shared_ptr<Entity::Entity>& speaker,
+        const int start_node_id,
+        std::function<void(int, bool)> on_close)
+    {
+        if (_player && speaker) {
+            _player->stop();
+            _player->rotateTowardsCenter(speaker->getCenter().x, speaker->getCenter().y);
+        }
+
+        openDialogue(tree, start_node_id, std::move(on_close));
     }
 
     void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager, const Core::Settings* settings)
@@ -522,6 +543,7 @@ namespace Nawia::UI
             
         renderPlayerExperienceBar();
         renderPlayerHealthBar();
+        renderPlayerStatusEffects();
         renderPlayerAbilityBar();
         renderCombatEntityHealthBars(camera, boss_manager);
         renderBossHealthBar(boss_manager);
@@ -844,6 +866,23 @@ namespace Nawia::UI
                 if (container_slot != -1)
                 {
                     const auto item = container_inventory->getItem(container_slot);
+                    if (item && item->getId() == BABA_YAGA_BOOK_ITEM_ID)
+                    {
+                        if (_player->unlockFireballAbility())
+                            showNotification("Ksiega Baby Jagi rozsypala sie w popiol.", 3.0f);
+                        else
+                            showNotification("Znasz juz sekret tej ksiegi.", 2.5f);
+
+                        container_inventory->removeItem(container_slot);
+                        if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
+                        if (container_inventory->getRemainingCapacity() == container_inventory->getCapacity())
+                        {
+                            showNotification("Ta skrzynia jest pusta", 3.0f);
+                            closeContainer();
+                        }
+                        return;
+                    }
+
                     if (item && item->isFood())
                     {
                         _player->addFood(1);
@@ -968,6 +1007,40 @@ namespace Nawia::UI
         drawOrb(orb_center_x, orb_center_y, orb_radius, target_hp, _visual_hp_percent, 2.5f, orb_fill_bright, orb_fill_dark, orb_bg, health_text, _hp_orb_frame);
     }
 
+    void UIHandler::renderPlayerStatusEffects() const
+    {
+        if (!_player || (!_player->isPoisoned() && !_player->isMovementRooted()))
+            return;
+
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float screen_height = static_cast<float>(GetScreenHeight());
+        const float ability_frame_width = Core::GlobalScaling::scaled(520.0f);
+        const float start_x = (screen_width - ability_frame_width) / 2.0f;
+        float x = start_x + Core::GlobalScaling::scaled(116.0f);
+        const float y = screen_height - Core::GlobalScaling::scaled(164.0f);
+        const float height = Core::GlobalScaling::scaled(24.0f);
+        const float gap = Core::GlobalScaling::scaled(8.0f);
+        const float font_size = Core::GlobalScaling::scaled(14.0f);
+        const float spacing = Core::GlobalScaling::scaled(1.0f);
+
+        const auto draw_status = [&](const char* label, const float remaining, const Color color) {
+            const char* text = TextFormat("%s %.1f", label, remaining);
+            const Vector2 text_size = MeasureTextEx(_font, text, font_size, spacing);
+            const float width = text_size.x + Core::GlobalScaling::scaled(18.0f);
+            const Rectangle rect = {x, y, width, height};
+            DrawRectangleRounded(rect, 0.18f, 6, withAlpha(BLACK, 0.68f));
+            DrawRectangleRoundedLines(rect, 0.18f, 6, withAlpha(color, 0.95f));
+            DrawTextEx(_font, text, {x + Core::GlobalScaling::scaled(9.0f), y + (height - text_size.y) * 0.5f}, font_size, spacing, color);
+            x += width + gap;
+        };
+
+        if (_player->isPoisoned())
+            draw_status("TRUCIZNA", _player->getPoisonRemaining(), {90, 220, 90, 255});
+
+        if (_player->isMovementRooted())
+            draw_status("PAJECZYNA", _player->getRootRemaining(), {220, 220, 230, 255});
+    }
+
     void UIHandler::renderCombatEntityHealthBars(const Core::GameCamera& camera, const Game::BossManager* boss_manager) const
     {
         // Pobranie encji bossa, zeby pominac ja w malych paskach HP.
@@ -1012,7 +1085,7 @@ namespace Nawia::UI
         const float frame_y = static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(126.0f);
         const float icon_size = frame_height * 0.55f;
 
-        const float slot_center_ratios[] = { 0.247f, 0.370f, 0.650f, 0.780f };
+        const float slot_center_ratios[] = { 0.247f, 0.370f, 0.630f, 0.750f };
         const char* slot_keys[] = { "Q", "W", "E", "R" };
         const float food_center_ratio = 0.500f;
         const float slot_center_y = frame_y + frame_height * 0.53f;

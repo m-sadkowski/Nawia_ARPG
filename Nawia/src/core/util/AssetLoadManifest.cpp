@@ -162,6 +162,8 @@ namespace Nawia::Core {
 			"assets/models/actors/walking_dead/walking_dead.glb",
 			"assets/models/actors/frog/frog.glb",
 			"assets/models/actors/worm/worm.glb",
+			"assets/models/actors/spider/spider.glb",
+			"assets/models/cobweb.glb",
 			"assets/models/actors/mini_mushroom/mini_mushroom.glb",
 			"assets/models/actors/mini_mushroom/mini_mushroom_infected.glb",
 			"assets/models/actors/mushroom/mushroom_raylib_fixed.glb",
@@ -198,6 +200,9 @@ namespace Nawia::Core {
 		addTexture("assets/textures/icons/strong_hit_icon.png");
 		addTexture("assets/textures/icons/empty_ability_icon.png");
 		addTexture("assets/textures/icons/food_icon.png");
+		addTexture("assets/textures/outro/odgruzowanie_przejscia.png");
+		addTexture("assets/textures/outro/dziady_przy_potoku.png");
+		addTexture("assets/textures/outro/droga_do_twierdzy.png");
 	}
 
 	void AssetLoadManifest::appendEntityTypeAssets(const std::string& entity_type, const nlohmann::json& entity_data) {
@@ -241,6 +246,13 @@ namespace Nawia::Core {
 			return;
 		}
 
+		if (entity_type == "spider") {
+			addModel("assets/models/actors/spider/spider.glb");
+			addAnimation("assets/models/actors/spider/spider.glb");
+			addModel("assets/models/cobweb.glb");
+			return;
+		}
+
 		if (entity_type == "mini_mushroom_infected") {
 			addModel("assets/models/actors/mini_mushroom/mini_mushroom_infected.glb");
 			addAnimation("assets/models/actors/mini_mushroom/mini_mushroom_infected.glb");
@@ -270,7 +282,15 @@ namespace Nawia::Core {
 		}
 
 		if (entity_type == "teleport") {
+			addModel("assets/models/teleport.glb");
+			return;
+		}
+
+		if (entity_type == "witch") {
+			addModel("assets/models/actors/witch/witch.glb");
+			addAnimation("assets/models/actors/witch/witch.glb");
 			addModel("assets/models/fireball.glb");
+			appendEntityTypeAssets("walking_dead", entity_data);
 			return;
 		}
 
@@ -286,6 +306,32 @@ namespace Nawia::Core {
 				addAnimation("assets/models/actors/village_head/village_head.glb");
 			} else if (npc_class == "wanda_corpse") {
 				addModel("assets/models/actors/wanda/woman_dress.glb");
+			} else if (npc_class == "forest_lost_group") {
+				addModel("assets/models/actors/npcs/female_npc_2.glb");
+				addAnimation("assets/models/actors/npcs/female_npc_2.glb");
+				addModel("assets/models/actors/npcs/male_npc_2.glb");
+				addAnimation("assets/models/actors/npcs/male_npc_2.glb");
+				addModel("assets/models/actors/milena_sister/milena_sister.glb");
+				addAnimation("assets/models/actors/milena_sister/milena_sister.glb");
+			} else if (npc_class == "cemetery_survivor_group") {
+				addModel("assets/models/actors/friends/female_warrior/female_warrior.glb");
+				addAnimation("assets/models/actors/friends/female_warrior/female_warrior.glb");
+				addModel("assets/models/actors/npcs/male_npc_1.glb");
+				addAnimation("assets/models/actors/npcs/male_npc_1.glb");
+			} else if (npc_class == "story_human" || npc_class == "herbalist") {
+				const std::string model_path = resolveModelPath(
+					readStringAlias(entity_data, {"model", "model_path"}));
+				std::string animation_bundle = resolveModelPath(
+					readStringAlias(entity_data, {"animation_bundle"}));
+				if (!model_path.empty())
+					addModel(model_path);
+
+				if (animation_bundle.empty() && !model_path.empty()) {
+					animation_bundle = model_path;
+				}
+
+				if (!animation_bundle.empty())
+					addAnimation(animation_bundle);
 			} else {
 				addModel("assets/models/actors/cat/cat_bounce.glb");
 				addAnimation("assets/models/actors/cat/cat_bounce.glb");
@@ -309,11 +355,23 @@ namespace Nawia::Core {
 
 		if (entity_type == "boss_trigger") {
 			const std::string boss_id = entity_data.value("boss_id", "");
-			if (boss_id == "devil" || boss_id.find("devil") != std::string::npos) {
+			if (boss_id == "bies" || boss_id == "devil" || boss_id.find("devil") != std::string::npos) {
 				appendEntityTypeAssets("devil", entity_data);
+				if (boss_id == "bies") {
+					appendEntityTypeAssets("walking_dead", entity_data);
+					appendEntityTypeAssets("bandit", entity_data);
+				}
+			} else if (boss_id == "czarownica" || boss_id == "witch" || boss_id.find("witch") != std::string::npos) {
+				appendEntityTypeAssets("witch", entity_data);
 			} else if (boss_id == "ropuch") {
 				appendEntityTypeAssets("frog", entity_data);
 			}
+		}
+
+		if (entity_type == "story_trigger") {
+			const std::string dialogue_key = entity_data.value("dialogue_key", "");
+			if (dialogue_key == "witch_after_bies_placeholder")
+				appendEntityTypeAssets("witch", entity_data);
 		}
 	}
 

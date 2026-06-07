@@ -131,13 +131,12 @@ namespace Nawia::Entity {
             size_t next_line = i + 1;
             if (next_line < intro.lines.size() && isPlayerDialogueSpeaker(intro.lines[next_line].speaker)) {
                 option.text = intro.lines[next_line].text;
-                next_line++;
             } else {
                 const bool is_final_node = next_line >= intro.lines.size();
                 if (is_final_node)
                     option.text = resolveFinalOption(intro.final_option, node.speaker_name, node.text);
                 else
-                    option.text = isPlayerDialogueSpeaker(node.speaker_name) ? node.text : "Rozumiem.";
+                    option.text = "Dalej";
             }
             option.next_node_id = (next_line < intro.lines.size()) ? static_cast<int>(next_line) : -1;
             node.options.push_back(option);
@@ -145,7 +144,7 @@ namespace Nawia::Entity {
         }
 
         _intro_dialogue_open = true;
-        engine->getUIHandler().openDialogue(tree, 0, [this, engine, checkpoint = intro.checkpoint_on_complete](const int, const bool completed) {
+        engine->getUIHandler().openDialogueFacing(tree, _preview_boss.lock(), 0, [this, engine, checkpoint = intro.checkpoint_on_complete](const int, const bool completed) {
             _intro_dialogue_open = false;
             if (!completed)
                 return;
@@ -191,6 +190,21 @@ namespace Nawia::Entity {
 
     float BossArenaTrigger::getInteractionRange() {
         return 0.0f;
+    }
+
+    nlohmann::json BossArenaTrigger::serializeState() const {
+        nlohmann::json state = Entity::serializeState();
+        state["intro_completed"] = _intro_completed;
+        return state;
+    }
+
+    void BossArenaTrigger::applyState(const nlohmann::json& state, Item::ItemDatabase* item_database) {
+        Entity::applyState(state, item_database);
+        if (!state.is_object())
+            return;
+
+        _intro_dialogue_open = false;
+        _intro_completed = state.value("intro_completed", _intro_completed);
     }
 
 } // namespace Nawia::Entity

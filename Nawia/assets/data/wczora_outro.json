@@ -1,0 +1,23 @@
+{
+  "slides": [
+    {
+      "text": "Kiedy wielki katnik padl, ludzie Wczory po raz pierwszy od wielu dni podeszli do zawalonego przejscia bez strachu. Kamien po kamieniu zaczeli odkopywac droge, ktora miala zaprowadzic ich ku temu, co zostalo przemilczane.",
+      "voice_path": "assets/audio/dialogues/Outro/slide_01.wav",
+      "image_path": "assets/textures/outro/odgruzowanie_przejscia.png",
+      "duration": 8.0
+    },
+    {
+      "text": "Przy potoku nad Twierdza Kamienna odprawiono dziady. Logos zrozumial, ze gniew bogow nie rodzi sie tylko z winy, ale tez z pychy zywych, ktorzy przestali sluchac zmarlych.",
+      "voice_path": "assets/audio/dialogues/Outro/slide_02.wav",
+      "image_path": "assets/textures/outro/dziady_przy_potoku.png",
+      "duration": 8.0
+    },
+    {
+      "text": "Chcial naprawic relacje ludu z bogami, ale przede wszystkim odnalezc Milene. Jesli zyje, droga do niej prowadzi dalej, ku Twierdzy Kamiennej.",
+      "voice_path": "assets/audio/dialogues/Outro/slide_03.wav",
+      "image_path": "assets/textures/outro/droga_do_twierdzy.png",
+      "duration": 7.5
+    }
+  ],
+  "beta_message": "Twierdza Kamienna nie jest dostepna w wersji Beta. Mozesz wczytac zapis albo zaczac gre od nowa."
+}

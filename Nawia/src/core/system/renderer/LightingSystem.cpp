@@ -122,6 +122,14 @@ namespace Nawia::Core::System::Renderer {
 			return;
 		}
 
+		for (int i = 0; i < k_max_lights; ++i) {
+			Light disabled_light = {};
+			disabled_light.enabled = 0;
+			disabled_light.type = LightingSystem::LIGHT_POINT;
+			cacheLightUniformLocations(disabled_light, i);
+			uploadLightToShader(disabled_light);
+		}
+
 		if (data.contains("ambient")) {
 			const auto& a = data["ambient"];
 			setAmbientColor({ a[0], a[1], a[2], a[3] });

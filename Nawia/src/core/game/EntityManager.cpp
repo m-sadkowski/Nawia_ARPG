@@ -65,7 +65,22 @@ namespace Nawia::Core {
     }
 
     void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity) {
+        if (!new_entity)
+            return;
+
+        if (std::ranges::find(_active_entities, new_entity) != _active_entities.end())
+            return;
+
         _active_entities.push_back(std::move(new_entity));
+    }
+
+    void EntityManager::removeEntity(const std::shared_ptr<Entity::Entity>& entity) {
+        if (!entity)
+            return;
+
+        _active_entities.erase(
+            std::remove(_active_entities.begin(), _active_entities.end(), entity),
+            _active_entities.end());
     }
 
     void EntityManager::setPlayer(std::shared_ptr<Entity::Entity> player) {
@@ -164,10 +179,15 @@ namespace Nawia::Core {
             if (const auto ability_effect = dynamic_cast<Entity::AbilityEffect*>(entity.get()))
                 is_expired_spell = ability_effect->isExpired();
 
-            if (entity->isDead() || is_expired_spell) {
-                if (entity->isDead() && entity->getType() == Entity::EntityType::Enemy) {
-                    if (_engine) {
-                        _engine->getQuestManager().notifyKill(entity->getName());
+			if (entity->isDead() || is_expired_spell) {
+				if (entity->isDead() && entity->shouldPersistAfterDeath()) {
+					++it;
+					continue;
+				}
+
+				if (entity->isDead() && entity->getType() == Entity::EntityType::Enemy) {
+					if (_engine) {
+						_engine->getQuestManager().notifyKill(entity->getName());
                     }
                 }
                 
@@ -348,13 +368,17 @@ namespace Nawia::Core {
         if (distance_sq < combined_radius * combined_radius && distance_sq > 0.0001f) {
             const float distance = std::sqrt(distance_sq);
             const float overlap = combined_radius - distance;
-            const float push_x = (dx / distance) * overlap * 0.5f;
-            const float push_y = (dy / distance) * overlap * 0.5f;
-            
-            first_entity->setX(first_entity->getX() - push_x);
-            first_entity->setY(first_entity->getY() - push_y);
-            second_entity->setX(second_entity->getX() + push_x);
-            second_entity->setY(second_entity->getY() + push_y);
+            const bool first_rooted = first_entity->isMovementRooted();
+            const bool second_rooted = second_entity->isMovementRooted();
+            const float first_push_share = first_rooted && !second_rooted ? 0.0f : (second_rooted && !first_rooted ? 1.0f : 0.5f);
+            const float second_push_share = second_rooted && !first_rooted ? 0.0f : (first_rooted && !second_rooted ? 1.0f : 0.5f);
+            const float push_x = (dx / distance) * overlap;
+            const float push_y = (dy / distance) * overlap;
+
+            first_entity->setX(first_entity->getX() - push_x * first_push_share);
+            first_entity->setY(first_entity->getY() - push_y * first_push_share);
+            second_entity->setX(second_entity->getX() + push_x * second_push_share);
+            second_entity->setY(second_entity->getY() + push_y * second_push_share);
         }
     }
 

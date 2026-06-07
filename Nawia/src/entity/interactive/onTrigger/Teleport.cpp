@@ -5,25 +5,30 @@
 #include <Level.h>
 #include <LevelManager.h>
 #include <Logger.h>
+#include <Map.h>
 #include <Player.h>
 #include <BossManager.h>
 
+#include <raymath.h>
+
 namespace Nawia::Entity {
+
+    namespace {
+        constexpr const char* TELEPORT_MODEL = "assets/models/teleport.glb";
+    }
 
     Teleport::Teleport(const std::string& name, float x, float y, Core::Engine* engine, const std::string& target_location)
         : InteractiveTrigger(name, x, y, nullptr, 1), _engine(engine), _target_location(target_location)
     {
         _type = EntityType::Trigger;
         setFaction(Faction::None);
-        loadModel("assets/models/fireball.glb");
-        setScale(0.45f);
-        setModelFacingOffset(0.0f);
-
+        loadModel(TELEPORT_MODEL);
         if (_model_loaded) {
-            for (int i = 0; i < _model.materialCount; ++i) {
-                _model.materials[i].maps[MATERIAL_MAP_DIFFUSE].color = Color{45, 20, 80, 255};
-            }
+            const BoundingBox bounds = _local_model_bounding_box_valid ? _local_model_bounding_box : GetModelBoundingBox(_model);
+            _model.transform = MatrixMultiply(MatrixTranslate(0.0f, -bounds.min.y, 0.0f), _model.transform);
         }
+        setScale(1.0f);
+        setModelFacingOffset(0.0f);
 
         setCollider(std::make_unique<RectangleCollider>(this, 2.0f, 1.0f, 0.0f, 0.0f));
     }
@@ -48,8 +53,15 @@ namespace Nawia::Entity {
     }
 
     void Teleport::update(float delta_time) {
-        setRotation(getRotation() + 45.0f * delta_time);
-        Entity::update(delta_time);
+        (void)delta_time;
+        if (_snapped_to_navmesh || !_engine || !_engine->getCurrentMap() || !_engine->getCurrentMap()->getNavMesh().isReady())
+            return;
+
+        const Vector3 snapped = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(getWorldPos3D());
+        setX(snapped.x);
+        setY(snapped.z);
+        setAltitude(snapped.y);
+        _snapped_to_navmesh = true;
     }
 
     void Teleport::render(const Camera3D& camera) {
@@ -57,11 +69,11 @@ namespace Nawia::Entity {
             const Vector3 pos3d = getWorldPos3D();
             DrawModelEx(
                 _model,
-                {pos3d.x, pos3d.y + 0.35f, pos3d.z},
+                pos3d,
                 {0.0f, 1.0f, 0.0f},
                 getRotation(),
                 {_scale, _scale, _scale},
-                Color{35, 18, 70, 235});
+                WHITE);
         }
 
 		if (DebugColliders && _collider) {

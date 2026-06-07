@@ -2,6 +2,7 @@
 
 #include <BossManager.h>
 #include <Engine.h>
+#include <Entity.h>
 #include <Item.h>
 #include <Logger.h>
 #include <Map.h>
@@ -11,18 +12,25 @@
 #include <Friend.h>
 #include <BossArenaTrigger.h>
 #include <Cat.h>
+#include <CemeterySurvivorGroupNpc.h>
 #include <Chest.h>
 #include <Checkpoint.h>
 #include <Frog.h>
+#include <ForestLostGroupNpc.h>
+#include <GenericStoryNpc.h>
+#include <HerbalistHub.h>
 #include <MiniMushroomInfected.h>
 #include <MiniMushroomProp.h>
 #include <MushroomNpc.h>
 #include <SzeptuchaNpc.h>
+#include <spider/Spider.h>
 #include <StaticObject.h>
+#include <StoryTrigger.h>
 #include <Teleport.h>
 #include <VillageHeadNpc.h>
 #include <WalkingDead.h>
 #include <WandaCorpseNpc.h>
+#include <witch/Witch.h>
 #include <Worm.h>
 
 #include <SwordSlashAbility.h>
@@ -96,10 +104,12 @@ namespace Nawia::World {
 		Core::Map* map)
 	{
 		if (type == "devil")         return createDevil(data, engine, map);
+		if (type == "witch")         return createWitch(data, engine, map);
 		if (type == "bandit")        return createBandit(data, engine, map);
 		if (type == "walking_dead")  return createWalkingDead(data, engine, map);
 		if (type == "frog")          return createFrog(data, engine, map);
 		if (type == "worm")          return createWorm(data, engine, map);
+		if (type == "spider")        return createSpider(data, engine, map);
 		if (type == "mini_mushroom_infected") return createMiniMushroomInfected(data, engine, map);
 		if (type == "friend")        return createFriend(data, engine, map);
 		if (type == "chest")         return createChest(data, engine);
@@ -108,8 +118,11 @@ namespace Nawia::World {
 		if (type == "static_object") return createStaticObject(data, engine);
 		if (type == "checkpoint")    return createCheckpoint(data);
 		if (type == "checkpoint_mushroom_npc") return createMushroomWaypoint(data);
+		if (type == "story_anchor")  return createStoryAnchor(data);
+		if (type == "herbalist_hub") return createHerbalistHub(data);
 		if (type == "teleport")      return createTeleport(data, engine);
 		if (type == "boss_trigger")  return createBossTrigger(data, engine);
+		if (type == "story_trigger") return createStoryTrigger(data, engine);
 
 		Core::Logger::errorLog("EntityFactory: nieznany typ encji: " + type);
 		return nullptr;
@@ -135,6 +148,26 @@ namespace Nawia::World {
 			.build();
 
 		return devil;
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createWitch(
+		const json& data, Core::Engine* engine, Core::Map* map)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const int hp = data.value("hp", 160);
+		const std::string name = data.value("name", "Czarownica");
+
+		auto witch = Entity::WitchBuilder()
+			.setName(name)
+			.setPosition({x, y})
+			.setMap(map)
+			.setMaxHp(hp)
+			.setTarget(engine ? engine->getPlayer() : nullptr)
+			.setAudioManager(engine ? &engine->getAudioManager() : nullptr)
+			.build();
+
+		return witch;
 	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createBandit(
@@ -220,6 +253,25 @@ namespace Nawia::World {
 			.setAudioManager(&engine->getAudioManager())
 			.build());
 		return worm;
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createSpider(
+		const json& data, Core::Engine* engine, Core::Map* map)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const int hp = data.value("hp", 240);
+		const std::string name = data.value("name", "Pajak");
+
+		auto spider = std::shared_ptr<Entity::Spider>(Entity::SpiderBuilder()
+			.setName(name)
+			.setPosition({x, y})
+			.setMap(map)
+			.setMaxHp(hp)
+			.setTarget(engine ? engine->getPlayer() : nullptr)
+			.setAudioManager(engine ? &engine->getAudioManager() : nullptr)
+			.build());
+		return spider;
 	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createMiniMushroomInfected(
@@ -323,6 +375,8 @@ namespace Nawia::World {
 			addItemsFromJson(data, engine, [&](const std::shared_ptr<Item::Item>& item) {
 				cat->addItem(item);
 			});
+			if (auto key = engine->getItemDatabase().createItem(5))
+				cat->addItem(key);
 
 			return cat;
 		}
@@ -354,6 +408,24 @@ namespace Nawia::World {
 			auto corpse = std::make_shared<Entity::WandaCorpseNpc>(name.empty() ? "Zwloki Wandy" : name, x, y, engine);
 			corpse->setAudioManager(&engine->getAudioManager());
 			return corpse;
+		}
+
+		if (npc_class == "story_human" || npc_class == "herbalist") {
+			auto story_npc = std::make_shared<Entity::GenericStoryNpc>(name.empty() ? "NPC" : name, x, y, engine, data);
+			story_npc->setAudioManager(&engine->getAudioManager());
+			return story_npc;
+		}
+
+		if (npc_class == "forest_lost_group") {
+			auto group = std::make_shared<Entity::ForestLostGroupNpc>(name.empty() ? "Forest Lost NPC" : name, x, y, engine, data);
+			group->setAudioManager(&engine->getAudioManager());
+			return group;
+		}
+
+		if (npc_class == "cemetery_survivor_group") {
+			auto group = std::make_shared<Entity::CemeterySurvivorGroupNpc>(name.empty() ? "Ocaleni z cmentarza" : name, x, y, engine, data);
+			group->setAudioManager(&engine->getAudioManager());
+			return group;
 		}
 
 		Core::Logger::errorLog("EntityFactory: nieznana klasa NPC: " + npc_class);
@@ -426,6 +498,28 @@ namespace Nawia::World {
 			.build();
 	}
 
+	std::shared_ptr<Entity::Entity> EntityFactory::createStoryAnchor(const json& data)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const std::string name = data.value("name", "Story Anchor");
+
+		auto anchor = std::make_shared<Entity::Entity>(name, x, y, nullptr, 1);
+		anchor->setType(Entity::EntityType::NPCStatic);
+		anchor->setFaction(Entity::Faction::None);
+		return anchor;
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createHerbalistHub(const json& data)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const std::string name = data.value("name", "Herbalist Hub");
+		const float radius = data.value("radius", data.value("spawn_radius", 5.0f));
+
+		return std::make_shared<Entity::HerbalistHub>(name, x, y, radius);
+	}
+
 	std::shared_ptr<Entity::Entity> EntityFactory::createTeleport(
 		const json& data, Core::Engine* engine)
 	{
@@ -438,7 +532,11 @@ namespace Nawia::World {
 			Core::Logger::errorLog("EntityFactory: Teleport wymaga pola 'target_location'");
 		}
 
-		return std::make_shared<Entity::Teleport>(name, x, y, engine, target_location);
+		auto teleport = std::make_shared<Entity::Teleport>(name, x, y, engine, target_location);
+		teleport->setScale(data.value("scale", 1.0f));
+		if (data.contains("rotation") && data["rotation"].is_number())
+			teleport->setRotation(data["rotation"].get<float>());
+		return teleport;
 	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createBossTrigger(const json& data, Core::Engine* engine)
@@ -456,6 +554,17 @@ namespace Nawia::World {
 		}
 
 		return std::make_shared<Entity::BossArenaTrigger>(boss_id, x, y, width, height);
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createStoryTrigger(const json& data, Core::Engine* engine)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const float width = data.value("width", 4.0f);
+		const float height = data.value("height", 4.0f);
+		const std::string name = data.value("name", "Story Trigger");
+
+		return std::make_shared<Entity::StoryTrigger>(name, x, y, width, height, engine, data);
 	}
 
 } // namespace Nawia::World

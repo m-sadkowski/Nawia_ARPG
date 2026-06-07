@@ -2,6 +2,8 @@
 
 #include <SimpleMeleeEnemy.h>
 
+#include <json.hpp>
+
 #include <memory>
 #include <vector>
 
@@ -23,6 +25,8 @@ namespace Nawia::Entity {
 		/** @brief Wywolywane przez powiazanego robala po smierci; rozpoczyna oczyszczenie. */
 		void purifyAfterWormDeath();
 		[[nodiscard]] bool isPurified() const { return _purified; }
+		[[nodiscard]] nlohmann::json serializeState() const override;
+		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 		/** @brief Ustawia pojedynczy cel ruchu dla oczyszczonego mini-grzyba. */
 		void setPropDestination(Vector2 destination);
 		/** @brief Ustawia wielopunktowa trase dla oczyszczonego mini-grzyba. */

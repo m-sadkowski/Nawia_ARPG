@@ -106,6 +106,79 @@ namespace Nawia::Entity {
 		_anim_direction = -1.0f;
 	}
 
+	nlohmann::json MiniMushroomInfected::serializeState() const {
+		nlohmann::json state = Entity::serializeState();
+		state["corruption_released"] = _corruption_released;
+		state["corpse_frozen"] = _corpse_frozen;
+		state["purified"] = _purified;
+		state["purifying"] = _purifying;
+		state["jumping"] = _jumping;
+		state["has_prop_destination"] = _has_prop_destination;
+		state["prop_destination"] = {{"x", _prop_destination.x}, {"y", _prop_destination.y}};
+		state["prop_route_index"] = _prop_route_index;
+		state["prop_route"] = nlohmann::json::array();
+		for (const Vector2& point : _prop_route)
+			state["prop_route"].push_back({{"x", point.x}, {"y", point.y}});
+		return state;
+	}
+
+	void MiniMushroomInfected::applyState(const nlohmann::json& state, Item::ItemDatabase* item_database) {
+		Entity::applyState(state, item_database);
+		if (!state.is_object())
+			return;
+
+		_corruption_released = state.value("corruption_released", _corruption_released);
+		_corpse_frozen = state.value("corpse_frozen", _corpse_frozen);
+		_purified = state.value("purified", _purified);
+		_purifying = state.value("purifying", _purifying);
+		_jumping = state.value("jumping", _jumping);
+		_has_prop_destination = state.value("has_prop_destination", _has_prop_destination);
+		_prop_route_index = state.value("prop_route_index", _prop_route_index);
+		if (state.contains("prop_destination") && state["prop_destination"].is_object()) {
+			_prop_destination = {
+				state["prop_destination"].value("x", _prop_destination.x),
+				state["prop_destination"].value("y", _prop_destination.y)
+			};
+		}
+
+		_prop_route.clear();
+		if (state.contains("prop_route") && state["prop_route"].is_array()) {
+			for (const auto& point : state["prop_route"]) {
+				if (point.is_object())
+					_prop_route.push_back({point.value("x", 0.0f), point.value("y", 0.0f)});
+			}
+		}
+		if (_prop_route_index > _prop_route.size())
+			_prop_route_index = _prop_route.size();
+
+		if (_purified) {
+			setType(EntityType::NPCStatic);
+			setFaction(Faction::None);
+			loadMiniMushroomAnimations();
+			setMovementSpeed(2.55f);
+			if (_purifying) {
+				const int frame_count = getAnimationFrameCount("death");
+				playAnimation("death", false, true, std::max(0, frame_count - 1), true);
+				_anim_direction = -1.0f;
+			} else if (_has_prop_destination) {
+				moveTo(_prop_destination.x, _prop_destination.y);
+				if (getAnimationFrameCount("walk") > 0)
+					playAnimation("walk", true, false, 0, true);
+			} else {
+				playAnimation("idle", true, false, 0, true);
+			}
+		} else if (_corruption_released) {
+			setType(EntityType::NPCStatic);
+			setFaction(Faction::None);
+			setVelocity(0.0f, 0.0f);
+			_is_moving = false;
+			if (_corpse_frozen)
+				freezeOnDeathFrame();
+			else
+				playAnimation("death", false, true, 0, true);
+		}
+	}
+
 	void MiniMushroomInfected::setPropDestination(const Vector2 destination) {
 		if (!_purified)
 			return;

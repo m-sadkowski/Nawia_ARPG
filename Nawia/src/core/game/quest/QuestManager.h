@@ -38,6 +38,11 @@ namespace Nawia::Game {
 		void completeQuest(const std::string& id, Core::Engine* engine);
 
 		/**
+		 * @brief Oznacza aktywny/dostepny quest jako nieudany.
+		 */
+		bool failQuest(const std::string& id, Core::Engine* engine = nullptr);
+
+		/**
 		 * @brief Zwraca quest po ID albo nullptr.
 		 */
 		[[nodiscard]] Quest* getQuest(const std::string& id);
@@ -62,6 +67,11 @@ namespace Nawia::Game {
 		 * @brief Zwraca ukonczone questy z aktualnego poziomu.
 		 */
 		[[nodiscard]] std::vector<Quest*> getCompletedQuests();
+
+		/**
+		 * @brief Zwraca nieudane questy z aktualnego poziomu.
+		 */
+		[[nodiscard]] std::vector<Quest*> getFailedQuests();
 
 		/**
 		 * @brief Zwraca questy przypisane do poziomu oraz questy globalne.

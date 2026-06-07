@@ -64,7 +64,7 @@ namespace Nawia::World {
 		const std::string current_location = getCurrentLocationName();
 
 		// Lekka aktualizacja: tylko dystans do gracza i przelaczanie uspionych encji.
-		_spawn_manager.update(player_pos, current_location);
+		_spawn_manager.update(player_pos, current_location, engine);
 	}
 
 	std::string Level::getCurrentLocationName() const {
@@ -160,12 +160,32 @@ namespace Nawia::World {
 				location.source_path.generic_string()
 			);
 		} else {
-			_spawn_manager.updateLocationChange(location.name, _map.get());
+			_spawn_manager.updateLocationChange(location.name, engine, _map.get());
 		}
 
 		Vector2 active_player_pos = {0.0f, 0.0f};
 		bool has_active_player_pos = false;
-		if (move_player_to_spawn && location.has_player_spawn) {
+		if (move_player_to_spawn && _pending_player_position_override) {
+			if (auto player = engine->getPlayer()) {
+				Vector3 return_position = {
+					_pending_player_position_override->x,
+					player->getAltitude(),
+					_pending_player_position_override->y
+				};
+				if (_map->getNavMesh().isReady())
+					return_position = _map->getNavMesh().getClosestWalkablePosition({return_position.x, 0.0f, return_position.z});
+
+				const Vector2 return_2d = {return_position.x, return_position.z};
+				player->setX(return_2d.x);
+				player->setY(return_2d.y);
+				player->setAltitude(return_position.y);
+				player->setRespawnPoint(return_2d);
+				player->stop();
+				active_player_pos = return_2d;
+				has_active_player_pos = true;
+			}
+			_pending_player_position_override.reset();
+		} else if (move_player_to_spawn && location.has_player_spawn) {
 			if (auto player = engine->getPlayer()) {
 				Vector3 spawn_position = {location.player_spawn.x, player->getAltitude(), location.player_spawn.y};
 				if (_map->getNavMesh().isReady())
@@ -190,7 +210,7 @@ namespace Nawia::World {
 		}
 
 		if (has_active_player_pos)
-			_spawn_manager.update(active_player_pos, location.name);
+			_spawn_manager.update(active_player_pos, location.name, engine);
 
 		Core::Logger::debugLog("Level: zaladowano lokacje " + location.name + " z " + location.source_path.generic_string());
 		return true;
@@ -217,7 +237,7 @@ namespace Nawia::World {
 		_spawn_manager.loadEntities(entities, engine, _map.get(), getCurrentLocationName(), "all location json files");
 
 		if (const auto player = engine->getPlayer())
-			_spawn_manager.update({player->getX(), player->getY()}, getCurrentLocationName());
+			_spawn_manager.update({player->getX(), player->getY()}, getCurrentLocationName(), engine);
 	}
 
 	void Level::preloadLocationMapModels() const {
@@ -231,12 +251,63 @@ namespace Nawia::World {
 		if (!_uses_location_files || _location_definitions.empty() || !engine)
 			return;
 
+		nlohmann::json spawn_state_by_location = nlohmann::json::object();
+		for (const auto& location : _location_definitions)
+			spawn_state_by_location[location.name] = _spawn_manager.serializeLocation(location.name);
+
 		loadLocationDefinition(engine, _current_location_index, false, false);
 		rebuildLocationEntityPool(engine);
+
+		for (const auto& location : _location_definitions) {
+			const auto state_it = spawn_state_by_location.find(location.name);
+			if (state_it != spawn_state_by_location.end())
+				_spawn_manager.applyLocation(location.name, *state_it, engine->getItemDatabase());
+		}
+
+		if (const auto player = engine->getPlayer())
+			_spawn_manager.update({player->getX(), player->getY()}, getCurrentLocationName(), engine);
+	}
+
+	nlohmann::json Level::serializeRuntimeState() const {
+		nlohmann::json state;
+		state["return_positions"] = nlohmann::json::object();
+		for (const auto& [location, position] : _location_return_positions) {
+			state["return_positions"][location] = {
+				{"x", position.x},
+				{"y", position.y}
+			};
+		}
+		return state;
+	}
+
+	void Level::applyRuntimeState(const nlohmann::json& state) {
+		if (!state.is_object())
+			return;
+
+		_location_return_positions.clear();
+		const auto positions_it = state.find("return_positions");
+		if (positions_it == state.end() || !positions_it->is_object())
+			return;
+
+		for (const auto& [location, value] : positions_it->items()) {
+			if (!value.is_object())
+				continue;
+
+			_location_return_positions[location] = {
+				value.value("x", 0.0f),
+				value.value("y", 0.0f)
+			};
+		}
 	}
 
 	void Level::changeLocation(Core::Engine* engine, const std::string& location_name) {
 		if (_uses_location_files) {
+			const std::string previous_location = getCurrentLocationName();
+			if (engine) {
+				if (const auto player = engine->getPlayer())
+					_location_return_positions[previous_location] = {player->getX(), player->getY()};
+			}
+
 			const auto location_it = std::ranges::find_if(_location_definitions, [&](const LocationDefinition& location) {
 				return location.name == location_name;
 			});
@@ -247,6 +318,10 @@ namespace Nawia::World {
 			}
 
 			_current_location_index = static_cast<size_t>(std::distance(_location_definitions.begin(), location_it));
+			if (const auto return_it = _location_return_positions.find(location_name); return_it != _location_return_positions.end()) {
+				_pending_player_position_override = return_it->second;
+				_location_return_positions.erase(return_it);
+			}
 			Core::Logger::debugLog("Level: Zmiana lokacji na " + location_name);
 			loadLocationDefinition(engine, _current_location_index, true, false);
 			return;

@@ -136,6 +136,9 @@ namespace Nawia::Item {
             }
 
 			item_template->setFoodValue(entry.value("food_value", 0));
+			Entity::Stats additional_stats;
+			additional_stats.max_hp = readIntStat(entry, "max_hp");
+			item_template->addStats(additional_stats);
             _templates[id] = item_template;
             Core::Logger::debugLog("Zaladowano przedmiot ID " + std::to_string(id) + ": " + name);
         }
