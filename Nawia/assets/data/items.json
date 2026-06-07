@@ -190,6 +190,17 @@
             "defense": 1,
             "movement_speed": 14.0
         }
+    },
+    {
+        "id": 20,
+        "name": "Kamien z runa Mileny",
+        "description": "Gladki kamien z runa wyryta reka Mileny. Nosi sie go blisko serca.",
+        "slot": "Ring",
+        "texture": "assets/textures/items/kamien_z_runa_mileny.png",
+        "model_path": "",
+        "stats": {
+            "max_hp": 50
+        }
     }
 ]
 

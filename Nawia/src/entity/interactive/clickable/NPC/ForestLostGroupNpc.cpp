@@ -5,6 +5,7 @@
 #include <HerbalistHub.h>
 #include <Logger.h>
 #include <Map.h>
+#include <Player.h>
 #include <QuestManager.h>
 #include <UIHandler.h>
 
@@ -23,12 +24,27 @@ namespace Nawia::Entity {
 		constexpr const char* ANIM_IDLE = "forest_idle";
 		constexpr const char* ANIM_WALK = "forest_walk";
 		constexpr const char* ANIM_WALK_BACK = "forest_walk_back";
+		constexpr const char* MILENA_SISTER_NAME = "Siostra Mileny";
+		constexpr int MILENA_SCARF_ITEM_ID = 14;
 		constexpr float FOREST_NPC_SCALE = 1.55f;
 
 		Vector2 normalizedOrFallback(const Vector2 vector, const Vector2 fallback) {
 			if (Vector2LengthSqr(vector) <= 0.0001f)
 				return fallback;
 			return Vector2Normalize(vector);
+		}
+
+		bool removeItemFromBackpack(Player& player, const int item_id) {
+			auto& backpack = player.getBackpack();
+			for (int i = 0; i < backpack.getCapacity(); ++i) {
+				const auto item = backpack.getItem(i);
+				if (item && item->getId() == item_id) {
+					backpack.removeItem(i);
+					return true;
+				}
+			}
+
+			return false;
 		}
 	}
 
@@ -210,8 +226,11 @@ namespace Nawia::Entity {
 	}
 
 	void ForestLostGroupNpc::onInteract(Entity& instigator) {
-		if (_state != CarryState::Waiting)
+		if (_state != CarryState::Waiting && _state != CarryState::Arrived)
 			return;
+
+		if (_state == CarryState::Arrived)
+			setDialogue(buildDialogueFromConfig("milena_sister_after_herbalist"));
 
 		rotateTowardsCenter(instigator.getCenter().x, instigator.getCenter().y);
 		instigator.rotateTowardsCenter(getCenter().x, getCenter().y);
@@ -219,10 +238,27 @@ namespace Nawia::Entity {
 	}
 
 	bool ForestLostGroupNpc::canInteract() const {
-		return _state == CarryState::Waiting && !_talk_completed;
+		if (_state == CarryState::Waiting)
+			return !_talk_completed;
+
+		if (_state == CarryState::Arrived && _engine) {
+			const auto* quest = _engine->getQuestManager().getQuest("talk_to_milena_sister");
+			return quest && quest->isActive();
+		}
+
+		return false;
 	}
 
 	void ForestLostGroupNpc::handleQuestTalkCompleted(Core::Engine& engine) {
+		if (_state == CarryState::Arrived) {
+			if (const auto player = engine.getPlayer()) {
+				if (removeItemFromBackpack(*player, MILENA_SCARF_ITEM_ID))
+					engine.getUIHandler().showNotification("Oddano: Jej chusta", 3.0f);
+			}
+			engine.getQuestManager().update(&engine);
+			return;
+		}
+
 		if (_talk_completed)
 			return;
 
@@ -307,7 +343,7 @@ namespace Nawia::Entity {
 			setHovered(false);
 
 		Entity::render(camera);
-		if (_milena_sister)
+		if (_milena_sister && !_main_is_milena_sister)
 			_milena_sister->render(camera);
 		if (_male_carrier)
 			_male_carrier->render(camera);
@@ -574,6 +610,7 @@ namespace Nawia::Entity {
 			return;
 
 		_state = CarryState::Arrived;
+		promoteMainEntityToMilenaSister();
 		playIdle(*this);
 		if (_male_carrier)
 			playIdle(*_male_carrier);
@@ -591,12 +628,30 @@ namespace Nawia::Entity {
 			_engine->getQuestManager().completeQuest(_complete_quest_id, _engine);
 	}
 
+	void ForestLostGroupNpc::promoteMainEntityToMilenaSister(const bool adopt_sister_position) {
+		if (_main_is_milena_sister && !_milena_sister)
+			return;
+
+		if (_milena_sister && adopt_sister_position) {
+			setX(_milena_sister->getX());
+			setY(_milena_sister->getY());
+			setAltitude(_milena_sister->getAltitude());
+		}
+
+		setName(MILENA_SISTER_NAME);
+		loadGroupModelAndAnimations(*this, MILENA_SISTER_MODEL);
+		playIdle(*this);
+		_milena_sister.reset();
+		_main_is_milena_sister = true;
+	}
+
 	nlohmann::json ForestLostGroupNpc::serializeState() const {
 		nlohmann::json state = StoryNpc::serializeState();
 		state["talk_completed"] = _talk_completed;
 		state["state"] = static_cast<int>(_state);
 		state["destination"] = {{"x", _destination.x}, {"y", _destination.y}};
 		state["sister_standing"] = _sister_is_standing;
+		state["main_is_milena_sister"] = _main_is_milena_sister;
 		state["path_requested"] = _path_requested;
 		state["sister_bob_time"] = _sister_bob_time;
 		state["sister_drop_timer"] = _sister_drop_timer;
@@ -626,6 +681,8 @@ namespace Nawia::Entity {
 		const int raw_state = std::clamp(state.value("state", static_cast<int>(_state)), 0, static_cast<int>(CarryState::Arrived));
 		_state = static_cast<CarryState>(raw_state);
 		_sister_is_standing = state.value("sister_standing", _sister_is_standing);
+		const bool saved_main_is_milena_sister = state.value("main_is_milena_sister", _main_is_milena_sister);
+		_main_is_milena_sister = false;
 		_path_requested = state.value("path_requested", false);
 		_sister_bob_time = state.value("sister_bob_time", _sister_bob_time);
 		_sister_drop_timer = state.value("sister_drop_timer", _sister_drop_timer);
@@ -700,6 +757,7 @@ namespace Nawia::Entity {
 			startDispersal();
 			break;
 		case CarryState::Arrived:
+			promoteMainEntityToMilenaSister(!saved_main_is_milena_sister);
 			playIdle(*this);
 			if (_male_carrier) {
 				if (!state.contains("male_carrier")) {

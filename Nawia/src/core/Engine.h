@@ -96,6 +96,7 @@ namespace Nawia::Core {
 		[[nodiscard]] float getGameplayCameraZoom() const { return _gameplay_camera_zoom; }
 		void notifyStoryEvent(const std::string& event_id, Vector2 world_position);
 		void cancelPlayerAction();
+		void requestReturnToMainMenu(std::string notification = "");
 
 		/**
 		 * @brief Zapisuje stan gry do aktywnego slotu, jesli jakikolwiek jest ustawiony.
@@ -160,6 +161,8 @@ namespace Nawia::Core {
 		bool _is_running = false;
 		GameState _game_state = GameState::Loading; ///< Autorytatywny tryb ekranu/gry.
 		bool _show_pause_menu = false;
+		bool _pending_return_to_main_menu = false;
+		std::string _pending_return_notification;
 		GameState _previous_state = GameState::Menu; ///< Uzywany przy powrocie ze stanow modalnych menu.
 		std::string _pending_new_game_level; ///< Niepusta wartosc oznacza, ze trwa flow nowej gry.
 		Settings _settings; ///< Robocza kopia stosowana do renderera, audio i okna.

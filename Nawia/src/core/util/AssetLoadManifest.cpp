@@ -200,6 +200,9 @@ namespace Nawia::Core {
 		addTexture("assets/textures/icons/strong_hit_icon.png");
 		addTexture("assets/textures/icons/empty_ability_icon.png");
 		addTexture("assets/textures/icons/food_icon.png");
+		addTexture("assets/textures/outro/odgruzowanie_przejscia.png");
+		addTexture("assets/textures/outro/dziady_przy_potoku.png");
+		addTexture("assets/textures/outro/droga_do_twierdzy.png");
 	}
 
 	void AssetLoadManifest::appendEntityTypeAssets(const std::string& entity_type, const nlohmann::json& entity_data) {

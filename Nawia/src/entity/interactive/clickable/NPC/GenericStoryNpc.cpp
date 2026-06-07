@@ -2,22 +2,95 @@
 
 #include <Engine.h>
 #include <EntityManager.h>
+#include <Level.h>
 #include <Logger.h>
 #include <Map.h>
+#include <Player.h>
 #include <QuestManager.h>
 #include <UIHandler.h>
 
 #include <raymath.h>
 
+#include <cmath>
+#include <functional>
+#include <utility>
+
 namespace Nawia::Entity {
 
 	namespace {
+		constexpr const char* QUEST_RETURN_TO_HERBALIST_FINAL = "return_to_herbalist_final";
+		constexpr const char* QUEST_CLEAR_SPIDER_NEST = "clear_spider_nest";
+		constexpr const char* QUEST_RETURN_AFTER_SPIDER = "return_to_herbalist_after_spider";
+		constexpr const char* QUEST_TALK_TO_MILENA_SISTER = "talk_to_milena_sister";
+		constexpr const char* SPIDER_NAME = "Straszny pajak";
+		constexpr float BABA_YAGA_IDLE_BOB_AMPLITUDE = 0.08f;
+		constexpr float BABA_YAGA_IDLE_BOB_SPEED = 1.25f;
+		constexpr float BABA_YAGA_TILT_DEGREES = 2.8f;
+		constexpr float BABA_YAGA_TILT_SPEED = 0.9f;
+
 		std::string readStringAlias(const nlohmann::json& data, const std::initializer_list<const char*> keys) {
 			for (const char* key : keys) {
 				if (data.contains(key) && data[key].is_string())
 					return data[key].get<std::string>();
 			}
 			return "";
+		}
+
+		bool questCompleted(Core::Engine* engine, const std::string& quest_id) {
+			if (!engine)
+				return false;
+
+			const auto* quest = engine->getQuestManager().getQuest(quest_id);
+			return quest && quest->isCompleted();
+		}
+
+		bool questActive(Core::Engine* engine, const std::string& quest_id) {
+			if (!engine)
+				return false;
+
+			const auto* quest = engine->getQuestManager().getQuest(quest_id);
+			return quest && quest->isActive();
+		}
+
+		bool questActiveOrCompleted(Core::Engine* engine, const std::string& quest_id) {
+			return questActive(engine, quest_id) || questCompleted(engine, quest_id);
+		}
+
+		void startQuestIfPossible(Core::Engine& engine, const std::string& quest_id) {
+			engine.getQuestManager().update(&engine);
+			engine.getQuestManager().startQuest(quest_id);
+			engine.getQuestManager().update(&engine);
+		}
+
+		void completeQuestIfActive(Core::Engine& engine, const std::string& quest_id) {
+			if (questActive(&engine, quest_id)) {
+				engine.getQuestManager().completeQuest(quest_id, &engine);
+				engine.getQuestManager().update(&engine);
+			}
+		}
+
+		Game::DialogueNode makeDialogueNode(
+			const int id,
+			std::string speaker,
+			std::string text,
+			std::vector<Game::DialogueOption> options,
+			std::string voice_path = "")
+		{
+			Game::DialogueNode node;
+			node.id = id;
+			node.speaker_name = std::move(speaker);
+			node.text = std::move(text);
+			node.voice_path = std::move(voice_path);
+			node.options = std::move(options);
+			return node;
+		}
+
+		Game::DialogueOption makeDialogueOption(std::string text, const int next_node_id, std::function<void()> action = nullptr) {
+			Game::DialogueOption option;
+			option.text = std::move(text);
+			option.next_node_id = next_node_id;
+			option.action = std::move(action);
+			return option;
 		}
 	}
 
@@ -53,6 +126,7 @@ namespace Nawia::Entity {
 		setMovementSpeed(data.value("movement_speed", 2.0f));
 		setScale(data.value("scale", 1.55f));
 		setModelFacingOffset(data.value("model_facing_offset", 90.0f));
+		_use_baba_yaga_idle_visual = data.value("idle_visual_effect", "") == "baba_yaga";
 		configureModel(data);
 		configureDialogue(data);
 		playIdleAnimation();
@@ -70,10 +144,14 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		loadModel(_model_path, data.value("rotate_model", false));
+		if (_use_baba_yaga_idle_visual)
+			replaceModel(_model_path, data.value("rotate_model", false));
+		else
+			loadModel(_model_path, data.value("rotate_model", false));
+
 		if (_model_path.find("female_warrior") != std::string::npos)
 			hideMeshIndex(1); // Mesh 1 to miecz w female_warrior.glb.
-		if (!_animation_bundle_path.empty())
+		if (!_use_baba_yaga_idle_visual && !_animation_bundle_path.empty())
 			loadAnimationBundle(_animation_bundle_path);
 
 		if (data.value("use_indexed_animation_aliases", false)) {
@@ -90,6 +168,11 @@ namespace Nawia::Entity {
 			fitLoadedModelToHeight(target_height);
 		else
 			setScale(data.value("scale", getScale()));
+
+		if (_use_baba_yaga_idle_visual && hasModelLoaded()) {
+			_idle_visual_base_transform = getModel().transform;
+			_has_idle_visual_base_transform = true;
+		}
 	}
 
 	void GenericStoryNpc::configureDialogue(const nlohmann::json& data) {
@@ -105,6 +188,9 @@ namespace Nawia::Entity {
 	}
 
 	void GenericStoryNpc::onInteract(Entity& instigator) {
+		if (isHerbalist())
+			refreshHerbalistDialogue();
+
 		rotateTowardsCenter(instigator.getCenter().x, instigator.getCenter().y);
 		instigator.rotateTowardsCenter(getCenter().x, getCenter().y);
 		playIdleAnimation();
@@ -113,6 +199,9 @@ namespace Nawia::Entity {
 	bool GenericStoryNpc::canInteract() const {
 		if (!_can_talk)
 			return false;
+
+		if (isHerbalist())
+			return canHerbalistInteract();
 
 		if (_disable_interaction_after_talk && _talk_completed)
 			return false;
@@ -132,6 +221,8 @@ namespace Nawia::Entity {
 		if (isDormant())
 			return;
 
+		updateBabaYagaIdleVisual(delta_time);
+
 		if (_walking_to_destination) {
 			Entity::update(delta_time);
 			if (!isAnimationLocked())
@@ -142,7 +233,28 @@ namespace Nawia::Entity {
 		StoryNpc::update(delta_time);
 	}
 
+	void GenericStoryNpc::updateBabaYagaIdleVisual(const float delta_time) {
+		if (!_use_baba_yaga_idle_visual)
+			return;
+
+		_idle_visual_time += delta_time;
+		if (_has_idle_visual_base_transform && hasModelLoaded()) {
+			const float tilt = std::sin(_idle_visual_time * BABA_YAGA_TILT_SPEED) * BABA_YAGA_TILT_DEGREES * DEG2RAD;
+			getModel().transform = MatrixMultiply(_idle_visual_base_transform, MatrixRotateX(tilt));
+		}
+	}
+
+	Vector3 GenericStoryNpc::getWorldPos3D() const {
+		const float bob = _use_baba_yaga_idle_visual
+			? std::sin(_idle_visual_time * BABA_YAGA_IDLE_BOB_SPEED) * BABA_YAGA_IDLE_BOB_AMPLITUDE
+			: 0.0f;
+		return {_pos.x, _altitude + bob, _pos.y};
+	}
+
 	void GenericStoryNpc::handleQuestTalkCompleted(Core::Engine& engine) {
+		if (isHerbalist())
+			return;
+
 		if (_talk_completed && _disable_interaction_after_talk)
 			return;
 
@@ -169,6 +281,162 @@ namespace Nawia::Entity {
 
 		if (!_fail_quest_id.empty())
 			engine.getQuestManager().failQuest(_fail_quest_id, &engine);
+	}
+
+	bool GenericStoryNpc::isHerbalist() const {
+		return _npc_class_name == "herbalist";
+	}
+
+	bool GenericStoryNpc::canHerbalistInteract() const {
+		if (!_engine)
+			return false;
+
+		if (questActiveOrCompleted(_engine, QUEST_RETURN_AFTER_SPIDER))
+			return true;
+
+		if (questCompleted(_engine, QUEST_CLEAR_SPIDER_NEST))
+			return true;
+
+		if (questActive(_engine, QUEST_CLEAR_SPIDER_NEST))
+			return isSpiderNestCleared();
+
+		return questActive(_engine, QUEST_RETURN_TO_HERBALIST_FINAL);
+	}
+
+	bool GenericStoryNpc::isMilenaSisterAlive() const {
+		return questCompleted(_engine, "rescue_forest_survivors");
+	}
+
+	bool GenericStoryNpc::isMilenaSisterOptionalTalkCompleted() const {
+		return !isMilenaSisterAlive() || questCompleted(_engine, QUEST_TALK_TO_MILENA_SISTER);
+	}
+
+	bool GenericStoryNpc::isSpiderNestCleared() const {
+		if (questCompleted(_engine, QUEST_CLEAR_SPIDER_NEST))
+			return true;
+
+		if (!_engine)
+			return false;
+
+		auto* level = _engine->getLevelManager().getCurrentLevel();
+		if (!level)
+			return false;
+
+		for (const auto& spawn_point : level->getSpawnManager().getSpawnPoints()) {
+			if (spawn_point.entity_type != "spider")
+				continue;
+			if (spawn_point.entity_data.value("name", "") != SPIDER_NAME)
+				continue;
+			return spawn_point.entity && spawn_point.entity->isDead();
+		}
+
+		return false;
+	}
+
+	void GenericStoryNpc::refreshHerbalistDialogue() {
+		setDialogueStageKey("herbalist_dynamic");
+		setDialogue(buildHerbalistDialogue());
+	}
+
+	void GenericStoryNpc::startHerbalistSpiderQuest(Core::Engine& engine) const {
+		completeQuestIfActive(engine, QUEST_RETURN_TO_HERBALIST_FINAL);
+		startQuestIfPossible(engine, QUEST_CLEAR_SPIDER_NEST);
+
+		if (isSpiderNestCleared()) {
+			completeQuestIfActive(engine, QUEST_CLEAR_SPIDER_NEST);
+			engine.getQuestManager().update(&engine);
+		}
+	}
+
+	void GenericStoryNpc::startMilenaSisterOptionalQuest(Core::Engine& engine) const {
+		startQuestIfPossible(engine, QUEST_TALK_TO_MILENA_SISTER);
+		engine.getUIHandler().showNotification("Opcjonalnie: porozmawiaj z siostra Mileny", 4.0f);
+	}
+
+	void GenericStoryNpc::finishWczoraLevel(Core::Engine& engine) const {
+		completeQuestIfActive(engine, QUEST_RETURN_AFTER_SPIDER);
+		engine.getQuestManager().notifyCheckpointReached("wczora_epilogue_complete");
+		engine.getQuestManager().update(&engine);
+		engine.notifyStoryEvent("wczora_outro_requested", getCenter());
+	}
+
+	Game::DialogueTree GenericStoryNpc::buildHerbalistDialogue() const {
+		Game::DialogueTree tree;
+		if (!_engine)
+			return tree;
+
+		const bool sister_alive = isMilenaSisterAlive();
+		const bool sister_talk_done = isMilenaSisterOptionalTalkCompleted();
+		const bool spider_cleared = isSpiderNestCleared();
+
+		if (spider_cleared) {
+			if (sister_alive && !sister_talk_done) {
+				tree.addNode(makeDialogueNode(0, "Zielarz",
+					"Wiec wielki katnik juz nie pilnuje rumowiska. Dobrze. Mozemy zabrac ludzi i narzedzia, ale zanim ruszymy... jej siostra czeka. Chcesz z nia porozmawiac, zanim wezmiemy sie do odgruzowania?",
+					{
+						makeDialogueOption("Tak. Najpierw z nia porozmawiam.", -1, [engine = _engine, this]() {
+							startHerbalistSpiderQuest(*engine);
+							startMilenaSisterOptionalQuest(*engine);
+						}),
+						makeDialogueOption("Nie. Konczmy to.", 1, [engine = _engine, this]() {
+							startHerbalistSpiderQuest(*engine);
+						})
+					},
+					"assets/audio/dialogues/StoryFinal/herbalist_dynamic_spider_done_00.wav"));
+			} else {
+				tree.addNode(makeDialogueNode(0, "Zielarz",
+					"Katnik nie zyje, a przejscie czeka. Ludzie sa gotowi. Jesli odprawimy dziady przy potoku nad Twierdza Kamienna, moze jeszcze uda sie odwrocic gniew, ktory spadl na Wczore.",
+					{makeDialogueOption("Ruszajmy.", 1)},
+					"assets/audio/dialogues/StoryFinal/herbalist_dynamic_spider_done_00.wav"));
+			}
+
+			tree.addNode(makeDialogueNode(1, "Logos",
+				"Logos dowiedzial sie, co stalo sie z jego ludem. Nie po to, by zlozyc wine na martwych albo na bogow, ale zeby sprobowac naprawic zerwana wiez. Najpierw dziady. Potem droga za Milena.",
+				{makeDialogueOption("Dalej.", 2)},
+				"assets/audio/dialogues/StoryFinal/herbalist_dynamic_epilogue_logos_01.wav"));
+			tree.addNode(makeDialogueNode(2, "Zielarz",
+				"Potok nad Twierdza Kamienna bedzie dobrym miejscem. Woda poniesie slowa do tych, ktorzy nie maja juz ust, a kamien przypomni zywym, ze nie sa sami na tej ziemi.",
+				{makeDialogueOption("Do Twierdzy Kamiennej.", -1, [engine = _engine, this]() {
+					finishWczoraLevel(*engine);
+				})},
+				"assets/audio/dialogues/StoryFinal/herbalist_dynamic_epilogue_02.wav"));
+			return tree;
+		}
+
+		tree.addNode(makeDialogueNode(0, "Logos",
+			"Wiedzma mowila o dziadach. O winie, bogach i zmarlych, ktorzy nie dostali naleznego glosu. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
+			{makeDialogueOption("Dalej.", 1)},
+			"assets/audio/dialogues/StoryFinal/herbalist_dynamic_intro_logos_00.wav"));
+
+		if (sister_alive) {
+			tree.addNode(makeDialogueNode(1, "Zielarz",
+				"Mam dobre i zle wiesci. Dobre sa takie, ze ranna, ktora ocaliles, to siostra Mileny. Jeszcze slaba, ale przytomna. Powie ci wiecej niz ja.",
+				{makeDialogueOption("Zyje... Bogowie. A zle wiesci?", 2)},
+				"assets/audio/dialogues/StoryFinal/herbalist_dynamic_sister_alive_01.wav"));
+		} else {
+			tree.addNode(makeDialogueNode(1, "Zielarz",
+				"Mam zle wiesci, Logosie. Wiem tylko, ze Milena uciekla z wioski i ruszyla z innymi na zachod. Jej siostra nie dotarla do mnie zywa.",
+				{makeDialogueOption("Kurwa...", 2)},
+				"assets/audio/dialogues/StoryFinal/herbalist_dynamic_sister_dead_01.wav"));
+		}
+
+		tree.addNode(makeDialogueNode(2, "Zielarz",
+			"Przejscie jest zawalone. Kamien siedzi na kamieniu jak przeklenstwo, a w rumowisku gniazdo urzadzil wielki katnik. Dopoki to bydle tam zyje, nikt nie podejdzie z lopata ani modlitwa.",
+			{makeDialogueOption("Czyli najpierw pajak.", 3)},
+			"assets/audio/dialogues/StoryFinal/herbalist_dynamic_rubble_02.wav"));
+		tree.addNode(makeDialogueNode(3, "Logos",
+			"Zabije go. Potem odgruzujemy przejscie i odprawimy dziady tam, gdzie trzeba.",
+			{makeDialogueOption(
+				sister_alive ? "Porozmawiam z jej siostra i zajme sie katnikiem." : "Zajme sie katnikiem.",
+				-1,
+				[engine = _engine, this, sister_alive]() {
+					startHerbalistSpiderQuest(*engine);
+					if (sister_alive)
+						startMilenaSisterOptionalQuest(*engine);
+				})},
+			"assets/audio/dialogues/StoryFinal/herbalist_dynamic_spider_quest_logos_03.wav"));
+
+		return tree;
 	}
 
 	void GenericStoryNpc::startRoute(Core::Engine& engine) {

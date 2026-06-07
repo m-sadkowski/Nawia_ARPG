@@ -87,6 +87,7 @@ namespace Nawia::Entity {
 		void startDispersal();
 		void updateDispersal(float delta_time);
 		void finishArrival();
+		void promoteMainEntityToMilenaSister(bool adopt_sister_position = true);
 		[[nodiscard]] Vector2 randomPointInHub(const HubDestination& hub) const;
 		void snapMembersToFormation(Vector2 direction);
 		void faceAlongDirection(Entity& entity, Vector2 direction) const;
@@ -111,6 +112,7 @@ namespace Nawia::Entity {
 		bool _talk_completed = false;
 		bool _path_requested = false;
 		bool _sister_is_standing = false;
+		bool _main_is_milena_sister = false;
 		CarryState _state = CarryState::Waiting;
 		HubDestination _arrival_hub;
 		Vector2 _destination = {0.0f, 0.0f};

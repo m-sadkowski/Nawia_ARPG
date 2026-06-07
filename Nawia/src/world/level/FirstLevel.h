@@ -46,7 +46,9 @@ namespace Nawia::World {
 			AwakeningDialogue,
 			InspectCorpse,
 			SzeptuchaDialogue,
-			FinalDialogue
+			FinalDialogue,
+			OutroSlides,
+			OutroFadeToMenu
 		};
 
 		/** @brief Pojedynczy slajd intro z opcjonalnym glosem i zaladowanym obrazem. */
@@ -68,6 +70,8 @@ namespace Nawia::World {
 		void openAwakeningDialogue(Core::Engine* engine);
 		void openFinalDialogue(Core::Engine* engine);
 		void finishIntroSequence(Core::Engine* engine);
+		void startOutroSequence(Core::Engine* engine);
+		void finishOutroSequence(Core::Engine* engine);
 		void removeIntroNpc();
 		void playSlideVoice(Core::Engine* engine);
 		void stopSlideVoice(Core::Engine* engine);

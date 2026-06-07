@@ -183,6 +183,11 @@ namespace Nawia::World {
 			return config;
 		}
 
+		const nlohmann::json& getOutroConfig() {
+			static const nlohmann::json config = loadJsonDocument("assets/data/wczora_outro.json");
+			return config;
+		}
+
 		bool isPlayerDialogueSpeaker(const std::string& speaker) {
 			return speaker == "Logos" || speaker == "Jarko" || speaker == "Player" || speaker == "Gracz";
 		}
@@ -327,7 +332,8 @@ namespace Nawia::World {
 	void FirstLevel::handleStoryEvent(Core::Engine* engine, const std::string& event_id, const Vector2 world_position) {
 		if (event_id == "wanda_corpse_inspected")
 			queueCorpseInspected(world_position);
-		(void)engine;
+		else if (event_id == "wczora_outro_requested")
+			startOutroSequence(engine);
 	}
 
 	bool FirstLevel::blocksPlayerControl() const {
@@ -563,6 +569,63 @@ namespace Nawia::World {
 		_pending_szeptucha_delay = 0.0f;
 	}
 
+	void FirstLevel::startOutroSequence(Core::Engine* engine) {
+		if (!engine)
+			return;
+
+		stopSlideVoice(engine);
+		removeIntroNpc();
+		_intro_slides.clear();
+
+		const auto& config = getOutroConfig();
+		if (config.contains("slides") && config["slides"].is_array()) {
+			for (const auto& slide_json : config["slides"]) {
+				IntroSlide slide;
+				slide.text = slide_json.value("text", "");
+				slide.voice_path = slide_json.value("voice_path", "");
+				slide.image_path = slide_json.value("image_path", "");
+				slide.duration = slide_json.value("duration", 7.0f);
+				_intro_slides.push_back(std::move(slide));
+			}
+		}
+
+		for (auto& slide : _intro_slides) {
+			if (!slide.image_path.empty()) {
+				slide.image_texture = engine->getResourceManager().getTexture(slide.image_path);
+				if (slide.image_texture && slide.image_texture->id > 0)
+					SetTextureFilter(*slide.image_texture, TEXTURE_FILTER_TRILINEAR);
+			}
+		}
+
+		_intro_slide_index = 0;
+		_intro_phase = _intro_slides.empty() ? IntroPhase::OutroFadeToMenu : IntroPhase::OutroSlides;
+		_intro_timer = 0.0f;
+		_intro_overlay_alpha = 1.0f;
+		_intro_dialogue_opened = false;
+		_intro_flash_timer = 0.0f;
+		_pending_szeptucha_encounter = false;
+		_pending_final_dialogue = false;
+		_pending_corpse_completion = false;
+		_pending_szeptucha_delay = 0.0f;
+
+		if (const auto player = engine->getPlayer())
+			player->stop();
+
+		playSlideVoice(engine);
+	}
+
+	void FirstLevel::finishOutroSequence(Core::Engine* engine) {
+		stopSlideVoice(engine);
+		_intro_phase = IntroPhase::Inactive;
+		_intro_timer = 0.0f;
+		_intro_overlay_alpha = 0.0f;
+		_intro_slides.clear();
+		_intro_slide_index = 0;
+
+		if (engine)
+			engine->requestReturnToMainMenu(getOutroConfig().value("beta_message", "Twierdza Kamienna nie jest dostepna w wersji Beta."));
+	}
+
 	void FirstLevel::removeIntroNpc() {
 		if (const auto npc = _intro_npc.lock())
 			npc->setDormant(true);
@@ -637,6 +700,7 @@ namespace Nawia::World {
 		_intro_timer += dt;
 		switch (_intro_phase) {
 			case IntroPhase::Slides:
+			case IntroPhase::OutroSlides:
 				_intro_overlay_alpha = 1.0f;
 				if (_intro_slide_index < _intro_slides.size() &&
 					_intro_timer >= _intro_slides[_intro_slide_index].duration) {
@@ -644,6 +708,11 @@ namespace Nawia::World {
 					_intro_timer = 0.0f;
 					if (_intro_slide_index < _intro_slides.size()) {
 						playSlideVoice(engine);
+					} else if (_intro_phase == IntroPhase::OutroSlides) {
+						stopSlideVoice(engine);
+						_intro_phase = IntroPhase::OutroFadeToMenu;
+						_intro_timer = 0.0f;
+						_intro_overlay_alpha = 0.0f;
 					} else {
 						stopSlideVoice(engine);
 						if (const auto player = engine->getPlayer()) {
@@ -672,6 +741,11 @@ namespace Nawia::World {
 			case IntroPhase::FinalDialogue:
 				_intro_overlay_alpha = 0.22f;
 				break;
+			case IntroPhase::OutroFadeToMenu:
+				_intro_overlay_alpha = std::clamp(_intro_timer / 2.5f, 0.0f, 1.0f);
+				if (_intro_timer >= 2.5f)
+					finishOutroSequence(engine);
+				break;
 			case IntroPhase::Inactive:
 				break;
 		}
@@ -694,7 +768,8 @@ namespace Nawia::World {
 			drawNawiaFogFx(screen_width, screen_height, overlay_time);
 
 		const float alpha = std::clamp(_intro_overlay_alpha, 0.0f, 1.0f);
-		const bool rendering_slide = _intro_phase == IntroPhase::Slides &&
+		const bool rendering_slide =
+			(_intro_phase == IntroPhase::Slides || _intro_phase == IntroPhase::OutroSlides) &&
 			_intro_slide_index < _intro_slides.size();
 		if (!rendering_slide && alpha > 0.0f)
 			DrawRectangle(0, 0, width, height, Fade(BLACK, alpha));

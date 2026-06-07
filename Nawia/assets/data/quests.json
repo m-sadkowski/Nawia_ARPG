@@ -260,6 +260,27 @@
       }
     },
     {
+      "id": "talk_to_village_head_after_ropuch",
+      "name": "Porozmawiaj z Soltysem",
+      "description": "Porozmawiaj z Soltysem po odzyskaniu chusty Mileny.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Soltys",
+          "count": 1,
+          "description": "Porozmawiaj z Soltysem"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 100
+      }
+    },
+    {
       "id": "rescue_forest_survivors",
       "name": "Zagubieni w lesie",
       "description": "Znajdz troje ludzi zagubionych w lesie i pomoz im dotrzec do chaty zielarza.",
@@ -383,6 +404,69 @@
         "items": [],
         "gold": 0,
         "exp": 300
+      }
+    },
+    {
+      "id": "clear_spider_nest",
+      "name": "Wielki katnik",
+      "description": "Zabij wielkiego katnika, ktory urzadzil gniazdo przy zawalonym przejsciu.",
+      "level_name": "Wczora",
+      "prerequisites": ["return_to_herbalist_final"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Straszny pajak",
+          "count": 1,
+          "description": "Zabij wielkiego katnika"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 450
+      }
+    },
+    {
+      "id": "return_to_herbalist_after_spider",
+      "name": "Wroc do Zielarza",
+      "description": "Powiedz Zielarzowi, ze katnik nie zyje i mozna odgruzowac przejscie.",
+      "level_name": "Wczora",
+      "prerequisites": ["clear_spider_nest"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Zielarz",
+          "count": 1,
+          "description": "Wroc do Zielarza"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
+    },
+    {
+      "id": "talk_to_milena_sister",
+      "name": "Siostra Mileny",
+      "description": "Porozmawiaj z siostra Mileny i dowiedz sie, co widziala podczas ucieczki.",
+      "level_name": "Wczora",
+      "prerequisites": ["return_to_herbalist_final"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Siostra Mileny",
+          "count": 1,
+          "description": "Porozmawiaj z siostra Mileny"
+        }
+      ],
+      "rewards": {
+        "items": [20],
+        "gold": 0,
+        "exp": 150
       }
     }
   ]

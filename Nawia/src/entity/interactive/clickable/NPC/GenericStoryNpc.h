@@ -27,6 +27,7 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool canInteract() const override;
 		void update(float delta_time) override;
 		void render(const Camera3D& camera) override;
+		[[nodiscard]] Vector3 getWorldPos3D() const override;
 		void handleQuestTalkCompleted(Core::Engine& engine) override;
 
 		[[nodiscard]] nlohmann::json serializeState() const override;
@@ -36,6 +37,17 @@ namespace Nawia::Entity {
 		void configureModel(const nlohmann::json& data);
 		void configureDialogue(const nlohmann::json& data);
 		void executeTalkActions(Core::Engine& engine);
+		void refreshHerbalistDialogue();
+		void updateBabaYagaIdleVisual(float delta_time);
+		[[nodiscard]] bool isHerbalist() const;
+		[[nodiscard]] bool canHerbalistInteract() const;
+		[[nodiscard]] bool isMilenaSisterAlive() const;
+		[[nodiscard]] bool isMilenaSisterOptionalTalkCompleted() const;
+		[[nodiscard]] bool isSpiderNestCleared() const;
+		[[nodiscard]] Game::DialogueTree buildHerbalistDialogue() const;
+		void startHerbalistSpiderQuest(Core::Engine& engine) const;
+		void startMilenaSisterOptionalQuest(Core::Engine& engine) const;
+		void finishWczoraLevel(Core::Engine& engine) const;
 		void startRoute(Core::Engine& engine);
 		[[nodiscard]] std::optional<Vector2> resolveDestination(Core::Engine& engine) const;
 		void updateRouteToDestination(float delta_time);
@@ -62,10 +74,14 @@ namespace Nawia::Entity {
 		std::optional<Vector2> _destination_position;
 
 		float _stop_distance = 0.65f;
+		float _idle_visual_time = 0.0f;
+		Matrix _idle_visual_base_transform{};
 		bool _can_talk = true;
 		bool _disable_interaction_after_talk = false;
 		bool _route_after_talk = false;
 		bool _hide_on_arrival = false;
+		bool _use_baba_yaga_idle_visual = false;
+		bool _has_idle_visual_base_transform = false;
 		bool _talk_completed = false;
 		bool _walking_to_destination = false;
 		bool _path_requested = false;

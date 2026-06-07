@@ -58,6 +58,7 @@ namespace Nawia::Item {
 
         /** @brief Zwraca statystyki dawane przez przedmiot. */
         [[nodiscard]] const Entity::Stats& getStats() const { return _stats; }
+        void addStats(const Entity::Stats& stats) { _stats += stats; }
 
 		[[nodiscard]] const std::string& getModelPath() const { return _model_path; }
 

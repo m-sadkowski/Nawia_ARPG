@@ -256,18 +256,22 @@
             "y": 39.22502136230469
         },
         {
-            "animation_bundle": "assets/models/actors/village_head/village_head.glb",
+            "animation_bundle": "assets/models/actors/baba_yaga/baba_yaga.glb",
             "can_talk": true,
             "category": "npcs",
+            "conditions": {
+                "required_quest_completed": "talk_to_village_head_after_ropuch"
+            },
             "disable_interaction_after_talk": false,
             "idle_animation": "Idle",
+            "idle_visual_effect": "baba_yaga",
             "location": "Dolina Nedzy",
-            "model": "assets/models/actors/village_head/village_head.glb",
+            "model": "assets/models/actors/baba_yaga/baba_yaga.glb",
             "name": "Zielarz",
             "npc_class": "herbalist",
             "route_after_talk": false,
             "talk_animation": "Idle",
-            "target_height": 1.7,
+            "target_height": 2.0,
             "type": "npc",
             "walk_animation": "Walk",
             "x": 2.7108497619628906,
@@ -282,7 +286,7 @@
             ],
             "category": "story_triggers",
             "conditions": {
-                "required_quest_completed": "rescue_forest_survivors"
+                "required_quest_completed": "deprecated_herbalist_final_trigger"
             },
             "dialogue_key": "herbalist_final_success",
             "height": 5.0,
@@ -309,6 +313,9 @@
                 }
             ],
             "category": "story_triggers",
+            "conditions": {
+                "required_quest_completed": "deprecated_herbalist_final_trigger"
+            },
             "dialogue_key": "herbalist_final_fail",
             "height": 5.0,
             "location": "Dolina Nedzy",

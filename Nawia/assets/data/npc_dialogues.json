@@ -534,5 +534,50 @@
         "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_fail_06.wav"
       }
     ]
+  },
+  "milena_sister_after_herbalist": {
+    "final_option": "Wezme go. Odnajde ja.",
+    "lines": [
+      {
+        "speaker": "Siostra Mileny",
+        "text": "Logos... Jakub mowil, ze zyjesz. Milena tez zyje. Widzialam, jak uciekala na zachod, ku Twierdzy Kamiennej. Byla ranna w bok, ale szla o wlasnych silach.",
+        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_00.wav"
+      },
+      {
+        "speaker": "Logos",
+        "text": "Co was gonilo?",
+        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_01.wav"
+      },
+      {
+        "speaker": "Siostra Mileny",
+        "text": "Wszystko naraz. Bies przeszedl przez ogien jak przez mgle. Ziemia wyrzucila zywe trupy spod plotow. W lesie cos wysokiego, z rogami jak konary, rozdarlo ciemnosc. Chyba leszy. To on mnie dopadl.",
+        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_02.wav"
+      },
+      {
+        "speaker": "Logos",
+        "text": "Milena wiedziala, dokad isc?",
+        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_03.wav"
+      },
+      {
+        "speaker": "Siostra Mileny",
+        "text": "Powtarzala, ze przy Twierdzy Kamiennej jest potok i stare miejsce dziadow. Ze jesli ktos jeszcze pamieta modlitwy, to tam. Bardzo za nia tesknie, Logosie.",
+        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_04.wav"
+      },
+      {
+        "speaker": "Logos",
+        "text": "Mam cos jej. Chuste. Ropuch zerwal ja przy sadzawce, ale odzyskalem.",
+        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_05.wav"
+      },
+      {
+        "speaker": "Siostra Mileny",
+        "text": "Jej chusta... Dziekuje. Wez to. Milena wyryla te rune, kiedy jeszcze smialysmy sie z takich rzeczy. Mowila, ze chroni serce przed strachem. Tobie przyda sie bardziej niz mnie.",
+        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_06.wav"
+      },
+      {
+        "speaker": "Logos",
+        "text": "Odnajde ja. I powiem, ze czekasz.",
+        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_07.wav"
+      }
+    ]
   }
 }
