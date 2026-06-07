@@ -9,6 +9,8 @@
 #include <Player.h>
 #include <BossManager.h>
 
+#include <raymath.h>
+
 namespace Nawia::Entity {
 
     namespace {
@@ -21,6 +23,10 @@ namespace Nawia::Entity {
         _type = EntityType::Trigger;
         setFaction(Faction::None);
         loadModel(TELEPORT_MODEL);
+        if (_model_loaded) {
+            const BoundingBox bounds = _local_model_bounding_box_valid ? _local_model_bounding_box : GetModelBoundingBox(_model);
+            _model.transform = MatrixMultiply(MatrixTranslate(0.0f, -bounds.min.y, 0.0f), _model.transform);
+        }
         setScale(1.0f);
         setModelFacingOffset(0.0f);
 
