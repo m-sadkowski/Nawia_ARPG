@@ -251,8 +251,21 @@ namespace Nawia::World {
 		if (!_uses_location_files || _location_definitions.empty() || !engine)
 			return;
 
+		nlohmann::json spawn_state_by_location = nlohmann::json::object();
+		for (const auto& location : _location_definitions)
+			spawn_state_by_location[location.name] = _spawn_manager.serializeLocation(location.name);
+
 		loadLocationDefinition(engine, _current_location_index, false, false);
 		rebuildLocationEntityPool(engine);
+
+		for (const auto& location : _location_definitions) {
+			const auto state_it = spawn_state_by_location.find(location.name);
+			if (state_it != spawn_state_by_location.end())
+				_spawn_manager.applyLocation(location.name, *state_it, engine->getItemDatabase());
+		}
+
+		if (const auto player = engine->getPlayer())
+			_spawn_manager.update({player->getX(), player->getY()}, getCurrentLocationName(), engine);
 	}
 
 	nlohmann::json Level::serializeRuntimeState() const {

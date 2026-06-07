@@ -40,24 +40,24 @@ namespace Nawia::Entity {
 		static constexpr float DEVIL_DASH_ANIMATION_SPEED = 0.85f;
 		static constexpr float DEVIL_WALK_ANIMATION_SPEED = 1.0f;
 		static constexpr float DEVIL_DEAD_ANIMATION_SPEED = 2.0f;
-		static constexpr float DEVIL_ATTACK_ANIMATION_SPEED = 1.0f;
+		static constexpr float DEVIL_ATTACK_ANIMATION_SPEED = 1.28f;
 
 		// Statystyki walki.
 		static constexpr float VISION_RANGE = 20.0f;
 		static constexpr float ATTACK_RANGE = 2.0f;
 		static constexpr float SPEED = 0.5f;
 		static constexpr int ATTACK_DAMAGE = 50;
-		static constexpr float ATTACK_COOLDOWN = 1.5f;
+		static constexpr float ATTACK_COOLDOWN = 1.0f;
 
 		// Statystyki doskoku.
 		static constexpr float DASH_TRIGGER_RANGE = 9.0f;    // Dystans, od którego doskok może się aktywować.
 		static constexpr float DASH_SPEED = 8.0f;            // Prędkość doskoku.
-		static constexpr float DASH_COOLDOWN = 4.0f;         // Czas między doskokami.
+		static constexpr float DASH_COOLDOWN = 3.0f;         // Czas między doskokami.
 		static constexpr float DASH_PREPARE_TIME = 0.5f;     // Czas telegrafowania przed startem.
 		static constexpr float DASH_ARRIVE_THRESHOLD = 0.3f; // Dystans uznawany za dotarcie do punktu.
 		static constexpr int DASH_DAMAGE = 35;               // Obrażenia przy trafieniu doskokiem.
 		static constexpr float DASH_HIT_RANGE = 3.5f;        // Zasięg sprawdzania trafienia podczas doskoku.
-		static constexpr float DASH_STUN_DURATION = 2.0f;    // Czas odzyskiwania kontroli po doskoku.
+		static constexpr float DASH_STUN_DURATION = 0.7f;    // Czas odzyskiwania kontroli po doskoku.
 
 		float _attack_cooldown_timer = 0.0f;
 		float _dash_cooldown_timer = 0.0f;

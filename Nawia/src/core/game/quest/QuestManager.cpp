@@ -372,7 +372,7 @@ namespace Nawia::Game {
 				quest.state = QuestState::Available;
 				Core::Logger::debugLog("QuestManager: quest '" + id + "' jest teraz dostepny.");
 
-				if (engine)
+				if (engine && quest.auto_start)
 					engine->getUIHandler().showNotification("Nowy quest dostepny: " + quest.name, 3.0f);
 
 				if (quest.auto_start) {

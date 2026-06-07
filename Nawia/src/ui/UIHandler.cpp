@@ -1050,7 +1050,7 @@ namespace Nawia::UI
         const float frame_y = static_cast<float>(GetScreenHeight()) - Core::GlobalScaling::scaled(126.0f);
         const float icon_size = frame_height * 0.55f;
 
-        const float slot_center_ratios[] = { 0.247f, 0.370f, 0.650f, 0.780f };
+        const float slot_center_ratios[] = { 0.247f, 0.370f, 0.630f, 0.750f };
         const char* slot_keys[] = { "Q", "W", "E", "R" };
         const float food_center_ratio = 0.500f;
         const float slot_center_y = frame_y + frame_height * 0.53f;

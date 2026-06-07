@@ -291,6 +291,16 @@ namespace Nawia::World {
 			engine->getLightingSystem().applyToModel(engine->getCurrentMap()->getModel());
 	}
 
+	void FirstLevel::prepareForRespawn(Core::Engine* engine) {
+		Level::prepareForRespawn(engine);
+		if (!engine || _current_location_index >= _location_definitions.size())
+			return;
+
+		engine->getLightingSystem().loadLightingFromJson(getLightingFileForLocation(_location_definitions[_current_location_index]));
+		if (engine->getCurrentMap())
+			engine->getLightingSystem().applyToModel(engine->getCurrentMap()->getModel());
+	}
+
 	void FirstLevel::onEnter(Core::Engine* engine) {
 		Core::Logger::debugLog("Ladowanie poziomu Wczora...");
 		activatePreparedLocations(engine);

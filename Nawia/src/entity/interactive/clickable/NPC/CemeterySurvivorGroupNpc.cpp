@@ -338,6 +338,8 @@ namespace Nawia::Entity {
 			{"y", _arrival_hub.center.y},
 			{"radius", _arrival_hub.radius}
 		};
+		if (_male_survivor)
+			state["male_survivor"] = _male_survivor->serializeState();
 		return state;
 	}
 
@@ -364,13 +366,21 @@ namespace Nawia::Entity {
 			};
 			_arrival_hub.radius = state["arrival_hub"].value("radius", _arrival_hub.radius);
 		}
+		if (_male_survivor && state.contains("male_survivor"))
+			_male_survivor->applyState(state["male_survivor"], item_database);
 
 		if (_arrived) {
 			_walking_to_hub = false;
 			_dispersing = false;
 			playIdle(*this);
-			if (_male_survivor)
+			if (_male_survivor) {
+				if (!state.contains("male_survivor")) {
+					_male_survivor->setX(getX() + 0.9f);
+					_male_survivor->setY(getY() + 0.45f);
+					_male_survivor->setAltitude(getAltitude());
+				}
 				playIdle(*_male_survivor);
+			}
 		} else if (_walking_to_hub) {
 			buildPathToPoint(_destination);
 			playWalk(*this);

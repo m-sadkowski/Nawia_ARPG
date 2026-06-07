@@ -72,7 +72,7 @@
             "id": "bies",
             "name": "Bies",
             "enemy_type": "Devil",
-            "max_hp": 260,
+            "max_hp": 520,
             "scale": 0.03,
             "music_path": "assets/audio/music/soundsbyamelia-slavic-war-dance-drums-stomps-amp-war-pipes-422949.mp3",
             "music_volume": 0.82,
@@ -88,7 +88,7 @@
                 {
                     "hp_threshold": 0.45,
                     "name": "Gniew Biesa",
-                    "speed_multiplier": 1.35,
+                    "speed_multiplier": 1.3,
                     "damage_multiplier": 1.25,
                     "notification": "Bies wpada w szal!",
                     "screen_flash": true,

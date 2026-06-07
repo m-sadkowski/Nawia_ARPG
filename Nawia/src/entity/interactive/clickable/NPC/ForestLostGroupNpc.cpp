@@ -610,6 +610,10 @@ namespace Nawia::Entity {
 			{"x", _last_travel_direction.x},
 			{"y", _last_travel_direction.y}
 		};
+		if (_male_carrier)
+			state["male_carrier"] = _male_carrier->serializeState();
+		if (_milena_sister)
+			state["milena_sister"] = _milena_sister->serializeState();
 		return state;
 	}
 
@@ -645,6 +649,10 @@ namespace Nawia::Entity {
 				state["last_travel_direction"].value("y", _last_travel_direction.y)
 			}, _last_travel_direction);
 		}
+		if (_male_carrier && state.contains("male_carrier"))
+			_male_carrier->applyState(state["male_carrier"], item_database);
+		if (_milena_sister && state.contains("milena_sister"))
+			_milena_sister->applyState(state["milena_sister"], item_database);
 
 		switch (_state) {
 		case CarryState::Waiting:
@@ -693,10 +701,20 @@ namespace Nawia::Entity {
 			break;
 		case CarryState::Arrived:
 			playIdle(*this);
-			if (_male_carrier)
+			if (_male_carrier) {
+				if (!state.contains("male_carrier")) {
+					_male_carrier->setX(getX() + 0.9f);
+					_male_carrier->setY(getY() + 0.35f);
+					_male_carrier->setAltitude(getAltitude());
+				}
 				playIdle(*_male_carrier);
+			}
 			if (_milena_sister) {
-				_milena_sister->setAltitude(getAltitude());
+				if (!state.contains("milena_sister")) {
+					_milena_sister->setX(getX() - 0.9f);
+					_milena_sister->setY(getY() + 0.45f);
+					_milena_sister->setAltitude(getAltitude());
+				}
 				playIdle(*_milena_sister);
 			}
 			break;
