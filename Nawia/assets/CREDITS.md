@@ -55,6 +55,16 @@ https://poly.pizza/m/uZ3GefauOE
 
 https://poly.pizza/m/7clFQGz5jH
 
+Spider web by Poly by Google [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/cM0NzColM_0)
+
+Water lilies by Poly by Google [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/birD7XV2A44)
+
+Lily pad by Poly by Google [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/8xHS2Js0MA_)
+
+Japanese Sedge by Zsky [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/bTMJc47EiE)
+
+Cattail by Poly by Google [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/9uT74BMpRrl)
+
 ---
 
 ## License Notes

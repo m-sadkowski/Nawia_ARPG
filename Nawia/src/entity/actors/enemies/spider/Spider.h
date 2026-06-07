@@ -52,7 +52,7 @@ namespace Nawia::Entity {
 		Vector2 _current_nav_target = {0.0f, 0.0f};
 		bool _has_current_nav_target = false;
 
-		static constexpr float MODEL_SCALE = 0.7f;
+		static constexpr float MODEL_SCALE = 0.5f;
 		static constexpr float VISION_RANGE = 16.0f;
 		static constexpr float MELEE_RANGE = 1.45f;
 		static constexpr float WEB_RANGE = 10.0f;
