@@ -514,6 +514,8 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	{
 		if (_dormant) return;
 
+		updateStatusEffects(delta_time);
+
 		if (_is_dying)
 		{
 			updateAnimation(delta_time);
@@ -526,6 +528,63 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_pos.y += _velocity.y * delta_time;
 		
 		updateAnimation(delta_time);
+	}
+
+	void Entity::updateStatusEffects(const float dt)
+	{
+		if (_root_timer > 0.0f) {
+			_root_timer = std::max(0.0f, _root_timer - dt);
+			if (_root_timer > 0.0f) {
+				_velocity = {0.0f, 0.0f};
+				_is_moving = false;
+			}
+		}
+
+		if (_poison_timer <= 0.0f || _poison_damage_per_tick <= 0 || isDead() || isDying())
+			return;
+
+		const float poison_timer_before_update = _poison_timer;
+		_poison_timer = std::max(0.0f, _poison_timer - dt);
+		_poison_tick_timer -= dt;
+		const int max_ticks_this_update = static_cast<int>(std::ceil(
+			poison_timer_before_update / std::max(0.05f, _poison_tick_interval)));
+		int ticks_applied = 0;
+		while (_poison_tick_timer <= 0.0f &&
+			   ticks_applied < max_ticks_this_update &&
+			   poison_timer_before_update > 0.0f &&
+			   !isDead() &&
+			   !isDying()) {
+			takeDamage(_poison_damage_per_tick);
+			_poison_tick_timer += std::max(0.05f, _poison_tick_interval);
+			++ticks_applied;
+		}
+	}
+
+	void Entity::applyRoot(const float duration)
+	{
+		_root_timer = std::max(_root_timer, duration);
+		_velocity = {0.0f, 0.0f};
+		_is_moving = false;
+	}
+
+	void Entity::applyPoison(const float duration, const int damage_per_tick, const float tick_interval)
+	{
+		if (duration <= 0.0f || damage_per_tick <= 0)
+			return;
+
+		_poison_timer = std::max(_poison_timer, duration);
+		_poison_tick_interval = std::max(0.05f, tick_interval);
+		_poison_tick_timer = std::min(_poison_tick_timer > 0.0f ? _poison_tick_timer : _poison_tick_interval, _poison_tick_interval);
+		_poison_damage_per_tick = std::max(_poison_damage_per_tick, damage_per_tick);
+	}
+
+	void Entity::clearStatusEffects()
+	{
+		_root_timer = 0.0f;
+		_poison_timer = 0.0f;
+		_poison_tick_timer = 0.0f;
+		_poison_tick_interval = 1.0f;
+		_poison_damage_per_tick = 0;
 	}
 
 	void Entity::updateAnimation(const float dt)
@@ -1002,6 +1061,12 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	void Entity::moveTo(const float x, const float y)
 	{
+		if (isMovementRooted()) {
+			_velocity = {0.0f, 0.0f};
+			_is_moving = false;
+			return;
+		}
+
 		_target_x = x;
 		_target_y = y;
 
@@ -1013,6 +1078,12 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	void Entity::updateMovement(const float dt)
 	{
+		if (isMovementRooted()) {
+			_velocity = {0.0f, 0.0f};
+			_is_moving = false;
+			return;
+		}
+
 		if (!_is_moving) return;
 
 		const float dx = _target_x - getX();

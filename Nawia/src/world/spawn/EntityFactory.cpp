@@ -23,6 +23,7 @@
 #include <MiniMushroomProp.h>
 #include <MushroomNpc.h>
 #include <SzeptuchaNpc.h>
+#include <spider/Spider.h>
 #include <StaticObject.h>
 #include <StoryTrigger.h>
 #include <Teleport.h>
@@ -108,6 +109,7 @@ namespace Nawia::World {
 		if (type == "walking_dead")  return createWalkingDead(data, engine, map);
 		if (type == "frog")          return createFrog(data, engine, map);
 		if (type == "worm")          return createWorm(data, engine, map);
+		if (type == "spider")        return createSpider(data, engine, map);
 		if (type == "mini_mushroom_infected") return createMiniMushroomInfected(data, engine, map);
 		if (type == "friend")        return createFriend(data, engine, map);
 		if (type == "chest")         return createChest(data, engine);
@@ -251,6 +253,25 @@ namespace Nawia::World {
 			.setAudioManager(&engine->getAudioManager())
 			.build());
 		return worm;
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createSpider(
+		const json& data, Core::Engine* engine, Core::Map* map)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const int hp = data.value("hp", 120);
+		const std::string name = data.value("name", "Pajak");
+
+		auto spider = std::shared_ptr<Entity::Spider>(Entity::SpiderBuilder()
+			.setName(name)
+			.setPosition({x, y})
+			.setMap(map)
+			.setMaxHp(hp)
+			.setTarget(engine ? engine->getPlayer() : nullptr)
+			.setAudioManager(engine ? &engine->getAudioManager() : nullptr)
+			.build());
+		return spider;
 	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createMiniMushroomInfected(

@@ -130,17 +130,6 @@
             "y": -3.1230175495147705
         },
         {
-            "category": "chests",
-            "items": [
-                1
-            ],
-            "location": "Dolina Nedzy",
-            "name": "Skrzynia",
-            "type": "chest",
-            "x": -7.4353485107421875,
-            "y": -37.5318603515625
-        },
-        {
             "category": "nav_blockers",
             "height": 1.2000007629394531,
             "location": "Dolina Nedzy",
@@ -293,7 +282,6 @@
             ],
             "category": "story_triggers",
             "conditions": {
-                "required_active_quest": "return_to_herbalist_final",
                 "required_quest_completed": "rescue_forest_survivors"
             },
             "dialogue_key": "herbalist_final_success",
@@ -321,10 +309,6 @@
                 }
             ],
             "category": "story_triggers",
-            "conditions": {
-                "blocked_quest_completed": "rescue_forest_survivors",
-                "required_active_quest": "return_to_herbalist_final"
-            },
             "dialogue_key": "herbalist_final_fail",
             "height": 5.0,
             "location": "Dolina Nedzy",
@@ -337,8 +321,8 @@
         {
             "animation_bundle": "assets/models/actors/witch/witch.glb",
             "can_talk": false,
-            "category": "npcs",
             "cast_animation_index": 7,
+            "category": "npcs",
             "death_animation_index": 0,
             "disable_interaction_after_talk": false,
             "idle_animation": "idle",
@@ -360,9 +344,6 @@
         {
             "category": "story_triggers",
             "checkpoint_on_complete": "witch_to_nawia",
-            "conditions": {
-                "required_active_quest": "enter_nawia_threshold"
-            },
             "dialogue_key": "witch_to_nawia",
             "height": 10.0,
             "location": "Dolina Nedzy",
@@ -386,7 +367,6 @@
             "category": "story_triggers",
             "checkpoint_on_complete": "witch_after_bies",
             "conditions": {
-                "required_active_quest": "return_to_witch_after_bies",
                 "required_boss_defeated": "bies"
             },
             "dialogue_key": "witch_after_bies_placeholder",
@@ -441,6 +421,28 @@
             "type": "bandit",
             "x": 155.17263793945313,
             "y": -108.75289916992188
+        },
+        {
+            "category": "chests",
+            "items": [
+                9
+            ],
+            "location": "Dolina Nedzy",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": -7.955537796020508,
+            "y": -37.17090606689453
+        },
+        {
+            "category": "spawners",
+            "count": 1,
+            "location": "Dolina Nedzy",
+            "name": "Straszny pajak",
+            "spawn_radius": 3.0,
+            "trigger_radius": 15.0,
+            "type": "spider",
+            "x": -9.993959426879883,
+            "y": -32.988494873046875
         }
     ],
     "location": "Dolina Nedzy",

@@ -188,6 +188,7 @@ namespace Nawia::UI {
         void renderMainMenuTitle() const;
 
         void renderPlayerHealthBar() const;
+        void renderPlayerStatusEffects() const;
         void renderPlayerAbilityBar() const;
         void renderPlayerExperienceBar() const;
         void renderBossHealthBar(const Game::BossManager* boss_manager) const;

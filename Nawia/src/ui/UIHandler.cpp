@@ -543,6 +543,7 @@ namespace Nawia::UI
             
         renderPlayerExperienceBar();
         renderPlayerHealthBar();
+        renderPlayerStatusEffects();
         renderPlayerAbilityBar();
         renderCombatEntityHealthBars(camera, boss_manager);
         renderBossHealthBar(boss_manager);
@@ -1004,6 +1005,40 @@ namespace Nawia::UI
         
         const char* health_text = TextFormat("%d HP", display_hp);
         drawOrb(orb_center_x, orb_center_y, orb_radius, target_hp, _visual_hp_percent, 2.5f, orb_fill_bright, orb_fill_dark, orb_bg, health_text, _hp_orb_frame);
+    }
+
+    void UIHandler::renderPlayerStatusEffects() const
+    {
+        if (!_player || (!_player->isPoisoned() && !_player->isMovementRooted()))
+            return;
+
+        const float screen_width = static_cast<float>(GetScreenWidth());
+        const float screen_height = static_cast<float>(GetScreenHeight());
+        const float ability_frame_width = Core::GlobalScaling::scaled(520.0f);
+        const float start_x = (screen_width - ability_frame_width) / 2.0f;
+        float x = start_x + Core::GlobalScaling::scaled(116.0f);
+        const float y = screen_height - Core::GlobalScaling::scaled(164.0f);
+        const float height = Core::GlobalScaling::scaled(24.0f);
+        const float gap = Core::GlobalScaling::scaled(8.0f);
+        const float font_size = Core::GlobalScaling::scaled(14.0f);
+        const float spacing = Core::GlobalScaling::scaled(1.0f);
+
+        const auto draw_status = [&](const char* label, const float remaining, const Color color) {
+            const char* text = TextFormat("%s %.1f", label, remaining);
+            const Vector2 text_size = MeasureTextEx(_font, text, font_size, spacing);
+            const float width = text_size.x + Core::GlobalScaling::scaled(18.0f);
+            const Rectangle rect = {x, y, width, height};
+            DrawRectangleRounded(rect, 0.18f, 6, withAlpha(BLACK, 0.68f));
+            DrawRectangleRoundedLines(rect, 0.18f, 6, withAlpha(color, 0.95f));
+            DrawTextEx(_font, text, {x + Core::GlobalScaling::scaled(9.0f), y + (height - text_size.y) * 0.5f}, font_size, spacing, color);
+            x += width + gap;
+        };
+
+        if (_player->isPoisoned())
+            draw_status("TRUCIZNA", _player->getPoisonRemaining(), {90, 220, 90, 255});
+
+        if (_player->isMovementRooted())
+            draw_status("PAJECZYNA", _player->getRootRemaining(), {220, 220, 230, 255});
     }
 
     void UIHandler::renderCombatEntityHealthBars(const Core::GameCamera& camera, const Game::BossManager* boss_manager) const

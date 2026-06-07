@@ -117,6 +117,13 @@ namespace Nawia::Entity {
 		void setY(float y) { _pos.y = y; }
 		void setAltitude(float altitude) { _altitude = altitude; }
 		[[nodiscard]] Vector2 getCenter() const;
+		virtual void applyRoot(float duration);
+		void applyPoison(float duration, int damage_per_tick, float tick_interval = 1.0f);
+		void clearStatusEffects();
+		[[nodiscard]] bool isMovementRooted() const { return _root_timer > 0.0f; }
+		[[nodiscard]] bool isPoisoned() const { return _poison_timer > 0.0f; }
+		[[nodiscard]] float getRootRemaining() const { return _root_timer; }
+		[[nodiscard]] float getPoisonRemaining() const { return _poison_timer; }
 
 		/**
 		 * @brief Zwraca pozycję encji w świecie 3D.
@@ -509,6 +516,11 @@ namespace Nawia::Entity {
 
 		float _speed_multiplier = 1.0f;
 		float _damage_multiplier = 1.0f;
+		float _root_timer = 0.0f;
+		float _poison_timer = 0.0f;
+		float _poison_tick_timer = 0.0f;
+		float _poison_tick_interval = 1.0f;
+		int _poison_damage_per_tick = 0;
 
 		// Śledzenie celu.
 		std::weak_ptr<Entity> _target;             ///< Aktualny cel AI/walki, nieposiadany.
@@ -519,6 +531,7 @@ namespace Nawia::Entity {
 		std::string _name;
 
 		void updateAnimation(float dt);
+		void updateStatusEffects(float dt);
 		void updateMovementSound(const std::string& path, bool should_play, float volume = 0.55f, float pitch = 1.0f);
 		[[nodiscard]] float getSpatialAudioVolumeMultiplier() const;
 		void unloadModelData();

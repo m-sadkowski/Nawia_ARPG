@@ -359,13 +359,17 @@ namespace Nawia::Core {
         if (distance_sq < combined_radius * combined_radius && distance_sq > 0.0001f) {
             const float distance = std::sqrt(distance_sq);
             const float overlap = combined_radius - distance;
-            const float push_x = (dx / distance) * overlap * 0.5f;
-            const float push_y = (dy / distance) * overlap * 0.5f;
-            
-            first_entity->setX(first_entity->getX() - push_x);
-            first_entity->setY(first_entity->getY() - push_y);
-            second_entity->setX(second_entity->getX() + push_x);
-            second_entity->setY(second_entity->getY() + push_y);
+            const bool first_rooted = first_entity->isMovementRooted();
+            const bool second_rooted = second_entity->isMovementRooted();
+            const float first_push_share = first_rooted && !second_rooted ? 0.0f : (second_rooted && !first_rooted ? 1.0f : 0.5f);
+            const float second_push_share = second_rooted && !first_rooted ? 0.0f : (first_rooted && !second_rooted ? 1.0f : 0.5f);
+            const float push_x = (dx / distance) * overlap;
+            const float push_y = (dy / distance) * overlap;
+
+            first_entity->setX(first_entity->getX() - push_x * first_push_share);
+            first_entity->setY(first_entity->getY() - push_y * first_push_share);
+            second_entity->setX(second_entity->getX() + push_x * second_push_share);
+            second_entity->setY(second_entity->getY() + push_y * second_push_share);
         }
     }
 

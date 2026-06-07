@@ -162,6 +162,8 @@ namespace Nawia::Core {
 			"assets/models/actors/walking_dead/walking_dead.glb",
 			"assets/models/actors/frog/frog.glb",
 			"assets/models/actors/worm/worm.glb",
+			"assets/models/actors/spider/spider.glb",
+			"assets/models/cobweb.glb",
 			"assets/models/actors/mini_mushroom/mini_mushroom.glb",
 			"assets/models/actors/mini_mushroom/mini_mushroom_infected.glb",
 			"assets/models/actors/mushroom/mushroom_raylib_fixed.glb",
@@ -238,6 +240,13 @@ namespace Nawia::Core {
 		if (entity_type == "worm") {
 			addModel("assets/models/actors/worm/worm.glb");
 			addAnimation("assets/models/actors/worm/worm.glb");
+			return;
+		}
+
+		if (entity_type == "spider") {
+			addModel("assets/models/actors/spider/spider.glb");
+			addAnimation("assets/models/actors/spider/spider.glb");
+			addModel("assets/models/cobweb.glb");
 			return;
 		}
 

@@ -39,6 +39,7 @@ namespace Nawia::Entity {
 
 		/** @brief Ustawia cel ruchu gracza. */
 		void moveTo(float x, float y) override;
+		void applyRoot(float duration) override;
 
 		/** @brief Natychmiast zatrzymuje ruch gracza. */
 		void stop();

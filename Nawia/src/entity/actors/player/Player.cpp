@@ -99,6 +99,12 @@ namespace Nawia::Entity {
 
 	void Player::moveTo(const float x, const float y)
 	{
+		if (isMovementRooted())
+		{
+			stop();
+			return;
+		}
+
 		Entity::moveTo(x, y);
 
 		if (_is_moving) 
@@ -119,6 +125,18 @@ namespace Nawia::Entity {
 		}
 	}
 
+	void Player::applyRoot(const float duration)
+	{
+		Entity::applyRoot(duration);
+		_path.clear();
+		updateMovementSound(Audio::SoundPath::Footsteps, false);
+		if (!isAnimationLocked())
+		{
+			setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+			playAnimation("Idle_Loop");
+		}
+	}
+
 	void Player::stop()
 	{
 		_is_moving = false;
@@ -133,6 +151,7 @@ namespace Nawia::Entity {
 
 	void Player::clearControlLocks()
 	{
+		clearStatusEffects();
 		_is_knocked_down = false;
 		_knockdown_phase = KnockdownPhase::None;
 		_is_consuming_food = false;
@@ -193,7 +212,7 @@ namespace Nawia::Entity {
 
 	void Player::updateMovement(const float delta_time)
 	{
-		if (!_is_moving || _is_knocked_down)
+		if (!_is_moving || _is_knocked_down || isMovementRooted())
 		{
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
@@ -517,6 +536,7 @@ namespace Nawia::Entity {
 
 	void Player::respawn()
 	{
+		clearStatusEffects();
 		_hp = std::max(1, _max_hp / 2);
 		_is_dying = false;
 		_is_knocked_down = false;

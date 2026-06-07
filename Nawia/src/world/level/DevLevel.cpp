@@ -256,6 +256,7 @@ namespace Nawia::World {
 				   type == "walking_dead" ||
 				   type == "frog" ||
 				   type == "worm" ||
+				   type == "spider" ||
 				   type == "mini_mushroom_infected";
 		}
 
@@ -2178,7 +2179,12 @@ namespace Nawia::World {
 			_temp_name = "Robal";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 380, 300, 40, GRAY)) {
+		if (drawButton(font, "Straszny pajak", start_x, start_y + 350, 300, 40, BLUE)) {
+			_temp_entity_type = "spider";
+			_temp_name = "Straszny pajak";
+			_current_mode = EditorMode::SpawnerDetails;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 430, 300, 40, GRAY)) {
 			_current_mode = EditorMode::None;
 		}
 	}
