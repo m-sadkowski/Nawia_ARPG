@@ -20,6 +20,42 @@ using json = nlohmann::json;
 
 namespace Nawia::World {
 
+	std::shared_ptr<Entity::Entity> SpawnManager::createEntityForSpawn(
+		SpawnPoint& spawn_point,
+		Core::Engine* engine,
+		Core::Map* map,
+		const std::string& current_location,
+		const bool dormant
+	) {
+		json spawn_data = spawn_point.entity_data;
+
+		if (spawn_point.spawn_radius > 0.0f) {
+			const float angle = static_cast<float>(GetRandomValue(0, 360)) * DEG2RAD;
+			const int max_distance = static_cast<int>(spawn_point.spawn_radius * 100);
+			const float distance = static_cast<float>(GetRandomValue(0, max_distance)) / 100.0f;
+			spawn_data["x"] = spawn_point.spawn_center.x + cosf(angle) * distance;
+			spawn_data["y"] = spawn_point.spawn_center.y + sinf(angle) * distance;
+		}
+
+		auto entity = EntityFactory::create(spawn_point.entity_type, spawn_data, engine, map);
+		if (!entity) {
+			Core::Logger::errorLog("SpawnManager: nie udalo sie stworzyc: " + spawn_point.entity_type);
+			return nullptr;
+		}
+
+		const bool is_current_location = spawn_point.location == current_location;
+		if (is_current_location && map && map->getNavMesh().isReady()) {
+			const Vector3 snapped_position = map->getNavMesh().getClosestWalkablePosition(
+				{entity->getX(), entity->getAltitude(), entity->getY()});
+			entity->setX(snapped_position.x);
+			entity->setY(snapped_position.z);
+			entity->setAltitude(snapped_position.y);
+		}
+
+		entity->setDormant(dormant);
+		return entity;
+	}
+
 	bool SpawnManager::loadEntities(
 		const std::vector<json>& entities,
 		Core::Engine* engine,
@@ -55,37 +91,14 @@ namespace Nawia::World {
 				spawn_point.trigger_radius = entry.value("trigger_radius", 0.0f);
 				spawn_point.spawn_radius = entry.value("spawn_radius", 0.0f);
 
-				json spawn_data = spawn_point.entity_data;
-
-				// Losuje pozycje w promieniu spawnu, jesli JSON tego wymaga.
-				if (spawn_point.spawn_radius > 0.0f) {
-					const float angle = static_cast<float>(GetRandomValue(0, 360)) * DEG2RAD;
-					const int max_distance = static_cast<int>(spawn_point.spawn_radius * 100);
-					const float distance = static_cast<float>(GetRandomValue(0, max_distance)) / 100.0f;
-					spawn_data["x"] = spawn_point.spawn_center.x + cosf(angle) * distance;
-					spawn_data["y"] = spawn_point.spawn_center.y + sinf(angle) * distance;
-				}
-
-				auto entity = EntityFactory::create(spawn_point.entity_type, spawn_data, engine, map);
-				if (!entity) {
-					Core::Logger::errorLog("SpawnManager: nie udalo sie stworzyc: " + spawn_point.entity_type);
-					continue;
-				}
-
 				const bool is_current_location = (spawn_point.location == current_location);
-				if (is_current_location && map && map->getNavMesh().isReady()) {
-					const Vector3 snapped_position = map->getNavMesh().getClosestWalkablePosition(
-						{entity->getX(), entity->getAltitude(), entity->getY()});
-					entity->setX(snapped_position.x);
-					entity->setY(snapped_position.z);
-					entity->setAltitude(snapped_position.y);
-				}
-
-				// Inne lokacje i spawny dystansowe startuja uspione.
 				const bool conditions_met = Game::areEntityConditionsMet(spawn_point.entity_data, engine);
 				const bool should_be_active = is_current_location && conditions_met && (spawn_point.trigger_radius <= 0.0f);
 
-				entity->setDormant(!should_be_active);
+				auto entity = createEntityForSpawn(spawn_point, engine, map, current_location, !should_be_active);
+				if (!entity)
+					continue;
+
 				spawn_point.activated = should_be_active;
 				spawn_point.entity = entity;
 				engine->getEntityManager().addEntity(entity);
@@ -111,7 +124,33 @@ namespace Nawia::World {
 				continue;
 			}
 
-			if (spawn_point.activated) continue;
+			if (spawn_point.activated) {
+				if (spawn_point.trigger_radius > 0.0f &&
+					spawn_point.entity->getType() == Entity::EntityType::Enemy &&
+					!spawn_point.entity->isDead() &&
+					!spawn_point.entity->isDying() &&
+					!spawn_point.entity->isDormant()) {
+					const Vector2 enemy_pos = spawn_point.entity->getCenter();
+					const float dx = player_pos.x - enemy_pos.x;
+					const float dy = player_pos.y - enemy_pos.y;
+					const float reset_radius = spawn_point.trigger_radius * 1.5f;
+					if (dx * dx + dy * dy > reset_radius * reset_radius) {
+						engine->getEntityManager().removeEntity(spawn_point.entity);
+						spawn_point.entity = createEntityForSpawn(
+							spawn_point,
+							engine,
+							engine->getCurrentMap(),
+							current_location,
+							true);
+						if (spawn_point.entity)
+							engine->getEntityManager().addEntity(spawn_point.entity);
+						spawn_point.activated = false;
+						Core::Logger::debugLog("SpawnManager: zresetowano " + spawn_point.entity_type +
+							" w lokacji " + spawn_point.location);
+					}
+				}
+				continue;
+			}
 
 			if (spawn_point.trigger_radius > 0.0f) {
 				const float dx = player_pos.x - spawn_point.spawn_center.x;

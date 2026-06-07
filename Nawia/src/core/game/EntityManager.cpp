@@ -74,6 +74,15 @@ namespace Nawia::Core {
         _active_entities.push_back(std::move(new_entity));
     }
 
+    void EntityManager::removeEntity(const std::shared_ptr<Entity::Entity>& entity) {
+        if (!entity)
+            return;
+
+        _active_entities.erase(
+            std::remove(_active_entities.begin(), _active_entities.end(), entity),
+            _active_entities.end());
+    }
+
     void EntityManager::setPlayer(std::shared_ptr<Entity::Entity> player) {
         _player = std::move(player);
         Entity::Entity::setAudioListener(_player);

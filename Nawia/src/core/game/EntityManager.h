@@ -36,6 +36,11 @@ namespace Nawia::Core {
 		void addEntity(std::shared_ptr<Entity::Entity> new_entity);
 
 		/**
+		 * @brief Usuwa konkretna encje z aktywnej listy.
+		 */
+		void removeEntity(const std::shared_ptr<Entity::Entity>& entity);
+
+		/**
 		 * @brief Ustawia gracza przechowywanego przez manager.
 		 */
 		void setPlayer(std::shared_ptr<Entity::Entity> player);
