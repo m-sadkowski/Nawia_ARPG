@@ -385,6 +385,8 @@ namespace Nawia::Entity {
 		}
 
 		[[nodiscard]] std::shared_ptr<Entity> getLastDamageSource() const { return _last_damage_source.lock(); }
+		void setHealToFullOnKill(const bool value) { _heal_to_full_on_kill = value; }
+		[[nodiscard]] bool healsToFullOnKill() const { return _heal_to_full_on_kill; }
 
 		/**
 		 * @brief Zwraca odległość do celu albo bardzo dużą wartość, gdy celu nie ma.
@@ -503,6 +505,7 @@ namespace Nawia::Entity {
 		bool _persist_after_death = false;
 		bool _hovered = false;
 		bool _dormant = false;
+		bool _heal_to_full_on_kill = false;
 		std::vector<int> _hidden_mesh_indices;
 
 		bool _is_dying = false;

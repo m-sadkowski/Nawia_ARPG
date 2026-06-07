@@ -512,6 +512,9 @@ namespace Nawia::Game {
     void BossManager::resetRuntimeState(Core::Engine* engine) {
         removeMinions(engine);
 
+        if (_active_boss_entity)
+            _active_boss_entity->setHealToFullOnKill(false);
+
         if (_active_boss_entity && !_active_boss_entity->isDead())
             _active_boss_entity->die();
 
@@ -638,6 +641,7 @@ namespace Nawia::Game {
             0.0f,
             0.0f));
         enemy->setMap(engine->getCurrentMap());
+        enemy->setHealToFullOnKill(true);
         _active_boss_entity = enemy;
         engine->getEntityManager().addEntity(_active_boss_entity);
         return true;
@@ -662,6 +666,7 @@ namespace Nawia::Game {
             _active_boss_data->enemy_type == "Frog" ? 2.0f : 1.4f,
             0.0f,
             0.0f));
+        enemy->setHealToFullOnKill(true);
         _active_boss_entity = enemy;
         placeEntityAtBossSpawn(_active_boss_entity, engine);
         engine->getEntityManager().addEntity(_active_boss_entity);
@@ -766,6 +771,7 @@ namespace Nawia::Game {
         _active_boss_entity->setHP(_active_boss_data->max_hp);
         _active_boss_entity->setTarget(engine->getPlayer());
         _active_boss_entity->setDormant(false);
+        _active_boss_entity->setHealToFullOnKill(true);
 
         if (!_active_boss_data->phases.empty())
             applyPhase(_active_boss_data->phases[0], engine);
@@ -884,6 +890,9 @@ namespace Nawia::Game {
             if (auto player = engine->getPlayer())
                 player->clearControlLocks();
         }
+
+        if (_active_boss_entity)
+            _active_boss_entity->setHealToFullOnKill(false);
         
         _active_boss_data = nullptr;
         _active_boss_entity = nullptr;

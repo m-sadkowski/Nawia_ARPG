@@ -732,11 +732,15 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		Core::Logger::debugLog("Entity " + getName() + " otrzymuje obrażenia: " + std::to_string(dmg) + ". Obecne HP: " + std::to_string(_hp));
 		if (_hp - dmg <= 0) 
 		{
+			const bool killed_player_side = _type == EntityType::Player || _type == EntityType::Ally;
+			const auto killer = _last_damage_source.lock();
 			_hp = 1; // Utrzymujemy encję przy życiu do końca animacji śmierci.
 			_is_dying = true;
 			playAnimation(_death_anim_name, false, true, 0, true);
 			setFaction(Faction::None);
 			onDeathStarted();
+			if (killed_player_side && killer && killer->healsToFullOnKill() && !killer->isDead() && !killer->isDying())
+				killer->setHP(killer->getMaxHP());
 			Core::Logger::debugLog("Entity " + getName() + " rozpoczęła sekwencję śmierci.");
 		}
 		else
@@ -885,6 +889,17 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (screen_width <= 0 || screen_height <= 0)
 			return true;
 
+		const auto isProjectedOnScreen = [&](const Vector3 point) {
+			const Vector2 projected = GetWorldToScreen(point, camera);
+			return projected.x >= -screen_margin &&
+				projected.x <= static_cast<float>(screen_width) + screen_margin &&
+				projected.y >= -screen_margin &&
+				projected.y <= static_cast<float>(screen_height) + screen_margin;
+		};
+
+		if (isProjectedOnScreen(getWorldPos3D()))
+			return true;
+
 		const BoundingBox box = getBoundingBox();
 		const Vector3 corners[8] = {
 			{box.min.x, box.min.y, box.min.z},
@@ -898,16 +913,17 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		};
 
 		for (const Vector3& corner : corners) {
-			const Vector2 projected = GetWorldToScreen(corner, camera);
-			if (projected.x >= -screen_margin &&
-				projected.x <= static_cast<float>(screen_width) + screen_margin &&
-				projected.y >= -screen_margin &&
-				projected.y <= static_cast<float>(screen_height) + screen_margin) {
+			if (isProjectedOnScreen(corner)) {
 				return true;
 			}
 		}
 
-		return false;
+		const Vector3 center = {
+			(box.min.x + box.max.x) * 0.5f,
+			(box.min.y + box.max.y) * 0.5f,
+			(box.min.z + box.max.z) * 0.5f
+		};
+		return isProjectedOnScreen(center);
 	}
 
 	BoundingBox Entity::getBoundingBox() const

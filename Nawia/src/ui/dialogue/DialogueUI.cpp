@@ -211,13 +211,6 @@ namespace Nawia::UI
             {layout.panel_rect.x, layout.text_position.y - Core::GlobalScaling::scaled(13.0f), layout.panel_rect.width, Core::GlobalScaling::scaled(1.0f)},
             withAlpha(COLOR_ACCENT, 0.34f));
 
-        const Rectangle name_plate = {
-            layout.name_position.x - Core::GlobalScaling::scaled(12.0f),
-            layout.name_position.y - Core::GlobalScaling::scaled(4.0f),
-            MeasureTextEx(font, node->speaker_name.c_str(), layout.name_font_size, layout.text_spacing).x + Core::GlobalScaling::scaled(24.0f),
-            layout.name_font_size + Core::GlobalScaling::scaled(10.0f)
-        };
-        DrawRectangleRounded(name_plate, 0.2f, 8, withAlpha(BLACK, 0.30f));
         DrawTextEx(font, node->speaker_name.c_str(), layout.name_position, layout.name_font_size, layout.text_spacing, COLOR_ACCENT);
         drawWrappedText(font, layout.text_lines, layout.text_position, layout.text_font_size, layout.text_spacing, COLOR_PARCHMENT);
 

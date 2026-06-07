@@ -260,7 +260,7 @@ namespace Nawia::World {
 	{
 		const float x = data.value("x", 0.0f);
 		const float y = data.value("y", 0.0f);
-		const int hp = data.value("hp", 120);
+		const int hp = data.value("hp", 240);
 		const std::string name = data.value("name", "Pajak");
 
 		auto spider = std::shared_ptr<Entity::Spider>(Entity::SpiderBuilder()

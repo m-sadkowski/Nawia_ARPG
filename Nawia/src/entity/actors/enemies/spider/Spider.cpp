@@ -24,12 +24,37 @@ namespace Nawia::Entity {
 		constexpr float NAV_POINT_REACHED_DISTANCE_SQ = 0.16f;
 		constexpr float NAV_TARGET_CHANGE_DISTANCE_SQ = 0.64f;
 		constexpr float WEB_BACK_OFFSET = 0.95f;
+
+		void makeSpiderMaterialsVisible(Model& model)
+		{
+			for (int i = 0; i < model.materialCount; ++i) {
+				if (!model.materials[i].maps)
+					continue;
+
+				Color& color = model.materials[i].maps[MATERIAL_MAP_DIFFUSE].color;
+				color.a = 255;
+
+				const int strongest_channel = std::max({static_cast<int>(color.r), static_cast<int>(color.g), static_cast<int>(color.b)});
+				if (strongest_channel <= 0) {
+					color = Color{64, 58, 62, 255};
+					continue;
+				}
+
+				if (strongest_channel < 72) {
+					const float multiplier = 72.0f / static_cast<float>(strongest_channel);
+					color.r = static_cast<unsigned char>(std::clamp(static_cast<int>(std::round(static_cast<float>(color.r) * multiplier)), 0, 255));
+					color.g = static_cast<unsigned char>(std::clamp(static_cast<int>(std::round(static_cast<float>(color.g) * multiplier)), 0, 255));
+					color.b = static_cast<unsigned char>(std::clamp(static_cast<int>(std::round(static_cast<float>(color.b) * multiplier)), 0, 255));
+				}
+			}
+		}
 	}
 
 	Spider::Spider()
 	{
 		setName("Pajak");
-		setMaxHp(120);
+		setMaxHp(240);
+		setHealToFullOnKill(true);
 		setFaction(Faction::Enemy);
 		setMovementSpeed(MOVE_SPEED);
 		setCollider(std::make_unique<RectangleCollider>(this, 1.6f, 1.35f, 0.0f, 0.0f));
@@ -42,6 +67,8 @@ namespace Nawia::Entity {
 		setScale(MODEL_SCALE);
 		setModelFacingOffset(90.0f);
 		loadModel(SPIDER_MODEL);
+		if (hasModelLoaded())
+			makeSpiderMaterialsVisible(getModel());
 		loadAnimationBundle(SPIDER_MODEL);
 		addAnimation("melee", SPIDER_MODEL, ANIM_MELEE);
 		addAnimation("death", SPIDER_MODEL, ANIM_DEATH);

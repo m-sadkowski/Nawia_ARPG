@@ -285,8 +285,10 @@ namespace Nawia::Entity {
 		_cast_projectile_spawned = false;
 		stopMoving();
 
-		if (const auto target = std::dynamic_pointer_cast<Player>(_target.lock()))
+		if (const auto target = std::dynamic_pointer_cast<Player>(_target.lock())) {
+			target->rememberDamageSource(this);
 			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * _damage_multiplier));
+		}
 
 		setAnimationSpeed(1.0f);
 		playAnimation("summon", false, true, 0, true);
@@ -294,8 +296,10 @@ namespace Nawia::Entity {
 
 	void Witch::applyRetaliation() {
 		const auto target = std::dynamic_pointer_cast<Player>(_target.lock());
-		if (target)
+		if (target) {
+			target->rememberDamageSource(this);
 			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * _damage_multiplier));
+		}
 
 		summonHelper();
 	}
