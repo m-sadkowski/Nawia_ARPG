@@ -14,7 +14,7 @@ namespace Nawia::Game {
 		DialogueNode start_node;
 		start_node.id = 0;
 		start_node.speaker_name = "Kot Olga";
-		start_node.text = "Miau. Czy mozesz odzyskac moja rybe? Ukradla mi ja mewa, ktora zjadl diabel. Mam klucz do skrzyni diabla.";
+		start_node.text = "Miau. Bandyci ukradli moje ryby i schowali je w skrzyni. Mam klucz, ale sam jej nie otworze.";
 
 		DialogueOption open_inventory_option;
 		open_inventory_option.text = "Jasne!";
@@ -45,14 +45,17 @@ namespace Nawia::Game {
 		DialogueNode thank_node;
 		thank_node.id = 0;
 		thank_node.speaker_name = "Kot Olga";
-		thank_node.text = "Miau! Dzieki za rybe! Masz tu prezent.";
+		thank_node.text = "Miau! To moja ryba. Dzieki, ze zabrales ja bandytom. Masz tu prezent.";
 
 		DialogueOption close_option;
-		close_option.text = "Dzieki!";
+		close_option.text = "Pokaz prezent.";
 		close_option.next_node_id = -1;
-		close_option.action = [engine]() {
-			if (engine)
-				engine->getUIHandler().closeDialogue();
+		close_option.action = [engine, cat]() {
+			if (!engine || !cat)
+				return;
+
+			engine->getUIHandler().closeDialogue();
+			engine->getUIHandler().openContainer(cat);
 		};
 
 		DialogueOption exit_option;

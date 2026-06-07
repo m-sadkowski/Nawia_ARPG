@@ -270,7 +270,6 @@
             "animation_bundle": "assets/models/actors/village_head/village_head.glb",
             "can_talk": true,
             "category": "npcs",
-            "complete_quest": "resolve_witch_truth",
             "disable_interaction_after_talk": false,
             "idle_animation": "Idle",
             "location": "Dolina Nedzy",
@@ -294,6 +293,7 @@
             ],
             "category": "story_triggers",
             "conditions": {
+                "required_active_quest": "return_to_herbalist_final",
                 "required_quest_completed": "rescue_forest_survivors"
             },
             "dialogue_key": "herbalist_final_success",
@@ -321,6 +321,10 @@
                 }
             ],
             "category": "story_triggers",
+            "conditions": {
+                "blocked_quest_completed": "rescue_forest_survivors",
+                "required_active_quest": "return_to_herbalist_final"
+            },
             "dialogue_key": "herbalist_final_fail",
             "height": 5.0,
             "location": "Dolina Nedzy",
@@ -356,6 +360,9 @@
         {
             "category": "story_triggers",
             "checkpoint_on_complete": "witch_to_nawia",
+            "conditions": {
+                "required_active_quest": "enter_nawia_threshold"
+            },
             "dialogue_key": "witch_to_nawia",
             "height": 10.0,
             "location": "Dolina Nedzy",
@@ -379,6 +386,7 @@
             "category": "story_triggers",
             "checkpoint_on_complete": "witch_after_bies",
             "conditions": {
+                "required_active_quest": "return_to_witch_after_bies",
                 "required_boss_defeated": "bies"
             },
             "dialogue_key": "witch_after_bies_placeholder",

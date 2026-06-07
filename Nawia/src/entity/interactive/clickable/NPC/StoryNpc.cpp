@@ -85,8 +85,9 @@ namespace Nawia::Entity {
 			return;
 
 		std::weak_ptr<StoryNpc> npc_ref = self;
-		engine.getUIHandler().openDialogue(
+		engine.getUIHandler().openDialogueFacing(
 			getDialogueTree(),
+			self,
 			getDialogueStartNode(),
 			[npc_ref, engine_ptr = &engine](const int node_id, const bool completed) {
 				const auto npc = npc_ref.lock();

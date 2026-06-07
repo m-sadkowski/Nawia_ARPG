@@ -23,6 +23,9 @@ namespace Nawia::Entity {
 		void onTriggerEnter(Entity& other) override;
 		void render(const Camera3D& camera) override;
 		float getInteractionRange() override;
+		[[nodiscard]] bool shouldWakeOnLocationChange() const override { return !(_once && _completed); }
+		[[nodiscard]] nlohmann::json serializeState() const override;
+		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
 	private:
 		void run(Core::Engine* engine);

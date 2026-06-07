@@ -143,9 +143,12 @@ namespace Nawia::UI {
         void closeContainer();
 
         /** @brief Otwiera DialogueUI i zwraca koncowy wezel/stan ukonczenia przez on_close. */
-        void openDialogue(const Game::DialogueTree& tree, int start_node_id = 0, std::function<void(int, bool)> on_close = nullptr) {
-            _dialogueUI.open(tree, start_node_id, std::move(on_close));
-        }
+        void openDialogue(const Game::DialogueTree& tree, int start_node_id = 0, std::function<void(int, bool)> on_close = nullptr);
+        void openDialogueFacing(
+            const Game::DialogueTree& tree,
+            const std::shared_ptr<Entity::Entity>& speaker,
+            int start_node_id = 0,
+            std::function<void(int, bool)> on_close = nullptr);
         void setDialogueAudioManager(Audio::AudioManager* audio_manager) { _dialogueUI.setAudioManager(audio_manager); }
         void closeDialogue() { _dialogueUI.close(); }
         [[nodiscard]] bool isDialogueOpen() const { return _dialogueUI.isOpen(); }

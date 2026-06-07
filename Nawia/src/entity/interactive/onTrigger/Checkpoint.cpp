@@ -33,6 +33,7 @@ namespace Nawia::Entity {
             return;
 
         engine->getQuestManager().notifyCheckpointReached(getName());
+        engine->getQuestManager().update(engine);
         engine->saveGameToActiveSlot();
     }
 

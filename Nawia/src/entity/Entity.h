@@ -415,6 +415,7 @@ namespace Nawia::Entity {
 		 */
 		void setDormant(bool dormant) { _dormant = dormant; }
 		[[nodiscard]] bool isDormant() const { return _dormant; }
+		[[nodiscard]] virtual bool shouldWakeOnLocationChange() const { return true; }
 
 		// Zapis stanu encji.
 		/**

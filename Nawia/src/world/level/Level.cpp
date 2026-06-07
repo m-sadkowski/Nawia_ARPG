@@ -255,6 +255,38 @@ namespace Nawia::World {
 		rebuildLocationEntityPool(engine);
 	}
 
+	nlohmann::json Level::serializeRuntimeState() const {
+		nlohmann::json state;
+		state["return_positions"] = nlohmann::json::object();
+		for (const auto& [location, position] : _location_return_positions) {
+			state["return_positions"][location] = {
+				{"x", position.x},
+				{"y", position.y}
+			};
+		}
+		return state;
+	}
+
+	void Level::applyRuntimeState(const nlohmann::json& state) {
+		if (!state.is_object())
+			return;
+
+		_location_return_positions.clear();
+		const auto positions_it = state.find("return_positions");
+		if (positions_it == state.end() || !positions_it->is_object())
+			return;
+
+		for (const auto& [location, value] : positions_it->items()) {
+			if (!value.is_object())
+				continue;
+
+			_location_return_positions[location] = {
+				value.value("x", 0.0f),
+				value.value("y", 0.0f)
+			};
+		}
+	}
+
 	void Level::changeLocation(Core::Engine* engine, const std::string& location_name) {
 		if (_uses_location_files) {
 			const std::string previous_location = getCurrentLocationName();

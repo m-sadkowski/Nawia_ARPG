@@ -151,6 +151,25 @@ namespace Nawia::UI
         _visual_exp_percent = 0.0f;
     }
 
+    void UIHandler::openDialogue(const Game::DialogueTree& tree, const int start_node_id, std::function<void(int, bool)> on_close)
+    {
+        _dialogueUI.open(tree, start_node_id, std::move(on_close));
+    }
+
+    void UIHandler::openDialogueFacing(
+        const Game::DialogueTree& tree,
+        const std::shared_ptr<Entity::Entity>& speaker,
+        const int start_node_id,
+        std::function<void(int, bool)> on_close)
+    {
+        if (_player && speaker) {
+            _player->stop();
+            _player->rotateTowardsCenter(speaker->getCenter().x, speaker->getCenter().y);
+        }
+
+        openDialogue(tree, start_node_id, std::move(on_close));
+    }
+
     void UIHandler::initialize(const std::shared_ptr<Entity::Player>& player, Core::EntityManager* entity_manager, Core::ResourceManager& resource_manager, Game::QuestManager* quest_manager, const Core::Settings* settings)
     {
         _player = player;

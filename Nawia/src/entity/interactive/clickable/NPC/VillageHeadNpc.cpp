@@ -66,12 +66,15 @@ namespace Nawia::Entity {
 		_survivor_quest_started = true;
 		bool started_survivor_quest = engine.getQuestManager().startQuest("rescue_cemetery_survivors");
 		started_survivor_quest = engine.getQuestManager().startQuest("rescue_forest_survivors") || started_survivor_quest;
+		started_survivor_quest = engine.getQuestManager().startQuest("enter_nawia_threshold") || started_survivor_quest;
 		const auto* cemetery_quest = engine.getQuestManager().getQuest("rescue_cemetery_survivors");
 		const auto* forest_quest = engine.getQuestManager().getQuest("rescue_forest_survivors");
+		const auto* witch_quest = engine.getQuestManager().getQuest("enter_nawia_threshold");
 		if (started_survivor_quest ||
 			(cemetery_quest && cemetery_quest->isActive()) ||
-			(forest_quest && forest_quest->isActive()))
-			engine.getUIHandler().showNotification("Nowe questy: Ocaleni z cmentarza, Zagubieni w lesie", 4.0f);
+			(forest_quest && forest_quest->isActive()) ||
+			(witch_quest && witch_quest->isActive()))
+			engine.getUIHandler().showNotification("Nowe questy: ocaleni i Wiedzma", 4.0f);
 		startRouteToHerbalistHub();
 	}
 
@@ -177,6 +180,35 @@ namespace Nawia::Entity {
 		_current_path.clear();
 		_is_moving = false;
 		setVelocity(0.0f, 0.0f);
+	}
+
+	nlohmann::json VillageHeadNpc::serializeState() const {
+		nlohmann::json state = StoryNpc::serializeState();
+		state["survivor_quest_started"] = _survivor_quest_started;
+		state["walking_to_spawn"] = _walking_to_spawn;
+		state["destination"] = {{"x", _destination.x}, {"y", _destination.y}};
+		return state;
+	}
+
+	void VillageHeadNpc::applyState(const nlohmann::json& state, Item::ItemDatabase* item_database) {
+		StoryNpc::applyState(state, item_database);
+		if (!state.is_object())
+			return;
+
+		_survivor_quest_started = state.value("survivor_quest_started", _survivor_quest_started);
+		_walking_to_spawn = state.value("walking_to_spawn", _walking_to_spawn);
+		_path_requested = false;
+		if (state.contains("destination") && state["destination"].is_object()) {
+			_destination = {
+				state["destination"].value("x", _destination.x),
+				state["destination"].value("y", _destination.y)
+			};
+		}
+
+		if (_walking_to_spawn)
+			buildPathToPoint(_destination);
+		else if (getAnimationFrameCount("Idle") > 0)
+			playAnimation("Idle", true, false, 0, true);
 	}
 
 } // namespace Nawia::Entity

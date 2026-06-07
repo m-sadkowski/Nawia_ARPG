@@ -11,6 +11,7 @@ namespace Nawia::Entity {
 
 	namespace {
 		constexpr int REQUIRED_FISH_ID = 6;
+		constexpr int CAT_SWORD_ID = 7;
 	}
 
 	Cat::Cat(const std::string& name, const float x, const float y, const std::shared_ptr<Texture2D>& texture)
@@ -18,7 +19,7 @@ namespace Nawia::Entity {
 	{
 		_type = EntityType::NPCStatic;
 		setFaction(Faction::None);
-		setScale(0.03f);
+		setScale(0.024f);
 		loadModel("assets/models/actors/cat/cat_bounce.glb", false);
 		playAnimation("default");
 
@@ -47,8 +48,11 @@ namespace Nawia::Entity {
 		rotateTowardsCenter(instigator.getCenter().x, instigator.getCenter().y);
 		instigator.rotateTowardsCenter(getCenter().x, getCenter().y);
 
-		if (_quest_completed)
+		if (_quest_completed) {
+			if (auto* player = dynamic_cast<Player*>(&instigator))
+				player->getEngine()->getDialogueManager().createCatQuestCompletedDialogue(player->getEngine(), this);
 			return;
+		}
 
 		if (auto* player = dynamic_cast<Player*>(&instigator)) {
 			// Szukamy ryby wymaganej do zakończenia questu.
@@ -68,12 +72,14 @@ namespace Nawia::Entity {
 				backpack.removeItem(fish_index);
 
 				_quest_completed = true;
+				if (const auto sword = player->getEngine()->getItemDatabase().createItem(CAT_SWORD_ID))
+					addItem(sword);
 
 				// Informujemy system questów o dostarczeniu przedmiotu.
 				player->getEngine()->getQuestManager().notifyItemDelivered(REQUIRED_FISH_ID, getName());
 				player->getEngine()->getDialogueManager().createCatQuestCompletedDialogue(player->getEngine(), this);
 				player->getEngine()->getUIHandler().showNotification(
-					"Zadanie ukonczone! Otrzymano Miecz Kota.",
+					"Zadanie ukonczone! Kot pokazuje prezent.",
 					4.0f);
 
 				return;
@@ -90,7 +96,7 @@ namespace Nawia::Entity {
 	void Cat::onInteractionCompleted(Entity& instigator, Core::Engine& engine) {
 		(void)instigator;
 
-		engine.getUIHandler().openDialogue(getDialogueTree());
+		engine.getUIHandler().openDialogueFacing(getDialogueTree(), std::dynamic_pointer_cast<Entity>(shared_from_this()));
 		engine.getQuestManager().notifyNPCTalked(getName());
 	}
 
@@ -104,6 +110,13 @@ namespace Nawia::Entity {
 
 	float Cat::getInteractionRange() {
 		return 2.5f * 2.5f;
+	}
+
+	bool Cat::canInteract() const {
+		if (!_quest_completed)
+			return InteractiveClickable::canInteract();
+
+		return _inventory && _inventory->getRemainingCapacity() < _inventory->getCapacity();
 	}
 
 	Item::Backpack* Cat::getInventory() {
@@ -133,6 +146,11 @@ namespace Nawia::Entity {
 
 		if (item_database && _inventory && state.contains("inventory"))
 			_inventory->applyJson(state["inventory"], *item_database);
+
+		if (_quest_completed && item_database && _inventory && _inventory->getRemainingCapacity() == _inventory->getCapacity()) {
+			if (const auto sword = item_database->createItem(CAT_SWORD_ID))
+				addItem(sword);
+		}
 	}
 
 } // namespace Nawia::Entity

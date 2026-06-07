@@ -287,6 +287,8 @@ namespace Nawia::World {
 			return;
 
 		engine->getLightingSystem().loadLightingFromJson(getLightingFileForLocation(_location_definitions[_current_location_index]));
+		if (engine->getCurrentMap())
+			engine->getLightingSystem().applyToModel(engine->getCurrentMap()->getModel());
 	}
 
 	void FirstLevel::onEnter(Core::Engine* engine) {
@@ -296,6 +298,8 @@ namespace Nawia::World {
 		if (engine) {
 			if (_current_location_index < _location_definitions.size())
 				engine->getLightingSystem().loadLightingFromJson(getLightingFileForLocation(_location_definitions[_current_location_index]));
+			if (engine->getCurrentMap())
+				engine->getLightingSystem().applyToModel(engine->getCurrentMap()->getModel());
 			engine->getAudioManager().playMusic(FIRST_LEVEL_MUSIC, true, 0.65f);
 		}
 	}

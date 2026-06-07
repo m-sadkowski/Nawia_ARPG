@@ -5,6 +5,7 @@
 #include <Level.h>
 #include <LevelManager.h>
 #include <Logger.h>
+#include <Map.h>
 #include <Player.h>
 #include <BossManager.h>
 
@@ -47,6 +48,14 @@ namespace Nawia::Entity {
 
     void Teleport::update(float delta_time) {
         (void)delta_time;
+        if (_snapped_to_navmesh || !_engine || !_engine->getCurrentMap() || !_engine->getCurrentMap()->getNavMesh().isReady())
+            return;
+
+        const Vector3 snapped = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(getWorldPos3D());
+        setX(snapped.x);
+        setY(snapped.z);
+        setAltitude(snapped.y);
+        _snapped_to_navmesh = true;
     }
 
     void Teleport::render(const Camera3D& camera) {

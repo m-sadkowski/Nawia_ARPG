@@ -354,6 +354,8 @@ namespace Nawia::World {
 			addItemsFromJson(data, engine, [&](const std::shared_ptr<Item::Item>& item) {
 				cat->addItem(item);
 			});
+			if (auto key = engine->getItemDatabase().createItem(5))
+				cat->addItem(key);
 
 			return cat;
 		}

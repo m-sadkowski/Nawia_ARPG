@@ -21,6 +21,8 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool canInteract() const override;
 		void update(float delta_time) override;
 		void handleQuestTalkCompleted(Core::Engine& engine) override;
+		[[nodiscard]] nlohmann::json serializeState() const override;
+		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
 	private:
 		void startRouteToHerbalistHub();

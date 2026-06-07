@@ -734,7 +734,43 @@ namespace Nawia::Game {
         startBossMusic(engine);
 
         engine->getUIHandler().showNotification("WALKA Z BOSSEM: " + _active_boss_data->name, 4.0f);
+        if (const auto player = engine->getPlayer())
+            player->setRespawnPoint({player->getX(), player->getY()});
+        engine->saveGameToActiveSlot();
 
+        return true;
+    }
+
+    bool BossManager::retryActiveBossFight(Core::Engine* engine) {
+        if (!isFightActive() || !_active_boss_data || !engine)
+            return false;
+
+        removeMinions(engine);
+
+        if (!_active_boss_entity) {
+            if (!activateBossFromPool(_active_boss_data->id, engine) && !buildAndActivateBoss(engine)) {
+                _active_boss_data = nullptr;
+                return false;
+            }
+        }
+
+        if (!_active_boss_entity)
+            return false;
+
+        _current_phase_index = 0;
+        _fight_timer = 0.0f;
+        _phase_flash_timer = 0.0f;
+
+        placeEntityAtBossSpawn(std::dynamic_pointer_cast<Entity::Entity>(_active_boss_entity), engine);
+        _active_boss_entity->setMaxHp(_active_boss_data->max_hp);
+        _active_boss_entity->setHP(_active_boss_data->max_hp);
+        _active_boss_entity->setTarget(engine->getPlayer());
+        _active_boss_entity->setDormant(false);
+
+        if (!_active_boss_data->phases.empty())
+            applyPhase(_active_boss_data->phases[0], engine);
+
+        engine->getUIHandler().showNotification("Walka z bossem zaczyna sie od nowa.", 3.0f);
         return true;
     }
 
@@ -860,7 +896,7 @@ namespace Nawia::Game {
         if (victory && engine && !victory_dialogue_key.empty()) {
             DialogueTree tree = buildDialogueFromNpcConfig(victory_dialogue_key);
             if (tree.getNode(0)) {
-                engine->getUIHandler().openDialogue(tree, 0, [engine, checkpoint_on_victory, defeated_boss_entity](const int, const bool completed) {
+                engine->getUIHandler().openDialogueFacing(tree, defeated_boss_entity, 0, [engine, checkpoint_on_victory, defeated_boss_entity](const int, const bool completed) {
                     if (defeated_boss_entity)
                         defeated_boss_entity->setDormant(true);
 

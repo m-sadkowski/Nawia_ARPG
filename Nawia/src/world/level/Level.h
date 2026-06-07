@@ -5,6 +5,7 @@
 
 #include <map>
 #include <memory>
+#include <json.hpp>
 #include <optional>
 #include <raylib.h>
 #include <string>
@@ -158,6 +159,9 @@ namespace Nawia::World {
          * @brief Odbudowuje runtime levelu po odrodzeniu gracza.
          */
         virtual void prepareForRespawn(Core::Engine* engine);
+
+        [[nodiscard]] nlohmann::json serializeRuntimeState() const;
+        void applyRuntimeState(const nlohmann::json& state);
 
         /**
          * @brief Zwraca indeks aktualnej lokacji.

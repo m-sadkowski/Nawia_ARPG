@@ -56,4 +56,18 @@ namespace Nawia::Entity {
 		engine.notifyStoryEvent("wanda_corpse_inspected", corpse_center);
 	}
 
+	nlohmann::json WandaCorpseNpc::serializeState() const {
+		nlohmann::json state = StoryNpc::serializeState();
+		state["inspected"] = _inspected;
+		return state;
+	}
+
+	void WandaCorpseNpc::applyState(const nlohmann::json& state, Item::ItemDatabase* item_database) {
+		StoryNpc::applyState(state, item_database);
+		if (!state.is_object())
+			return;
+
+		_inspected = state.value("inspected", _inspected);
+	}
+
 } // namespace Nawia::Entity

@@ -156,6 +156,10 @@ namespace Nawia::World {
 				}
 
 				// Budzi natychmiastowe spawny oraz encje aktywowane przed opuszczeniem lokacji.
+				if (!spawn_point.entity->shouldWakeOnLocationChange()) {
+					continue;
+				}
+
 				if (spawn_point.trigger_radius <= 0.0f || spawn_point.activated) {
 					spawn_point.entity->setDormant(false);
 					spawn_point.activated = true;

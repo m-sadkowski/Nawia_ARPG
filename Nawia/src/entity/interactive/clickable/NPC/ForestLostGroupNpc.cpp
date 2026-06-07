@@ -597,6 +597,19 @@ namespace Nawia::Entity {
 		state["state"] = static_cast<int>(_state);
 		state["destination"] = {{"x", _destination.x}, {"y", _destination.y}};
 		state["sister_standing"] = _sister_is_standing;
+		state["path_requested"] = _path_requested;
+		state["sister_bob_time"] = _sister_bob_time;
+		state["sister_drop_timer"] = _sister_drop_timer;
+		state["sister_drop_start_altitude"] = _sister_drop_start_altitude;
+		state["arrival_hub"] = {
+			{"x", _arrival_hub.center.x},
+			{"y", _arrival_hub.center.y},
+			{"radius", _arrival_hub.radius}
+		};
+		state["last_travel_direction"] = {
+			{"x", _last_travel_direction.x},
+			{"y", _last_travel_direction.y}
+		};
 		return state;
 	}
 
@@ -606,20 +619,88 @@ namespace Nawia::Entity {
 			return;
 
 		_talk_completed = state.value("talk_completed", _talk_completed);
-		_sister_is_standing = true;
-		_state = CarryState::Waiting;
+		const int raw_state = std::clamp(state.value("state", static_cast<int>(_state)), 0, static_cast<int>(CarryState::Arrived));
+		_state = static_cast<CarryState>(raw_state);
+		_sister_is_standing = state.value("sister_standing", _sister_is_standing);
+		_path_requested = state.value("path_requested", false);
+		_sister_bob_time = state.value("sister_bob_time", _sister_bob_time);
+		_sister_drop_timer = state.value("sister_drop_timer", _sister_drop_timer);
+		_sister_drop_start_altitude = state.value("sister_drop_start_altitude", _sister_drop_start_altitude);
 		if (state.contains("destination") && state["destination"].is_object()) {
 			_destination = {
 				state["destination"].value("x", _destination.x),
 				state["destination"].value("y", _destination.y)
 			};
 		}
+		if (state.contains("arrival_hub") && state["arrival_hub"].is_object()) {
+			_arrival_hub.center = {
+				state["arrival_hub"].value("x", _arrival_hub.center.x),
+				state["arrival_hub"].value("y", _arrival_hub.center.y)
+			};
+			_arrival_hub.radius = state["arrival_hub"].value("radius", _arrival_hub.radius);
+		}
+		if (state.contains("last_travel_direction") && state["last_travel_direction"].is_object()) {
+			_last_travel_direction = normalizedOrFallback({
+				state["last_travel_direction"].value("x", _last_travel_direction.x),
+				state["last_travel_direction"].value("y", _last_travel_direction.y)
+			}, _last_travel_direction);
+		}
 
-		playIdle(*this);
-		if (_male_carrier)
-			playIdle(*_male_carrier);
-		if (_milena_sister)
-			playIdle(*_milena_sister);
+		switch (_state) {
+		case CarryState::Waiting:
+			playIdle(*this);
+			if (_male_carrier)
+				playIdle(*_male_carrier);
+			if (_milena_sister)
+				freezeSisterOnDeathFrame();
+			snapMembersToFormation(_last_travel_direction);
+			break;
+		case CarryState::Carrying:
+			buildPathToPoint(_destination);
+			playWalkBack(*this);
+			if (_male_carrier)
+				playWalk(*_male_carrier);
+			if (_milena_sister)
+				freezeSisterOnDeathFrame();
+			snapMembersToFormation(_last_travel_direction);
+			break;
+		case CarryState::SisterDropping:
+			playIdle(*this);
+			if (_male_carrier)
+				playIdle(*_male_carrier);
+			if (_milena_sister)
+				freezeSisterOnDeathFrame();
+			break;
+		case CarryState::SisterStandingUp:
+			playIdle(*this);
+			if (_male_carrier)
+				playIdle(*_male_carrier);
+			if (_milena_sister) {
+				if (_sister_is_standing)
+					playIdle(*_milena_sister);
+				else
+					_milena_sister->playAnimationReverseOnce(ANIM_DEATH);
+			}
+			break;
+		case CarryState::Dispersing:
+			if (_arrival_hub.radius <= 0.0f) {
+				if (_engine)
+					_arrival_hub = resolveHub(*_engine).value_or(HubDestination{_destination, _hub_radius_fallback});
+				else
+					_arrival_hub = HubDestination{_destination, _hub_radius_fallback};
+			}
+			startDispersal();
+			break;
+		case CarryState::Arrived:
+			playIdle(*this);
+			if (_male_carrier)
+				playIdle(*_male_carrier);
+			if (_milena_sister) {
+				_milena_sister->setAltitude(getAltitude());
+				playIdle(*_milena_sister);
+			}
+			break;
+		}
 	}
 
 } // namespace Nawia::Entity

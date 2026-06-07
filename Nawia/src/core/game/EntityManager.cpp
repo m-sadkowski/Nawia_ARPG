@@ -65,6 +65,12 @@ namespace Nawia::Core {
     }
 
     void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity) {
+        if (!new_entity)
+            return;
+
+        if (std::ranges::find(_active_entities, new_entity) != _active_entities.end())
+            return;
+
         _active_entities.push_back(std::move(new_entity));
     }
 

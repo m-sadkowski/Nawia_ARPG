@@ -59,7 +59,7 @@
         }
       ],
       "rewards": {
-        "items": [ 7 ],
+        "items": [],
         "gold": 50,
         "exp": 250
       }
@@ -244,7 +244,7 @@
       "description": "Znajdz dwoje mieszkancow ukrywajacych sie przy cmentarzu i odeslij ich do chaty zielarza.",
       "level_name": "Wczora",
       "prerequisites": ["recover_scarf"],
-      "auto_start": true,
+      "auto_start": false,
       "objectives": [
         {
           "type": "reach_checkpoint",
@@ -265,7 +265,7 @@
       "description": "Znajdz troje ludzi zagubionych w lesie i pomoz im dotrzec do chaty zielarza.",
       "level_name": "Wczora",
       "prerequisites": ["recover_scarf"],
-      "auto_start": true,
+      "auto_start": false,
       "objectives": [
         {
           "type": "reach_checkpoint",
@@ -286,7 +286,7 @@
       "description": "Porozmawiaj z Czarownica i przejdz przez mgle do Przedsionka Nawii.",
       "level_name": "Wczora",
       "prerequisites": ["recover_scarf"],
-      "auto_start": true,
+      "auto_start": false,
       "objectives": [
         {
           "type": "reach_checkpoint",

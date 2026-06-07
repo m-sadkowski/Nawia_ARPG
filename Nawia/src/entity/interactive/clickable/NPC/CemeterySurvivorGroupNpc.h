@@ -27,6 +27,8 @@ namespace Nawia::Entity {
 		void update(float delta_time) override;
 		void render(const Camera3D& camera) override;
 		void handleQuestTalkCompleted(Core::Engine& engine) override;
+		[[nodiscard]] nlohmann::json serializeState() const override;
+		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
 	private:
 		class GroupVisual;

@@ -325,4 +325,70 @@ namespace Nawia::Entity {
 		setVelocity(0.0f, 0.0f);
 	}
 
+	nlohmann::json CemeterySurvivorGroupNpc::serializeState() const {
+		nlohmann::json state = StoryNpc::serializeState();
+		state["talk_completed"] = _talk_completed;
+		state["walking_to_hub"] = _walking_to_hub;
+		state["dispersing"] = _dispersing;
+		state["arrived"] = _arrived;
+		state["path_requested"] = _path_requested;
+		state["destination"] = {{"x", _destination.x}, {"y", _destination.y}};
+		state["arrival_hub"] = {
+			{"x", _arrival_hub.center.x},
+			{"y", _arrival_hub.center.y},
+			{"radius", _arrival_hub.radius}
+		};
+		return state;
+	}
+
+	void CemeterySurvivorGroupNpc::applyState(const nlohmann::json& state, Item::ItemDatabase* item_database) {
+		StoryNpc::applyState(state, item_database);
+		if (!state.is_object())
+			return;
+
+		_talk_completed = state.value("talk_completed", _talk_completed);
+		_walking_to_hub = state.value("walking_to_hub", _walking_to_hub);
+		_dispersing = state.value("dispersing", _dispersing);
+		_arrived = state.value("arrived", _arrived);
+		_path_requested = state.value("path_requested", false);
+		if (state.contains("destination") && state["destination"].is_object()) {
+			_destination = {
+				state["destination"].value("x", _destination.x),
+				state["destination"].value("y", _destination.y)
+			};
+		}
+		if (state.contains("arrival_hub") && state["arrival_hub"].is_object()) {
+			_arrival_hub.center = {
+				state["arrival_hub"].value("x", _arrival_hub.center.x),
+				state["arrival_hub"].value("y", _arrival_hub.center.y)
+			};
+			_arrival_hub.radius = state["arrival_hub"].value("radius", _arrival_hub.radius);
+		}
+
+		if (_arrived) {
+			_walking_to_hub = false;
+			_dispersing = false;
+			playIdle(*this);
+			if (_male_survivor)
+				playIdle(*_male_survivor);
+		} else if (_walking_to_hub) {
+			buildPathToPoint(_destination);
+			playWalk(*this);
+			if (_male_survivor)
+				playWalk(*_male_survivor);
+		} else if (_dispersing) {
+			if (_arrival_hub.radius <= 0.0f) {
+				if (_engine)
+					_arrival_hub = resolveHub(*_engine).value_or(HubDestination{_destination, _hub_radius_fallback});
+				else
+					_arrival_hub = HubDestination{_destination, _hub_radius_fallback};
+			}
+			startDispersal(_arrival_hub);
+		} else {
+			playIdle(*this);
+			if (_male_survivor)
+				playIdle(*_male_survivor);
+		}
+	}
+
 } // namespace Nawia::Entity

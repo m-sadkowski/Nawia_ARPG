@@ -215,7 +215,8 @@
                 "lines": [
                     {
                         "speaker": "Logos",
-                        "text": "Alez obrzydlistwo. CO ON MA W GNIEZDZIE? TO JEJ CHUSTA. Musze sie z nim rozprawic."
+                        "text": "Alez obrzydlistwo. CO ON MA W GNIEZDZIE? TO JEJ CHUSTA. Musze sie z nim rozprawic.",
+                        "voice_path": "assets/audio/dialogues/Boss/ropuch_intro_logos_00.wav"
                     }
                 ]
             }

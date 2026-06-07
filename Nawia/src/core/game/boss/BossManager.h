@@ -171,6 +171,7 @@ namespace Nawia::Game {
          * @param engine Wskaznik na silnik.
          */
         void endBossFight(bool victory, Core::Engine* engine);
+        bool retryActiveBossFight(Core::Engine* engine);
 
         [[nodiscard]] bool isFightActive() const { return _active_boss_data != nullptr; }
         [[nodiscard]] const BossData* getActiveBossData() const { return _active_boss_data; }

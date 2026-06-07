@@ -66,12 +66,7 @@ namespace Nawia::Entity {
 		using InteractiveClickable::canInteract;
 
 		/** @brief Blokuje interakcję po zakończeniu questu. */
-		bool canInteract() const override {
-			if (_quest_completed)
-				return false;
-
-			return InteractiveClickable::canInteract();
-		}
+		bool canInteract() const override;
 
 	private:
 		bool _is_open = false;

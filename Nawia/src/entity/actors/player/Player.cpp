@@ -439,10 +439,11 @@ namespace Nawia::Entity {
 
 	nlohmann::json Player::serializeLocationView() const
 	{
+		const int safe_hp = isDead() ? std::max(1, _max_hp / 2) : std::clamp(_hp, 1, _max_hp);
 		return {
 			{"position", vector2ToJson({_pos.x, _pos.y})},
 			{"altitude", _altitude},
-			{"hp", _hp},
+			{"hp", safe_hp},
 			{"max_hp", _max_hp},
 			{"respawn_point", vector2ToJson(_respawn_point)}
 		};
@@ -516,7 +517,7 @@ namespace Nawia::Entity {
 
 	void Player::respawn()
 	{
-		_hp = _max_hp;
+		_hp = std::max(1, _max_hp / 2);
 		_is_dying = false;
 		_is_knocked_down = false;
 		_knockdown_phase = KnockdownPhase::None;

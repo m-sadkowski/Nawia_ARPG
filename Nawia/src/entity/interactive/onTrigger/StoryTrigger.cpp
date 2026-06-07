@@ -312,6 +312,35 @@ namespace Nawia::Entity {
 			return actions;
 		}
 
+		std::shared_ptr<Entity> findEntityByName(Core::Engine* engine, const std::string& name) {
+			if (!engine || name.empty())
+				return nullptr;
+
+			for (const auto& entity : engine->getEntityManager().getEntities()) {
+				if (entity && entity->getName() == name)
+					return entity;
+			}
+			return nullptr;
+		}
+
+		std::shared_ptr<Entity> resolveDialogueSpeaker(Core::Engine* engine, const nlohmann::json& data) {
+			std::string speaker_name = data.value("dialogue_speaker", data.value("dialogue_target", ""));
+			if (speaker_name.empty() && data.contains("on_enter") && data["on_enter"].is_array()) {
+				for (const auto& action : data["on_enter"]) {
+					if (!action.is_object())
+						continue;
+
+					if (action.value("type", "") == "play_entity_animation") {
+						speaker_name = action.value("name", action.value("entity_name", ""));
+						if (!speaker_name.empty())
+							break;
+					}
+				}
+			}
+
+			return findEntityByName(engine, speaker_name);
+		}
+
 	}
 
 	StoryTrigger::StoryTrigger(
@@ -373,7 +402,7 @@ namespace Nawia::Entity {
 		}
 
 		_dialogue_open = true;
-		engine->getUIHandler().openDialogue(tree, 0, [this, engine](const int, const bool completed) {
+		engine->getUIHandler().openDialogueFacing(tree, resolveDialogueSpeaker(engine, _data), 0, [this, engine](const int, const bool completed) {
 			_dialogue_open = false;
 			if (!completed)
 				return;
@@ -413,6 +442,24 @@ namespace Nawia::Entity {
 
 	float StoryTrigger::getInteractionRange() {
 		return 0.0f;
+	}
+
+	nlohmann::json StoryTrigger::serializeState() const {
+		nlohmann::json state = Entity::serializeState();
+		state["completed"] = _completed;
+		state["once"] = _once;
+		return state;
+	}
+
+	void StoryTrigger::applyState(const nlohmann::json& state, Item::ItemDatabase* item_database) {
+		Entity::applyState(state, item_database);
+		if (!state.is_object())
+			return;
+
+		_completed = state.value("completed", _completed);
+		_once = state.value("once", _once);
+		if (_completed && _once)
+			setDormant(true);
 	}
 
 } // namespace Nawia::Entity

@@ -348,12 +348,17 @@ namespace Nawia::Core {
 	void Engine::handleGameOverInput() {
 		const UI::MenuAction action = _ui_handler->handleGameOverInput();
 		if (action == UI::MenuAction::Respawn) {
+			const bool boss_retry = _boss_manager.isFightActive();
+			if (boss_retry)
+				_boss_manager.retryActiveBossFight(this);
 			_player->respawn();
 			_entity_manager->addEntity(_player);
-			if (_level_manager && _level_manager->getCurrentLevel())
+			if (!boss_retry && _level_manager && _level_manager->getCurrentLevel())
 				_level_manager->getCurrentLevel()->prepareForRespawn(this);
 			_game_state = GameState::Playing;
 		} else if (action == UI::MenuAction::Exit) {
+			if (_boss_manager.isFightActive())
+				_boss_manager.endBossFight(false, this);
 			_audio_manager.playMusic(MENU_MUSIC_PATH, true, 0.45f);
 			_game_state = GameState::Menu;
 		}
@@ -641,9 +646,6 @@ namespace Nawia::Core {
 			return;
 
 		if (_player->isDead()) {
-			if (_boss_manager.isFightActive()) {
-				_boss_manager.endBossFight(false, this);
-			}
 			_game_state = GameState::GameOver;
 			return;
 		}
