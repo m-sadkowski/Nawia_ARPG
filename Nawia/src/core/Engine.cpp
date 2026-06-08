@@ -200,6 +200,8 @@ namespace Nawia::Core {
 		_ui_handler->setLevelManager(_level_manager.get());
 		_ui_handler->setSaveGameManager(&_save_game_manager);
 
+		_custom_cursor.initialize(_resource_manager);
+
 		_audio_manager.playMusic(MENU_MUSIC_PATH, true, 1.f);
 
 		_loading_kind = LoadingKind::None;
@@ -616,6 +618,17 @@ namespace Nawia::Core {
 			_hover_update_timer = k_hover_update_interval;
 		}
 
+		// Aktualizacja stanu kursora na podstawie hoverowanej encji.
+		const auto hovered_entity = getEntityAt(mouse_pos.x, mouse_pos.y);
+		const bool level_blocks_control = _level_manager->getCurrentLevel() && _level_manager->getCurrentLevel()->blocksPlayerControl();
+		
+		// Pokazujemy kursor interakcji z encja tylko jesli UI nie blokuje wejscia (np. otwarty dialog)
+		// i poziom nie blokuje kontroli (np. intro).
+		if (hovered_entity && !_ui_handler->isInputBlocked() && !level_blocks_control)
+			_custom_cursor.setState(UI::CursorState::Interact);
+		else
+			_custom_cursor.setState(UI::CursorState::Default);
+
 		_level_manager->handleInput(this);
 		if (dev_level && dev_level->isTyping())
 			return;
@@ -654,6 +667,7 @@ namespace Nawia::Core {
 			_game_state == GameState::SettingsMenu ||
 			_game_state == GameState::LevelSelect ||
 			_game_state == GameState::SaveSlotSelect) {
+			_custom_cursor.setState(UI::CursorState::Default);
 			if (_ui_handler) _ui_handler->update(delta_time);
 			return;
 		}
@@ -779,6 +793,7 @@ namespace Nawia::Core {
 			renderGameplay();
 		}
 
+		_custom_cursor.render();
 		EndDrawing();
 	}
 
