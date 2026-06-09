@@ -1,20 +1,32 @@
 {
   "slides": [
     {
+      "text": "Logos dowiedzial sie, co stalo sie z jego ludem. Nie po to, by zlozyc wine na martwych albo na bogow, ale zeby sprobowac naprawic zerwana wiez.\n\nNajpierw dziady. Potem droga za Milena.",
+      "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_epilogue_logos_01.wav",
+      "image_path": "assets/textures/outro/odgruzowanie_przejscia.png",
+      "duration": 9.0
+    },
+    {
+      "text": "Potok nad Twierdza Kamienna bedzie dobrym miejscem. Woda poniesie slowa do tych, ktorzy nie maja juz ust, a kamien przypomni zywym, ze nie sa sami na tej ziemi.",
+      "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_epilogue_02.wav",
+      "image_path": "assets/textures/outro/dziady_przy_potoku.png",
+      "duration": 8.5
+    },
+    {
       "text": "Kiedy wielki katnik padl, ludzie Wczory po raz pierwszy od wielu dni podeszli do zawalonego przejscia bez strachu. Kamien po kamieniu zaczeli odkopywac droge, ktora miala zaprowadzic ich ku temu, co zostalo przemilczane.",
-      "voice_path": "assets/audio/dialogues/Outro/slide_01.wav",
+      "voice_path": "assets/audio/dialogues/Narrator/Outro/slide_01.wav",
       "image_path": "assets/textures/outro/odgruzowanie_przejscia.png",
       "duration": 8.0
     },
     {
       "text": "Przy potoku nad Twierdza Kamienna odprawiono dziady. Logos zrozumial, ze gniew bogow nie rodzi sie tylko z winy, ale tez z pychy zywych, ktorzy przestali sluchac zmarlych.",
-      "voice_path": "assets/audio/dialogues/Outro/slide_02.wav",
+      "voice_path": "assets/audio/dialogues/Narrator/Outro/slide_02.wav",
       "image_path": "assets/textures/outro/dziady_przy_potoku.png",
       "duration": 8.0
     },
     {
       "text": "Chcial naprawic relacje ludu z bogami, ale przede wszystkim odnalezc Milene. Jesli zyje, droga do niej prowadzi dalej, ku Twierdzy Kamiennej.",
-      "voice_path": "assets/audio/dialogues/Outro/slide_03.wav",
+      "voice_path": "assets/audio/dialogues/Narrator/Outro/slide_03.wav",
       "image_path": "assets/textures/outro/droga_do_twierdzy.png",
       "duration": 7.5
     }

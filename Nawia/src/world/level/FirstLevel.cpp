@@ -413,6 +413,19 @@ namespace Nawia::World {
 		openAwakeningDialogue(engine);
 	}
 
+	void FirstLevel::skipOutroSlides(Core::Engine* engine) {
+		if (!engine)
+			return;
+
+		stopSlideVoice(engine);
+		_intro_slides.clear();
+		_intro_slide_index = 0;
+		_intro_timer = 0.0f;
+		_intro_overlay_alpha = 1.0f;
+		_intro_phase = IntroPhase::OutroFadeToMenu;
+		engine->requestReturnToMainMenu(getOutroConfig().value("beta_message", "Twierdza Kamienna nie jest dostepna w wersji Beta."));
+	}
+
 	void FirstLevel::equipPresentationBoots(Core::Engine* engine) const {
 		if (!engine || !engine->getPlayer())
 			return;
@@ -598,9 +611,9 @@ namespace Nawia::World {
 		}
 
 		_intro_slide_index = 0;
-		_intro_phase = _intro_slides.empty() ? IntroPhase::OutroFadeToMenu : IntroPhase::OutroSlides;
+		_intro_phase = _intro_slides.empty() ? IntroPhase::OutroFadeToMenu : IntroPhase::OutroFadeFromGame;
 		_intro_timer = 0.0f;
-		_intro_overlay_alpha = 1.0f;
+		_intro_overlay_alpha = 0.0f;
 		_intro_dialogue_opened = false;
 		_intro_flash_timer = 0.0f;
 		_pending_szeptucha_encounter = false;
@@ -611,14 +624,14 @@ namespace Nawia::World {
 		if (const auto player = engine->getPlayer())
 			player->stop();
 
-		playSlideVoice(engine);
+		if (_intro_slides.empty())
+			return;
 	}
 
 	void FirstLevel::finishOutroSequence(Core::Engine* engine) {
 		stopSlideVoice(engine);
-		_intro_phase = IntroPhase::Inactive;
 		_intro_timer = 0.0f;
-		_intro_overlay_alpha = 0.0f;
+		_intro_overlay_alpha = 1.0f;
 		_intro_slides.clear();
 		_intro_slide_index = 0;
 
@@ -662,6 +675,14 @@ namespace Nawia::World {
 			const Rectangle skip_rect = getIntroSkipButtonRect(GetScreenWidth(), GetScreenHeight());
 			if (CheckCollisionPointRec(GetMousePosition(), skip_rect)) {
 				skipIntroSlides(engine);
+				return;
+			}
+		}
+
+		if (_intro_phase == IntroPhase::OutroSlides && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			const Rectangle skip_rect = getIntroSkipButtonRect(GetScreenWidth(), GetScreenHeight());
+			if (CheckCollisionPointRec(GetMousePosition(), skip_rect)) {
+				skipOutroSlides(engine);
 				return;
 			}
 		}
@@ -740,6 +761,16 @@ namespace Nawia::World {
 			case IntroPhase::SzeptuchaDialogue:
 			case IntroPhase::FinalDialogue:
 				_intro_overlay_alpha = 0.22f;
+				break;
+			case IntroPhase::OutroFadeFromGame:
+				_intro_overlay_alpha = std::clamp(_intro_timer / 1.35f, 0.0f, 1.0f);
+				if (_intro_timer >= 1.35f) {
+					_intro_phase = IntroPhase::OutroSlides;
+					_intro_timer = 0.0f;
+					_intro_overlay_alpha = 1.0f;
+					_intro_slide_index = 0;
+					playSlideVoice(engine);
+				}
 				break;
 			case IntroPhase::OutroFadeToMenu:
 				_intro_overlay_alpha = std::clamp(_intro_timer / 2.5f, 0.0f, 1.0f);
@@ -832,7 +863,7 @@ namespace Nawia::World {
 			}
 		}
 
-		if ((_intro_phase == IntroPhase::Slides || _intro_phase == IntroPhase::FadeFromBlackAfterSlides) && engine)
+		if ((_intro_phase == IntroPhase::Slides || _intro_phase == IntroPhase::FadeFromBlackAfterSlides || _intro_phase == IntroPhase::OutroSlides) && engine)
 			drawIntroSkipButton(engine->getUIHandler().getFont(), getIntroSkipButtonRect(width, height));
 
 		if (_intro_flash_timer > 0.0f) {

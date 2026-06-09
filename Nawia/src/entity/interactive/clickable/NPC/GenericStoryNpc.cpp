@@ -378,52 +378,44 @@ namespace Nawia::Entity {
 							startHerbalistSpiderQuest(*engine);
 							startMilenaSisterOptionalQuest(*engine);
 						}),
-						makeDialogueOption("Nie. Konczmy to.", 1, [engine = _engine, this]() {
+						makeDialogueOption("Nie. Konczmy to.", -1, [engine = _engine, this]() {
 							startHerbalistSpiderQuest(*engine);
+							finishWczoraLevel(*engine);
 						})
 					},
-					"assets/audio/dialogues/StoryFinal/herbalist_dynamic_spider_done_00.wav"));
+					"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_done_00.wav"));
 			} else {
 				tree.addNode(makeDialogueNode(0, "Zielarz",
 					"Katnik nie zyje, a przejscie czeka. Ludzie sa gotowi. Jesli odprawimy dziady przy potoku nad Twierdza Kamienna, moze jeszcze uda sie odwrocic gniew, ktory spadl na Wczore.",
-					{makeDialogueOption("Ruszajmy.", 1)},
-					"assets/audio/dialogues/StoryFinal/herbalist_dynamic_spider_done_00.wav"));
+					{makeDialogueOption("Ruszajmy.", -1, [engine = _engine, this]() {
+						finishWczoraLevel(*engine);
+					})},
+					"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_done_00.wav"));
 			}
-
-			tree.addNode(makeDialogueNode(1, "Logos",
-				"Logos dowiedzial sie, co stalo sie z jego ludem. Nie po to, by zlozyc wine na martwych albo na bogow, ale zeby sprobowac naprawic zerwana wiez. Najpierw dziady. Potem droga za Milena.",
-				{makeDialogueOption("Dalej.", 2)},
-				"assets/audio/dialogues/StoryFinal/herbalist_dynamic_epilogue_logos_01.wav"));
-			tree.addNode(makeDialogueNode(2, "Zielarz",
-				"Potok nad Twierdza Kamienna bedzie dobrym miejscem. Woda poniesie slowa do tych, ktorzy nie maja juz ust, a kamien przypomni zywym, ze nie sa sami na tej ziemi.",
-				{makeDialogueOption("Do Twierdzy Kamiennej.", -1, [engine = _engine, this]() {
-					finishWczoraLevel(*engine);
-				})},
-				"assets/audio/dialogues/StoryFinal/herbalist_dynamic_epilogue_02.wav"));
 			return tree;
 		}
 
 		tree.addNode(makeDialogueNode(0, "Logos",
 			"Wiedzma mowila o dziadach. O winie, bogach i zmarlych, ktorzy nie dostali naleznego glosu. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
 			{makeDialogueOption("Dalej.", 1)},
-			"assets/audio/dialogues/StoryFinal/herbalist_dynamic_intro_logos_00.wav"));
+			"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_intro_logos_00.wav"));
 
 		if (sister_alive) {
 			tree.addNode(makeDialogueNode(1, "Zielarz",
 				"Mam dobre i zle wiesci. Dobre sa takie, ze ranna, ktora ocaliles, to siostra Mileny. Jeszcze slaba, ale przytomna. Powie ci wiecej niz ja.",
 				{makeDialogueOption("Zyje... Bogowie. A zle wiesci?", 2)},
-				"assets/audio/dialogues/StoryFinal/herbalist_dynamic_sister_alive_01.wav"));
+				"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_alive_01.wav"));
 		} else {
 			tree.addNode(makeDialogueNode(1, "Zielarz",
 				"Mam zle wiesci, Logosie. Wiem tylko, ze Milena uciekla z wioski i ruszyla z innymi na zachod. Jej siostra nie dotarla do mnie zywa.",
 				{makeDialogueOption("Kurwa...", 2)},
-				"assets/audio/dialogues/StoryFinal/herbalist_dynamic_sister_dead_01.wav"));
+				"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_dead_01.wav"));
 		}
 
 		tree.addNode(makeDialogueNode(2, "Zielarz",
 			"Przejscie jest zawalone. Kamien siedzi na kamieniu jak przeklenstwo, a w rumowisku gniazdo urzadzil wielki katnik. Dopoki to bydle tam zyje, nikt nie podejdzie z lopata ani modlitwa.",
 			{makeDialogueOption("Czyli najpierw pajak.", 3)},
-			"assets/audio/dialogues/StoryFinal/herbalist_dynamic_rubble_02.wav"));
+			"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_rubble_02.wav"));
 		tree.addNode(makeDialogueNode(3, "Logos",
 			"Zabije go. Potem odgruzujemy przejscie i odprawimy dziady tam, gdzie trzeba.",
 			{makeDialogueOption(
@@ -434,7 +426,7 @@ namespace Nawia::Entity {
 					if (sister_alive)
 						startMilenaSisterOptionalQuest(*engine);
 				})},
-			"assets/audio/dialogues/StoryFinal/herbalist_dynamic_spider_quest_logos_03.wav"));
+			"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_quest_logos_03.wav"));
 
 		return tree;
 	}
