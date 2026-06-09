@@ -24,7 +24,7 @@
       },
       {
         "speaker": "Logos",
-        "text": "Musze ja dogonic. Dasz rade wrocic do osady?",
+        "text": "Musze ja dogonic. Dasz rade wrocic sam do osady?",
         "voice_path": "assets/audio/dialogues/StoryFinal/village_head_04.wav"
       },
       {
@@ -164,7 +164,7 @@
       },
       {
         "speaker": "Logos",
-        "text": "No chyba ty jestes jakis rozjebany muchmorze.",
+        "text": "No chyba ty jestes jakis zwariowany muchmorze.",
         "voice_path": "assets/audio/dialogues/Player/rozjebany_muchomorze.wav"
       },
       {
@@ -302,18 +302,21 @@
   "herbalist_placeholder": {
     "final_option": "Wroce pozniej.",
     "lines": [
-      {
-        "speaker": "Zielarz",
-        "text": "Dach przecieka, ziola plesnieja, a w oborze smierdzi koza i strachem. Ale zywych jeszcze przyjme."
-      },
-      {
-        "speaker": "Logos",
-        "text": "Beda przychodzic ludzie z cmentarza i z lasu. Jedna ranna moze potrzebowac loza."
-      },
-      {
-        "speaker": "Zielarz",
-        "text": "Nie pytam o nazwiska, kiedy krew idzie przez palce. Przyprowadz ich. A ja zrobie, co umiem. Reszte niech dopowie los."
-      }
+        {
+            "speaker": "Zielarz",
+            "text": "Dach przecieka, ziola plesnieja, a w oborze smierdzi koza i strachem. Ale zywych jeszcze przyjme.",
+            "voice_path": "assets/audio/dialogues/Herbalist/herbalist_1.wav"
+        },
+        {
+            "speaker": "Logos",
+            "text": "Beda przychodzic ludzie z cmentarza i z lasu. Jedna ranna moze potrzebowac loza.",
+            "voice_path": "assets/audio/dialogues/Herbalist/herbalist_2.wav"
+        },
+        {
+            "speaker": "Zielarz",
+            "text": "Nie pytam o nazwiska, kiedy krew idzie przez palce. Przyprowadz ich. A ja zrobie, co umiem. Reszte niech dopowie los.",
+            "voice_path": "assets/audio/dialogues/Herbalist/herbalist_3.wav"
+        }
     ]
   },
   "witch_to_nawia": {
@@ -515,7 +518,7 @@
       },
       {
         "speaker": "Logos",
-        "text": "Kurwa... To byla dobra dziewczyna. Milena nie moze sie o tym dowiedziec od obcego.",
+        "text": "No nie... To byla dobra dziewczyna. Milena nie moze sie o tym dowiedziec od obcego.",
         "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_fail_03.wav"
       },
       {
