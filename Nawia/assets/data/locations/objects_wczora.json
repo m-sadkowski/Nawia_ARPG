@@ -79,6 +79,9 @@
         {
             "boss_id": "ropuch",
             "category": "boss_triggers",
+            "conditions": {
+                "required_quest_completed": "gzib_report_brothers"
+            },
             "height": 14.0,
             "location": "Dolina Nedzy",
             "name": "Ropuch Trigger",
@@ -330,6 +333,9 @@
             "can_talk": false,
             "cast_animation_index": 7,
             "category": "npcs",
+            "conditions": {
+                "required_quest_completed": "talk_to_village_head_after_ropuch"
+            },
             "death_animation_index": 0,
             "disable_interaction_after_talk": false,
             "idle_animation": "idle",
@@ -351,6 +357,9 @@
         {
             "category": "story_triggers",
             "checkpoint_on_complete": "witch_to_nawia",
+            "conditions": {
+                "required_quest_completed": "talk_to_village_head_after_ropuch"
+            },
             "dialogue_key": "witch_to_nawia",
             "height": 10.0,
             "location": "Dolina Nedzy",
@@ -374,6 +383,7 @@
             "category": "story_triggers",
             "checkpoint_on_complete": "witch_after_bies",
             "conditions": {
+                "required_quest_completed": "talk_to_village_head_after_ropuch",
                 "required_boss_defeated": "bies"
             },
             "dialogue_key": "witch_after_bies_placeholder",

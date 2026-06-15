@@ -64,7 +64,30 @@ namespace Nawia::Core {
 			return;
 		}
 
-		handleMouseInput(mouse_world_pos, screen_x, screen_y);
+		if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+			return;
+
+		if (const auto entity = _engine->getEntityAt(screen_x, screen_y)) {
+			const bool is_trigger = std::dynamic_pointer_cast<Entity::InteractiveTrigger>(entity) != nullptr;
+			const auto interactable = std::dynamic_pointer_cast<Entity::Interactable>(entity);
+			if (interactable && interactable->canInteract() && !is_trigger) {
+				if (_player->isAnimationLocked()) {
+					_pending_action = {PendingAction::Type::Interact, 0.0f, 0.0f, 0.0f, -1, entity};
+				} else {
+					_target_interactable = interactable;
+					_target_enemy = nullptr;
+					_current_path.clear();
+					_pending_action = {};
+				}
+				return;
+			}
+		}
+
+		_target_interactable = nullptr;
+		_target_enemy = nullptr;
+		_current_path.clear();
+		_pending_action = {};
+		_player->stop();
 	}
 
 	void PlayerController::update(const float dt) {
