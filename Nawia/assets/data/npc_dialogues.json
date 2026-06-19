@@ -299,26 +299,6 @@
       }
     ]
   },
-  "herbalist_placeholder": {
-    "final_option": "Wroce pozniej.",
-    "lines": [
-        {
-            "speaker": "Zielarz",
-            "text": "Dach przecieka, ziola plesnieja, a w oborze smierdzi koza i strachem. Ale zywych jeszcze przyjme.",
-            "voice_path": "assets/audio/dialogues/Herbalist/Placeholder/herbalist_placeholder_przyjme_zywych.wav"
-        },
-        {
-            "speaker": "Logos",
-            "text": "Beda przychodzic ludzie z cmentarza i z lasu. Jedna ranna moze potrzebowac loza.",
-            "voice_path": "assets/audio/dialogues/Herbalist/Placeholder/herbalist_placeholder_ludzie_z_cmentarza.wav"
-        },
-        {
-            "speaker": "Zielarz",
-            "text": "Nie pytam o nazwiska, kiedy krew idzie przez palce. Przyprowadz ich. A ja zrobie, co umiem. Reszte niech dopowie los.",
-            "voice_path": "assets/audio/dialogues/Herbalist/Placeholder/herbalist_placeholder_przyprowadz_ich.wav"
-        }
-    ]
-  },
   "witch_to_nawia": {
     "final_option": "Jaka znowu lekcja?",
     "lines": [
@@ -527,86 +507,6 @@
         "speaker": "Logos",
         "text": "Niech patrzy. Ja tez bede.",
         "voice_path": "assets/audio/dialogues/Witch/Death/witch_death_01.wav"
-      }
-    ]
-  },
-  "herbalist_final_success": {
-    "final_option": "Porozmawiam z nia.",
-    "lines": [
-      {
-        "speaker": "Logos",
-        "text": "Wiedzma mowila o dziadach. O winie, bogach i zmarlych, ktorzy nie dostali naleznego glosu. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalSuccess/herbalist_final_success_00.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Mam dobre i zle wiesci. Dobre sa takie, ze ranna, ktora ocaliles, to siostra Mileny. Jeszcze slaba, ale przytomna. Powie ci wiecej niz ja.",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalSuccess/herbalist_final_success_01.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Ja wiem tylko tyle: Milena uciekla z wioski i ruszyla z innymi na zachod.",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalSuccess/herbalist_final_success_02.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Zyje... Bogowie. A zle wiesci?",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalSuccess/herbalist_final_success_03.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Nie pojdziesz za nia od razu. Tunel do doliny sie zawalil. Kamien siedzi na kamieniu jak przeklenstwo. Odgruzowanie zajmie pare dni.",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalSuccess/herbalist_final_success_04.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Kurwa... Kazda chwila moze ja kosztowac zycie.",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalSuccess/herbalist_final_success_05.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Wiem. Ale martwy jej nie pomozesz. Porozmawiaj z jej siostra. A o dziadach pomyslimy, gdy lud przestanie drzec na sam dzwiek wiatru.",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalSuccess/herbalist_final_success_06.wav"
-      }
-    ]
-  },
-  "herbalist_final_fail": {
-    "final_option": "Niech bedzie.",
-    "lines": [
-      {
-        "speaker": "Logos",
-        "text": "Wiedzma mowila o dziadach. O winie, bogach i zmarlych. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalFail/herbalist_final_fail_00.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Mam zle wiesci, Logosie. Wiem tylko, ze Milena uciekla z wioski i ruszyla z innymi na zachod.",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalFail/herbalist_final_fail_01.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Rano, gdy szedlem po ziola, znalazlem w lesie cialo jej siostry. I jeszcze dwoje naszych. Mgla juz prawie ich przykryla.",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalFail/herbalist_final_fail_02.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "No nie... To byla dobra dziewczyna. Milena nie moze sie o tym dowiedziec od obcego.",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalFail/herbalist_final_fail_03.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Nie ruszysz za nia teraz. Tunel do doliny sie zawalil. Odgruzowanie zajmie pare dni.",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalFail/herbalist_final_fail_04.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Wiec bede czekal, az los ja dopadnie?",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalFail/herbalist_final_fail_05.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Bedziesz zyl, zeby miec jeszcze kogo ratowac. O dziadach pomyslimy, gdy zbierzemy tych, co zostali.",
-        "voice_path": "assets/audio/dialogues/Herbalist/FinalFail/herbalist_final_fail_06.wav"
       }
     ]
   },

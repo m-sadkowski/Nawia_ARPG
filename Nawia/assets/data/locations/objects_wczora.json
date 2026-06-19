@@ -281,54 +281,6 @@
             "y": 46.54045486450195
         },
         {
-            "actions": [
-                {
-                    "name": "herbalist_final_report",
-                    "type": "notify_checkpoint"
-                }
-            ],
-            "category": "story_triggers",
-            "conditions": {
-                "required_quest_completed": "deprecated_herbalist_final_trigger"
-            },
-            "dialogue_key": "herbalist_final_success",
-            "height": 5.0,
-            "location": "Dolina Nedzy",
-            "name": "Final u zielarza - siostra Mileny zyje",
-            "type": "story_trigger",
-            "width": 5.0,
-            "x": 2.7108497619628906,
-            "y": 46.54045486450195
-        },
-        {
-            "actions": [
-                {
-                    "quest_id": "rescue_forest_survivors",
-                    "type": "fail_quest"
-                },
-                {
-                    "name": "Forest Lost NPC",
-                    "type": "hide_entity"
-                },
-                {
-                    "name": "herbalist_final_report",
-                    "type": "notify_checkpoint"
-                }
-            ],
-            "category": "story_triggers",
-            "conditions": {
-                "required_quest_completed": "deprecated_herbalist_final_trigger"
-            },
-            "dialogue_key": "herbalist_final_fail",
-            "height": 5.0,
-            "location": "Dolina Nedzy",
-            "name": "Final u zielarza - siostra Mileny martwa",
-            "type": "story_trigger",
-            "width": 5.0,
-            "x": 2.7108497619628906,
-            "y": 46.54045486450195
-        },
-        {
             "animation_bundle": "assets/models/actors/witch/witch.glb",
             "can_talk": false,
             "cast_animation_index": 7,
