@@ -1,7 +1,7 @@
 # Brakujace nagrania dialogow
 
 
-## Narrator
+## Narrator (Matys)
 
 - Plik: `assets/audio/dialogues/Narrator/Intro/slide_01.wav`
   Nazwa: `slide_01.wav`
@@ -63,7 +63,7 @@
   
   Kwestia: Chcial naprawic relacje ludu z bogami, ale przede wszystkim odnalezc Milene. Jesli zyje, droga do niej prowadzi dalej, ku Twierdzy Kamiennej.
 
-## Logos
+## Logos (fast_sim0n)
 
 - Plik: `assets/audio/dialogues/Boss/Ropuch/ropuch_intro_logos_00.wav`
   Nazwa: `ropuch_intro_logos_00.wav`
@@ -139,49 +139,49 @@
 
 - Plik: `assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_intro_logos_00.wav`
   Nazwa: `herbalist_dynamic_intro_logos_00.wav`
-  Zrodlo: `Nawia/src/entity/interactive/clickable/NPC/GenericStoryNpc.cpp`
+  Zrodlo: `Nawia/assets/data/npc_dialogues.json`
   
   Kwestia: Wiedzma mowila o dziadach. O winie, bogach i zmarlych, ktorzy nie dostali naleznego glosu. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?
 
 - Plik: `assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_quest_logos_03.wav`
   Nazwa: `herbalist_dynamic_spider_quest_logos_03.wav`
-  Zrodlo: `Nawia/src/entity/interactive/clickable/NPC/GenericStoryNpc.cpp`
+  Zrodlo: `Nawia/assets/data/npc_dialogues.json`
   
   Kwestia: Zabije go. Potem odgruzujemy przejscie i odprawimy dziady tam, gdzie trzeba.
 
-## Zielarz
+## Zielarz (Pawko)
 
 - Plik: `assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_done_00.wav`
   Nazwa: `herbalist_dynamic_spider_done_00.wav`
-  Zrodlo: `Nawia/src/entity/interactive/clickable/NPC/GenericStoryNpc.cpp`
+  Zrodlo: `Nawia/assets/data/npc_dialogues.json`
   
   Kwestia: Wiec wielki katnik juz nie pilnuje rumowiska. Dobrze. Mozemy zabrac ludzi i narzedzia, ale zanim ruszymy... jej siostra czeka. Chcesz z nia porozmawiac, zanim wezmiemy sie do odgruzowania?
 
 - Plik: `assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_done_00_2.wav`
-  Nazwa: `herbalist_dynamic_spider_done_00.wav`
-  Zrodlo: `Nawia/src/entity/interactive/clickable/NPC/GenericStoryNpc.cpp`
+  Nazwa: `herbalist_dynamic_spider_done_00_2.wav`
+  Zrodlo: `Nawia/assets/data/npc_dialogues.json`
   
   Kwestia: Katnik nie zyje, a przejscie czeka. Ludzie sa gotowi. Jesli odprawimy dziady przy potoku nad Twierdza Kamienna, moze jeszcze uda sie odwrocic gniew, ktory spadl na Wczore.
 
 - Plik: `assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_alive_01.wav`
   Nazwa: `herbalist_dynamic_sister_alive_01.wav`
-  Zrodlo: `Nawia/src/entity/interactive/clickable/NPC/GenericStoryNpc.cpp`
+  Zrodlo: `Nawia/assets/data/npc_dialogues.json`
   
   Kwestia: Mam dobre i zle wiesci. Dobre sa takie, ze ranna, ktora ocaliles, to siostra Mileny. Jeszcze slaba, ale przytomna. Powie ci wiecej niz ja.
 
 - Plik: `assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_dead_01.wav`
   Nazwa: `herbalist_dynamic_sister_dead_01.wav`
-  Zrodlo: `Nawia/src/entity/interactive/clickable/NPC/GenericStoryNpc.cpp`
+  Zrodlo: `Nawia/assets/data/npc_dialogues.json`
   
   Kwestia: Mam zle wiesci, Logosie. Wiem tylko, ze Milena uciekla z wioski i ruszyla z innymi na zachod. Jej siostra nie dotarla do mnie zywa.
 
 - Plik: `assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_rubble_02.wav`
   Nazwa: `herbalist_dynamic_rubble_02.wav`
-  Zrodlo: `Nawia/src/entity/interactive/clickable/NPC/GenericStoryNpc.cpp`
+  Zrodlo: `Nawia/assets/data/npc_dialogues.json`
   
   Kwestia: Przejscie jest zawalone. Kamien siedzi na kamieniu jak przeklenstwo, a w rumowisku gniazdo urzadzil wielki katnik. Dopoki to bydle tam zyje, nikt nie podejdzie z lopata ani modlitwa.
 
-## Zagubiona
+## Zagubiona (Julia)
 
 - Plik: `assets/audio/dialogues/ForestLostGroup/forest_lost_group_00.wav`
   Nazwa: `forest_lost_group_00.wav`
@@ -195,7 +195,7 @@
   
   Kwestia: Probowalismy. Mgla kreci nas w kolko. Wracamy pod to samo drzewo, choc idziemy prosto.
 
-## Siostra Mileny
+## Siostra Mileny (?)
 
 - Plik: `assets/audio/dialogues/Herbalist/MilenaSisterAfterHerbalist/milena_sister_after_herbalist_00.wav`
   Nazwa: `milena_sister_after_herbalist_00.wav`

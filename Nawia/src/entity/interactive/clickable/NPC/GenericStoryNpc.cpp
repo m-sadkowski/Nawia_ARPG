@@ -12,8 +12,6 @@
 #include <raymath.h>
 
 #include <cmath>
-#include <functional>
-#include <utility>
 
 namespace Nawia::Entity {
 
@@ -69,29 +67,6 @@ namespace Nawia::Entity {
 			}
 		}
 
-		Game::DialogueNode makeDialogueNode(
-			const int id,
-			std::string speaker,
-			std::string text,
-			std::vector<Game::DialogueOption> options,
-			std::string voice_path = "")
-		{
-			Game::DialogueNode node;
-			node.id = id;
-			node.speaker_name = std::move(speaker);
-			node.text = std::move(text);
-			node.voice_path = std::move(voice_path);
-			node.options = std::move(options);
-			return node;
-		}
-
-		Game::DialogueOption makeDialogueOption(std::string text, const int next_node_id, std::function<void()> action = nullptr) {
-			Game::DialogueOption option;
-			option.text = std::move(text);
-			option.next_node_id = next_node_id;
-			option.action = std::move(action);
-			return option;
-		}
 	}
 
 	GenericStoryNpc::GenericStoryNpc(
@@ -334,8 +309,9 @@ namespace Nawia::Entity {
 	}
 
 	void GenericStoryNpc::refreshHerbalistDialogue() {
-		setDialogueStageKey("herbalist_dynamic");
-		setDialogue(buildHerbalistDialogue());
+		const std::string dialogue_key = resolveHerbalistDialogueKey();
+		setDialogueStageKey(dialogue_key);
+		setDialogue(buildHerbalistDialogue(dialogue_key));
 	}
 
 	void GenericStoryNpc::startHerbalistSpiderQuest(Core::Engine& engine) const {
@@ -360,75 +336,42 @@ namespace Nawia::Entity {
 		engine.notifyStoryEvent("wczora_outro_requested", getCenter());
 	}
 
-	Game::DialogueTree GenericStoryNpc::buildHerbalistDialogue() const {
-		Game::DialogueTree tree;
-		if (!_engine)
-			return tree;
-
+	std::string GenericStoryNpc::resolveHerbalistDialogueKey() const {
 		const bool sister_alive = isMilenaSisterAlive();
 		const bool sister_talk_done = isMilenaSisterOptionalTalkCompleted();
 		const bool spider_cleared = isSpiderNestCleared();
 
-		if (spider_cleared) {
-			if (sister_alive && !sister_talk_done) {
-				tree.addNode(makeDialogueNode(0, "Zielarz",
-					"Wiec wielki katnik juz nie pilnuje rumowiska. Dobrze. Mozemy zabrac ludzi i narzedzia, ale zanim ruszymy... jej siostra czeka. Chcesz z nia porozmawiac, zanim wezmiemy sie do odgruzowania?",
-					{
-						makeDialogueOption("Tak. Najpierw z nia porozmawiam.", -1, [engine = _engine, this]() {
-							startHerbalistSpiderQuest(*engine);
-							startMilenaSisterOptionalQuest(*engine);
-						}),
-						makeDialogueOption("Nie. Konczmy to.", -1, [engine = _engine, this]() {
-							startHerbalistSpiderQuest(*engine);
-							finishWczoraLevel(*engine);
-						})
-					},
-					"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_done_00.wav"));
-			} else {
-				tree.addNode(makeDialogueNode(0, "Zielarz",
-					"Katnik nie zyje, a przejscie czeka. Ludzie sa gotowi. Jesli odprawimy dziady przy potoku nad Twierdza Kamienna, moze jeszcze uda sie odwrocic gniew, ktory spadl na Wczore.",
-					{makeDialogueOption("Ruszajmy.", -1, [engine = _engine, this]() {
-						finishWczoraLevel(*engine);
-					})},
-					"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_done_00.wav"));
-			}
-			return tree;
+		if (spider_cleared)
+			return (sister_alive && !sister_talk_done)
+				? "herbalist_after_spider_sister_waiting"
+				: "herbalist_after_spider_ready";
+
+		return sister_alive
+			? "herbalist_before_spider_sister_alive"
+			: "herbalist_before_spider_sister_dead";
+	}
+
+	Game::DialogueTree GenericStoryNpc::buildHerbalistDialogue(const std::string& dialogue_key) const {
+		return buildDialogueFromConfig(dialogue_key, [this](const std::string& action) {
+			executeHerbalistDialogueAction(action);
+		});
+	}
+
+	void GenericStoryNpc::executeHerbalistDialogueAction(const std::string& action) const {
+		if (!_engine)
+			return;
+
+		if (action == "start_spider_quest") {
+			startHerbalistSpiderQuest(*_engine);
+		} else if (action == "start_spider_quest_and_open_sister_talk") {
+			startHerbalistSpiderQuest(*_engine);
+			startMilenaSisterOptionalQuest(*_engine);
+		} else if (action == "start_spider_quest_and_finish_wczora") {
+			startHerbalistSpiderQuest(*_engine);
+			finishWczoraLevel(*_engine);
+		} else if (action == "finish_wczora_level") {
+			finishWczoraLevel(*_engine);
 		}
-
-		tree.addNode(makeDialogueNode(0, "Logos",
-			"Wiedzma mowila o dziadach. O winie, bogach i zmarlych, ktorzy nie dostali naleznego glosu. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
-			{makeDialogueOption("Dalej.", 1)},
-			"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_intro_logos_00.wav"));
-
-		if (sister_alive) {
-			tree.addNode(makeDialogueNode(1, "Zielarz",
-				"Mam dobre i zle wiesci. Dobre sa takie, ze ranna, ktora ocaliles, to siostra Mileny. Jeszcze slaba, ale przytomna. Powie ci wiecej niz ja.",
-				{makeDialogueOption("Zyje... Bogowie. A zle wiesci?", 2)},
-				"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_alive_01.wav"));
-		} else {
-			tree.addNode(makeDialogueNode(1, "Zielarz",
-				"Mam zle wiesci, Logosie. Wiem tylko, ze Milena uciekla z wioski i ruszyla z innymi na zachod. Jej siostra nie dotarla do mnie zywa.",
-				{makeDialogueOption("Kurwa...", 2)},
-				"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_dead_01.wav"));
-		}
-
-		tree.addNode(makeDialogueNode(2, "Zielarz",
-			"Przejscie jest zawalone. Kamien siedzi na kamieniu jak przeklenstwo, a w rumowisku gniazdo urzadzil wielki katnik. Dopoki to bydle tam zyje, nikt nie podejdzie z lopata ani modlitwa.",
-			{makeDialogueOption("Czyli najpierw pajak.", 3)},
-			"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_rubble_02.wav"));
-		tree.addNode(makeDialogueNode(3, "Logos",
-			"Zabije go. Potem odgruzujemy przejscie i odprawimy dziady tam, gdzie trzeba.",
-			{makeDialogueOption(
-				sister_alive ? "Porozmawiam z jej siostra i zajme sie katnikiem." : "Zajme sie katnikiem.",
-				-1,
-				[engine = _engine, this, sister_alive]() {
-					startHerbalistSpiderQuest(*engine);
-					if (sister_alive)
-						startMilenaSisterOptionalQuest(*engine);
-				})},
-			"assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_quest_logos_03.wav"));
-
-		return tree;
 	}
 
 	void GenericStoryNpc::startRoute(Core::Engine& engine) {

@@ -3,6 +3,7 @@
 #include <Dialogue.h>
 #include <InteractiveClickable.h>
 
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -62,6 +63,10 @@ namespace Nawia::Entity {
 			const std::string& final_option_text) const;
 		/** @brief Wczytuje etap dialogu NPC ze wspolnej konfiguracji dialogow. */
 		[[nodiscard]] Game::DialogueTree buildDialogueFromConfig(const std::string& key) const;
+		/** @brief Wczytuje drzewo dialogowe z opcjami, podpinajac akcje po nazwie. */
+		[[nodiscard]] Game::DialogueTree buildDialogueFromConfig(
+			const std::string& key,
+			const std::function<void(const std::string&)>& execute_option_action) const;
 		void rotateToNearbyPlayer(float delta_time);
 		[[nodiscard]] virtual bool shouldLookAtPlayerWhenNearby() const { return true; }
 

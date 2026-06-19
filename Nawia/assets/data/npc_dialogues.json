@@ -174,76 +174,6 @@
       }
     ]
   },
-  "cemetery_female_survivor": {
-    "final_option": "Idzcie do chaty zielarza.",
-    "lines": [
-      {
-        "speaker": "Ocalona",
-        "text": "Dzieki za ratunek. Siedzielismy miedzy grobami cicho jak myszy. Umarli chodzili blizej niz zywi.",
-        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_00.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Widzieliscie innych z osady?",
-        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_01.wav"
-      },
-      {
-        "speaker": "Ocalona",
-        "text": "Widzielismy, jak uciekali. Chcielismy wolac, ale gdyby te scierwa nas uslyszaly, byloby po nas. Poszli na polnoc, w strone lasu.",
-        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_02.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Poszukam ich. Wy idzcie do zielarza. Prosto na poludnie stad. Jakub przyjmie kazdego, kto jeszcze oddycha.",
-        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_03.wav"
-      },
-      {
-        "speaker": "Ocalona",
-        "text": "Niech ci bogowie droge prostuja. Jesli jeszcze nas sluchaja.",
-        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_04.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Nie liczylbym na to. Ale idzcie.",
-        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_05.wav"
-      }
-    ]
-  },
-  "cemetery_male_survivor": {
-    "final_option": "Idzcie do chaty zielarza.",
-    "lines": [
-      {
-        "speaker": "Ocalony",
-        "text": "Dzieki za ratunek. Siedzielismy miedzy grobami cicho jak myszy. Umarli chodzili blizej niz zywi.",
-        "voice_path": "assets/audio/dialogues/CemeteryMaleSurvivor/cemetery_male_survivor_00.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Widzieliscie innych z osady?",
-        "voice_path": "assets/audio/dialogues/CemeteryMaleSurvivor/cemetery_male_survivor_01.wav"
-      },
-      {
-        "speaker": "Ocalony",
-        "text": "Widzielismy, jak uciekali. Chcielismy wolac, ale gdyby te scierwa nas uslyszaly, byloby po nas. Poszli na polnoc, w strone lasu.",
-        "voice_path": "assets/audio/dialogues/CemeteryMaleSurvivor/cemetery_male_survivor_02.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Poszukam ich. Wy idzcie do zielarza. Prosto na poludnie stad. Jakub przyjmie kazdego, kto jeszcze oddycha.",
-        "voice_path": "assets/audio/dialogues/CemeteryMaleSurvivor/cemetery_male_survivor_03.wav"
-      },
-      {
-        "speaker": "Ocalony",
-        "text": "Niech ci bogowie droge prostuja. Jesli jeszcze nas sluchaja.",
-        "voice_path": "assets/audio/dialogues/CemeteryMaleSurvivor/cemetery_male_survivor_04.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Nie liczylbym na to. Ale idzcie.",
-        "voice_path": "assets/audio/dialogues/CemeteryMaleSurvivor/cemetery_male_survivor_05.wav"
-      }
-    ]
-  },
   "cemetery_survivors": {
     "final_option": "Idzcie do chaty zielarza.",
     "lines": [
@@ -552,6 +482,235 @@
         "speaker": "Logos",
         "text": "Odnajde ja. I powiem, ze czekasz.",
         "voice_path": "assets/audio/dialogues/Herbalist/MilenaSisterAfterHerbalist/milena_sister_after_herbalist_07.wav"
+      }
+    ]
+  },
+  "herbalist_before_spider_sister_alive": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Logos",
+        "text": "Wiedzma mowila o dziadach. O winie, bogach i zmarlych, ktorzy nie dostali naleznego glosu. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_intro_logos_00.wav",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": 1
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "speaker": "Zielarz",
+        "text": "Mam dobre i zle wiesci. Dobre sa takie, ze ranna, ktora ocaliles, to siostra Mileny. Jeszcze slaba, ale przytomna. Powie ci wiecej niz ja.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_alive_01.wav",
+        "options": [
+          {
+            "text": "Zyje... Bogowie. A zle wiesci?",
+            "next": 2
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "speaker": "Zielarz",
+        "text": "Przejscie jest zawalone. Kamien siedzi na kamieniu jak przeklenstwo, a w rumowisku gniazdo urzadzil wielki katnik. Dopoki to bydle tam zyje, nikt nie podejdzie z lopata ani modlitwa.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_rubble_02.wav",
+        "options": [
+          {
+            "text": "Czyli najpierw pajak.",
+            "next": 3
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "speaker": "Logos",
+        "text": "Zabije go. Potem odgruzujemy przejscie i odprawimy dziady tam, gdzie trzeba.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_quest_logos_03.wav",
+        "options": [
+          {
+            "text": "Porozmawiam z jej siostra i zajme sie katnikiem.",
+            "next": -1,
+            "action": "start_spider_quest_and_open_sister_talk"
+          }
+        ]
+      }
+    ]
+  },
+  "herbalist_before_spider_sister_dead": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Logos",
+        "text": "Wiedzma mowila o dziadach. O winie, bogach i zmarlych, ktorzy nie dostali naleznego glosu. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_intro_logos_00.wav",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": 1
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "speaker": "Zielarz",
+        "text": "Mam zle wiesci, Logosie. Wiem tylko, ze Milena uciekla z wioski i ruszyla z innymi na zachod. Jej siostra nie dotarla do mnie zywa.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_dead_01.wav",
+        "options": [
+          {
+            "text": "Kurwa...",
+            "next": 2
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "speaker": "Zielarz",
+        "text": "Przejscie jest zawalone. Kamien siedzi na kamieniu jak przeklenstwo, a w rumowisku gniazdo urzadzil wielki katnik. Dopoki to bydle tam zyje, nikt nie podejdzie z lopata ani modlitwa.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_rubble_02.wav",
+        "options": [
+          {
+            "text": "Czyli najpierw pajak.",
+            "next": 3
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "speaker": "Logos",
+        "text": "Zabije go. Potem odgruzujemy przejscie i odprawimy dziady tam, gdzie trzeba.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_quest_logos_03.wav",
+        "options": [
+          {
+            "text": "Zajme sie katnikiem.",
+            "next": -1,
+            "action": "start_spider_quest"
+          }
+        ]
+      }
+    ]
+  },
+  "herbalist_after_spider_sister_waiting": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Zielarz",
+        "text": "Wiec wielki katnik juz nie pilnuje rumowiska. Dobrze. Mozemy zabrac ludzi i narzedzia, ale zanim ruszymy... jej siostra czeka. Chcesz z nia porozmawiac, zanim wezmiemy sie do odgruzowania?",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_done_00.wav",
+        "options": [
+          {
+            "text": "Tak. Najpierw z nia porozmawiam.",
+            "next": -1,
+            "action": "start_spider_quest_and_open_sister_talk"
+          },
+          {
+            "text": "Nie. Konczmy to.",
+            "next": -1,
+            "action": "start_spider_quest_and_finish_wczora"
+          }
+        ]
+      }
+    ]
+  },
+  "herbalist_after_spider_ready": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Zielarz",
+        "text": "Katnik nie zyje, a przejscie czeka. Ludzie sa gotowi. Jesli odprawimy dziady przy potoku nad Twierdza Kamienna, moze jeszcze uda sie odwrocic gniew, ktory spadl na Wczore.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_done_00_2.wav",
+        "options": [
+          {
+            "text": "Ruszajmy.",
+            "next": -1,
+            "action": "finish_wczora_level"
+          }
+        ]
+      }
+    ]
+  },
+  "cat_intro": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Kot Olga",
+        "text": "Miau. Bandyci ukradli moje ryby i schowali je w skrzyni. Mam klucz, ale sam jej nie otworze.",
+        "options": [
+          {
+            "text": "Jasne!",
+            "next": 1
+          },
+          {
+            "text": "Nie?",
+            "next": 2
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "speaker": "Logos",
+        "text": "Jasne!",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": -1,
+            "action": "open_cat_container"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "speaker": "Logos",
+        "text": "Nie?",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": -1
+          }
+        ]
+      }
+    ]
+  },
+  "cat_quest_completed": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Kot Olga",
+        "text": "Miau! To moja ryba. Dzieki, ze zabrales ja bandytom. Masz tu prezent.",
+        "options": [
+          {
+            "text": "Pokaz prezent.",
+            "next": 1
+          },
+          {
+            "text": "Na nic mi twoje prezenty, bywaj.",
+            "next": 2
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "speaker": "Logos",
+        "text": "Pokaz prezent.",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": -1,
+            "action": "open_cat_container"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "speaker": "Logos",
+        "text": "Na nic mi twoje prezenty, bywaj.",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": -1
+          }
+        ]
       }
     ]
   }

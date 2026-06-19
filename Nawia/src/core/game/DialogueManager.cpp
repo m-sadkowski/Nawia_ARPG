@@ -3,38 +3,108 @@
 #include <Cat.h>
 #include <Dialogue.h>
 #include <Engine.h>
+#include <Logger.h>
 
+#include <fstream>
 #include <functional>
+#include <json.hpp>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace Nawia::Game {
 	namespace {
-		constexpr const char* DIALOGUE_PLACEHOLDER_VOICE = "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav";
+		nlohmann::json loadJsonDocument(const std::string& path) {
+			std::ifstream file(path);
+			if (!file.is_open()) {
+				Nawia::Core::Logger::errorLog("DialogueManager: nie mozna otworzyc JSON: " + path);
+				return {};
+			}
 
-		DialogueOption makeOption(std::string text, const int next_node_id, std::function<void()> action = nullptr)
-		{
-			DialogueOption option;
-			option.text = std::move(text);
-			option.next_node_id = next_node_id;
-			option.action = std::move(action);
-			return option;
+			nlohmann::json data;
+			try {
+				file >> data;
+			} catch (const nlohmann::json::parse_error&) {
+				Nawia::Core::Logger::errorLog("DialogueManager: blad parsowania JSON: " + path);
+				return {};
+			}
+			return data;
 		}
 
-		DialogueNode makeNode(
-			const int id,
-			std::string speaker,
-			std::string text,
-			std::vector<DialogueOption> options)
-		{
-			DialogueNode node;
-			node.id = id;
-			node.speaker_name = std::move(speaker);
-			node.text = std::move(text);
-			node.voice_path = DIALOGUE_PLACEHOLDER_VOICE;
-			node.options = std::move(options);
-			return node;
+		const nlohmann::json& getNpcDialogueConfig() {
+			static const nlohmann::json config = loadJsonDocument("assets/data/npc_dialogues.json");
+			return config;
+		}
+
+		std::vector<std::string> readActionIds(const nlohmann::json& option_json) {
+			std::vector<std::string> actions;
+			if (option_json.contains("action") && option_json["action"].is_string())
+				actions.push_back(option_json["action"].get<std::string>());
+
+			if (option_json.contains("actions") && option_json["actions"].is_array()) {
+				for (const auto& action_json : option_json["actions"]) {
+					if (action_json.is_string())
+						actions.push_back(action_json.get<std::string>());
+				}
+			}
+
+			return actions;
+		}
+
+		DialogueTree buildDialogueFromConfig(
+			const std::string& key,
+			const std::function<void(const std::string&)>& execute_option_action) {
+			const auto& config = getNpcDialogueConfig();
+			if (!config.contains(key) || !config[key].is_object())
+				return {};
+
+			const auto nodes_it = config[key].find("nodes");
+			if (nodes_it == config[key].end() || !nodes_it->is_array())
+				return {};
+
+			DialogueTree tree;
+			for (const auto& node_json : *nodes_it) {
+				if (!node_json.is_object())
+					continue;
+
+				DialogueNode node;
+				node.id = node_json.value("id", 0);
+				node.speaker_name = node_json.value("speaker", "");
+				node.text = node_json.value("text", "");
+				node.voice_path = node_json.value("voice_path", "");
+
+				if (node_json.contains("options") && node_json["options"].is_array()) {
+					for (const auto& option_json : node_json["options"]) {
+						if (!option_json.is_object())
+							continue;
+
+						DialogueOption option;
+						option.text = option_json.value("text", "Dalej.");
+						option.next_node_id = option_json.value("next_node_id", option_json.value("next", -1));
+
+						auto actions = readActionIds(option_json);
+						if (!actions.empty() && execute_option_action) {
+							option.action = [actions = std::move(actions), execute_option_action]() {
+								for (const auto& action : actions)
+									execute_option_action(action);
+							};
+						}
+
+						node.options.push_back(std::move(option));
+					}
+				}
+
+				if (node.options.empty()) {
+					DialogueOption option;
+					option.text = node_json.value("option", "Rozumiem.");
+					option.next_node_id = -1;
+					node.options.push_back(std::move(option));
+				}
+
+				tree.addNode(node);
+			}
+
+			return tree;
 		}
 	}
 
@@ -42,52 +112,30 @@ namespace Nawia::Game {
 		if (!engine || !cat)
 			return;
 
-		DialogueTree tree;
-		tree.addNode(makeNode(0, "Kot Olga",
-			"Miau. Bandyci ukradli moje ryby i schowali je w skrzyni. Mam klucz, ale sam jej nie otworze.",
-			{
-				makeOption("Jasne!", 1),
-				makeOption("Nie?", 2)
-			}));
-		tree.addNode(makeNode(1, "Logos", "Jasne!", {
-			makeOption("Dalej.", -1, [engine, cat]() {
+		cat->setDialogue(buildDialogueFromConfig("cat_intro", [engine, cat](const std::string& action) {
+			if (action == "open_cat_container") {
 				if (!engine || !cat)
 					return;
 
 				engine->getUIHandler().closeDialogue();
 				engine->getUIHandler().openContainer(cat);
-			})
+			}
 		}));
-		tree.addNode(makeNode(2, "Logos", "Nie?", {
-			makeOption("Dalej.", -1)
-		}));
-		cat->setDialogue(tree);
 	}
 
 	void DialogueManager::createCatQuestCompletedDialogue(Core::Engine* engine, Entity::Cat* cat) {
 		if (!engine || !cat)
 			return;
 
-		DialogueTree tree;
-		tree.addNode(makeNode(0, "Kot Olga",
-			"Miau! To moja ryba. Dzieki, ze zabrales ja bandytom. Masz tu prezent.",
-			{
-				makeOption("Pokaz prezent.", 1),
-				makeOption("Na nic mi twoje prezenty, bywaj.", 2)
-			}));
-		tree.addNode(makeNode(1, "Logos", "Pokaz prezent.", {
-			makeOption("Dalej.", -1, [engine, cat]() {
+		cat->setDialogue(buildDialogueFromConfig("cat_quest_completed", [engine, cat](const std::string& action) {
+			if (action == "open_cat_container") {
 				if (!engine || !cat)
 					return;
 
 				engine->getUIHandler().closeDialogue();
 				engine->getUIHandler().openContainer(cat);
-			})
+			}
 		}));
-		tree.addNode(makeNode(2, "Logos", "Na nic mi twoje prezenty, bywaj.", {
-			makeOption("Dalej.", -1)
-		}));
-		cat->setDialogue(tree);
 	}
 
 } // namespace Nawia::Game
