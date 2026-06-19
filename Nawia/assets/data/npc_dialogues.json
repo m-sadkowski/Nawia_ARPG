@@ -250,32 +250,32 @@
       {
         "speaker": "Ocalona",
         "text": "Dzieki za ratunek. Siedzielismy miedzy grobami cicho jak myszy. Umarli chodzili blizej niz zywi.",
-        "voice_path": "assets/audio/dialogues/CemeterySurvivors/cemetery_survivors_00.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_00.wav"
       },
       {
         "speaker": "Logos",
         "text": "Widzieliscie innych z osady?",
-        "voice_path": "assets/audio/dialogues/CemeterySurvivors/cemetery_survivors_01.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_01.wav"
       },
       {
-        "speaker": "Ocalony",
+        "speaker": "Ocalona",
         "text": "Widzielismy, jak uciekali. Chcielismy wolac, ale gdyby te scierwa nas uslyszaly, byloby po nas. Poszli na polnoc, w strone lasu.",
-        "voice_path": "assets/audio/dialogues/CemeterySurvivors/cemetery_survivors_02.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_02.wav"
       },
       {
         "speaker": "Logos",
         "text": "Poszukam ich. Wy idzcie do zielarza. Prosto na poludnie stad. Jakub przyjmie kazdego, kto jeszcze oddycha.",
-        "voice_path": "assets/audio/dialogues/CemeterySurvivors/cemetery_survivors_03.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_03.wav"
       },
       {
         "speaker": "Ocalona",
         "text": "Niech ci bogowie droge prostuja. Jesli jeszcze nas sluchaja.",
-        "voice_path": "assets/audio/dialogues/CemeterySurvivors/cemetery_survivors_04.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_04.wav"
       },
       {
         "speaker": "Logos",
         "text": "Nie liczylbym na to. Ale idzcie.",
-        "voice_path": "assets/audio/dialogues/CemeterySurvivors/cemetery_survivors_05.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_05.wav"
       }
     ]
   },
