@@ -305,17 +305,17 @@
         {
             "speaker": "Zielarz",
             "text": "Dach przecieka, ziola plesnieja, a w oborze smierdzi koza i strachem. Ale zywych jeszcze przyjme.",
-            "voice_path": "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav"
+            "voice_path": "assets/audio/dialogues/Herbalist/Placeholder/herbalist_placeholder_przyjme_zywych.wav"
         },
         {
             "speaker": "Logos",
             "text": "Beda przychodzic ludzie z cmentarza i z lasu. Jedna ranna moze potrzebowac loza.",
-            "voice_path": "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav"
+            "voice_path": "assets/audio/dialogues/Herbalist/Placeholder/herbalist_placeholder_ludzie_z_cmentarza.wav"
         },
         {
             "speaker": "Zielarz",
             "text": "Nie pytam o nazwiska, kiedy krew idzie przez palce. Przyprowadz ich. A ja zrobie, co umiem. Reszte niech dopowie los.",
-            "voice_path": "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav"
+            "voice_path": "assets/audio/dialogues/Herbalist/Placeholder/herbalist_placeholder_przyprowadz_ich.wav"
         }
     ]
   },
@@ -387,7 +387,7 @@
             ]
           }
         ],
-        "voice_path": "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav"
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_pomszcze_ludzi.wav"
       },
       {
         "id": 5,
@@ -399,7 +399,7 @@
             "next": 1
           }
         ],
-        "voice_path": "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav"
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_co_tu_sie_dzieje.wav"
       },
       {
         "id": 1,
@@ -423,7 +423,7 @@
             "next": 2
           }
         ],
-        "voice_path": "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav"
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_mow_dalej.wav"
       },
       {
         "id": 2,
@@ -461,7 +461,7 @@
             ]
           }
         ],
-        "voice_path": "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav"
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_nie_wierze_ci.wav"
       },
       {
         "id": 7,
@@ -473,7 +473,7 @@
             "next": 3
           }
         ],
-        "voice_path": "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav"
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_mozemy_to_naprawic.wav"
       },
       {
         "id": 3,
@@ -511,7 +511,7 @@
             ]
           }
         ],
-        "voice_path": "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav"
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_dzieki_bywaj.wav"
       }
     ]
   },
