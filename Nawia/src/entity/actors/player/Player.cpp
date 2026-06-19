@@ -1,4 +1,5 @@
 #include "Player.h"
+#include <Ability.h>
 #include <Collider.h>
 
 #include <Constants.h>
@@ -99,7 +100,7 @@ namespace Nawia::Entity {
 
 	void Player::moveTo(const float x, const float y)
 	{
-		if (isMovementRooted())
+		if (isMovementRooted() || isControlLocked())
 		{
 			stop();
 			return;
@@ -137,6 +138,26 @@ namespace Nawia::Entity {
 		}
 	}
 
+	void Player::applyControlLock(const float duration)
+	{
+		if (duration <= 0.0f)
+			return;
+
+		_control_lock_timer = std::max(_control_lock_timer, duration);
+		for (const auto& ability : _abilities) {
+			if (ability)
+				ability->cancel();
+		}
+		_is_consuming_food = false;
+		_consume_food_timer = 0.0f;
+		setVelocity(0.0f, 0.0f);
+		stop();
+		if (!isDying() && !_is_knocked_down) {
+			setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+			playAnimation("Idle_Loop", true, false, 0, true);
+		}
+	}
+
 	void Player::stop()
 	{
 		_is_moving = false;
@@ -156,6 +177,7 @@ namespace Nawia::Entity {
 		_knockdown_phase = KnockdownPhase::None;
 		_is_consuming_food = false;
 		_consume_food_timer = 0.0f;
+		_control_lock_timer = 0.0f;
 		stop();
 		setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
 		if (!isDying())
@@ -169,6 +191,13 @@ namespace Nawia::Entity {
 		if (isDying()) return;
 
 		updateAbilities(delta_time);
+
+		if (_control_lock_timer > 0.0f)
+		{
+			_control_lock_timer = std::max(0.0f, _control_lock_timer - delta_time);
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
+			return;
+		}
 
 		if (_is_consuming_food)
 		{
@@ -280,7 +309,7 @@ namespace Nawia::Entity {
 	}
 
 	bool Player::startConsumeFood() {
-		if (_is_consuming_food || _food_count <= 0 || isDying() || _hp >= _max_hp || isAnimationLocked())
+		if (_is_consuming_food || isControlLocked() || _food_count <= 0 || isDying() || _hp >= _max_hp || isAnimationLocked())
 			return false;
 
 		stop();
@@ -541,6 +570,7 @@ namespace Nawia::Entity {
 		_is_dying = false;
 		_is_knocked_down = false;
 		_knockdown_phase = KnockdownPhase::None;
+		_control_lock_timer = 0.0f;
 		_is_moving = false;
 		setX(_respawn_point.x);
 		setY(_respawn_point.y);

@@ -92,6 +92,13 @@ namespace Nawia::Entity {
 			_is_active = false;
 	}
 
+	void UnarmedMeleeAbility::cancel() {
+		_is_active = false;
+		_has_spawned = false;
+		_active_time = 0.0f;
+		_spawn_delay = 0.0f;
+	}
+
 	float UnarmedMeleeAbility::calculateAnimationDuration() const {
 		if (!_caster)
 			return 0.35f;

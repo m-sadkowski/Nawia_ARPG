@@ -70,6 +70,13 @@ namespace Nawia::Entity {
 			_is_active = false;
 	}
 
+	void SwordSlashAbility::cancel() {
+		_is_active = false;
+		_has_spawned = false;
+		_active_time = 0.0f;
+		_spawn_delay = 0.0f;
+	}
+
 	float SwordSlashAbility::calculateSpawnDelay() const {
 		return calculateAnimationDuration() * EFFECT_SPAWN_ANIMATION_RATIO;
 	}

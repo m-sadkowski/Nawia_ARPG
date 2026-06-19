@@ -1,6 +1,7 @@
 #include "CobwebProjectile.h"
 
 #include <Logger.h>
+#include <Player.h>
 #include <SoundIds.h>
 
 #include <raymath.h>
@@ -13,7 +14,7 @@ namespace Nawia::Entity {
 	namespace {
 		constexpr const char* COBWEB_MODEL = "assets/models/cobweb.glb";
 		constexpr float HIT_RADIUS = 0.7f;
-		constexpr float STUCK_DURATION = 1.0f;
+		constexpr float STUCK_DURATION = 2.0f;
 		constexpr int COBWEB_DAMAGE = 10;
 		constexpr float MIN_DIRECTION_LENGTH = 0.001f;
 
@@ -133,6 +134,8 @@ namespace Nawia::Entity {
 		target->rememberDamageSource(_caster);
 		target->takeDamage(getDamage());
 		target->applyRoot(STUCK_DURATION);
+		if (auto* player = dynamic_cast<Player*>(target.get()))
+			player->applyControlLock(STUCK_DURATION);
 		addHit(target);
 
 		if (_caster)

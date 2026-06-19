@@ -49,6 +49,11 @@ namespace Nawia::Core {
 			return;
 		}
 
+		if (_player->isControlLocked()) {
+			stopCurrentAction();
+			return;
+		}
+
 		handleMouseInput(mouse_world_pos, screen_x, screen_y);
 		handleKeyboardInput(mouse_world_pos, screen_x, screen_y);
 	}
@@ -61,6 +66,11 @@ namespace Nawia::Core {
 
 		if (_engine->getUIHandler().isInputBlocked()) {
 			_player->stop();
+			return;
+		}
+
+		if (_player->isControlLocked()) {
+			stopCurrentAction();
 			return;
 		}
 
@@ -91,6 +101,11 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::update(const float dt) {
+		if (!_player || _player->isControlLocked()) {
+			stopCurrentAction();
+			return;
+		}
+
 		processPendingAction();
 
 		if (processInteraction())
@@ -155,6 +170,9 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::useAbility(const int index, const float target_x, const float target_y) const {
+		if (_player->isControlLocked())
+			return;
+
 		const auto ability = _player->getAbility(index);
 		if (!ability || !ability->isReady())
 			return;
@@ -198,6 +216,7 @@ namespace Nawia::Core {
 
 	void PlayerController::handleKeyboardInput(Vector3 mouse_world_pos, const float screen_x, const float screen_y) {
 		if (_engine->getUIHandler().isInputBlocked()) return;
+		if (_player->isControlLocked()) return;
 
 		int ability_index = -1;
 		if (IsKeyPressed(KEY_Q)) ability_index = 0;
@@ -214,6 +233,11 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::processPendingAction() {
+		if (_player->isControlLocked()) {
+			_pending_action = {};
+			return;
+		}
+
 		if (_player->isAnimationLocked() || _pending_action.type == PendingAction::Type::None)
 			return;
 
@@ -228,6 +252,7 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::processAutoAttack() {
+		if (_player->isControlLocked()) return;
 		if (_player->isAnimationLocked()) return;
 
 		const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(_target_enemy);
@@ -266,6 +291,12 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::handleGroundClick(Vector3 pos) {
+		if (_player->isControlLocked()) {
+			_pending_action = {};
+			_current_path.clear();
+			return;
+		}
+
 		if (_player->isAnimationLocked()) {
 			_pending_action = {PendingAction::Type::Move, pos.x, pos.z, pos.y, -1, std::weak_ptr<Entity::Entity>()};
 			return;
@@ -377,6 +408,9 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::updatePathMovement() {
+		if (_player->isControlLocked())
+			return;
+
 		// Podczas zablokowanej animacji (np. sword slash) nie pchamy gracza
 		// dalej po waypointach, inaczej "slizga sie" przez kolejne segmenty
 		// sciezki w trakcie ataku - widoczne zwlaszcza pod gore.
@@ -458,6 +492,9 @@ namespace Nawia::Core {
 
 	void PlayerController::updateRotation() const {
 		if (_engine && _engine->getUIHandler().isDialogueOpen())
+			return;
+
+		if (_player->isControlLocked())
 			return;
 
 		if (_target_enemy)

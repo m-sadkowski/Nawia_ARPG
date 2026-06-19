@@ -23,6 +23,7 @@ namespace Nawia::Entity {
 		 * @brief Aktualizuje opóźnienie utworzenia efektu po rozpoczęciu ataku.
 		 */
 		void update(float dt) override;
+		void cancel() override;
 
 		/**
 		 * @brief Rozpoczyna animację ataku i przygotowuje opóźnione cięcie.

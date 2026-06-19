@@ -31,6 +31,7 @@ namespace Nawia::Entity {
 			const std::shared_ptr<Texture2D>& icon_tex);
 
 		void update(float dt) override;
+		void cancel() override;
 		/** @brief Rozpoczyna animacje ataku i ustawia moment zadania obrazen/efektu. */
 		AbilitySpawn cast(float target_x, float target_y) override;
 
