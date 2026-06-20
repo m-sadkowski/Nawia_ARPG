@@ -752,6 +752,9 @@ namespace Nawia::Core {
 		_audio_manager.loadSound(Audio::SoundId::HumanDeath, Audio::SoundPath::HumanDeath);
 		_audio_manager.loadSound(Audio::SoundId::KnifeThrow, Audio::SoundPath::KnifeThrow);
 		_audio_manager.loadSound(Audio::SoundId::CatMeow, Audio::SoundPath::CatMeow);
+		_audio_manager.loadSound(Audio::SoundId::FrogSound, Audio::SoundPath::FrogSound);
+		_audio_manager.loadSound(Audio::SoundId::SpiderWebShot, Audio::SoundPath::SpiderWebShot);
+		_audio_manager.loadSound(Audio::SoundId::SpiderMeleeAttack, Audio::SoundPath::SpiderMeleeAttack);
 		_audio_manager.loadSound(Audio::SoundId::MiniMushroomAttack, Audio::SoundPath::MiniMushroomAttack);
 		_audio_manager.loadSound(Audio::SoundId::MiniMushroomWormExit, Audio::SoundPath::MiniMushroomWormExit);
 		_audio_manager.loadSound(Audio::SoundId::PlayerEatSupplies, Audio::SoundPath::PlayerEatSupplies);

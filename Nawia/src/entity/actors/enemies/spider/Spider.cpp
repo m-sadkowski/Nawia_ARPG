@@ -94,7 +94,7 @@ namespace Nawia::Entity {
 	void Spider::update(const float dt)
 	{
 		if (isDying()) {
-			updateMovementSound(Audio::SoundPath::Footsteps, false);
+			updateMovementSound(Audio::SoundPath::SpiderWalk, false);
 			Entity::update(dt);
 			return;
 		}
@@ -181,10 +181,10 @@ namespace Nawia::Entity {
 
 		if (_is_moving) {
 			playWalk(chase_speed_multiplier);
-			updateMovementSound(Audio::SoundPath::Footsteps, true, 0.45f, target_webbed ? 1.15f : 0.9f);
+			updateMovementSound(Audio::SoundPath::SpiderWalk, true, 0.48f, target_webbed ? 1.15f : 0.9f);
 		} else {
 			playIdle();
-			updateMovementSound(Audio::SoundPath::Footsteps, false);
+			updateMovementSound(Audio::SoundPath::SpiderWalk, false);
 		}
 	}
 
@@ -203,7 +203,7 @@ namespace Nawia::Entity {
 				target->rememberDamageSource(this);
 				target->takeDamage(static_cast<int>(MELEE_DAMAGE * _damage_multiplier));
 				target->applyPoison(POISON_DURATION, POISON_TICK_DAMAGE, 1.0f);
-				playSoundEffect(Audio::SoundId::DevilPunch, 0.7f, true, 1.25f);
+				playSoundEffect(Audio::SoundId::SpiderMeleeAttack, 0.75f, true, 1.0f);
 			}
 			_melee_damage_applied = true;
 		}
@@ -297,7 +297,7 @@ namespace Nawia::Entity {
 		if (auto* resource_manager = Entity::getSharedResourceManager())
 			shared_model = resource_manager->getModel(COBWEB_MODEL);
 
-		playSoundEffect(Audio::SoundId::FireballCast, 0.55f, true, 1.45f);
+		playSoundEffect(Audio::SoundId::SpiderWebShot, 0.7f, true, 1.0f);
 		addPendingSpawn(std::make_shared<CobwebProjectile>(
 			spawn_pos.x,
 			spawn_pos.y,
@@ -313,7 +313,7 @@ namespace Nawia::Entity {
 	{
 		setVelocity(0.0f, 0.0f);
 		_is_moving = false;
-		updateMovementSound(Audio::SoundPath::Footsteps, false);
+		updateMovementSound(Audio::SoundPath::SpiderWalk, false);
 	}
 
 	void Spider::playIdle()

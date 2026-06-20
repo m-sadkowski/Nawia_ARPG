@@ -1,6 +1,7 @@
 #include "Worm.h"
 
 #include <MiniMushroomInfected.h>
+#include <SoundIds.h>
 
 namespace Nawia::Entity {
 
@@ -22,6 +23,11 @@ namespace Nawia::Entity {
 
 	void Worm::setLinkedMushroom(const std::weak_ptr<MiniMushroomInfected>& mushroom) {
 		_linked_mushroom = mushroom;
+	}
+
+	void Worm::update(const float dt) {
+		SimpleMeleeEnemy::update(dt);
+		updateMovementSound(Audio::SoundPath::WormMovement, _state == State::Chasing && _is_moving, 0.34f, 1.0f);
 	}
 
 	void Worm::onDeathStarted() {

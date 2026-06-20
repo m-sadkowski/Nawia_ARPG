@@ -164,7 +164,7 @@ namespace Nawia::Entity {
 		updateMovementSound(Audio::SoundPath::DevilStep, _is_moving && !isDying() && !isDormant(), 0.30f, 1.25f);
 
 		if (previous_state == State::Idle && _state == State::Chasing)
-			playSoundEffect(Audio::SoundId::DevilAggro, 0.72f, true, 0.82f);
+			playSoundEffect(Audio::SoundId::FrogSound, 0.72f, true, 0.95f);
 	}
 
 	void Frog::render(const Camera3D& camera) {
@@ -366,7 +366,7 @@ namespace Nawia::Entity {
 		rotateTowardsCenter(_tongue_target_snapshot.x, _tongue_target_snapshot.y);
 		setAnimationSpeed(0.72f);
 		playAnimation("attack", false, true, 0, true);
-		playSoundEffect(Audio::SoundId::DevilAggro, 0.58f, true, 1.08f);
+		playSoundEffect(Audio::SoundId::FrogSound, 0.78f, true, 1.08f);
 	}
 
 	void Frog::releaseTongueStrike() {

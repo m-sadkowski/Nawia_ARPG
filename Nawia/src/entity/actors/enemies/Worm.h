@@ -16,6 +16,8 @@ namespace Nawia::Entity {
 	 */
 	class Worm : public SimpleMeleeEnemy {
 	public:
+		/** @brief Aktualizuje AI robala i odtwarza dedykowany dzwiek pelzania. */
+		void update(float dt) override;
 		/** @brief Laczy robala z grzybem, ktory ma zostac oczyszczony po jego smierci. */
 		void setLinkedMushroom(const std::weak_ptr<MiniMushroomInfected>& mushroom);
 
