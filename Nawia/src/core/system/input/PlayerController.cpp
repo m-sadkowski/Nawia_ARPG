@@ -106,6 +106,11 @@ namespace Nawia::Core {
 			return;
 		}
 
+		if (_player->isMovementRooted()) {
+			updateRotation();
+			return;
+		}
+
 		processPendingAction();
 
 		if (processInteraction())
@@ -411,6 +416,9 @@ namespace Nawia::Core {
 		if (_player->isControlLocked())
 			return;
 
+		if (_player->isMovementRooted())
+			return;
+
 		// Podczas zablokowanej animacji (np. sword slash) nie pchamy gracza
 		// dalej po waypointach, inaczej "slizga sie" przez kolejne segmenty
 		// sciezki w trakcie ataku - widoczne zwlaszcza pod gore.
@@ -418,7 +426,11 @@ namespace Nawia::Core {
 			return;
 
 		if (!_player->isMoving() && !_current_path.empty()) {
-			_current_path.erase(_current_path.begin());
+			const Vector2 next_point = _current_path.front();
+			const float dx = next_point.x - _player->getCenter().x;
+			const float dy = next_point.y - _player->getCenter().y;
+			if (dx * dx + dy * dy < 0.10f)
+				_current_path.erase(_current_path.begin());
 
 			if (!_current_path.empty())
 				_player->moveTo(_current_path.front().x, _current_path.front().y);

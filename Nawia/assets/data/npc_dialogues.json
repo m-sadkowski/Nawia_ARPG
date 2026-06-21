@@ -341,7 +341,7 @@
         "text": "Tanczyliscie na weselach, ale przy grobach milczeliscie. Piliscie za zdrowie mlodych, ale zmarlym nie daliscie nawet okrucha. Dziwi cie gniew bogow? Dziwi cie, ze przyszli upomniec sie o swoje?",
         "options": [
           {
-            "text": "Pierdolenie. Nie wierze ci.",
+            "text": "Spływka. Nie wierze ci.",
             "next": 6
           },
           {
@@ -351,28 +351,28 @@
         ],
         "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_placeholder_node_2.wav"
       },
-      {
-        "id": 6,
-        "speaker": "Logos",
-        "text": "Pierdolenie. Nie wierze ci.",
-        "options": [
-          {
-            "text": "Dalej.",
-            "next": -1,
-            "actions": [
-              {
-                "type": "hide_entity",
-                "name": "Wiedzma"
-              },
-              {
-                "type": "start_boss",
-                "boss_id": "czarownica"
-              }
-            ]
-          }
-        ],
-        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_nie_wierze_ci.wav"
-      },
+        {
+            "id": 6,
+            "speaker": "Logos",
+            "text": "Spływka. Nie wierze ci.",
+            "options": [
+                {
+                    "text": "Dalej.",
+                    "next": -1,
+                    "actions": [
+                        {
+                            "type": "hide_entity",
+                            "name": "Wiedzma"
+                        },
+                        {
+                            "type": "start_boss",
+                            "boss_id": "czarownica"
+                        }
+                    ]
+                }
+            ],
+            "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_nie_wierze_ci.wav"
+        },
       {
         "id": 7,
         "speaker": "Logos",

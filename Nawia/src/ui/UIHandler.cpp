@@ -79,6 +79,16 @@ namespace Nawia::UI
             return button_rectangles;
         }
 
+        Rectangle getAuthorsBackButtonRect()
+        {
+            const float screen_height = static_cast<float>(GetScreenHeight());
+            Rectangle rect = UIHandler::getCenteredBackButtonRect();
+            rect.y = std::min(
+                screen_height - rect.height - screen_height * 0.035f,
+                rect.y + screen_height * 0.08f);
+            return rect;
+        }
+
         /**
          * @brief Wlacza lagodniejsze skalowanie tekstury UI.
          */
@@ -245,7 +255,7 @@ namespace Nawia::UI
 
         if (_is_authors_open)
         {
-            updateHoverTimers(delta_time, { getCenteredBackButtonRect() });
+            updateHoverTimers(delta_time, { getAuthorsBackButtonRect() });
         }
         else if (!_settings_menu && !_level_select_menu && !_save_slot_menu)
             updateHoverTimers(delta_time, getMainMenuLayout(static_cast<int>(buildMainMenuButtons().size())));
@@ -416,16 +426,93 @@ namespace Nawia::UI
         drawSharedMenuBackground();
         const float screen_width = static_cast<float>(GetScreenWidth());
         const float screen_height = static_cast<float>(GetScreenHeight());
-        const float subtitle_font_size = Core::GlobalScaling::scaled(FONT_SIZE_SUBTITLE);
+        {
+            const Rectangle back_button_rect = getAuthorsBackButtonRect();
+            const float available_top = screen_height * 0.055f;
+            const float available_bottom = back_button_rect.y - screen_height * 0.035f;
+            const float available_height = std::max(260.0f, available_bottom - available_top);
+            const float title_font_size = std::clamp(available_height * 0.075f, 28.0f, 58.0f);
+            const float heading_font_size = std::clamp(available_height * 0.056f, 23.0f, 42.0f);
+            const float entry_font_size = std::clamp(available_height * 0.050f, 22.0f, 38.0f);
+            const float author_gap = available_height * 0.012f;
+            const float section_gap = available_height * 0.035f;
+            const float actor_gap = available_height * 0.007f;
+
+            const char* author_names[] = { AUTHOR_NAME_1, AUTHOR_NAME_2, AUTHOR_NAME_3, AUTHOR_NAME_4 };
+            const char* actor_names[] = {
+                "Szymon \"Logos\" Kulasiewicz - Logos",
+                "Jakub \"Gruby\" Kulesza - Gzib",
+                "Anastazja \"Babka\" Neczajewska - Szeptucha & Ocalona",
+                "Jan \"Roki\" Ciupa - Soltys",
+                "Sara \"Kierownik\" Rzoska - Wiedzma",
+                "Julia \"Julka\" Morawska - Zagubiona",
+                "Pawel \"Pawko\" Kondratowicz - Zielarz"
+            };
+
+            float current_y = available_top;
+            const char* authors_heading = "Autorzy:";
+            const Vector2 authors_heading_size = MeasureTextEx(_font, authors_heading, title_font_size, 2.0f);
+            DrawTextEx(_font, authors_heading, {(screen_width - authors_heading_size.x) / 2.0f, current_y}, title_font_size, 2.0f, COLOR_ACCENT);
+            current_y += title_font_size + author_gap;
+
+            for (const auto* name : author_names)
+            {
+                const Vector2 name_size = MeasureTextEx(_font, name, entry_font_size, 2.0f);
+                DrawTextEx(_font, name, {(screen_width - name_size.x) / 2.0f, current_y}, entry_font_size, 2.0f, WHITE);
+                current_y += entry_font_size + author_gap;
+            }
+
+            current_y += section_gap;
+            const char* actors_heading = "Aktorzy (w kolejnosci wystepowania):";
+            const Vector2 heading_size = MeasureTextEx(_font, actors_heading, heading_font_size, 2.0f);
+            DrawTextEx(_font, actors_heading, {(screen_width - heading_size.x) / 2.0f, current_y}, heading_font_size, 2.0f, COLOR_ACCENT);
+            current_y += heading_font_size + actor_gap * 2.0f;
+
+            for (const auto* name : actor_names)
+            {
+                const Vector2 name_size = MeasureTextEx(_font, name, entry_font_size, 1.0f);
+                DrawTextEx(_font, name, {(screen_width - name_size.x) / 2.0f, current_y}, entry_font_size, 1.0f, WHITE);
+                current_y += entry_font_size + actor_gap;
+            }
+
+            drawMenuButton(back_button_rect, LABEL_BACK, CheckCollisionPointRec(GetMousePosition(), back_button_rect) ? 1.0f : 0.0f);
+            return;
+        }
+        const float author_font_size = Core::GlobalScaling::scaled(24.0f);
+        const float heading_font_size = Core::GlobalScaling::scaled(22.0f);
+        const float actor_font_size = Core::GlobalScaling::scaled(17.0f);
         
         const char* author_names[] = { AUTHOR_NAME_1, AUTHOR_NAME_2, AUTHOR_NAME_3, AUTHOR_NAME_4 };
-        float current_y = screen_height * 0.35f;
+        const char* actor_names[] = {
+            "Szymon \"Logos\" Kulasiewicz - Logos",
+            "Jakub \"Gruby\" Kulesza - Gzib",
+            "Anastazja \"Babka\" Neczajewska - Szeptucha & Ocalona",
+            "Jan \"Roki\" Ciupa - Sołtys",
+            "Sara \"Kierownik\" Rzoska - Wiedźma",
+            "Julia \"Julka\" Morawska - Zagubiona",
+            "Paweł \"Pawko\" Kondratowicz - Zielarz"
+        };
+
+        float current_y = screen_height * 0.08f;
         
         for (const auto* name : author_names)
         {
-            const Vector2 name_size = MeasureTextEx(_font, name, subtitle_font_size, 2.0f);
-            DrawTextEx(_font, name, {(screen_width - name_size.x) / 2.0f, current_y}, subtitle_font_size, 2.0f, WHITE);
-            current_y += subtitle_font_size + Core::GlobalScaling::scaled(20.0f);
+            const Vector2 name_size = MeasureTextEx(_font, name, author_font_size, 2.0f);
+            DrawTextEx(_font, name, {(screen_width - name_size.x) / 2.0f, current_y}, author_font_size, 2.0f, WHITE);
+            current_y += author_font_size + Core::GlobalScaling::scaled(7.0f);
+        }
+
+        current_y += Core::GlobalScaling::scaled(12.0f);
+        const char* actors_heading = "Aktorzy (w kolejności występowania):";
+        const Vector2 heading_size = MeasureTextEx(_font, actors_heading, heading_font_size, 2.0f);
+        DrawTextEx(_font, actors_heading, {(screen_width - heading_size.x) / 2.0f, current_y}, heading_font_size, 2.0f, COLOR_ACCENT);
+        current_y += heading_font_size + Core::GlobalScaling::scaled(10.0f);
+
+        for (const auto* name : actor_names)
+        {
+            const Vector2 name_size = MeasureTextEx(_font, name, actor_font_size, 1.0f);
+            DrawTextEx(_font, name, {(screen_width - name_size.x) / 2.0f, current_y}, actor_font_size, 1.0f, WHITE);
+            current_y += actor_font_size + Core::GlobalScaling::scaled(5.0f);
         }
         
         const Rectangle back_button_rect = getCenteredBackButtonRect();
@@ -436,7 +523,7 @@ namespace Nawia::UI
     {
         if (_is_authors_open)
         {
-            if (getClickedButtonIndex({ getCenteredBackButtonRect() }) == 0)
+            if (getClickedButtonIndex({ getAuthorsBackButtonRect() }) == 0)
             {
                 _is_authors_open = false;
                 return MenuAction::None;

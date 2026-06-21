@@ -100,9 +100,24 @@ namespace Nawia::Entity {
 
 	void Player::moveTo(const float x, const float y)
 	{
-		if (isMovementRooted() || isControlLocked())
+		if (isControlLocked())
 		{
 			stop();
+			return;
+		}
+
+		if (isMovementRooted())
+		{
+			_target_x = x;
+			_target_y = y;
+			_velocity = {0.0f, 0.0f};
+			_is_moving = false;
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
+			if (!isAnimationLocked())
+			{
+				setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
+				playAnimation("Idle_Loop");
+			}
 			return;
 		}
 
