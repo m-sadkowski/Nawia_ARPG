@@ -1,4 +1,4 @@
-#include "UIHandler.h"
+﻿#include "UIHandler.h"
 
 #include <Ability.h>
 #include <Camera.h>
@@ -49,6 +49,16 @@ namespace Nawia::UI
     namespace
     {
         constexpr int BABA_YAGA_BOOK_ITEM_ID = 18;
+        const char* const AUTHOR_NAMES[] = { AUTHOR_NAME_1, AUTHOR_NAME_2, AUTHOR_NAME_3, AUTHOR_NAME_4 };
+        const char* const ACTOR_NAMES[] = {
+            "Szymon \"Logos\" Kulasiewicz - Logos",
+            "Jakub \"Gruby\" Kulesza - Gzib",
+            "Anastazja \"Babka\" Neczajewska - Szeptucha & Ocalona",
+            "Jan \"Roki\" Ciupa - Soltys",
+            "Sara \"Sara\" Rzoska - Wiedzma",
+            "Julia \"Julka\" Morawska - Zagubiona",
+            "Pawel \"Pawko\" Kondratowicz - Zielarz"
+        };
 
         /**
          * @brief Oblicza prostokaty pionowego stosu przyciskow menu.
@@ -87,6 +97,19 @@ namespace Nawia::UI
                 screen_height - rect.height - screen_height * 0.035f,
                 rect.y + screen_height * 0.08f);
             return rect;
+        }
+
+        void drawCenteredText(
+            const Font& font,
+            const char* text,
+            const float y,
+            const float font_size,
+            const float spacing,
+            const Color color)
+        {
+            const float screen_width = static_cast<float>(GetScreenWidth());
+            const Vector2 text_size = MeasureTextEx(font, text, font_size, spacing);
+            DrawTextEx(font, text, {(screen_width - text_size.x) * 0.5f, y}, font_size, spacing, color);
         }
 
         /**
@@ -424,98 +447,38 @@ namespace Nawia::UI
     void UIHandler::renderAuthorsMenu() const
     {
         drawSharedMenuBackground();
-        const float screen_width = static_cast<float>(GetScreenWidth());
         const float screen_height = static_cast<float>(GetScreenHeight());
+        const Rectangle back_button_rect = getAuthorsBackButtonRect();
+        const float available_top = screen_height * 0.055f;
+        const float available_bottom = back_button_rect.y - screen_height * 0.035f;
+        const float available_height = std::max(260.0f, available_bottom - available_top);
+        const float title_font_size = std::clamp(available_height * 0.075f, 28.0f, 58.0f);
+        const float heading_font_size = std::clamp(available_height * 0.056f, 23.0f, 42.0f);
+        const float entry_font_size = std::clamp(available_height * 0.050f, 22.0f, 38.0f);
+        const float author_gap = available_height * 0.012f;
+        const float section_gap = available_height * 0.035f;
+        const float actor_gap = available_height * 0.007f;
+
+        float current_y = available_top;
+        drawCenteredText(_font, "Autorzy:", current_y, title_font_size, 2.0f, COLOR_ACCENT);
+        current_y += title_font_size + author_gap;
+
+        for (const auto* name : AUTHOR_NAMES)
         {
-            const Rectangle back_button_rect = getAuthorsBackButtonRect();
-            const float available_top = screen_height * 0.055f;
-            const float available_bottom = back_button_rect.y - screen_height * 0.035f;
-            const float available_height = std::max(260.0f, available_bottom - available_top);
-            const float title_font_size = std::clamp(available_height * 0.075f, 28.0f, 58.0f);
-            const float heading_font_size = std::clamp(available_height * 0.056f, 23.0f, 42.0f);
-            const float entry_font_size = std::clamp(available_height * 0.050f, 22.0f, 38.0f);
-            const float author_gap = available_height * 0.012f;
-            const float section_gap = available_height * 0.035f;
-            const float actor_gap = available_height * 0.007f;
-
-            const char* author_names[] = { AUTHOR_NAME_1, AUTHOR_NAME_2, AUTHOR_NAME_3, AUTHOR_NAME_4 };
-            const char* actor_names[] = {
-                "Szymon \"Logos\" Kulasiewicz - Logos",
-                "Jakub \"Gruby\" Kulesza - Gzib",
-                "Anastazja \"Babka\" Neczajewska - Szeptucha & Ocalona",
-                "Jan \"Roki\" Ciupa - Soltys",
-                "Sara \"Kierownik\" Rzoska - Wiedzma",
-                "Julia \"Julka\" Morawska - Zagubiona",
-                "Pawel \"Pawko\" Kondratowicz - Zielarz"
-            };
-
-            float current_y = available_top;
-            const char* authors_heading = "Autorzy:";
-            const Vector2 authors_heading_size = MeasureTextEx(_font, authors_heading, title_font_size, 2.0f);
-            DrawTextEx(_font, authors_heading, {(screen_width - authors_heading_size.x) / 2.0f, current_y}, title_font_size, 2.0f, COLOR_ACCENT);
-            current_y += title_font_size + author_gap;
-
-            for (const auto* name : author_names)
-            {
-                const Vector2 name_size = MeasureTextEx(_font, name, entry_font_size, 2.0f);
-                DrawTextEx(_font, name, {(screen_width - name_size.x) / 2.0f, current_y}, entry_font_size, 2.0f, WHITE);
-                current_y += entry_font_size + author_gap;
-            }
-
-            current_y += section_gap;
-            const char* actors_heading = "Aktorzy (w kolejnosci wystepowania):";
-            const Vector2 heading_size = MeasureTextEx(_font, actors_heading, heading_font_size, 2.0f);
-            DrawTextEx(_font, actors_heading, {(screen_width - heading_size.x) / 2.0f, current_y}, heading_font_size, 2.0f, COLOR_ACCENT);
-            current_y += heading_font_size + actor_gap * 2.0f;
-
-            for (const auto* name : actor_names)
-            {
-                const Vector2 name_size = MeasureTextEx(_font, name, entry_font_size, 1.0f);
-                DrawTextEx(_font, name, {(screen_width - name_size.x) / 2.0f, current_y}, entry_font_size, 1.0f, WHITE);
-                current_y += entry_font_size + actor_gap;
-            }
-
-            drawMenuButton(back_button_rect, LABEL_BACK, CheckCollisionPointRec(GetMousePosition(), back_button_rect) ? 1.0f : 0.0f);
-            return;
-        }
-        const float author_font_size = Core::GlobalScaling::scaled(24.0f);
-        const float heading_font_size = Core::GlobalScaling::scaled(22.0f);
-        const float actor_font_size = Core::GlobalScaling::scaled(17.0f);
-        
-        const char* author_names[] = { AUTHOR_NAME_1, AUTHOR_NAME_2, AUTHOR_NAME_3, AUTHOR_NAME_4 };
-        const char* actor_names[] = {
-            "Szymon \"Logos\" Kulasiewicz - Logos",
-            "Jakub \"Gruby\" Kulesza - Gzib",
-            "Anastazja \"Babka\" Neczajewska - Szeptucha & Ocalona",
-            "Jan \"Roki\" Ciupa - Sołtys",
-            "Sara \"Kierownik\" Rzoska - Wiedźma",
-            "Julia \"Julka\" Morawska - Zagubiona",
-            "Paweł \"Pawko\" Kondratowicz - Zielarz"
-        };
-
-        float current_y = screen_height * 0.08f;
-        
-        for (const auto* name : author_names)
-        {
-            const Vector2 name_size = MeasureTextEx(_font, name, author_font_size, 2.0f);
-            DrawTextEx(_font, name, {(screen_width - name_size.x) / 2.0f, current_y}, author_font_size, 2.0f, WHITE);
-            current_y += author_font_size + Core::GlobalScaling::scaled(7.0f);
+            drawCenteredText(_font, name, current_y, entry_font_size, 2.0f, WHITE);
+            current_y += entry_font_size + author_gap;
         }
 
-        current_y += Core::GlobalScaling::scaled(12.0f);
-        const char* actors_heading = "Aktorzy (w kolejności występowania):";
-        const Vector2 heading_size = MeasureTextEx(_font, actors_heading, heading_font_size, 2.0f);
-        DrawTextEx(_font, actors_heading, {(screen_width - heading_size.x) / 2.0f, current_y}, heading_font_size, 2.0f, COLOR_ACCENT);
-        current_y += heading_font_size + Core::GlobalScaling::scaled(10.0f);
+        current_y += section_gap;
+        drawCenteredText(_font, "Aktorzy (w kolejnosci wystepowania):", current_y, heading_font_size, 2.0f, COLOR_ACCENT);
+        current_y += heading_font_size + actor_gap * 2.0f;
 
-        for (const auto* name : actor_names)
+        for (const auto* name : ACTOR_NAMES)
         {
-            const Vector2 name_size = MeasureTextEx(_font, name, actor_font_size, 1.0f);
-            DrawTextEx(_font, name, {(screen_width - name_size.x) / 2.0f, current_y}, actor_font_size, 1.0f, WHITE);
-            current_y += actor_font_size + Core::GlobalScaling::scaled(5.0f);
+            drawCenteredText(_font, name, current_y, entry_font_size, 1.0f, WHITE);
+            current_y += entry_font_size + actor_gap;
         }
-        
-        const Rectangle back_button_rect = getCenteredBackButtonRect();
+
         drawMenuButton(back_button_rect, LABEL_BACK, CheckCollisionPointRec(GetMousePosition(), back_button_rect) ? 1.0f : 0.0f);
     }
 
@@ -1001,13 +964,13 @@ namespace Nawia::UI
 
     void UIHandler::drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text, const std::shared_ptr<Texture2D>& frame_texture) const
     {
-        // Zewnętrzna poświata.
+        // ZewnÄ™trzna poĹ›wiata.
         DrawCircleGradient(static_cast<int>(center_x), static_cast<int>(center_y), radius + Core::GlobalScaling::scaled(6.0f), withAlpha(fill_dark, 0.25f * target_percent), withAlpha(BLACK, 0.0f));
         
-        // Tło kuli.
+        // TĹ‚o kuli.
         DrawCircleV({ center_x, center_y }, radius, bg_color);
         
-        // Cień wypełnienia pokazujący historię obrażeń.
+        // CieĹ„ wypeĹ‚nienia pokazujÄ…cy historiÄ™ obraĹĽeĹ„.
         if (ghost_percent > target_percent)
         {
             const float ghost_fill_height = radius * 2.0f * ghost_percent;
@@ -1017,28 +980,28 @@ namespace Nawia::UI
             EndScissorMode();
         }
         
-        // Wypełnienie od dołu z przycinaniem scissor.
+        // WypeĹ‚nienie od doĹ‚u z przycinaniem scissor.
         const float fill_height = radius * 2.0f * target_percent;
         const float clip_y = center_y + radius - fill_height;
         BeginScissorMode(static_cast<int>(center_x - radius), static_cast<int>(clip_y), static_cast<int>(radius * 2.0f), static_cast<int>(fill_height));
         DrawCircleGradient(static_cast<int>(center_x), static_cast<int>(center_y), radius - 1.0f, fill_bright, fill_dark);
         EndScissorMode();
         
-        // Falujący refleks na powierzchni płynu.
+        // FalujÄ…cy refleks na powierzchni pĹ‚ynu.
         const float surface_y = clip_y;
         const float wave_offset = std::sin(static_cast<float>(GetTime()) * wave_speed) * Core::GlobalScaling::scaled(1.5f);
         if (target_percent > 0.02f && target_percent < 0.98f)
         {
-        // Liczymy szerokość koła na wysokości linii wypełnienia.
+        // Liczymy szerokoĹ›Ä‡ koĹ‚a na wysokoĹ›ci linii wypeĹ‚nienia.
             const float dy = (surface_y + wave_offset) - center_y;
             const float half_width = std::sqrt(std::max(0.0f, radius * radius - dy * dy));
             DrawLineEx({ center_x - half_width, surface_y + wave_offset }, { center_x + half_width, surface_y + wave_offset }, Core::GlobalScaling::scaled(1.5f), withAlpha(WHITE, 0.25f));
         }
         
-        // Szklany refleks w lewym górnym rogu.
+        // Szklany refleks w lewym gĂłrnym rogu.
         DrawCircleGradient(static_cast<int>(center_x - radius * 0.3f), static_cast<int>(center_y - radius * 0.3f), radius * 0.55f, withAlpha(WHITE, 0.12f), withAlpha(WHITE, 0.0f));
         
-        // Pierścień obramowania.
+        // PierĹ›cieĹ„ obramowania.
         if (frame_texture && frame_texture->id > 0)
         {
             const float frame_size = radius * 2.9f;
@@ -1085,7 +1048,7 @@ namespace Nawia::UI
         const int display_hp = _player->isDying() ? 0 : _player->getHP();
         const float target_hp = std::clamp(static_cast<float>(display_hp) / _player->getMaxHP(), 0.0f, 1.0f);
         
-        // Kolory wypełnienia kuli.
+        // Kolory wypeĹ‚nienia kuli.
         const Color orb_fill_dark = { 120, 10, 10, 255 };
         const Color orb_fill_bright = { 200, 30, 30, 255 };
         const Color orb_bg = { 20, 12, 12, 240 };
@@ -1142,7 +1105,7 @@ namespace Nawia::UI
             if (entity->getFaction() != Entity::Faction::Enemy && entity->getFaction() != Entity::Faction::Ally) continue;
             if (entity->getHP() >= entity->getMaxHP() || entity->getHP() <= 0) continue;
 
-            // Boss ma wlasny duzy pasek HP — pomijamy maly.
+            // Boss ma wlasny duzy pasek HP â€” pomijamy maly.
             if (boss_entity && entity == boss_entity) continue;
 
             const BoundingBox bounding_box = entity->getBoundingBox();
@@ -1308,7 +1271,7 @@ namespace Nawia::UI
         const float orb_center_x = ability_frame_x + ability_frame_width + orb_gap + orb_radius;
         const float orb_center_y = ability_center_y;
 
-        // Kolory wypełnienia kuli.
+        // Kolory wypeĹ‚nienia kuli.
         const Color orb_fill_dark = { 15, 40, 120, 255 };
         const Color orb_fill_bright = { 50, 100, 220, 255 };
         const Color orb_bg = { 10, 12, 25, 240 };
@@ -1326,9 +1289,9 @@ namespace Nawia::UI
         const float alpha = std::clamp(_location_banner_timer > 4.0f ? (5.0f - _location_banner_timer) : (_location_banner_timer / 1.0f), 0.0f, 1.0f);
         
         const float banner_height = Core::GlobalScaling::scaled(100.0f);
-        const float banner_y = Core::GlobalScaling::scaled(60.0f) * alpha; // Efekt wsunięcia.
+        const float banner_y = Core::GlobalScaling::scaled(60.0f) * alpha; // Efekt wsuniÄ™cia.
         
-        // Filmowe tło.
+        // Filmowe tĹ‚o.
         DrawRectangleGradientH(0, static_cast<int>(banner_y), static_cast<int>(screen_width / 2), static_cast<int>(banner_height), withAlpha(BLACK, 0.0f), withAlpha(BLACK, 0.7f * alpha));
         DrawRectangleGradientH(static_cast<int>(screen_width / 2), static_cast<int>(banner_y), static_cast<int>(screen_width / 2), static_cast<int>(banner_height), withAlpha(BLACK, 0.7f * alpha), withAlpha(BLACK, 0.0f));
         
