@@ -502,7 +502,7 @@
       {
         "id": 1,
         "speaker": "Zielarz",
-        "text": "Mam dobre i zle wiesci. Dobre sa takie, ze ranna, ktora ocaliles, to siostra Mileny. Jeszcze slaba, ale przytomna. Powie ci wiecej niz ja.",
+        "text": "Mam dobre i zle wiesci. Dobre sa takie, ze ranna, ktora ocaliles, to siostra Mileny. Jeszcze slaba - chcesz z nia porozmawiac?",
         "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_alive_01.wav",
         "options": [
           {
