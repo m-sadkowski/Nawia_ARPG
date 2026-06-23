@@ -619,7 +619,7 @@ namespace Nawia::Core {
 		}
 
 		// Aktualizacja stanu kursora na podstawie hoverowanej encji.
-		const auto hovered_entity = getEntityAt(mouse_pos.x, mouse_pos.y);
+		const auto hovered_entity = _entity_manager->getHoveredEntity();
 		const bool level_blocks_control = _level_manager->getCurrentLevel() && _level_manager->getCurrentLevel()->blocksPlayerControl();
 		
 		// Pokazujemy kursor interakcji z encja tylko jesli UI nie blokuje wejscia (np. otwarty dialog)

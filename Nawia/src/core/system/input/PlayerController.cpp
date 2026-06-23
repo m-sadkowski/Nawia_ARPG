@@ -211,7 +211,7 @@ namespace Nawia::Core {
 				return;
 			}
 
-			if (trySelectEnemy(screen_x, screen_y))
+			if (trySelectEnemy(entity))
 				return;
 		}
 
@@ -280,8 +280,7 @@ namespace Nawia::Core {
 		updateCombatMovement(distance_sq, auto_attack->getCastRange());
 	}
 
-	bool PlayerController::trySelectEnemy(const float screen_x, const float screen_y) {
-		const auto entity = _engine->getEntityAt(screen_x, screen_y);
+	bool PlayerController::trySelectEnemy(const std::shared_ptr<Entity::Entity>& entity) {
 		const auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(entity);
 		if (!isValidEnemyTarget(enemy))
 			return false;

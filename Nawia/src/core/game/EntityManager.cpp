@@ -78,6 +78,11 @@ namespace Nawia::Core {
         if (!entity)
             return;
 
+        if (_hovered_entity.lock() == entity) {
+            entity->setHovered(false);
+            _hovered_entity.reset();
+        }
+
         _active_entities.erase(
             std::remove(_active_entities.begin(), _active_entities.end(), entity),
             _active_entities.end());
@@ -104,6 +109,7 @@ namespace Nawia::Core {
 			}
 		}
 		_active_entities = std::move(retained_entities);
+        _hovered_entity.reset();
         _combat_target_refresh_timer = 0.0f;
         _altitude_snap_timer = 0.0f;
 	}
@@ -119,14 +125,17 @@ namespace Nawia::Core {
     }
 
     void EntityManager::updateHoverState(const float screen_x, const float screen_y, const Camera3D& camera) {
-        for (const auto& entity : _active_entities)
-            entity->setHovered(false);
+        if (const auto previous_hovered = _hovered_entity.lock())
+            previous_hovered->setHovered(false);
+
+        _hovered_entity.reset();
 
         for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) 
         {
             if ((*it)->isDormant()) continue;
             if ((*it)->isMouseOver(screen_x, screen_y, camera)) {
                 (*it)->setHovered(true);
+                _hovered_entity = *it;
                 return;
             }
         }
