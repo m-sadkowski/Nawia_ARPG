@@ -1,336 +1,1048 @@
 #include "Entity.h"
-#include <json.hpp>
-#include <fstream>
-#include <raymath.h>
-#include "Ability.h"
-#include "Collider.h"
+#include <Ability.h>
+#include <AudioManager.h>
+#include <Collider.h>
+#include <ResourceManager.h>
 
 #include <Logger.h>
-#include <Map.h>
-#include <Constants.h>
+#include <MathUtils.h>
 
+#include <json.hpp>
+#include <raymath.h>
+
+#include <cmath>
+#include <algorithm>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <limits>
+#include <map>
+#include <memory>
+
+namespace {
+	constexpr const char* ABILITIES_PATH = "assets/data/abilities.json";
+
+	void* cloneRawBuffer(const void* src, const size_t size_bytes) {
+		if (!src || size_bytes == 0)
+			return nullptr;
+
+		void* dst = std::malloc(size_bytes);
+		if (dst)
+			std::memcpy(dst, src, size_bytes);
+		return dst;
+	}
+
+	void ensureMeshAnimationBuffers(Model& model) {
+		if (model.meshCount <= 0 || model.boneCount <= 0)
+			return;
+
+		for (int mesh_index = 0; mesh_index < model.meshCount; ++mesh_index) {
+			Mesh& mesh = model.meshes[mesh_index];
+			const auto vertex_count = static_cast<size_t>(mesh.vertexCount);
+			if (vertex_count == 0)
+				continue;
+
+			if (!mesh.animVertices && mesh.vertices)
+				mesh.animVertices = static_cast<float*>(cloneRawBuffer(mesh.vertices, vertex_count * 3 * sizeof(float)));
+
+			if (!mesh.animNormals && mesh.normals)
+				mesh.animNormals = static_cast<float*>(cloneRawBuffer(mesh.normals, vertex_count * 3 * sizeof(float)));
+
+			if (!mesh.boneIds)
+				mesh.boneIds = static_cast<unsigned char*>(std::calloc(vertex_count * 4, sizeof(unsigned char)));
+
+			if (!mesh.boneWeights) {
+				mesh.boneWeights = static_cast<float*>(std::calloc(vertex_count * 4, sizeof(float)));
+				if (mesh.boneWeights) {
+					for (size_t vertex_index = 0; vertex_index < vertex_count; ++vertex_index)
+						mesh.boneWeights[vertex_index * 4] = 1.0f;
+				}
+			}
+
+			if (mesh.boneCount <= 0)
+				mesh.boneCount = model.boneCount;
+
+			if (!mesh.boneMatrices && mesh.boneCount > 0) {
+				mesh.boneMatrices = static_cast<Matrix*>(std::calloc(static_cast<size_t>(mesh.boneCount), sizeof(Matrix)));
+				if (mesh.boneMatrices) {
+					for (int bone_index = 0; bone_index < mesh.boneCount; ++bone_index)
+						mesh.boneMatrices[bone_index] = MatrixIdentity();
+				}
+			}
+		}
+	}
+
+	nlohmann::json loadAbilitiesData()
+	{
+		std::ifstream file(ABILITIES_PATH);
+		if (!file.is_open())
+		{
+			Nawia::Core::Logger::errorLog(std::string("Entity - nie można otworzyć pliku: ") + ABILITIES_PATH);
+			return {};
+		}
+
+		nlohmann::json data;
+		try
+		{
+			file >> data;
+		}
+		catch (const nlohmann::json::parse_error&)
+		{
+			Nawia::Core::Logger::errorLog(std::string("Entity - nie można sparsować JSON: ") + ABILITIES_PATH);
+			return {};
+		}
+
+		return data;
+	}
+
+	template <typename T>
+	void assignStatIfPresent(const nlohmann::json& json_stats, const char* key, T& destination)
+	{
+		if (const auto stat_it = json_stats.find(key); stat_it != json_stats.end())
+			destination = stat_it->get<T>();
+	}
+}
 
 namespace Nawia::Entity {
 
-	bool Entity::DebugColliders = false; // enable debug hitbox drawing
+namespace {
+	Core::ResourceManager* g_shared_resource_manager = nullptr;
+	std::map<std::string, std::shared_ptr<const AnimationBundle>> g_animation_cache;
+	std::weak_ptr<Entity> g_audio_listener;
+
+	constexpr float FULL_VOLUME_DISTANCE = 5.0f;
+	constexpr float MEDIUM_VOLUME_DISTANCE = 10.0f;
+	constexpr float LOW_VOLUME_DISTANCE = 15.0f;
+
+	std::shared_ptr<const AnimationBundle> getCachedAnimationBundle(const std::string& path)
+	{
+		const auto cached_animation = g_animation_cache.find(path);
+		if (cached_animation != g_animation_cache.end())
+			return cached_animation->second;
+
+		int count = 0;
+		ModelAnimation* anims = LoadModelAnimations(path.c_str(), &count);
+
+		auto bundle = std::make_shared<AnimationBundle>();
+		if (count > 0 && anims != nullptr)
+		{
+			bundle->clips.reserve(count);
+			for (int i = 0; i < count; i++)
+				bundle->clips.push_back(anims[i]);
+		}
+
+		if (anims != nullptr)
+			MemFree(anims);
+
+		g_animation_cache[path] = bundle;
+		return bundle;
+	}
+
+	const ModelAnimation* resolveAnimation(const AnimationClipRef& animation)
+	{
+		if (!animation.bundle)
+			return nullptr;
+
+		if (animation.clip_index < 0 || static_cast<size_t>(animation.clip_index) >= animation.bundle->clips.size())
+			return nullptr;
+
+		return &animation.bundle->clips[animation.clip_index];
+	}
+
+}
+
+	AnimationBundle::~AnimationBundle()
+	{
+		for (const auto& anim : clips)
+			UnloadModelAnimation(anim);
+	}
+
+bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render hitboxow jest drogi.
+	
+	Entity::Entity() 
+		: _pos{0.0f, 0.0f}, _velocity{0.0f, 0.0f}, _scale(1.0f), 
+		  _hp(1), _max_hp(1), _type(EntityType::None), _faction(Faction::None) {}
 
 	Entity::Entity(const std::string& name, const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
 		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
-		  _current_anim_index(0), _anim_frame_counter(0.0f), _rotation(0.0f), _model_loaded(false), _use_3d_rendering(false),
+		  _current_anim_index(0), _anim_frame_counter(0.0f), _rotation(0.0f), _model_loaded(false),
 		  _velocity{0.0f, 0.0f}, _scale(1.0f), _faction(Faction::None), _pos{start_x, start_y},
 		  _anim_looping(true), _anim_locked(false), _hovered(false) {}
 
 	Entity::~Entity()
 	{
-		if (_model_loaded)
-		{
-			for (const auto& anim : _animations)
-				UnloadModelAnimation(anim);
+		if (!_movement_sound_id.empty())
+			stopSoundEffect(_movement_sound_id);
 
-			UnloadModel(_model);
-			UnloadRenderTexture(_target);
+		unloadModelData();
+	}
+
+	void Entity::unloadModelData()
+	{
+		_animations.clear();
+		_animation_map.clear();
+		_animation_path_map.clear();
+
+		if (_model_loaded && _owns_model) {
+			if (_cloned_model)
+				Core::ResourceManager::unloadClonedModel(_model);
+			else
+				UnloadModel(_model);
 		}
+
+		_model = {};
+		_model_loaded = false;
+		_owns_model = false;
+		_cloned_model = false;
+		_local_model_bounding_box = {};
+		_local_model_bounding_box_valid = false;
+		_current_anim_index = 0;
+		_anim_frame_counter = 0.0f;
+		_last_applied_anim_index = -1;
+		_last_applied_anim_frame = -1;
+		_anim_looping = true;
+		_anim_locked = false;
+		_anim_ping_pong = false;
+		_anim_reverse_phase = false;
+		_anim_direction = 1.0f;
+	}
+
+	void Entity::setSharedResourceManager(Core::ResourceManager* manager) {
+		g_shared_resource_manager = manager;
+	}
+
+	Core::ResourceManager* Entity::getSharedResourceManager() {
+		return g_shared_resource_manager;
+	}
+
+	void Entity::setAudioListener(const std::shared_ptr<Entity>& listener) {
+		g_audio_listener = listener;
+	}
+
+	void Entity::hideMeshIndex(const int mesh_index) {
+		if (mesh_index < 0)
+			return;
+
+		if (std::find(_hidden_mesh_indices.begin(), _hidden_mesh_indices.end(), mesh_index) == _hidden_mesh_indices.end())
+			_hidden_mesh_indices.push_back(mesh_index);
 	}
 
 	void Entity::loadModel(const std::string& path, const bool rotate_model)
 	{
+		unloadModelData();
+
+		// Klonowanie modelu z cache'u ResourceManagera: kopiujemy bufory mesh
+		// w pamieci RAM i uploadujemy do nowych VBO na GPU. Jest to ~100x
+		// szybsze niz LoadModel z dysku, a kazda encja dostaje wlasne bufory,
+		// wiec UpdateModelAnimation nie powoduje migotania.
+		if (g_shared_resource_manager) {
+			Model cloned = g_shared_resource_manager->cloneModel(path);
+			if (cloned.meshCount > 0) {
+				if (rotate_model)
+					cloned.transform = MatrixRotateX(-PI / 2.0f);
+
+				_model = cloned;
+				ensureMeshAnimationBuffers(_model);
+				_model_loaded = true;
+				_owns_model = true;
+				_cloned_model = true;
+				_local_model_bounding_box = GetModelBoundingBox(_model);
+				_local_model_bounding_box_valid = true;
+				_last_applied_anim_index = -1;
+				_last_applied_anim_frame = -1;
+				addAnimation("default", path);
+				return;
+			}
+		}
+
+		// Fallback: ladowanie z dysku jesli cache jest pusty.
+		replaceModel(path, rotate_model);
+		if (!_model_loaded)
+			return;
+
+		addAnimation("default", path);
+	}
+
+	void Entity::replaceModel(const std::string& path, const bool rotate_model)
+	{
+		if (_model_loaded && _owns_model) {
+			if (_cloned_model)
+				Core::ResourceManager::unloadClonedModel(_model);
+			else
+				UnloadModel(_model);
+		}
+		_cloned_model = false;
+
 		_model = LoadModel(path.c_str());
 		if (_model.meshCount == 0)
 		{
-			Core::Logger::errorLog("Failed to load model: " + path);
+			_model = {};
+			_model_loaded = false;
+			_owns_model = false;
+			_local_model_bounding_box = {};
+			_local_model_bounding_box_valid = false;
+			Core::Logger::errorLog("Nie udało się załadować modelu: " + path);
 			return;
 		}
 
-		// correction for Z-up models
+		// Korekta dla modeli zapisanych w układzie Z-up.
 		if (rotate_model)
 			_model.transform = MatrixRotateX(-PI / 2.0f);
 
+		ensureMeshAnimationBuffers(_model);
+
 		_model_loaded = true;
-		_use_3d_rendering = true;
+		_owns_model = true;
+		_local_model_bounding_box = GetModelBoundingBox(_model);
+		_local_model_bounding_box_valid = true;
 
-		// initialize 3D Rendering
-		_target = LoadRenderTexture(Core::MODEL_RENDER_SIZE, Core::MODEL_RENDER_SIZE);
-		_camera.position = Core::ISOMETRIC_CAMERA_POS;
-		_camera.target = Vector3{ 0.0f, 0.0f, 0.0f };
-		_camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
-		_camera.fovy = 45.0f;
-		_camera.projection = CAMERA_PERSPECTIVE;
+		_last_applied_anim_index = -1;
+		_last_applied_anim_frame = -1;
+	}
 
-		// load animations from the initial file
-		addAnimation("default", path);
+	void Entity::useSharedModel(const Model& model)
+	{
+		unloadModelData();
+
+		if (model.meshCount == 0)
+			return;
+
+		_model = model;
+		_model_loaded = true;
+		_owns_model = false;
+		_local_model_bounding_box = GetModelBoundingBox(_model);
+		_local_model_bounding_box_valid = true;
+	}
+
+	bool Entity::fitLoadedModelToHeight(const float target_height, const bool center_xz, const bool align_to_ground)
+	{
+		if (!_model_loaded || target_height <= 0.0f)
+			return false;
+
+		_local_model_bounding_box = GetModelBoundingBox(_model);
+		_local_model_bounding_box_valid = true;
+		const BoundingBox bounds = _local_model_bounding_box;
+		const float model_height = bounds.max.y - bounds.min.y;
+		if (model_height <= 1e-8f)
+			return false;
+
+		setScale(target_height / model_height);
+
+		const float offset_x = center_xz ? -0.5f * (bounds.min.x + bounds.max.x) : 0.0f;
+		const float offset_y = align_to_ground ? -bounds.min.y : 0.0f;
+		const float offset_z = center_xz ? -0.5f * (bounds.min.z + bounds.max.z) : 0.0f;
+		_model.transform = MatrixMultiply(MatrixTranslate(offset_x, offset_y, offset_z), _model.transform);
+		return true;
 	}
 
 	void Entity::addAnimation(const std::string& name, const std::string& path)
 	{
+		addAnimation(name, path, 0);
+	}
+
+	void Entity::addAnimation(const std::string& name, const std::string& path, const int clip_index)
+	{
 		if (!_model_loaded)
 			return;
 
-		int count = 0;
-		ModelAnimation* anims = LoadModelAnimations(path.c_str(), &count);
-
-		if (count > 0)
+		if (const auto cached_path = _animation_path_map.find(path); cached_path != _animation_path_map.end())
 		{
-			const int start_index = static_cast<int>(_animations.size());
-
-			for (int i = 0; i < count; i++)
-				_animations.push_back(anims[i]);
-
-			_animation_map[name] = start_index;
-
-			MemFree(anims);
+			const int animation_index = cached_path->second + clip_index;
+			if (clip_index >= 0 && static_cast<size_t>(animation_index) < _animations.size())
+				_animation_map[name] = animation_index;
+			return;
 		}
+
+		const auto bundle = getCachedAnimationBundle(path);
+		if (!bundle || bundle->clips.empty() || clip_index < 0 || static_cast<size_t>(clip_index) >= bundle->clips.size())
+			return;
+
+		const int start_index = static_cast<int>(_animations.size());
+
+		for (int i = 0; i < static_cast<int>(bundle->clips.size()); i++)
+			_animations.push_back({bundle, i});
+
+		_animation_map[name] = start_index + clip_index;
+		_animation_path_map[path] = start_index;
+	}
+
+	void Entity::loadAnimationBundle(const std::string& path) {
+		if (!_model_loaded)
+			return;
+
+		const auto bundle = getCachedAnimationBundle(path);
+		if (!bundle || bundle->clips.empty())
+			return;
+
+		if (const auto cached_path = _animation_path_map.find(path); cached_path != _animation_path_map.end()) {
+			const int start_index = cached_path->second;
+			for (int i = 0; i < static_cast<int>(bundle->clips.size()); i++) {
+				std::string anim_name = bundle->clips[i].name;
+				if (anim_name.empty())
+					anim_name = "anim_" + std::to_string(start_index + i);
+
+				_animation_map[anim_name] = start_index + i;
+			}
+			return;
+		}
+
+		const int start_index = static_cast<int>(_animations.size());
+
+		for (int i = 0; i < static_cast<int>(bundle->clips.size()); i++) {
+			_animations.push_back({bundle, i});
+
+			std::string anim_name = bundle->clips[i].name;
+
+			if (anim_name.empty()) {
+				anim_name = "anim_" + std::to_string(start_index + i);
+			}
+
+			_animation_map[anim_name] = start_index + i;
+		}
+
+		_animation_path_map[path] = start_index;
+	}
+
+	void Entity::preloadAnimationData(const std::string& path)
+	{
+		if (!path.empty())
+			getCachedAnimationBundle(path);
 	}
 
 	void Entity::playAnimation(const std::string& name, const bool loop, const bool lock_movement, const int start_frame, const bool force)
 	{
-		if (_animation_map.find(name) != _animation_map.end())
+		const auto animation_it = _animation_map.find(name);
+		if (animation_it != _animation_map.end())
 		{
-			const int index = _animation_map[name];
+			const int index = animation_it->second;
 			if (force || index != _current_anim_index)
 			{
 				_current_anim_index = index;
 				_anim_frame_counter = static_cast<float>(start_frame);
 				_anim_looping = loop;
 				_anim_locked = lock_movement;
+				_anim_ping_pong = false;
+				_anim_reverse_phase = false;
+				_freeze_animation_on_completion = false;
+				_animation_frozen_at_last_frame = false;
+				_anim_direction = 1.0f;
+				_last_applied_anim_index = -1;
+				_last_applied_anim_frame = -1;
+				applyCurrentAnimationFrame();
 			}
 		}
+	}
+
+	void Entity::playAnimationFreezeOnLastFrame(
+		const std::string& name,
+		const bool lock_movement,
+		const int start_frame,
+		const bool force)
+	{
+		playAnimation(name, false, lock_movement, start_frame, force);
+		if (_animation_map.find(name) != _animation_map.end())
+			_freeze_animation_on_completion = true;
+	}
+
+	void Entity::playAnimationPingPong(
+		const std::string& name,
+		const bool lock_movement,
+		const int start_frame,
+		const bool force)
+	{
+		playAnimation(name, false, lock_movement, start_frame, force);
+
+		if (_animation_map.find(name) == _animation_map.end())
+			return;
+
+		_anim_ping_pong = true;
+		_anim_reverse_phase = false;
+		_anim_direction = 1.0f;
 	}
 
 	int Entity::getAnimationFrameCount(const std::string& name) const
 	{
-		if (_animation_map.find(name) != _animation_map.end()) {
-			const int index = _animation_map.at(name);
-			if (index >= 0 && index < _animations.size()) {
-				return _animations[index].frameCount;
-			}
+		const auto animation_it = _animation_map.find(name);
+		if (animation_it == _animation_map.end())
+			return 0;
+
+		const int index = animation_it->second;
+		if (index < 0 || static_cast<size_t>(index) >= _animations.size())
+			return 0;
+
+		const ModelAnimation* animation = resolveAnimation(_animations[index]);
+		return animation ? animation->frameCount : 0;
+	}
+
+	void Entity::applyCurrentAnimationFrame()
+	{
+		if (!_model_loaded || _animations.empty())
+			return;
+
+		if (_current_anim_index < 0 || static_cast<size_t>(_current_anim_index) >= _animations.size())
+			return;
+
+		const ModelAnimation* current_animation = resolveAnimation(_animations[_current_anim_index]);
+		if (!current_animation || current_animation->frameCount <= 0)
+			return;
+
+		// Walidacja: kazdy mesh musi miec boneWeights i boneIds, inaczej
+		// UpdateModelAnimation uderzy w nullptr (np. female_warrior.glb).
+		for (int i = 0; i < _model.meshCount; i++) {
+			if (_model.meshes[i].boneWeights == nullptr || _model.meshes[i].boneIds == nullptr)
+				return;
 		}
-		return 0;
+
+		const int animation_frame = std::clamp(
+			static_cast<int>(_anim_frame_counter),
+			0,
+			current_animation->frameCount - 1
+		);
+		if (_last_applied_anim_index == _current_anim_index && _last_applied_anim_frame == animation_frame)
+			return;
+
+		UpdateModelAnimation(_model, *current_animation, animation_frame);
+		if (_equipment)
+			_equipment->updateAnimations(*current_animation, animation_frame);
+
+		_last_applied_anim_index = _current_anim_index;
+		_last_applied_anim_frame = animation_frame;
 	}
 
 	void Entity::update(const float delta_time)
 	{
+		if (_dormant) return;
+
+		updateStatusEffects(delta_time);
+
+		if (_is_dying)
+		{
+			updateAnimation(delta_time);
+			if (!isAnimationLocked())
+				_hp = 0;
+			return; // Podczas śmierci nie aktualizujemy ruchu ani logiki encji.
+		}
+
 		_pos.x += _velocity.x * delta_time;
 		_pos.y += _velocity.y * delta_time;
 		
 		updateAnimation(delta_time);
 	}
 
-	void Entity::updateAnimation(const float dt)
+	void Entity::updateStatusEffects(const float dt)
 	{
-		// todo update when closer to player
-		if (_model_loaded && !_animations.empty())
-		{
-			// Advance frame counter based on time, FPS, and speed multiplier
-			_anim_frame_counter += dt * _anim_fps * _anim_speed_multiplier;
-
-			// Handle looping or stopping
-			if (_anim_frame_counter >= _animations[_current_anim_index].frameCount)
-			{
-				if (_anim_looping) {
-					// Wrap around
-					while (_anim_frame_counter >= _animations[_current_anim_index].frameCount) {
-						_anim_frame_counter -= _animations[_current_anim_index].frameCount;
-					}
-				}
-				else {
-					// Stop at end or reset to default
-					_anim_frame_counter = 0;
-					playAnimation("default", true, false);
-				}
+		if (_root_timer > 0.0f) {
+			_root_timer = std::max(0.0f, _root_timer - dt);
+			if (_root_timer > 0.0f) {
+				_velocity = {0.0f, 0.0f};
+				_is_moving = false;
 			}
+		}
 
-			// Update the model using the integer part of the frame counter
-			UpdateModelAnimation(_model, _animations[_current_anim_index], static_cast<int>(_anim_frame_counter));
+		if (_poison_timer <= 0.0f || _poison_damage_per_tick <= 0 || isDead() || isDying())
+			return;
+
+		const float poison_timer_before_update = _poison_timer;
+		_poison_timer = std::max(0.0f, _poison_timer - dt);
+		_poison_tick_timer -= dt;
+		const int max_ticks_this_update = static_cast<int>(std::ceil(
+			poison_timer_before_update / std::max(0.05f, _poison_tick_interval)));
+		int ticks_applied = 0;
+		while (_poison_tick_timer <= 0.0f &&
+			   ticks_applied < max_ticks_this_update &&
+			   poison_timer_before_update > 0.0f &&
+			   !isDead() &&
+			   !isDying()) {
+			takeDamage(_poison_damage_per_tick);
+			_poison_tick_timer += std::max(0.05f, _poison_tick_interval);
+			++ticks_applied;
 		}
 	}
 
-	void Entity::render(const float offset_x, const float offset_y) 
+	void Entity::applyRoot(const float duration)
 	{
-		Vector2 pos = getScreenPos(getX(), getY(), offset_x, offset_y);
+		_root_timer = std::max(_root_timer, duration);
+		_velocity = {0.0f, 0.0f};
+		_is_moving = false;
+	}
 
-		if (_use_3d_rendering && _model_loaded)
+	void Entity::applyPoison(const float duration, const int damage_per_tick, const float tick_interval)
+	{
+		if (duration <= 0.0f || damage_per_tick <= 0)
+			return;
+
+		_poison_timer = std::max(_poison_timer, duration);
+		_poison_tick_interval = std::max(0.05f, tick_interval);
+		_poison_tick_timer = std::min(_poison_tick_timer > 0.0f ? _poison_tick_timer : _poison_tick_interval, _poison_tick_interval);
+		_poison_damage_per_tick = std::max(_poison_damage_per_tick, damage_per_tick);
+	}
+
+	void Entity::clearStatusEffects()
+	{
+		_root_timer = 0.0f;
+		_poison_timer = 0.0f;
+		_poison_tick_timer = 0.0f;
+		_poison_tick_interval = 1.0f;
+		_poison_damage_per_tick = 0;
+	}
+
+	void Entity::updateAnimation(const float dt)
+	{
+		if (_model_loaded && !_animations.empty())
 		{
-			BeginTextureMode(_target);
-			ClearBackground(BLANK);
-			BeginMode3D(_camera);
+			if (_current_anim_index < 0 || static_cast<size_t>(_current_anim_index) >= _animations.size())
+				return;
 
-			DrawModelEx(_model, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, _rotation, { _scale, _scale, _scale }, WHITE);
-			
-			EndMode3D();
-			EndTextureMode();
-			
-			const float texture_width = static_cast<float>(_target.texture.width);
-			const float texture_height = static_cast<float>(_target.texture.height);
+			const ModelAnimation* current_animation = resolveAnimation(_animations[_current_anim_index]);
+			if (!current_animation || current_animation->frameCount <= 0)
+				return;
 
-			const Rectangle source = { 0.0f, 0.0f, texture_width, -texture_height };
-			const Rectangle dest = { pos.x, pos.y, texture_width, texture_height };
-			const Vector2 origin = { dest.width / 2.0f, dest.height / 2.0f };
+			if (_animation_frozen_at_last_frame)
+				return;
 
-			DrawTexturePro(_target.texture, source, dest, origin, 0.0f, WHITE);
-		}
-		else if (_texture)
-		{
-			const float source_texture_width = static_cast<float>(_texture->width);
-			const float source_texture_height = static_cast<float>(_texture->height);
-			constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
-			constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
+			_anim_frame_counter += dt * _anim_fps * _anim_speed_multiplier * _anim_direction / ANIMATION_DURATION_SCALE;
 
-			const Rectangle source = {0.0f, 0.0f, source_texture_width, source_texture_height };
-			const Rectangle dest = {pos.x, pos.y, dest_texture_width, dest_texture_height };
-			constexpr Vector2 origin = {0.0f, 0.0f};
-			DrawTexturePro(*_texture, source, dest, origin, 0.0f, WHITE);
-		}
-
-		if (_hovered)
-		{
-			if (_use_3d_rendering && _model_loaded)
+			if (_anim_frame_counter >= current_animation->frameCount)
 			{
-			    const float texture_width = static_cast<float>(_target.texture.width);
-			    const float texture_height = static_cast<float>(_target.texture.height);
-			    const Rectangle source = { 0.0f, 0.0f, texture_width, -texture_height };
-			    const Rectangle dest = { pos.x, pos.y, texture_width, texture_height };
-			    const Vector2 origin = { dest.width / 2.0f, dest.height / 2.0f };
-			    
-			    DrawTexturePro(_target.texture, source, dest, origin, 0.0f, Fade(BLACK, 0.2f));
-			}
-			else if (_texture)
-			{
-			    const float source_texture_width = static_cast<float>(_texture->width);
-			    const float source_texture_height = static_cast<float>(_texture->height);
-			    constexpr float dest_texture_width = static_cast<float>(Core::ENTITY_TEXTURE_WIDTH);
-			    constexpr float dest_texture_height = static_cast<float>(Core::ENTITY_TEXTURE_HEIGHT);
+				if (_anim_looping) {
+					while (_anim_frame_counter >= current_animation->frameCount)
+						_anim_frame_counter -= current_animation->frameCount;
+				}
+				else if (_anim_ping_pong && !_anim_reverse_phase) {
+					_anim_reverse_phase = true;
+					_anim_direction = -1.0f;
+					_anim_frame_counter = static_cast<float>(current_animation->frameCount - 1);
+				}
+				else if (_freeze_animation_on_completion) {
+					_freeze_animation_on_completion = false;
+					_anim_frame_counter = static_cast<float>(current_animation->frameCount - 1);
+					_anim_locked = false;
+					_animation_frozen_at_last_frame = true;
+				}
+				else {
+					_anim_frame_counter = 0;
+					if (getAnimationFrameCount("Idle_Loop") > 0)
+						playAnimation("Idle_Loop", true, false, 0, true);
+					else if (getAnimationFrameCount("Idle") > 0)
+						playAnimation("Idle", true, false, 0, true);
+					else if (getAnimationFrameCount("idle") > 0)
+						playAnimation("idle", true, false, 0, true);
+					else
+						playAnimation("default", true, false, 0, true);
 
-			    const Rectangle source = {0.0f, 0.0f, source_texture_width, source_texture_height };
-			    const Rectangle dest = {pos.x, pos.y, dest_texture_width, dest_texture_height };
-			    constexpr Vector2 origin = {0.0f, 0.0f};
-				DrawTexturePro(*_texture, source, dest, origin, 0.0f, Fade(BLACK, 0.2f));
+					current_animation = resolveAnimation(_animations[_current_anim_index]);
+					if (!current_animation || current_animation->frameCount <= 0)
+						return;
+				}
+			}
+			else if (_anim_frame_counter <= 0.0f && _anim_direction < 0.0f)
+			{
+				_anim_frame_counter = 0.0f;
+				_anim_ping_pong = false;
+				_anim_reverse_phase = false;
+				_anim_direction = 1.0f;
+
+				if (getAnimationFrameCount("Idle_Loop") > 0)
+					playAnimation("Idle_Loop", true, false, 0, true);
+				else if (getAnimationFrameCount("Idle") > 0)
+					playAnimation("Idle", true, false, 0, true);
+				else if (getAnimationFrameCount("idle") > 0)
+					playAnimation("idle", true, false, 0, true);
+				else
+					playAnimation("default", true, false, 0, true);
+
+				current_animation = resolveAnimation(_animations[_current_anim_index]);
+				if (!current_animation || current_animation->frameCount <= 0)
+					return;
+			}
+
+			applyCurrentAnimationFrame();
+		}
+	}
+
+	void Entity::render(const Camera3D& camera) 
+	{
+		if (_dormant) return;
+
+		if (_model_loaded)
+		{
+			const Vector3 pos3d = getWorldPos3D();
+			const float visual_rotation = _rotation + _model_facing_offset;
+			auto draw_model = [this, pos3d, visual_rotation](const Color tint) {
+				if (_hidden_mesh_indices.empty()) {
+					DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, tint);
+					return;
+				}
+
+				Model model = _model;
+				const Matrix mat_scale = MatrixScale(_scale, _scale, _scale);
+				const Matrix mat_rotation = MatrixRotate({0.0f, 1.0f, 0.0f}, visual_rotation * DEG2RAD);
+				const Matrix mat_translation = MatrixTranslate(pos3d.x, pos3d.y, pos3d.z);
+				model.transform = MatrixMultiply(model.transform, MatrixMultiply(MatrixMultiply(mat_scale, mat_rotation), mat_translation));
+
+				for (int mesh_index = 0; mesh_index < model.meshCount; ++mesh_index) {
+					if (std::find(_hidden_mesh_indices.begin(), _hidden_mesh_indices.end(), mesh_index) != _hidden_mesh_indices.end())
+						continue;
+
+					const int material_index = model.meshMaterial ? model.meshMaterial[mesh_index] : 0;
+					Color original = model.materials[material_index].maps[MATERIAL_MAP_DIFFUSE].color;
+					Color color_tint = {
+						static_cast<unsigned char>((static_cast<int>(original.r) * static_cast<int>(tint.r)) / 255),
+						static_cast<unsigned char>((static_cast<int>(original.g) * static_cast<int>(tint.g)) / 255),
+						static_cast<unsigned char>((static_cast<int>(original.b) * static_cast<int>(tint.b)) / 255),
+						static_cast<unsigned char>((static_cast<int>(original.a) * static_cast<int>(tint.a)) / 255)
+					};
+					model.materials[material_index].maps[MATERIAL_MAP_DIFFUSE].color = color_tint;
+					DrawMesh(model.meshes[mesh_index], model.materials[material_index], model.transform);
+					model.materials[material_index].maps[MATERIAL_MAP_DIFFUSE].color = original;
+				}
+			};
+
+			draw_model(WHITE);
+			if (_equipment) {
+				_equipment->draw(pos3d, visual_rotation, _rotation, _scale);
+			}
+
+			if (_hovered && _type != EntityType::Player)
+			{
+				// Drugi przebieg renderu daje subtelne przyciemnienie przy hoverze.
+				draw_model(Fade(BLACK, 0.2f));
 			}
 		}
 
-		if (DebugColliders && _collider) {
-			_collider->render(offset_x, offset_y);
+		if (DebugColliders)
+		{
+			if (_collider)
+				_collider->render(camera);
+
+			// Zielone pudełko ograniczające pokazuje obszar kliknięcia i szybki test wstępny.
+			if (_model_loaded)
+			{
+				const BoundingBox bbox = getBoundingBox();
+				DrawBoundingBox(bbox, GREEN);
+			}
 		}
 	}
 
 	void Entity::takeDamage(const int dmg) 
 	{
-		Core::Logger::debugLog("Entity " + getName() + " taking damage: " + std::to_string(dmg) + ". Current HP: " + std::to_string(_hp));
-		_hp -= dmg;
-		if (_hp < 0) 
+		if (_is_dying) return;
+
+		Core::Logger::debugLog("Entity " + getName() + " otrzymuje obrażenia: " + std::to_string(dmg) + ". Obecne HP: " + std::to_string(_hp));
+		if (_hp - dmg <= 0) 
 		{
-			_hp = 0;
-			Core::Logger::debugLog("Entity died!");
+			const bool killed_player_side = _type == EntityType::Player || _type == EntityType::Ally;
+			const auto killer = _last_damage_source.lock();
+			_hp = 1; // Utrzymujemy encję przy życiu do końca animacji śmierci.
+			_is_dying = true;
+			playAnimation(_death_anim_name, false, true, 0, true);
+			setFaction(Faction::None);
+			onDeathStarted();
+			if (killed_player_side && killer && killer->healsToFullOnKill() && !killer->isDead() && !killer->isDying())
+				killer->setHP(killer->getMaxHP());
+			Core::Logger::debugLog("Entity " + getName() + " rozpoczęła sekwencję śmierci.");
+		}
+		else
+		{
+			_hp -= dmg;
 		}
 	}
 
 	void Entity::die()
 	{
 		_hp = 0;
-		Core::Logger::debugLog("Entity " + getName() + " killed!");
+		Core::Logger::debugLog("Entity " + getName() + " została zabita.");
 	}
 
-	bool Entity::isMouseOver(const float mouse_x, const float mouse_y, const float cam_x, const float cam_y) const 
+	void Entity::setMaxHp(const int max_hp)
 	{
-		if (_collider) {
-			return _collider->checkPoint(mouse_x, mouse_y, cam_x, cam_y);
+		_max_hp = max_hp;
+		_hp = max_hp;
+	}
+
+	void Entity::setHP(const int hp)
+	{
+		_hp = std::clamp(hp, 0, _max_hp);
+		_is_dying = false;
+		if (_hp > 0 && _type != EntityType::Projectile)
+			setFaction(_faction);
+	}
+
+	nlohmann::json Entity::serializeState() const
+	{
+		return {
+			{"name", _name},
+			{"position", {{"x", _pos.x}, {"y", _pos.y}}},
+			{"altitude", _altitude},
+			{"rotation", _rotation},
+			{"hp", _hp},
+			{"max_hp", _max_hp},
+			{"dead", isDead()},
+			{"dormant", _dormant}
+		};
+	}
+
+	void Entity::applyState(const nlohmann::json& state, Item::ItemDatabase* /*item_database*/)
+	{
+		if (!state.is_object())
+			return;
+
+		if (state.contains("position") && state["position"].is_object()) {
+			_pos.x = state["position"].value("x", _pos.x);
+			_pos.y = state["position"].value("y", _pos.y);
 		}
 
-		Vector2 screen_pos = getScreenPos(getX(), getY(), cam_x, cam_y);
+		_altitude = state.value("altitude", _altitude);
+		_rotation = state.value("rotation", _rotation);
 
-		return (mouse_x >= screen_pos.x &&  mouse_x <= screen_pos.x + Core::ENTITY_TEXTURE_WIDTH &&
-		      mouse_y >= screen_pos.y && mouse_y <= screen_pos.y + Core::ENTITY_TEXTURE_HEIGHT);
+		if (state.contains("max_hp") && state["max_hp"].is_number_integer())
+			setMaxHp(state["max_hp"].get<int>());
+
+		const int loaded_hp = state.value("hp", _hp);
+		if (state.value("dead", false) || loaded_hp <= 0) {
+			die();
+			_dormant = true;
+		} else {
+			setHP(loaded_hp);
+			_dormant = state.value("dormant", _dormant);
+		}
 	}
 
-	Vector2 Entity::getScreenPos(const float world_x, const float world_y, const float cam_x, const float cam_y) const
+	bool Entity::isMouseOver(const float screen_x, const float screen_y, const Camera3D& camera) const 
 	{
-		Vector2 screen_pos = getIsoPos(world_x, world_y, cam_x, cam_y);
-		screen_pos.x -= Core::ENTITY_TEXTURE_WIDTH / 2.0f;
-		screen_pos.y -= Core::ENTITY_TEXTURE_HEIGHT; // pivot at bottom (feet)
+		if (_model_loaded)
+		{
+			const Ray mouse_ray = GetScreenToWorldRay(Vector2{ screen_x, screen_y }, camera);
+			if (!GetRayCollisionBox(mouse_ray, getBoundingBox()).hit)
+				return false;
 
-		return screen_pos;
+			return checkRayHitsMesh(mouse_ray);
+		}
+
+		// Awaryjne sprawdzanie encji bez modelu 3D.
+		const Vector2 screen_pos = getScreenPosition(camera);
+		constexpr float click_radius = 30.0f;
+		const float dx = screen_x - screen_pos.x;
+		const float dy = screen_y - screen_pos.y;
+		return (dx * dx + dy * dy) < (click_radius * click_radius);
 	}
 
-	Vector2 Entity::getIsoPos(const float world_x, const float world_y, const float cam_x, const float cam_y) const
+	Matrix Entity::getWorldTransformMatrix() const
 	{
-		float screen_x = (world_x - world_y) * (Core::TILE_WIDTH / 2.0f) + cam_x;
-		float screen_y = (world_x + world_y) * (Core::TILE_HEIGHT / 2.0f) + cam_y;
-		return { screen_x, screen_y };
+		const Vector3 pos3d = getWorldPos3D();
+		const Matrix mat_translate = MatrixTranslate(pos3d.x, pos3d.y, pos3d.z);
+		const float visual_rotation = (_rotation + _model_facing_offset) * DEG2RAD;
+		const Matrix mat_rotate = MatrixRotate({ 0.0f, 1.0f, 0.0f }, visual_rotation);
+		const Matrix mat_scale = MatrixScale(_scale, _scale, _scale);
+		return MatrixMultiply(
+			MatrixMultiply(MatrixMultiply(mat_scale, _model.transform), mat_rotate),
+			mat_translate);
+	}
+
+	bool Entity::checkRayHitsMesh(const Ray& ray) const
+	{
+		if (!_model_loaded) return false;
+		if (!GetRayCollisionBox(ray, getBoundingBox()).hit)
+			return false;
+
+		const Matrix world_transform = getWorldTransformMatrix();
+		for (int i = 0; i < _model.meshCount; i++)
+		{
+			const RayCollision collision = GetRayCollisionMesh(ray, _model.meshes[i], world_transform);
+			if (collision.hit)
+				return true;
+		}
+		return false;
+	}
+
+	RayCollision Entity::getRayMeshCollision(const Ray& ray) const
+	{
+		RayCollision closest = {};
+		closest.hit = false;
+		closest.distance = 1e30f;
+
+		if (!_model_loaded) return closest;
+		if (!GetRayCollisionBox(ray, getBoundingBox()).hit)
+			return closest;
+
+		const Matrix world_transform = getWorldTransformMatrix();
+		for (int i = 0; i < _model.meshCount; i++)
+		{
+			const RayCollision collision = GetRayCollisionMesh(ray, _model.meshes[i], world_transform);
+			if (collision.hit && collision.distance < closest.distance)
+				closest = collision;
+		}
+		return closest;
+	}
+
+	bool Entity::isVisibleInCamera(const Camera3D& camera, const float screen_margin) const
+	{
+		if (_dormant)
+			return false;
+
+		if (!_model_loaded)
+			return DebugColliders;
+
+		const int screen_width = GetScreenWidth();
+		const int screen_height = GetScreenHeight();
+		if (screen_width <= 0 || screen_height <= 0)
+			return true;
+
+		const auto isProjectedOnScreen = [&](const Vector3 point) {
+			const Vector2 projected = GetWorldToScreen(point, camera);
+			return projected.x >= -screen_margin &&
+				projected.x <= static_cast<float>(screen_width) + screen_margin &&
+				projected.y >= -screen_margin &&
+				projected.y <= static_cast<float>(screen_height) + screen_margin;
+		};
+
+		if (isProjectedOnScreen(getWorldPos3D()))
+			return true;
+
+		const BoundingBox box = getBoundingBox();
+		const Vector3 corners[8] = {
+			{box.min.x, box.min.y, box.min.z},
+			{box.max.x, box.min.y, box.min.z},
+			{box.min.x, box.max.y, box.min.z},
+			{box.max.x, box.max.y, box.min.z},
+			{box.min.x, box.min.y, box.max.z},
+			{box.max.x, box.min.y, box.max.z},
+			{box.min.x, box.max.y, box.max.z},
+			{box.max.x, box.max.y, box.max.z}
+		};
+
+		for (const Vector3& corner : corners) {
+			if (isProjectedOnScreen(corner)) {
+				return true;
+			}
+		}
+
+		const Vector3 center = {
+			(box.min.x + box.max.x) * 0.5f,
+			(box.min.y + box.max.y) * 0.5f,
+			(box.min.z + box.max.z) * 0.5f
+		};
+		return isProjectedOnScreen(center);
+	}
+
+	BoundingBox Entity::getBoundingBox() const
+	{
+		if (!_model_loaded)
+		{
+		// Małe domyślne pudełko pozwala klikać encje bez modelu.
+			const Vector3 pos = getWorldPos3D();
+			return BoundingBox{
+				Vector3{ pos.x - 0.5f, pos.y, pos.z - 0.5f },
+				Vector3{ pos.x + 0.5f, pos.y + 1.0f, pos.z + 0.5f }
+			};
+		}
+
+		// Pudelko ograniczajace z rayliba jest lokalne wzgledem modelu.
+		const BoundingBox local_bb = _local_model_bounding_box_valid ? _local_model_bounding_box : GetModelBoundingBox(_model);
+		const Matrix world_transform = getWorldTransformMatrix();
+		const Vector3 corners[] = {
+			{local_bb.min.x, local_bb.min.y, local_bb.min.z},
+			{local_bb.min.x, local_bb.min.y, local_bb.max.z},
+			{local_bb.min.x, local_bb.max.y, local_bb.min.z},
+			{local_bb.min.x, local_bb.max.y, local_bb.max.z},
+			{local_bb.max.x, local_bb.min.y, local_bb.min.z},
+			{local_bb.max.x, local_bb.min.y, local_bb.max.z},
+			{local_bb.max.x, local_bb.max.y, local_bb.min.z},
+			{local_bb.max.x, local_bb.max.y, local_bb.max.z},
+		};
+
+		BoundingBox world_box = {
+			Vector3{std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max()},
+			Vector3{std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest()}
+		};
+
+		for (const Vector3& corner : corners) {
+			const Vector3 transformed = Vector3Transform(corner, world_transform);
+			world_box.min = Vector3Min(world_box.min, transformed);
+			world_box.max = Vector3Max(world_box.max, transformed);
+		}
+
+		return world_box;
+	}
+
+	Vector2 Entity::getScreenPosition(const Camera3D& camera) const
+	{
+		const Vector3 world_pos = { _pos.x, 0.0f, _pos.y };
+		return GetWorldToScreen(world_pos, camera);
 	}
 
 	Vector2 Entity::getCenter() const {
-		if (_collider) {
-			return _collider->getPosition();
-		}
 		return _pos;
 	}
 
 	AbilityStats Entity::getAbilityStatsFromJson(const std::string& name)
 	{
-		std::string path = "../assets/data/abilities.json";
-		std::ifstream file(path);
-		
-		if (!file.is_open()) {
-			file.open(path);
-			if (!file.is_open()) {
-				Core::Logger::errorLog("Entity - Couldn't open file " + path);
-				return {};
-			}
-		}
-
-		nlohmann::json data;
-		try {
-			file >> data;
-		}
-		catch (const nlohmann::json::parse_error& e) {
-			(void)e;
-			Core::Logger::errorLog("Entity - Couldn't parse json file: " + path);
-			return {};
-		}
+		static const nlohmann::json data = loadAbilitiesData();
 
 		if (data.contains("abilities"))
 		{
 			for (const auto& ability : data["abilities"])
 			{
-				if (ability["name"] == name)
+				if (ability.value("name", "") == name)
 				{
 					AbilityStats stats;
-					if (ability.contains("stats")) 
+					if (const auto stats_it = ability.find("stats"); stats_it != ability.end() && stats_it->is_object())
 					{
-						const auto& json_stats = ability["stats"];
-						if (json_stats.contains("damage")) stats.damage = json_stats["damage"].get<int>();
-						if (json_stats.contains("cooldown")) stats.cooldown = json_stats["cooldown"].get<float>();
-						if (json_stats.contains("cast_range")) stats.cast_range = json_stats["cast_range"].get<float>();
-						if (json_stats.contains("projectile_speed")) stats.projectile_speed = json_stats["projectile_speed"].get<float>();
-						if (json_stats.contains("duration")) stats.duration = json_stats["duration"].get<float>();
-						if (json_stats.contains("hitbox_radius")) stats.hitbox_radius = json_stats["hitbox_radius"].get<float>();
+						const auto& json_stats = *stats_it;
+						assignStatIfPresent(json_stats, "damage", stats.damage);
+						assignStatIfPresent(json_stats, "cooldown", stats.cooldown);
+						assignStatIfPresent(json_stats, "cast_range", stats.cast_range);
+						assignStatIfPresent(json_stats, "projectile_speed", stats.projectile_speed);
+						assignStatIfPresent(json_stats, "duration", stats.duration);
+						assignStatIfPresent(json_stats, "hitbox_radius", stats.hitbox_radius);
 					}
 					return stats;
 				}
 			}
 		}
 		
-		Core::Logger::errorLog("Entity - Ability not found: " + name);
+		Core::Logger::errorLog("Entity - nie znaleziono umiejętności: " + name);
 		return {};
 	}
 
 	void Entity::addAbility(const std::shared_ptr<Ability>& ability) 
 	{
+		if (!ability) return;
+
 		ability->setCaster(this);
 		_abilities.push_back(ability);
 	}
 
+	void Entity::setAbility(const int index, const std::shared_ptr<Ability>& ability)
+	{
+		if (index < 0 || !ability)
+			return;
+
+		ability->setCaster(this);
+		const auto ability_index = static_cast<size_t>(index);
+		if (_abilities.size() <= ability_index)
+			_abilities.resize(ability_index + 1);
+
+		_abilities[ability_index] = ability;
+	}
+
 	std::shared_ptr<Ability> Entity::getAbility(const int index)
 	{
-		if (index >= 0 && index < _abilities.size())
-			return _abilities[index];
+		if (index < 0)
+			return nullptr;
+
+		const auto ability_index = static_cast<size_t>(index);
+		if (ability_index < _abilities.size())
+			return _abilities[ability_index];
 
 		return nullptr;
 	}
 
 	void Entity::updateAbilities(const float dt) const 
 	{
-		for (auto &s : _abilities)
-			s->update(dt);
+		for (const auto& ability : _abilities)
+			ability->update(dt);
 	}
 
 	void Entity::setCollider(std::unique_ptr<Collider> collider)
@@ -340,7 +1052,6 @@ namespace Nawia::Entity {
 
 	void Entity::rotateTowards(const float world_x, const float world_y)
 	{
-		// Standard Rotation (Feet Pivot) - Best for Movement
 		const float dx = world_x - getX();
 		const float dy = world_y - getY();
 
@@ -353,7 +1064,6 @@ namespace Nawia::Entity {
 
 	void Entity::rotateTowardsCenter(const float world_x, const float world_y)
 	{
-		// Combat Rotation (Center Pivot) - Best for Aiming/Interaction
 		Vector2 center = getCenter();
 		const float dx = world_x - center.x;
 		const float dy = world_y - center.y;
@@ -363,6 +1073,156 @@ namespace Nawia::Entity {
 			const float angle = std::atan2(dy, dx) * 180.0f / PI;
 			setRotation(-angle);
 		}
+	}
+
+	void Entity::moveTo(const float x, const float y)
+	{
+		if (isMovementRooted()) {
+			_velocity = {0.0f, 0.0f};
+			_is_moving = false;
+			return;
+		}
+
+		_target_x = x;
+		_target_y = y;
+
+		const float dx = _target_x - getX();
+		const float dy = _target_y - getY();
+		
+		_is_moving = dx * dx + dy * dy > 0.001f;
+	}
+
+	void Entity::updateMovement(const float dt)
+	{
+		if (isMovementRooted()) {
+			_velocity = {0.0f, 0.0f};
+			_is_moving = false;
+			return;
+		}
+
+		if (!_is_moving) return;
+
+		const float dx = _target_x - getX();
+		const float dy = _target_y - getY();
+		const float distance = std::sqrt(dx * dx + dy * dy);
+
+		if (distance <= 0.001f)
+		{
+			_pos.x = _target_x;
+			_pos.y = _target_y;
+			_is_moving = false;
+			return;
+		}
+
+		if (distance > 0.001f)
+			rotateTowards(_target_x, _target_y);
+
+		const float speed = _movement_speed * _speed_multiplier;
+		const float move_dist = speed * dt;
+
+		if (move_dist >= distance) 
+		{
+			_pos.x = _target_x;
+			_pos.y = _target_y;
+			_is_moving = false;
+		} 
+		else 
+		{
+			_pos.x += (dx / distance) * move_dist;
+			_pos.y += (dy / distance) * move_dist;
+		}
+	}
+
+	float Entity::getDistanceToTarget() const
+	{
+		const auto target = _target.lock();
+		if (!target) return std::numeric_limits<float>::max();
+		
+		const Vector2 my_pos = getCenter();
+		const Vector2 target_pos = target->getCenter();
+		
+		return Vector2Distance(my_pos, target_pos);
+	}
+
+	Vector2 Entity::getTargetPosition() const
+	{
+		const auto target = _target.lock();
+		if (!target) return _pos;
+		
+		return target->getCenter();
+	}
+
+	bool Entity::hasValidTarget() const
+	{
+		const auto target = _target.lock();
+		return target && !target->isDead();
+	}
+
+	void Entity::chaseTarget(const float dt, const float path_recalc_interval)
+	{
+		if (!hasValidTarget()) return;
+		
+		_path_recalc_timer -= dt;
+		
+		if (_path_recalc_timer <= 0.0f || !_is_moving)
+		{
+			const Vector2 target_pos = getTargetPosition();
+			moveTo(target_pos.x, target_pos.y);
+			_path_recalc_timer = path_recalc_interval;
+		}
+		
+		updateMovement(dt);
+	}
+
+	void Entity::playSoundEffect(const std::string& id, const float volume, const bool restart_if_playing, const float pitch) const
+	{
+		if (!_audio_manager)
+			return;
+
+		const float spatial_volume = getSpatialAudioVolumeMultiplier();
+		if (spatial_volume <= 0.0f)
+			return;
+
+		_audio_manager->playSound(id, Audio::SoundOptions{volume * spatial_volume, pitch, restart_if_playing});
+	}
+
+	void Entity::stopSoundEffect(const std::string& id) const
+	{
+		if (!_audio_manager)
+			return;
+
+		_audio_manager->stopSound(id);
+	}
+
+	void Entity::updateMovementSound(const std::string& path, const bool should_play, const float volume, const float pitch)
+	{
+		if (!_audio_manager)
+			return;
+
+		if (_movement_sound_id.empty())
+			_movement_sound_id = "movement:" + std::to_string(reinterpret_cast<std::uintptr_t>(this));
+
+		const float spatial_volume = getSpatialAudioVolumeMultiplier();
+		if (should_play && spatial_volume > 0.0f)
+			_audio_manager->playSoundFile(_movement_sound_id, path, Audio::SoundOptions{volume * spatial_volume, pitch, false});
+		else
+			_audio_manager->stopSound(_movement_sound_id);
+	}
+
+	float Entity::getSpatialAudioVolumeMultiplier() const
+	{
+		const auto listener = g_audio_listener.lock();
+		if (!listener || listener.get() == this)
+			return 1.0f;
+
+		const float distance = Vector2Distance(getCenter(), listener->getCenter());
+		if (distance <= FULL_VOLUME_DISTANCE)
+			return 1.0f;
+		if (distance <= MEDIUM_VOLUME_DISTANCE)
+			return 2.0f / 3.0f;
+		if (distance <= LOW_VOLUME_DISTANCE)
+			return 1.0f / 3.0f;
+		return 0.0f;
 	}
 
 } // namespace Nawia::Entity

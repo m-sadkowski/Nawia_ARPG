@@ -1,64 +1,206 @@
 [
-  {
-    "id": 1,
-    "name": "Drewniany miecz",
-    "description": "Stary, drewniany miecz.",
-    "slot": "Weapon",
-    "texture": "assets/textures/items/sword_wooden.png",
-    "stats": {
-      "damage": 5
+    {
+        "id": 1,
+        "name": "Drewniany miecz",
+        "description": "Stary, drewniany miecz.",
+        "slot": "Weapon",
+        "texture": "assets/textures/items/sword_wooden.png",
+        "model_path": "",
+        "stats": {
+            "damage": 5
+        }
+    },
+    {
+        "id": 2,
+        "name": "Skorzany pancerz",
+        "description": "Prosty skorzany pancerz.",
+        "slot": "Chest",
+        "texture": "assets/textures/items/leather_chestplate.png",
+        "model_path": "assets/models/items/leather_chestplate.glb",
+        "stats": {
+            "defense": 5
+        }
+    },
+    {
+        "id": 3,
+        "name": "Skorzane buty",
+        "description": "Lekkie skorzane buty.",
+        "slot": "Feet",
+        "texture": "assets/textures/items/leather_boots.png",
+        "model_path": "assets/models/items/leather_boots.glb",
+        "stats": {
+            "defense": 2,
+            "movement_speed": 0.5
+        }
+    },
+    {
+        "id": 4,
+        "name": "Zardzewialy klucz",
+        "description": "Stary klucz.",
+        "slot": "None",
+        "texture": "assets/textures/items/key.png",
+        "model_path": ""
+    },
+    {
+        "id": 5,
+        "name": "Klucz Kota",
+        "description": "Klucz nalezacy do Kota Olgi.",
+        "slot": "None",
+        "texture": "assets/textures/items/key.png",
+        "model_path": ""
+    },
+    {
+        "id": 6,
+        "name": "Ryba",
+        "description": "Swieza, smaczna ryba.",
+        "slot": "None",
+        "texture": "assets/textures/items/fish.png",
+        "model_path": ""
+    },
+    {
+        "id": 7,
+        "name": "Koci Miecz",
+        "description": "Miecz podarowany przez Kota. Pachnie ryba.",
+        "slot": "Weapon",
+        "texture": "assets/textures/items/cat_sword.png",
+        "model_path": "",
+        "stats": {
+            "damage": 50
+        }
+    },
+    {
+        "id": 8,
+        "name": "Skorzane nogawice",
+        "description": "Proste skorzane nogawice.",
+        "slot": "Legs",
+        "texture": "assets/textures/items/leather_leggins.png",
+        "model_path": "assets/models/items/leather_leggins.glb",
+        "stats": {
+            "defense": 3
+        }
+    },
+    {
+        "id": 9,
+        "name": "Skorzany kaptur",
+        "description": "Lekki kaptur ze skory.",
+        "slot": "Head",
+        "texture": "assets/textures/items/leather_hood.png",
+        "model_path": "assets/models/items/leather_hood.glb",
+        "stats": {
+            "defense": 2
+        }
+    },
+    {
+        "id": 10,
+        "name": "Wzmocnione skorzane buty",
+        "description": "Lepsza para skorzanych butow.",
+        "slot": "Feet",
+        "texture": "assets/textures/items/leather_boots_2.png",
+        "model_path": "assets/models/items/leather_boots_2.glb",
+        "stats": {
+            "defense": 4,
+            "movement_speed": 0.75
+        }
+    },
+    {
+        "id": 11,
+        "name": "Wzmocniony skorzany pancerz",
+        "description": "Solidniejszy skorzany pancerz.",
+        "slot": "Chest",
+        "texture": "assets/textures/items/leather_chestplate_2.png",
+        "model_path": "assets/models/items/leather_chestplate_2.glb",
+        "stats": {
+            "defense": 8
+        }
+    },
+    {
+        "id": 12,
+        "name": "Wzmocnione skorzane nogawice",
+        "description": "Solidniejsze skorzane nogawice.",
+        "slot": "Legs",
+        "texture": "assets/textures/items/leather_leggins_2.png",
+        "model_path": "assets/models/items/leather_leggins_2.glb",
+        "stats": {
+            "defense": 5
+        }
+    },
+    {
+        "id": 13,
+        "name": "Zagrzybialy miecz",
+        "description": "Pierwszy prawdziwy miecz z daru Gzibow.",
+        "slot": "Weapon",
+        "texture": "assets/textures/items/sword_wooden.png",
+        "model_path": "",
+        "stats": {
+            "damage": 15
+        }
+    },
+    {
+        "id": 14,
+        "name": "Jej chusta",
+        "description": "Chusta ukochanej. Pachnie dymem, blotem i czyms paskudnym.",
+        "slot": "None",
+        "texture": "assets/textures/items/jej_chusta.png",
+        "model_path": ""
+    },
+    {
+        "id": 15,
+        "name": "Chleb",
+        "description": "Kawalek ciemnego chleba. Trafia do wspolnego stosu jedzenia.",
+        "slot": "None",
+        "texture": "assets/textures/icons/food_icon.png",
+        "model_path": "",
+        "food_value": 1
+    },
+    {
+        "id": 16,
+        "name": "Jablko",
+        "description": "Jablko zabrane na droge. Trafia do wspolnego stosu jedzenia.",
+        "slot": "None",
+        "texture": "assets/textures/icons/food_icon.png",
+        "model_path": "",
+        "food_value": 1
+    },
+    {
+        "id": 17,
+        "name": "Kawalek sloniny",
+        "description": "Tlusty zapas na czarna godzine. Trafia do wspolnego stosu jedzenia.",
+        "slot": "None",
+        "texture": "assets/textures/icons/food_icon.png",
+        "model_path": "",
+        "food_value": 1
+    },
+    {
+        "id": 18,
+        "name": "Ksiega Baby Jagi",
+        "description": "Stara ksiega pachnaca dymem, zywica i spalonymi wlosami. Po przeczytaniu uczy zaklecia Fireball.",
+        "slot": "None",
+        "texture": "assets/textures/icons/fireball_icon.png",
+        "model_path": "",
+        "unlock_ability": "Fireball"
+    },
+    {
+        "id": 19,
+        "name": "Cichobiegi",
+        "description": "Prezentacyjne buty do przemieszczania sie z absurdalna predkoscia.",
+        "slot": "Feet",
+        "texture": "assets/textures/items/leather_boots_2.png",
+        "model_path": "assets/models/items/leather_boots_2.glb",
+        "stats": {
+            "defense": 1,
+            "movement_speed": 14.0
+        }
+    },
+    {
+        "id": 20,
+        "name": "Kamien z runa Mileny",
+        "description": "Gladki kamien z runa wyryta reka Mileny. Nosi sie go blisko serca.",
+        "slot": "Ring",
+        "texture": "assets/textures/items/kamien_z_runa_mileny.png",
+        "model_path": "",
+        "stats": {
+            "max_hp": 50
+        }
     }
-  },
-  {
-    "id": 2,
-    "name": "Skorzana tunika",
-    "description": "Jakas kurtka ze skory.",
-    "slot": "Chest",
-    "texture": "assets/textures/items/chest_leather.png",
-    "stats": {
-      "defense": 3
-    }
-  },
-  {
-    "id": 3,
-    "name": "Diamentowe buty",
-    "description": "Lekkie buty z diamentow. Pozwalaja szybciej sie poruszac.",
-    "slot": "Feet",
-    "texture": "assets/textures/items/boots_diamond.png",
-    "stats": {
-      "defense": 2,
-      "movement_speed": 1.0
-    }
-  },
-  {
-    "id": 4,
-    "name": "Zardzewialy klucz",
-    "description": "Stary klucz.",
-    "slot": "None",
-    "texture": "assets/textures/items/key.png"
-  },
-  {
-    "id": 5,
-    "name": "Klucz Kota",
-    "description": "Klucz nalezacy do Kota Olgi.",
-    "slot": "None",
-    "texture": "assets/textures/items/key.png"
-  },
-  {
-    "id": 6,
-    "name": "Ryba",
-    "description": "Swieza, smaczna ryba.",
-    "slot": "None",
-    "texture": "assets/textures/items/fish.png"
-  },
-  {
-    "id": 7,
-    "name": "Koci Miecz",
-    "description": "Miecz podarowany przez Kota. Pachnie ryba.",
-    "slot": "Weapon",
-    "texture": "assets/textures/items/cat_sword.png",
-    "stats": {
-      "damage": 50
-    }
-  }
 ]
+

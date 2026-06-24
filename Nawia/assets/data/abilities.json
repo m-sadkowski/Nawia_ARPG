@@ -16,18 +16,40 @@
       "stats": {
         "damage": 10,
         "cooldown": 0.5,
-        "cast_range": 2.0,
+        "cast_range": 6.0,
         "projectile_speed": 0.0,
         "duration": 0.2,
-        "hitbox_radius": 3
+        "hitbox_radius": 4.5
+      }
+    },
+    {
+      "name": "Punch",
+      "stats": {
+        "damage": 5,
+        "cooldown": 0.45,
+        "cast_range": 3.36,
+        "projectile_speed": 0.0,
+        "duration": 0.12,
+        "hitbox_radius": 2.66
+      }
+    },
+    {
+      "name": "Strong Hit",
+      "stats": {
+        "damage": 8,
+        "cooldown": 2.3,
+        "cast_range": 3.5,
+        "projectile_speed": 0.0,
+        "duration": 0.14,
+        "hitbox_radius": 3.0
       }
     },
     {
       "name": "KnifeThrow",
       "stats": {
         "damage": 15,
-        "cooldown": 6.0,
-        "cast_range": 9.0,
+        "cooldown": 0.0,
+        "cast_range": 12.0,
         "projectile_speed": 10.0,
         "duration": 1.0,
         "hitbox_radius": 0.3

@@ -1,14 +1,14 @@
 #pragma once
 
+#include <fstream>
 #include <string>
 #include <vector>
-#include <fstream>
 
 namespace Nawia::Core {
 
 /**
  * @struct Resolution
- * @brief Represents a screen resolution with width, height, and display name.
+ * @brief Opisuje rozdzielczosc ekranu.
  */
 struct Resolution {
     int width;
@@ -24,37 +24,52 @@ struct Resolution {
 };
 
 /**
+ * @enum TextureQuality
+ * @brief Dostepne poziomy jakosci tekstur.
+ */
+enum class TextureQuality { Low, Medium, High };
+
+/**
  * @class Settings
- * @brief Game settings manager with JSON persistence.
- * 
- * Stores user preferences (resolution, fullscreen, etc.) and provides
- * load/save functionality to persist settings across game sessions.
- * 
- * Usage:
- * @code
- *     Settings settings;
- *     settings.load("settings.json");
- *     settings.resolution = {1920, 1080};
- *     settings.save("settings.json");
- * @endcode
+ * @brief Przechowuje i zapisuje ustawienia gry.
  */
 class Settings {
 public:
-    /// Current resolution
+    /// Aktualna rozdzielczosc.
     Resolution resolution = {1280, 720};
     
-    /// Fullscreen mode enabled
+    /// Tryb pelnoekranowy.
     bool fullscreen = false;
     
-    /// UI scale factor (user-controlled)
+    /// Reczna skala interfejsu.
     float ui_scale = 1.0f;
     
-    /// UI scale limits
-    static constexpr float UI_SCALE_MIN = 1.0f;
+    /// Jakosc tekstur.
+    TextureQuality texture_quality = TextureQuality::Medium;
+
+    /// Czy pokazywac licznik FPS.
+    bool show_fps = false;
+
+    /// Glosnosc ogolna gry.
+    float master_volume = 1.0f;
+
+    /// Glosnosc muzyki.
+    float music_volume = 0.7f;
+
+    /// Glosnosc efektow dzwiekowych.
+    float effects_volume = 1.0f;
+    
+    /// Limity skali interfejsu.
+    static constexpr float UI_SCALE_MIN = 0.5f;
     static constexpr float UI_SCALE_MAX = 1.5f;
     static constexpr float UI_SCALE_STEP = 0.1f;
+
+    /// Limity glosnosci audio.
+    static constexpr float AUDIO_VOLUME_MIN = 0.0f;
+    static constexpr float AUDIO_VOLUME_MAX = 1.0f;
+    static constexpr float AUDIO_VOLUME_STEP = 0.05f;
     
-    /// Available resolution presets
+    /// Dostepne presety rozdzielczosci.
     static inline const std::vector<Resolution> AVAILABLE_RESOLUTIONS = {
         {1280, 720},
         {1366, 768},
@@ -63,34 +78,40 @@ public:
         {2560, 1440}
     };
     
-    /// Default settings file path
-    static constexpr const char* DEFAULT_PATH = "../assets/settings.json";
+    /// Domyslna sciezka pliku ustawien.
+    static constexpr const char* DEFAULT_PATH = "assets/settings.json";
     
     /**
-     * @brief Load settings from JSON file.
-     * @param filepath Path to settings file
-     * @return true if loaded successfully, false if file doesn't exist or is invalid
+     * @brief Wczytuje ustawienia z pliku JSON.
      */
     bool load(const std::string& filepath = DEFAULT_PATH);
     
     /**
-     * @brief Save settings to JSON file.
-     * @param filepath Path to settings file
-     * @return true if saved successfully
+     * @brief Zapisuje ustawienia do pliku JSON.
      */
     [[nodiscard]] bool save(const std::string& filepath = DEFAULT_PATH) const;
     
     /**
-     * @brief Get the index of current resolution in AVAILABLE_RESOLUTIONS.
-     * @return Index, or 0 if not found
+     * @brief Zwraca indeks aktualnej rozdzielczosci.
      */
     [[nodiscard]] int getCurrentResolutionIndex() const;
     
     /**
-     * @brief Set resolution by index from AVAILABLE_RESOLUTIONS.
-     * @param index Index in the available resolutions list
+     * @brief Ustawia rozdzielczosc na podstawie indeksu.
      */
     void setResolutionByIndex(int index);
+
+    /**
+     * @brief Zwraca nazwe jakosci tekstur po polsku.
+     */
+    [[nodiscard]] std::string getTextureQualityString() const {
+        switch (texture_quality) {
+            case TextureQuality::Low: return "Niska";
+            case TextureQuality::Medium: return "Srednia";
+            case TextureQuality::High: return "Wysoka";
+            default: return "Nieznana";
+        }
+    }
 };
 
 } // namespace Nawia::Core

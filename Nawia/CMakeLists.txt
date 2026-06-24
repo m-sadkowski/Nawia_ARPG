@@ -6,13 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Source files (globbing to catch all cpp files in src recursively)
 # Triggering re-scan for new files
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 
 # Include directories
 include_directories(
     src/audio
     src/core
     src/core/game
+    src/core/game/save
     src/core/util
     src/core/system
     src/core/system/input
@@ -23,10 +24,11 @@ include_directories(
     src/entity/actors
     src/entity/actors/enemies
     src/entity/actors/player
-    src/entity/actors/enemies/dummy
     src/entity/actors/enemies/walking_dead
-     src/entity/actors/enemies/devil
-      src/entity/actors/enemies/bandit
+    src/entity/actors/enemies/devil
+    src/entity/actors/enemies/bandit
+    src/entity/actors/allies
+    src/entity/actors/allies/friend
     src/entity/components
     src/entity/systems
     src/entity/effects
@@ -44,16 +46,22 @@ include_directories(
     src/world
     src/world/map
     src/world/level
+    src/world/spawn
     src/ui
     src/ui/hud
     src/ui/inventory
     src/ui/menu
     src/ui/dialogue
+    src/ui/quest
+    src/core/game/quest
+    src/core/game/boss
     src/item
     src/item/inventory
     src/item/types
     src/item/utils
     external/json
+    ${recastnavigation_SOURCE_DIR}/Recast/Include
+    ${recastnavigation_SOURCE_DIR}/Detour/Include
 )
 
 include(FetchContent)
@@ -72,14 +80,26 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tinyxml2)
 
+# Recast Navigation
+FetchContent_Declare(
+    recastnavigation
+    GIT_REPOSITORY https://github.com/recastnavigation/recastnavigation.git
+    GIT_TAG main
+)
+# Recast builds tests by default, disable them to speed up build
+set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "" FORCE)
+set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(recastnavigation)
+
 add_executable(Nawia ${SOURCES})
 
 # Link libraries
-target_link_libraries(Nawia PRIVATE raylib tinyxml2)
+target_link_libraries(Nawia PRIVATE raylib tinyxml2 Recast Detour)
 
-# Copy assets to build directory
+# Copy assets next to Nawia.exe.
 add_custom_command(TARGET Nawia POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/assets
-    ${CMAKE_SOURCE_DIR}/out/build/assets
+    "${CMAKE_SOURCE_DIR}/assets"
+    "$<TARGET_FILE_DIR:Nawia>/assets"
+    VERBATIM
 )

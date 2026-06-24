@@ -1,23 +1,26 @@
 #pragma once
-#include <raylib.h>
 
-namespace Nawia::Core
-{
+namespace Nawia::Core {
 
+	/// Domyslna szerokosc okna.
 	constexpr int WINDOW_WIDTH = 1280;
+
+	/// Domyslna wysokosc okna.
 	constexpr int WINDOW_HEIGHT = 720;
 
-	// Base/reference resolution for UI scaling (design-time resolution)
+	/// Bazowa szerokosc projektu UI.
 	constexpr int BASE_WIDTH = 1920;
+
+	/// Bazowa wysokosc projektu UI.
 	constexpr int BASE_HEIGHT = 1080;
 
-	constexpr int TILE_WIDTH = 128;
-	constexpr int TILE_HEIGHT = 64;
+	/// Domyslna odleglosc kamery od celu.
+	constexpr float CAMERA_DISTANCE = 25.0f;
 
-	constexpr int ENTITY_TEXTURE_WIDTH = 128;
-	constexpr int ENTITY_TEXTURE_HEIGHT = 64;
+	/// Domyslna wysokosc kamery nad celem.
+	constexpr float CAMERA_HEIGHT = 20.0f;
 
-	constexpr int MODEL_RENDER_SIZE = 512;
-	constexpr Vector3 ISOMETRIC_CAMERA_POS = Vector3{ -10.0f, 10.0f, 10.0f };
+	/// Domyslne pole widzenia kamery.
+	constexpr float CAMERA_FOV = 45.0f;
 
-}
+} // namespace Nawia::Core

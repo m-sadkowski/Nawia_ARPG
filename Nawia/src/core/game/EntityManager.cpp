@@ -1,77 +1,264 @@
 #include "EntityManager.h"
-#include "Logger.h"
+
+#include <Engine.h>
+#include <Logger.h>
+#include <Map.h>
+
 #include <AbilityEffect.h>
-#include <EnemyInterface.h>
 #include <Collider.h>
+#include <Entity.h>
 #include <InteractiveTrigger.h>
+
 #include <raylib.h>
+
+#include <algorithm>
 #include <cmath>
-#include <algorithm> 
+#include <limits>
 
 namespace Nawia::Core {
 
-    void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity)
-    {
+    namespace {
+
+        constexpr float k_combat_target_refresh_interval = 0.25f;
+        constexpr float k_altitude_snap_interval = 0.10f;
+        constexpr float k_physical_collision_radius = 0.8f;
+
+        bool usesNavMeshAltitude(const std::shared_ptr<Entity::Entity>& entity) {
+            if (!entity || entity->isDead() || entity->isDormant())
+                return false;
+
+            const Entity::EntityType type = entity->getType();
+            return type == Entity::EntityType::Player ||
+                   type == Entity::EntityType::Enemy ||
+                   type == Entity::EntityType::Ally ||
+                   type == Entity::EntityType::NPCStatic ||
+                   type == Entity::EntityType::NPCActor;
+        }
+
+        bool isAbilityTarget(const std::shared_ptr<Entity::Entity>& entity) {
+            if (!entity || entity->isDormant())
+                return false;
+
+            const Entity::EntityType type = entity->getType();
+            return type != Entity::EntityType::Projectile &&
+                   type != Entity::EntityType::Chest &&
+                   type != Entity::EntityType::Trigger &&
+                   type != Entity::EntityType::NPCStatic &&
+                   type != Entity::EntityType::NPCActor;
+        }
+
+        bool isValidCombatTarget(
+            const Entity::EntityType seeker_type,
+            const std::shared_ptr<Entity::Entity>& candidate) {
+            if (!candidate || candidate->isDead() || candidate->isDying() || candidate->isDormant())
+                return false;
+
+            const Entity::EntityType candidate_type = candidate->getType();
+            if (seeker_type == Entity::EntityType::Enemy)
+                return candidate_type == Entity::EntityType::Player || candidate_type == Entity::EntityType::Ally;
+            if (seeker_type == Entity::EntityType::Ally)
+                return candidate_type == Entity::EntityType::Enemy;
+
+            return false;
+        }
+
+    }
+
+    void EntityManager::addEntity(std::shared_ptr<Entity::Entity> new_entity) {
+        if (!new_entity)
+            return;
+
+        if (std::ranges::find(_active_entities, new_entity) != _active_entities.end())
+            return;
+
         _active_entities.push_back(std::move(new_entity));
     }
 
-    std::shared_ptr<Entity::Entity> EntityManager::getEntityAt(const float screen_x, const float screen_y, const Camera camera) const
-    {
-        // Iterate backwards to click the "top-most" entity first (rendering order usually)
+    void EntityManager::removeEntity(const std::shared_ptr<Entity::Entity>& entity) {
+        if (!entity)
+            return;
+
+        if (_hovered_entity.lock() == entity) {
+            entity->setHovered(false);
+            _hovered_entity.reset();
+        }
+
+        _active_entities.erase(
+            std::remove(_active_entities.begin(), _active_entities.end(), entity),
+            _active_entities.end());
+    }
+
+    void EntityManager::setPlayer(std::shared_ptr<Entity::Entity> player) {
+        _player = std::move(player);
+        Entity::Entity::setAudioListener(_player);
+    }
+
+	void EntityManager::clearNonPlayerEntities() {
+		std::vector<std::shared_ptr<Entity::Entity>> retained_entities;
+		if (_player) 
+        {
+			retained_entities.push_back(_player);
+		} 
+    	else 
+    	{
+			for (const auto& entity : _active_entities) {
+				if (entity->getName() == "Player") {
+					retained_entities.push_back(entity);
+					break;
+				}
+			}
+		}
+		_active_entities = std::move(retained_entities);
+        _hovered_entity.reset();
+        _combat_target_refresh_timer = 0.0f;
+        _altitude_snap_timer = 0.0f;
+	}
+
+    std::shared_ptr<Entity::Entity> EntityManager::getEntityAt(const float screen_x, const float screen_y, const Camera3D& camera) const {
+        // Iterujemy od konca, zeby najpierw lapac encje narysowane najwyzej.
         for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) {
-            if ((*it)->isMouseOver(screen_x, screen_y, camera.x, camera.y))
+            if ((*it)->isDormant()) continue;
+            if ((*it)->isMouseOver(screen_x, screen_y, camera))
                 return *it;
         }
         return nullptr;
     }
 
-    void EntityManager::updateHoverState(const float screen_x, const float screen_y, const Camera& camera)
-    {
-        // 1. Reset hover state for all active entities
-        for (const auto& entity : _active_entities)
-            entity->setHovered(false);
+    void EntityManager::updateHoverState(const float screen_x, const float screen_y, const Camera3D& camera) {
+        if (const auto previous_hovered = _hovered_entity.lock())
+            previous_hovered->setHovered(false);
 
-        // 2. Find the top-most entity under the cursor
-        // Iterate backwards to prioritize entities drawn on top
+        _hovered_entity.reset();
+
         for (auto it = _active_entities.rbegin(); it != _active_entities.rend(); ++it) 
         {
-            if ((*it)->isMouseOver(screen_x, screen_y, camera.x, camera.y)) {
-                // Core::Logger::debugLog("Hovered Entity: " + (*it)->getName());
+            if ((*it)->isDormant()) continue;
+            if ((*it)->isMouseOver(screen_x, screen_y, camera)) {
                 (*it)->setHovered(true);
-                return; // Found the top-most entity, stop searching
+                _hovered_entity = *it;
+                return;
             }
         }
     }
 
-    void EntityManager::renderEntities(const Camera& camera) const
-    {
+    void EntityManager::renderEntities(const Camera3D& camera) const {
+        std::vector<Entity::Entity*> render_list;
+        render_list.reserve(_active_entities.size());
+
         for (const auto& entity : _active_entities)
-            entity->render(camera.x, camera.y);
+        {
+            if (!entity->isDormant() && entity->isVisibleInCamera(camera))
+                render_list.push_back(entity.get());
+        }
+
+		// Sortowanie po Y trzyma poprawna kolejnosc nakladania modeli.
+        std::ranges::sort(render_list, {}, &Entity::Entity::getY);
+
+        for (auto* entity : render_list) {
+            entity->render(camera);
+        }
     }
 
-    void EntityManager::updateEntities(const float delta_time)
-    {
+    void EntityManager::updateEntities(const float delta_time) {
+        _combat_target_refresh_timer -= delta_time;
+        if (_combat_target_refresh_timer <= 0.0f) {
+            refreshCombatTargets();
+            _combat_target_refresh_timer = k_combat_target_refresh_interval;
+        }
+
+        _altitude_snap_timer -= delta_time;
+        const bool should_snap_altitudes = _altitude_snap_timer <= 0.0f;
+        if (should_snap_altitudes)
+            _altitude_snap_timer = k_altitude_snap_interval;
+
         for (auto it = _active_entities.begin(); it != _active_entities.end();)
         {
             const auto& entity = *it;
             entity->update(delta_time);
 
-            // Check if it's an expired spell
-            bool is_expired_spell = false;
-            if (const auto spell = dynamic_cast<Entity::AbilityEffect*>(entity.get()))
-                is_expired_spell = spell->isExpired();
+            // Dociaga wysokosc encji do navmesha aktualnej mapy.
+            if (should_snap_altitudes && _engine && _engine->getCurrentMap() && usesNavMeshAltitude(entity)) {
+                const Vector3 current_position = { entity->getX(), entity->getAltitude(), entity->getY() };
+                const Vector3 snapped_position = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(current_position);
+                entity->setAltitude(snapped_position.y);
+            }
 
-            if (entity->isDead() || is_expired_spell)
+            // Efekty umiejetnosci usuwamy po wygasnieciu.
+            bool is_expired_spell = false;
+            if (const auto ability_effect = dynamic_cast<Entity::AbilityEffect*>(entity.get()))
+                is_expired_spell = ability_effect->isExpired();
+
+			if (entity->isDead() || is_expired_spell) {
+				if (entity->isDead() && entity->shouldPersistAfterDeath()) {
+					++it;
+					continue;
+				}
+
+				if (entity->isDead() && entity->getType() == Entity::EntityType::Enemy) {
+					if (_engine) {
+						_engine->getQuestManager().notifyKill(entity->getName());
+                    }
+                }
+                
                 it = _active_entities.erase(it);
+            }
+                
             else
                 ++it;
         }
     }
 
-    // --- Collision System Refactor ---
-
-    void EntityManager::handleEntitiesCollisions() const
+    void EntityManager::refreshCombatTargets()
     {
+        for (const auto& entity : _active_entities)
+        {
+            if (!entity || entity->isDead() || entity->isDying() || entity->isDormant())
+                continue;
+
+            const Entity::EntityType type = entity->getType();
+            if (type != Entity::EntityType::Enemy && type != Entity::EntityType::Ally)
+                continue;
+
+            entity->setTarget(findClosestCombatTarget(entity));
+        }
+    }
+
+    std::shared_ptr<Entity::Entity> EntityManager::findClosestCombatTarget(const std::shared_ptr<Entity::Entity>& seeker) const
+    {
+        if (!seeker) return nullptr;
+
+        const Entity::EntityType seeker_type = seeker->getType();
+        float best_distance_sq = std::numeric_limits<float>::max();
+        std::shared_ptr<Entity::Entity> best_target = nullptr;
+
+        if (const auto damage_source = seeker->getLastDamageSource(); isValidCombatTarget(seeker_type, damage_source))
+            return damage_source;
+
+        for (const auto& candidate : _active_entities)
+        {
+            if (!candidate || candidate == seeker)
+                continue;
+
+            if (!isValidCombatTarget(seeker_type, candidate))
+                continue;
+
+            const float dx = seeker->getCenter().x - candidate->getCenter().x;
+            const float dy = seeker->getCenter().y - candidate->getCenter().y;
+            const float distance_sq = dx * dx + dy * dy;
+
+            if (distance_sq < best_distance_sq)
+            {
+                best_distance_sq = distance_sq;
+                best_target = candidate;
+            }
+        }
+
+        return best_target;
+    }
+
+    // --- Collision System ---
+
+    void EntityManager::handleEntitiesCollisions() const {
         processAbilityCollisions();
         processTriggerCollisions();
         processPhysicalCollisions();
@@ -79,26 +266,24 @@ namespace Nawia::Core {
 
     void EntityManager::processAbilityCollisions() const
     {
+        std::vector<std::shared_ptr<Entity::Entity>> targets;
+        targets.reserve(_active_entities.size());
+        for (const auto& entity : _active_entities) {
+            if (isAbilityTarget(entity))
+                targets.push_back(entity);
+        }
+
         for (auto& entity1 : _active_entities)
         {
-            // check if not projectile
             if (entity1->getType() != Entity::EntityType::Projectile) continue;
+            if (entity1->isDormant()) continue;
 
-            // static cast is safe since checked with EntityType
             auto ability = std::static_pointer_cast<Entity::AbilityEffect>(entity1);
             if (ability->isExpired()) continue;
 
-            for (auto& entity2 : _active_entities)
+            for (auto& entity2 : targets)
             {
                 if (entity1 == entity2) continue;
-
-                Entity::EntityType targetType = entity2->getType();
-
-                // ignore other projectiles, chests and checkpoints
-                if (targetType == Entity::EntityType::Projectile ||
-                    targetType == Entity::EntityType::Chest ||
-                    targetType == Entity::EntityType::Trigger ||
-                    targetType == Entity::EntityType::NPCStatic) continue;
 
                 if (ability->checkCollision(entity2)) {
                     ability->onCollision(entity2);
@@ -111,17 +296,27 @@ namespace Nawia::Core {
     {
         if (!_player || _player->isDead()) return;
 
-        for (auto& entity : _active_entities) 
+        const auto entities_snapshot = _active_entities;
+        for (auto& entity : entities_snapshot)
         {
-            if (entity == _player) continue;
+            if (!entity || entity == _player) continue;
+            if (entity->isDormant()) continue;
 
             if (const auto trigger = dynamic_cast<Entity::InteractiveTrigger*>(entity.get())) 
             {
-                // Ensure trigger has a collider before checking
-                if (trigger->getCollider() &&  trigger->getCollider()->checkCollision(_player->getCollider()))
+                if (trigger->getCollider())
                 {
-                    trigger->onTriggerEnter(*_player);
-                    trigger->die();
+                    bool collision = false;
+                    if (_player->getCollider()) {
+                        collision = trigger->getCollider()->checkCollision(_player->getCollider());
+                    } else {
+                        collision = trigger->getCollider()->checkCollision(_player->getBoundingBox());
+                    }
+
+                    if (collision) {
+                        trigger->onTriggerEnter(*_player);
+                        return;
+                    }
                 }
             }
         }
@@ -129,80 +324,70 @@ namespace Nawia::Core {
 
     void EntityManager::processPhysicalCollisions() const
     {
-        for (size_t i = 0; i < _active_entities.size(); ++i)
+        std::vector<std::shared_ptr<Entity::Entity>> collidable_entities;
+        collidable_entities.reserve(_active_entities.size());
+        for (const auto& entity : _active_entities) {
+            if (isCollidablePhysicalEntity(entity))
+                collidable_entities.push_back(entity);
+        }
+
+        std::ranges::sort(collidable_entities, [](const auto& left, const auto& right) {
+            return left->getX() < right->getX();
+        });
+
+        for (size_t i = 0; i < collidable_entities.size(); ++i)
         {
-            auto& e1 = _active_entities[i];
-            if (!isCollidablePhysicalEntity(e1)) continue;
+            auto& e1 = collidable_entities[i];
 
-            for (size_t j = i + 1; j < _active_entities.size(); ++j)
+            for (size_t j = i + 1; j < collidable_entities.size(); ++j)
             {
-                auto& e2 = _active_entities[j];
-                if (!isCollidablePhysicalEntity(e2)) continue;
+                auto& e2 = collidable_entities[j];
+                if (e2->getX() - e1->getX() > k_physical_collision_radius)
+                    break;
 
-                if (e1->getCollider()->checkCollision(e2->getCollider()))
-                    resolveOverlap(e1, e2);
+                resolveOverlap(e1, e2);
             }
         }
     }
 
-    // Helper to filter entities that participate in physics - Player and Enemy
-    bool EntityManager::isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& e) const
-    {
-        if (e->isDead() || !e->getCollider()) return false;
+    bool EntityManager::isCollidablePhysicalEntity(const std::shared_ptr<Entity::Entity>& entity) const {
+        if (!entity) return false;
+        if (entity->isDead()) return false;
+        if (entity->isDormant()) return false;
 
-        const Entity::EntityType type = e->getType();
-
-        return (type == Entity::EntityType::Player || type == Entity::EntityType::Enemy);
+        const Entity::EntityType type = entity->getType();
+        return type == Entity::EntityType::Player ||
+               type == Entity::EntityType::Enemy ||
+               type == Entity::EntityType::Ally ||
+               type == Entity::EntityType::NPCActor;
     }
 
-    void EntityManager::resolveOverlap(const std::shared_ptr<Entity::Entity>& e1, const std::shared_ptr<Entity::Entity>& e2) const
-    {
-        // Only resolve Rectangle vs Rectangle for now
-        if (e1->getCollider()->getType() != Entity::ColliderType::RECTANGLE ||
-            e2->getCollider()->getType() != Entity::ColliderType::RECTANGLE) {
-            return;
-        }
+    void EntityManager::resolveOverlap(
+        const std::shared_ptr<Entity::Entity>& first_entity,
+        const std::shared_ptr<Entity::Entity>& second_entity
+    ) const {
+        // Prosta kolizja radialna blokuje przenikanie postaci bez laczenia z hitboxami ataku.
+        const float dx = second_entity->getX() - first_entity->getX();
+        const float dy = second_entity->getY() - first_entity->getY();
+        const float distance_sq = dx * dx + dy * dy;
+        
+        // Przyblizony promien fizyczny postaci wynosi 0.4.
+        const float combined_radius = k_physical_collision_radius;
+        
+        if (distance_sq < combined_radius * combined_radius && distance_sq > 0.0001f) {
+            const float distance = std::sqrt(distance_sq);
+            const float overlap = combined_radius - distance;
+            const bool first_rooted = first_entity->isMovementRooted();
+            const bool second_rooted = second_entity->isMovementRooted();
+            const float first_push_share = first_rooted && !second_rooted ? 0.0f : (second_rooted && !first_rooted ? 1.0f : 0.5f);
+            const float second_push_share = second_rooted && !first_rooted ? 0.0f : (first_rooted && !second_rooted ? 1.0f : 0.5f);
+            const float push_x = (dx / distance) * overlap;
+            const float push_y = (dy / distance) * overlap;
 
-        const auto* r1_col = dynamic_cast<const Entity::RectangleCollider*>(e1->getCollider());
-        const auto* r2_col = dynamic_cast<const Entity::RectangleCollider*>(e2->getCollider());
-
-        const Rectangle r1_rect = r1_col->getRect();
-        const Rectangle r2_rect = r2_col->getRect();
-
-        const Rectangle overlap = GetCollisionRec(r1_rect, r2_rect);
-
-        if (overlap.width <= 0 || overlap.height <= 0) return;
-
-        // Determine smallest axis of penetration
-        if (overlap.width < overlap.height)
-        {
-            const float separation = overlap.width * 0.5f;
-            // Push apart horizontally
-            if (r1_rect.x < r2_rect.x) 
-            {
-                e1->setX(e1->getX() - separation);
-                e2->setX(e2->getX() + separation);
-            }
-            else 
-            	{
-                e1->setX(e1->getX() + separation);
-                e2->setX(e2->getX() - separation);
-            }
-        }
-        else
-        {
-            const float separation = overlap.height * 0.5f;
-            // Push apart vertically
-            if (r1_rect.y < r2_rect.y) 
-            {
-                e1->setY(e1->getY() - separation);
-                e2->setY(e2->getY() + separation);
-            }
-            else 
-            	{
-                e1->setY(e1->getY() + separation);
-                e2->setY(e2->getY() - separation);
-            }
+            first_entity->setX(first_entity->getX() - push_x * first_push_share);
+            first_entity->setY(first_entity->getY() - push_y * first_push_share);
+            second_entity->setX(second_entity->getX() + push_x * second_push_share);
+            second_entity->setY(second_entity->getY() + push_y * second_push_share);
         }
     }
 

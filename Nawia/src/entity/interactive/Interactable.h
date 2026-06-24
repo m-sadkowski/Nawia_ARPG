@@ -1,60 +1,53 @@
 #pragma once
-#include "Entity.h"
+
+namespace Nawia::Core { class Engine; }
 
 namespace Nawia::Entity {
 
-    /**
-     * @interface Interactable
-     * @brief Interface for objects the player can interact with.
-     * 
-     * Implement this interface for any entity that should respond to player
-     * interaction (clicking) or trigger events (walking into).
-     * 
-     * ## Types of Interactive Objects
-     * 
-     * - **Clickable objects** (chests, NPCs, levers): Use `InteractiveClickable` base class
-     *   and implement `onInteract()` for click behavior.
-     * 
-     * - **Trigger zones** (traps, teleports, checkpoints): Implement `onTriggerEnter()`
-     *   for collision-based activation.
-     * 
-     * ## Key Methods
-     * 
-     * - `onInteract()`: Called when player clicks and is in range
-     * - `onTriggerEnter()`: Called when an entity enters the interaction zone
-     * - `canInteract()`: Override to add conditions (e.g., locked doors)
-     * - `getInteractionRange()`: Maximum distance for interaction
-     * 
-     * @note Objects need a collider for interaction detection!
-     */
-    class Interactable {
-    
-    public:
-        virtual ~Interactable() = default;
+	class Entity;
 
-        /**
-         * @brief Called when an entity interacts with this object (e.g., player clicks).
-         * @param instigator The entity that triggered the interaction
-         */
-        virtual void onInteract(Entity& instigator) = 0;
+	/**
+	 * @interface Interactable
+	 * @brief Interfejs obiektów, z którymi gracz może wejść w interakcję.
+	 *
+	 * Implementuj go dla encji reagujących na kliknięcie albo wejście w obszar
+	 * aktywujący. Obiekty klikalne zwykle dziedziczą po `InteractiveClickable`,
+	 * a strefy aktywowane kolizją implementują `onTriggerEnter()`.
+	 *
+	 * @note Interakcje wymagają kolidera do wykrywania zasięgu lub obszaru aktywującego.
+	 */
+	class Interactable {
+	public:
+		virtual ~Interactable() = default;
 
-        /**
-         * @brief Called when an entity enters this object's trigger zone.
-         * @param other The entity that entered
-         */
-        virtual void onTriggerEnter(Entity& other) = 0;
+		/**
+		 * @brief Wywoływane, gdy encja wchodzi w interakcję z obiektem.
+		 * @param instigator Encja inicjująca interakcję.
+		 */
+		virtual void onInteract(Entity& instigator) = 0;
 
-        /**
-         * @brief Check if interaction is currently possible.
-         * Override to add conditions (e.g., cooldowns, locked state).
-         * @return true if can be interacted with
-         */
-        virtual bool canInteract() const { return true; }
+		/**
+		 * @brief Wywolywane po udanej interakcji, gdy obiekt moze otworzyc UI/dialog.
+		 */
+		virtual void onInteractionCompleted(Entity& instigator, Core::Engine& engine) {}
 
-        /**
-         * @brief Get the maximum interaction range.
-         * @return Distance in world units
-         */
-        virtual float getInteractionRange() = 0;
-    };
-}
+		/**
+		 * @brief Wywoływane, gdy encja wchodzi w obszar aktywujący obiektu.
+		 * @param other Encja, która weszła w obszar aktywujący.
+		 */
+		virtual void onTriggerEnter(Entity& other) = 0;
+
+		/**
+		 * @brief Sprawdza, czy interakcja jest obecnie możliwa.
+		 * @return `true`, jeśli można wejść w interakcję.
+		 */
+		virtual bool canInteract() const { return true; }
+
+		/**
+		 * @brief Zwraca maksymalny zasięg interakcji.
+		 * @return Dystans w jednostkach świata.
+		 */
+		virtual float getInteractionRange() = 0;
+	};
+
+} // namespace Nawia::Entity

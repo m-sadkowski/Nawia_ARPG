@@ -1,0 +1,419 @@
+{
+    "entities": [
+        {
+            "category": "npcs",
+            "location": "Dolina Nedzy",
+            "name": "Gzib",
+            "npc_class": "mushroom",
+            "type": "npc",
+            "x": 31.26576805114746,
+            "y": -2.6189374923706055
+        },
+        {
+            "category": "checkpoints",
+            "location": "Dolina Nedzy",
+            "name": "Checkpoint Gziba",
+            "type": "checkpoint_mushroom_npc",
+            "x": 15.957840919494629,
+            "y": -27.788297653198242
+        },
+        {
+            "category": "checkpoints",
+            "location": "Dolina Nedzy",
+            "name": "Checkpoint Gziba",
+            "type": "checkpoint_mushroom_npc",
+            "x": 29.311429977416992,
+            "y": -46.60541534423828
+        },
+        {
+            "category": "spawners",
+            "count": 5,
+            "location": "Dolina Nedzy",
+            "name": "Zly Gzibek",
+            "spawn_radius": 5.0,
+            "trigger_radius": 20.0,
+            "type": "mini_mushroom_infected",
+            "x": 36.337188720703125,
+            "y": -59.00876998901367
+        },
+        {
+            "category": "chests",
+            "items": [
+                2,
+                15,
+                16,
+                17
+            ],
+            "location": "Dolina Nedzy",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 34.430233001708984,
+            "y": -62.50339889526367
+        },
+        {
+            "category": "chests",
+            "items": [
+                3,
+                15,
+                16
+            ],
+            "location": "Dolina Nedzy",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 30.34515380859375,
+            "y": -11.262310028076172
+        },
+        {
+            "category": "chests",
+            "items": [
+                8,
+                15,
+                17
+            ],
+            "location": "Dolina Nedzy",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 96.71841430664063,
+            "y": -45.44831848144531
+        },
+        {
+            "boss_id": "ropuch",
+            "category": "boss_triggers",
+            "conditions": {
+                "required_quest_completed": "gzib_report_brothers"
+            },
+            "height": 14.0,
+            "location": "Dolina Nedzy",
+            "name": "Ropuch Trigger",
+            "type": "boss_trigger",
+            "width": 14.0,
+            "x": 86.85816192626953,
+            "y": -39.160499572753906
+        },
+        {
+            "category": "checkpoints",
+            "location": "Dolina Nedzy",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 80.77792358398438,
+            "y": -43.62266159057617
+        },
+        {
+            "category": "checkpoints",
+            "location": "Dolina Nedzy",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 34.662330627441406,
+            "y": -60.36192321777344
+        },
+        {
+            "category": "checkpoints",
+            "location": "Dolina Nedzy",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 28.960744857788086,
+            "y": -2.368885040283203
+        },
+        {
+            "category": "hubs",
+            "location": "Dolina Nedzy",
+            "name": "Herbalist Hub",
+            "radius": 7.0,
+            "type": "herbalist_hub",
+            "x": 11.8064603805542,
+            "y": 47.94611358642578
+        },
+        {
+            "category": "npcs",
+            "location": "Dolina Nedzy",
+            "name": "Zwloki Wandy",
+            "npc_class": "wanda_corpse",
+            "type": "npc",
+            "x": -4.393319129943848,
+            "y": -3.1230175495147705
+        },
+        {
+            "category": "nav_blockers",
+            "height": 1.2000007629394531,
+            "location": "Dolina Nedzy",
+            "name": "Nav Blocker",
+            "radius": 15.593500137329102,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 99.23760986328125,
+            "y": -26.547266006469727
+        },
+        {
+            "category": "nav_blockers",
+            "height": 1.1459999084472656,
+            "location": "Dolina Nedzy",
+            "name": "Nav Blocker",
+            "radius": 10.426000595092773,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 88.78817749023438,
+            "y": -21.861976623535156
+        },
+        {
+            "category": "nav_blockers",
+            "height": 1.1459999084472656,
+            "location": "Dolina Nedzy",
+            "name": "Nav Blocker",
+            "radius": 2.634999990463257,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 81.02952575683594,
+            "y": -29.70099449157715
+        },
+        {
+            "category": "spawners",
+            "count": 3,
+            "location": "Dolina Nedzy",
+            "name": "Walking Dead",
+            "spawn_radius": 2.0,
+            "trigger_radius": 15.0,
+            "type": "walking_dead",
+            "x": 119.73881530761719,
+            "y": -67.0036849975586
+        },
+        {
+            "category": "npcs",
+            "checkpoint_on_arrival": "cemetery_survivors_arrived",
+            "dialogue_key": "cemetery_survivors",
+            "hub_name": "Herbalist Hub",
+            "idle_animation_index": 9,
+            "location": "Dolina Nedzy",
+            "name": "Ocaleni z cmentarza",
+            "npc_class": "cemetery_survivor_group",
+            "type": "npc",
+            "walk_animation_index": 16,
+            "x": 126.81401062011719,
+            "y": -68.41144561767578
+        },
+        {
+            "category": "nav_blockers",
+            "height": -0.4199991226196289,
+            "location": "Dolina Nedzy",
+            "name": "Nav Blocker",
+            "radius": 24.179500579833984,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 117.22152709960938,
+            "y": -113.29046630859375
+        },
+        {
+            "category": "nav_blockers",
+            "height": 1.739999771118164,
+            "location": "Dolina Nedzy",
+            "name": "Nav Blocker",
+            "radius": 4.861000061035156,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 139.53768920898438,
+            "y": -120.16757202148438
+        },
+        {
+            "category": "nav_blockers",
+            "height": 1.739999771118164,
+            "location": "Dolina Nedzy",
+            "name": "Nav Blocker",
+            "radius": 5.338000297546387,
+            "shape": "circle",
+            "type": "nav_blocker",
+            "x": 142.8887176513672,
+            "y": -115.08348083496094
+        },
+        {
+            "category": "npcs",
+            "checkpoint_on_arrival": "forest_lost_group_arrived",
+            "death_animation_index": 0,
+            "dialogue_key": "forest_lost_group",
+            "hub_name": "Herbalist Hub",
+            "idle_animation_index": 9,
+            "location": "Dolina Nedzy",
+            "male_carry_spacing_multiplier": 2.4,
+            "name": "Forest Lost NPC",
+            "npc_class": "forest_lost_group",
+            "sister_carry_height": 1.6,
+            "sister_drop_duration": 0.6,
+            "type": "npc",
+            "walk_animation_index": 16,
+            "walk_back_animation_index": 17,
+            "x": 164.00350952148438,
+            "y": -60.22848892211914
+        },
+        {
+            "category": "checkpoints",
+            "location": "Dolina Nedzy",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 105.74413299560547,
+            "y": -111.7623291015625
+        },
+        {
+            "category": "checkpoints",
+            "location": "Dolina Nedzy",
+            "name": "Punkt Kontrolny",
+            "type": "checkpoint",
+            "x": 12.951037406921387,
+            "y": 39.22502136230469
+        },
+        {
+            "animation_bundle": "assets/models/actors/baba_yaga/baba_yaga.glb",
+            "can_talk": true,
+            "category": "npcs",
+            "conditions": {
+                "required_quest_completed": "talk_to_village_head_after_ropuch"
+            },
+            "disable_interaction_after_talk": false,
+            "idle_animation": "Idle",
+            "idle_visual_effect": "baba_yaga",
+            "location": "Dolina Nedzy",
+            "model": "assets/models/actors/baba_yaga/baba_yaga.glb",
+            "name": "Zielarz",
+            "npc_class": "herbalist",
+            "route_after_talk": false,
+            "talk_animation": "Idle",
+            "target_height": 2.0,
+            "type": "npc",
+            "walk_animation": "Walk",
+            "x": 2.7108497619628906,
+            "y": 46.54045486450195
+        },
+        {
+            "animation_bundle": "assets/models/actors/witch/witch.glb",
+            "can_talk": false,
+            "cast_animation_index": 7,
+            "category": "npcs",
+            "conditions": {
+                "required_quest_completed": "talk_to_village_head_after_ropuch"
+            },
+            "death_animation_index": 0,
+            "disable_interaction_after_talk": false,
+            "idle_animation": "idle",
+            "idle_animation_index": 5,
+            "location": "Dolina Nedzy",
+            "model": "assets/models/actors/witch/witch.glb",
+            "name": "Wiedzma",
+            "npc_class": "story_human",
+            "route_after_talk": false,
+            "talk_animation": "idle",
+            "type": "npc",
+            "use_indexed_animation_aliases": true,
+            "walk_animation": "walk",
+            "walk_animation_index": 16,
+            "walk_back_animation_index": 17,
+            "x": 121.60905456542969,
+            "y": -124.7596664428711
+        },
+        {
+            "category": "story_triggers",
+            "checkpoint_on_complete": "witch_to_nawia",
+            "conditions": {
+                "required_quest_completed": "talk_to_village_head_after_ropuch"
+            },
+            "dialogue_key": "witch_to_nawia",
+            "height": 10.0,
+            "location": "Dolina Nedzy",
+            "name": "Story Trigger",
+            "on_enter": [
+                {
+                    "animation": "cast",
+                    "face_player": true,
+                    "freeze_last_frame": true,
+                    "name": "Wiedzma",
+                    "type": "play_entity_animation"
+                }
+            ],
+            "target_location": "Przedsionek Nawii",
+            "type": "story_trigger",
+            "width": 10.0,
+            "x": 116.0654296875,
+            "y": -122.52344512939453
+        },
+        {
+            "category": "story_triggers",
+            "checkpoint_on_complete": "witch_after_bies",
+            "conditions": {
+                "required_quest_completed": "talk_to_village_head_after_ropuch",
+                "required_boss_defeated": "bies"
+            },
+            "dialogue_key": "witch_after_bies_placeholder",
+            "height": 10.0,
+            "location": "Dolina Nedzy",
+            "name": "Story Trigger",
+            "type": "story_trigger",
+            "width": 10.0,
+            "x": 116.0654296875,
+            "y": -122.52344512939453
+        },
+        {
+            "category": "chests",
+            "items": [
+                18
+            ],
+            "location": "Dolina Nedzy",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 131.97689819335938,
+            "y": -128.0570831298828
+        },
+        {
+            "category": "npcs",
+            "location": "Dolina Nedzy",
+            "name": "Kot",
+            "npc_class": "cat",
+            "type": "npc",
+            "x": 153.4325714111328,
+            "y": -79.18836212158203
+        },
+        {
+            "category": "chests",
+            "items": [
+                6
+            ],
+            "key_id": 5,
+            "location": "Dolina Nedzy",
+            "locked": true,
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": 157.10801696777344,
+            "y": -111.115234375
+        },
+        {
+            "category": "spawners",
+            "count": 2,
+            "location": "Dolina Nedzy",
+            "name": "Bandit",
+            "spawn_radius": 3.0,
+            "trigger_radius": 15.0,
+            "type": "bandit",
+            "x": 155.17263793945313,
+            "y": -108.75289916992188
+        },
+        {
+            "category": "chests",
+            "items": [
+                9
+            ],
+            "location": "Dolina Nedzy",
+            "name": "Skrzynia",
+            "type": "chest",
+            "x": -7.955537796020508,
+            "y": -37.17090606689453
+        },
+        {
+            "category": "spawners",
+            "count": 1,
+            "location": "Dolina Nedzy",
+            "name": "Straszny pajak",
+            "spawn_radius": 3.0,
+            "trigger_radius": 15.0,
+            "type": "spider",
+            "x": -9.993959426879883,
+            "y": -32.988494873046875
+        }
+    ],
+    "location": "Dolina Nedzy",
+    "schema_version": 1
+}

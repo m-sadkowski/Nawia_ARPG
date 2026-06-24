@@ -1,24 +1,56 @@
 #pragma once
-#include "Item.h"
-#include <vector>
+
+#include <Item.h>
+
+#include <json.hpp>
+
 #include <memory>
+#include <vector>
 
 namespace Nawia::Item {
 
+    class ItemDatabase;
+
+    /**
+     * @class Backpack
+     * @brief Przechowuje przedmioty gracza albo kontenera w slotach.
+     *
+     * Przedmioty sa trzymane jako `shared_ptr`, bo ten sam obiekt moze byc
+     * chwilowo widziany przez UI podczas przenoszenia miedzy slotami.
+     */
     class Backpack {
     public:
-        Backpack(int capacity);
+        explicit Backpack(int capacity);
 
-        // return false when no more space
+        /** @brief Dodaje przedmiot do pierwszego wolnego slotu. */
         bool addItem(const std::shared_ptr<Item>& item);
 
-        // remove item at index
+        /** @brief Usuwa przedmiot z podanego slotu. */
         void removeItem(int index);
 
+        /** @brief Ustawia zawartosc konkretnego slotu. */
+        bool setItem(int index, const std::shared_ptr<Item>& item);
+
+        /** @brief Oproznia wszystkie sloty. */
+        void clear();
+
+        /** @brief Zwraca przedmiot z indeksu albo nullptr. */
         [[nodiscard]] std::shared_ptr<Item> getItem(int index) const;
+
+        /** @brief Zwraca wszystkie sloty plecaka. */
         [[nodiscard]] const std::vector<std::shared_ptr<Item>>& getItems() const { return _items; }
+
+        /** @brief Zwraca liczbe slotow plecaka. */
         [[nodiscard]] int getCapacity() const { return _capacity; }
+
+        /** @brief Zwraca liczbe pustych slotow. */
         [[nodiscard]] int getRemainingCapacity() const;
+
+        /** @brief Zapisuje zawartosc plecaka do JSON-a. */
+        [[nodiscard]] nlohmann::json serialize() const;
+
+        /** @brief Wypelnia plecak na podstawie JSON-a, uzywajac fabryki przedmiotow. */
+        void applyJson(const nlohmann::json& data, ItemDatabase& item_database);
 
     private:
         int _capacity;

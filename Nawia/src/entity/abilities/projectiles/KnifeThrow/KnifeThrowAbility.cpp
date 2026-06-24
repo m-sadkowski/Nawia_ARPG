@@ -1,21 +1,23 @@
 #include "KnifeThrowAbility.h"
 
-#include "Collider.h"
-#include "Projectile.h"
-
 namespace Nawia::Entity {
 
-	KnifeThrowAbility::KnifeThrowAbility(const std::shared_ptr<Texture2D>& projectile_tex, const std::shared_ptr<Texture2D>& hit_tex, const std::shared_ptr<Texture2D>& icon_tex)
-		: Ability("Knife Throw", Entity::getAbilityStatsFromJson("KnifeThrow"), AbilityTargetType::UNIT, icon_tex), _texture(projectile_tex), _hit_texture(hit_tex) {}
-
-	std::unique_ptr<Entity> KnifeThrowAbility::cast(const float target_x, const float target_y) 
-	{
-		if (!isReady())
-			return nullptr;
-
-		startCooldown();
-
-		return std::make_unique<Projectile>("Knife Projectile", _caster->getCollider()->getPosition().x, _caster->getCollider()->getPosition().y, target_x, target_y, _texture, _hit_texture, _stats, _caster);
-	}
+	KnifeThrowAbility::KnifeThrowAbility(const std::string& model_path,
+										 const float model_scale,
+										 const std::shared_ptr<Texture2D>& hit_tex,
+										 const std::shared_ptr<Texture2D>& icon_tex,
+										 const float facing_offset,
+										 Core::ResourceManager* resource_manager)
+		: ProjectileAbility(
+			  "Knife Throw",
+			  "KnifeThrow",
+			  AbilityTargetType::UNIT,
+			  "Knife Projectile",
+			  model_path,
+			  model_scale,
+			  hit_tex,
+			  icon_tex,
+			  facing_offset,
+			  resource_manager) {}
 
 } // namespace Nawia::Entity

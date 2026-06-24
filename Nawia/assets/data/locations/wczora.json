@@ -1,0 +1,29 @@
+{
+    "camera": {
+        "zoom": 0.6000000238418579
+    },
+    "map": {
+        "model": "wczora_las.glb",
+        "offset": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "rotation": {
+            "x": 0.0,
+            "y": 120.0,
+            "z": 0.0
+        },
+        "scale": 0.5024193525314331
+    },
+    "name": "Dolina Nedzy",
+    "navmesh": {
+        "min_walkable_height": -15.0
+    },
+    "objects_file": "objects_wczora.json",
+    "player_spawn": {
+        "x": -6.913476467132568,
+        "y": 0.19284676015377045
+    },
+    "schema_version": 1
+}

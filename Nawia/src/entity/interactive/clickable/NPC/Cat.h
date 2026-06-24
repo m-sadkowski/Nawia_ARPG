@@ -1,47 +1,80 @@
 #pragma once
-#include "InteractiveClickable.h"
-#include "Entity.h"
-#include "Backpack.h"
-#include "Loottable.h"
-#include "Dialogue.h"
+
+#include <Dialogue.h>
+#include <InteractiveClickable.h>
+
+#include <memory>
+#include <string>
+
+namespace Nawia::Item {
+	class Backpack;
+	class Item;
+	class ItemDatabase;
+	class Loottable;
+	enum class LOOTTABLE_TYPE;
+}
 
 namespace Nawia::Entity {
 
-    class Cat : public InteractiveClickable {
-    public:
-        Cat(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& texture);
+	/**
+	 * @class Cat
+	 * @brief Klikalny NPC obsługujący prostą wymianę questową z graczem.
+	 */
+	class Cat : public InteractiveClickable {
+	public:
+		/** @brief Tworzy kota w podanym punkcie świata. */
+		Cat(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& texture);
+		~Cat() override;
 
-        void initializeInventory(Item::Loottable& lootable, Item::LOOTTABLE_TYPE lootable_type) const;
+		/**
+		 * @brief Losuje startowy ekwipunek kota z tabeli łupów.
+		 */
+		void initializeInventory(Item::Loottable& lootable, Item::LOOTTABLE_TYPE lootable_type) const;
 
-        void onInteract(Entity& instigator) override;
+		/** @brief Obsługuje oddanie ryby i zakończenie questu kota. */
+		void onInteract(Entity& instigator) override;
+		void onInteractionCompleted(Entity& instigator, Core::Engine& engine) override;
 
-        void update(float delta_time) override;
-        void render(float offset_x, float offset_y) override;
-        float getInteractionRange() override;
+		/** @brief Aktualizuje bazowy stan NPC. */
+		void update(float delta_time) override;
 
-        Item::Backpack* getInventory() override { return _inventory.get(); }
-        void addItem(const std::shared_ptr<Item::Item>& item) const {
-            _inventory->addItem(item);
-        }
+		/** @brief Renderuje model kota. */
+		void render(const Camera3D& camera) override;
 
-        [[nodiscard]] const Game::DialogueTree& getDialogueTree() const { return _dialogueTree; }
-        void setDialogue(const Game::DialogueTree& dialogue) { _dialogueTree = dialogue; }
-        
+		/** @brief Zwraca zasięg interakcji z kotem. */
+		float getInteractionRange() override;
 
+		/** @brief Udostępnia ekwipunek kota. */
+		Item::Backpack* getInventory() override;
 
-        using InteractiveClickable::canInteract;
-        bool canInteract() const override {
-            if (_quest_completed) return false;
-            return InteractiveClickable::canInteract();
-        }
+		/** @brief Dodaje przedmiot do ekwipunku kota. */
+		void addItem(const std::shared_ptr<Item::Item>& item) const;
 
-    private:
-        bool _isOpen = false;
-        bool _quest_completed = false;
+		/** @brief Zwraca drzewo dialogowe przypisane do kota. */
+		[[nodiscard]] const Game::DialogueTree& getDialogueTree() const { return _dialogue_tree; }
 
-        std::unique_ptr<Item::Backpack> _inventory;
-        static constexpr int _inv_size = 5;
-        Game::DialogueTree _dialogueTree;
-    };
+		/** @brief Podmienia drzewo dialogowe kota. */
+		void setDialogue(const Game::DialogueTree& dialogue) { _dialogue_tree = dialogue; }
+		void setOpen(bool open) { _is_open = open; }
+		void setQuestCompleted(bool completed) { _quest_completed = completed; }
+		[[nodiscard]] bool isOpen() const { return _is_open; }
+		[[nodiscard]] bool isQuestCompleted() const { return _quest_completed; }
 
-}
+		[[nodiscard]] nlohmann::json serializeState() const override;
+		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
+
+		using InteractiveClickable::canInteract;
+
+		/** @brief Blokuje interakcję po zakończeniu questu. */
+		bool canInteract() const override;
+
+	private:
+		bool _is_open = false;
+		bool _quest_completed = false;
+
+		std::unique_ptr<Item::Backpack> _inventory;
+		static constexpr int INVENTORY_SIZE = 5;
+		Game::DialogueTree _dialogue_tree;
+	};
+
+} // namespace Nawia::Entity

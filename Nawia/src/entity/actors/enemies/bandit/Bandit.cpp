@@ -1,57 +1,69 @@
 #include "Bandit.h"
-#include "Ability.h"
-#include "KnifeThrowAbility.h"
-#include "Collider.h"
 
+#include <Ability.h>
+#include <Collider.h>
+#include <KnifeThrowAbility.h>
+#include <Map.h>
 #include <MathUtils.h>
+#include <SoundIds.h>
+
 #include <raymath.h>
+
+#include <cmath>
 
 namespace Nawia::Entity {
 
-	Bandit::Bandit(const float x, const float y, Core::Map* map)
-		: EnemyInterface("Bandit", x, y, nullptr, 80, map)
-	{
+	Bandit::Bandit() {
 		setScale(0.015f);
 		setFaction(Faction::Enemy);
-		
-		loadModel("../assets/models/bandit_idle.glb");
-		addAnimation("idle", "../assets/models/bandit_idle.glb");
-		addAnimation("walk", "../assets/models/bandit_walk_backwards3.glb");
-		addAnimation("throw", "../assets/models/bandit_throw.glb");
-		addAnimation("death", "../assets/models/bandit_death.glb");
-		addAnimation("get_hit", "../assets/models/bandit_hit.glb");
 
-		setCollider(std::make_unique<RectangleCollider>(this, 0.3f, 0.8f, -2.1f, -1.f));
+		loadModel("assets/models/actors/bandit/bandit_idle.glb");
+		addAnimation("idle", "assets/models/actors/bandit/bandit_idle.glb");
+		addAnimation("walk", "assets/models/actors/bandit/bandit_walk_backwards3.glb");
+		addAnimation("throw", "assets/models/actors/bandit/bandit_throw.glb");
+		addAnimation("death", "assets/models/actors/bandit/bandit_death.glb");
+	}
 
-		
+	void Bandit::ensureKnifeThrowAbility(Core::ResourceManager* resource_manager) {
+		setAbility(0, std::make_shared<KnifeThrowAbility>(
+			"assets/models/knife.glb",
+			0.05f,
+			nullptr,
+			nullptr,
+			180.0f,
+			resource_manager));
 	}
 
 	void Bandit::takeDamage(const int dmg)
 	{
-		if (_state == State::Dying) return;
+		if (_state == State::Casting && !_knife_thrown_this_cast)
+			_pending_interrupted_knife_throw = true;
 
-		if (_hp - dmg <= 0)
-		{
-			_hp = 1;
-			_state = State::Dying;
-			playAnimation("death", false, true, 0, true);
-			setFaction(Faction::None);
+		Entity::takeDamage(dmg);
+		
+		if (isDying()) {
+			_pending_interrupted_knife_throw = false;
+			return;
 		}
-		else
-		{
-			Entity::takeDamage(dmg);
-			
-			if (_state != State::GettingHit)
-				_state_before_hit = _state;
-			
-			_state = State::GettingHit;
-			playAnimation("get_hit", false, true, 10, true);
-			setVelocity(0, 0);
-		}
+		
+		if (_state != State::GettingHit)
+			_state_before_hit = _state;
+		
+		_state = State::GettingHit;
+		setVelocity(0, 0);
 	}
 
 	void Bandit::update(const float dt)
 	{
+		if (isDying())
+		{
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
+			Entity::update(dt);
+			return;
+		}
+
+		if (isDormant()) return;
+
 		if (_knife_cooldown_timer > 0.0f)
 			_knife_cooldown_timer -= dt;
 
@@ -68,9 +80,6 @@ namespace Nawia::Entity {
 			break;
 		case State::GettingHit:
 			handleGettingHitState(dt);
-			break;
-		case State::Dying:
-			handleDyingState(dt);
 			break;
 		}
 	}
@@ -91,7 +100,7 @@ namespace Nawia::Entity {
 	}
 
 	void Bandit::handleChasingState(const float dt) {
-		Entity::update(dt);  // Base update for animations
+		Entity::update(dt);  // Bazowa aktualizacja animacji.
 		updateAbilities(dt);
 
 		auto target = _target.lock();
@@ -100,6 +109,7 @@ namespace Nawia::Entity {
 			playAnimation("idle");
 			setVelocity(0, 0);
 			_is_moving = false;
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
 		}
 
@@ -110,52 +120,56 @@ namespace Nawia::Entity {
 			playAnimation("idle");
 			setVelocity(0, 0);
 			_is_moving = false;
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
 		}
 
-		// Ready to throw knife?
+		// Sprawdzenie gotowości rzutu nożem.
 		if (dist <= ATTACK_RANGE && _knife_cooldown_timer <= 0.0f) {
 			if (const auto knife = getAbility(0)) {
-				if (knife->isReady()) {
-					_state = State::Casting;
-					_knife_thrown_this_cast = false;  // reset flag for new cast
-					setAnimationSpeed(1.5f);
-					playAnimation("throw", false, true);
-					rotateTowards(target->getX(), target->getY());
-					setVelocity(0, 0);
-					_is_moving = false;
-					return;
-				}
+				_state = State::Casting;
+				_knife_thrown_this_cast = false;  // Reset flagi dla nowej sekwencji rzutu.
+				_pending_interrupted_knife_throw = false;
+				setAnimationSpeed(THROW_ANIMATION_SPEED);
+				playAnimation("throw", false, true);
+				rotateTowards(target->getX(), target->getY());
+				setVelocity(0, 0);
+				_is_moving = false;
+				updateMovementSound(Audio::SoundPath::Footsteps, false);
+				return;
 			}
 		}
 
-		const Vector2 my_pos = getCollider() ? getCollider()->getPosition() : _pos;
-		const Vector2 target_pos = target->getCollider() ? target->getCollider()->getPosition() : target->getCenter();
+		const Vector2 my_pos = getCenter();
+		const Vector2 target_pos = target->getCenter();
 		
 		setMovementSpeed(SPEED);
 		
-		// Too close - retreat using pathfinding
+		// Cel jest za blisko, więc bandyta wycofuje się z użyciem wyznaczania ścieżki.
 		if (dist < MIN_DISTANCE) 
 		{
 			_path_recalc_timer -= dt;
 			
 			if (_path_recalc_timer <= 0.0f || !_is_moving || !_is_retreating) 
 			{
-				// Find a retreat point - 3 tiles away from player, opposite direction
+				// Punkt odwrotu leży kilka jednostek od celu w przeciwnym kierunku.
 				const Vector2 away_dir = Vector2Normalize(Vector2Subtract(my_pos, target_pos));
 				constexpr float retreat_dist = 3.0f;
 				
-				// Try to find a walkable retreat point
+				// Najpierw próbujemy znaleźć punkt odwrotu, po którym da się chodzić.
 				Vector2 retreat_point = { my_pos.x + away_dir.x * retreat_dist, my_pos.y + away_dir.y * retreat_dist };
 				
-				// If not walkable, try smaller distances or angles
+				// Jeśli punkt jest zablokowany, próbujemy alternatywnych kątów.
 				if (_map && !_map->isWalkable(retreat_point.x, retreat_point.y))
 				{
-					// Try 45 degree offsets
+					// Odchylenia o około 45 i 90 stopni zwiększają szansę znalezienia obejścia.
 					for (const float angle_offset : { 0.785f, -0.785f, 1.57f, -1.57f }) 
 					{
 						const float angle = std::atan2(away_dir.y, away_dir.x) + angle_offset;
-						retreat_point = { my_pos.x + std::cos(angle) * retreat_dist, my_pos.y + std::sin(angle) * retreat_dist };
+						retreat_point = {
+							my_pos.x + static_cast<float>(std::cos(angle)) * retreat_dist,
+							my_pos.y + static_cast<float>(std::sin(angle)) * retreat_dist
+						};
 						if (_map->isWalkable(retreat_point.x, retreat_point.y)) break;
 					}
 				}
@@ -167,9 +181,10 @@ namespace Nawia::Entity {
 			
 			playAnimation("walk");
 			updateMovement(dt);
-			rotateTowards(target->getX(), target->getY());  // Face target while retreating
+			updateMovementSound(Audio::SoundPath::Footsteps, _is_moving, 0.42f, 1.08f);
+			rotateTowards(target->getX(), target->getY());  // Podczas odwrotu nadal patrzymy na cel.
 		}
-		// Too far - approach using pathfinding
+		// Cel jest za daleko, więc bandyta podchodzi.
 		else if (dist > ATTACK_RANGE) 
 		{
 			_path_recalc_timer -= dt;
@@ -183,13 +198,15 @@ namespace Nawia::Entity {
 			
 			playAnimation("walk");
 			updateMovement(dt);
+			updateMovementSound(Audio::SoundPath::Footsteps, _is_moving, 0.42f, 1.08f);
 		}
-		// In sweet spot - stand and face target
+		// Dystans jest dobry, więc bandyta stoi i celuje.
 		else 
 		{
 			playAnimation("idle");
 			_is_moving = false;
 			_is_retreating = false;
+			updateMovementSound(Audio::SoundPath::Footsteps, false);
 		}
 		
 		rotateTowards(target->getX(), target->getY());
@@ -200,14 +217,16 @@ namespace Nawia::Entity {
 		Entity::update(dt);
 		updateAbilities(dt);
 
-		// keep rotating towards player during cast animation
+		// Podczas animacji rzutu bandyta dalej obraca się w stronę celu.
 		if (auto target = _target.lock())
 		{
 			rotateTowards(target->getX(), target->getY());
 		}
 
-		// throw knife once during animation (at frame 60)
-		if (_anim_frame_counter > 60 && !_knife_thrown_this_cast)
+		// Nóż rzucamy tylko raz, w konkretnej fazie animacji.
+		const int throw_frame_count = getAnimationFrameCount("throw");
+		const float throw_frame = static_cast<float>(throw_frame_count) * THROW_SPAWN_FRAME_RATIO;
+		if (!_knife_thrown_this_cast && throw_frame_count > 0 && _anim_frame_counter >= throw_frame)
 		{
 			if (const auto knife = getAbility(0))
 			{
@@ -218,9 +237,9 @@ namespace Nawia::Entity {
 
 					if (auto effect = knife->cast(tx, ty))
 					{
-						addPendingSpawn(std::move(effect));
+						addPendingSpawn(effect);
 						_knife_cooldown_timer = KNIFE_COOLDOWN;
-						_knife_thrown_this_cast = true;  // mark as thrown for this cast
+						_knife_thrown_this_cast = true;  // Oznaczamy rzut wykonany w tym caście.
 					}
 				}
 			}
@@ -228,9 +247,37 @@ namespace Nawia::Entity {
 		
 		if (!isAnimationLocked())
 		{
+			if (!_knife_thrown_this_cast)
+				tryThrowKnifeAtTarget();
+
+			setAnimationSpeed(1.0f);
 			_state = State::Chasing;
 			playAnimation("walk");
 		}
+	}
+
+	bool Bandit::tryThrowKnifeAtTarget()
+	{
+		if (_knife_thrown_this_cast)
+			return true;
+
+		const auto knife = getAbility(0);
+		const auto target = _target.lock();
+		if (!knife || !target || target->isDead())
+			return false;
+
+		const float tx = target->getCenter().x;
+		const float ty = target->getCenter().y;
+
+		if (auto effect = knife->cast(tx, ty))
+		{
+			addPendingSpawn(effect);
+			_knife_cooldown_timer = KNIFE_COOLDOWN;
+			_knife_thrown_this_cast = true;
+			return true;
+		}
+
+		return false;
 	}
 
 	void Bandit::handleGettingHitState(const float dt)
@@ -239,31 +286,38 @@ namespace Nawia::Entity {
 		
 		if (!isAnimationLocked())
 		{
+			if (_pending_interrupted_knife_throw) {
+				tryThrowKnifeAtTarget();
+				_pending_interrupted_knife_throw = false;
+			}
+
 			_state = _state_before_hit;
 			
 			switch (_state)
 			{
 			case State::Idle:
+				setAnimationSpeed(1.0f);
 				playAnimation("idle");
 				break;
 			case State::Chasing:
 			case State::Casting:
-				
+				_state = State::Chasing;
+				setAnimationSpeed(1.0f);
+				playAnimation("walk");
+				break;
 			default:
+				_state = State::Chasing;
+				setAnimationSpeed(1.0f);
 				playAnimation("idle");
 				break;
 			}
 		}
 	}
 
-	void Bandit::handleDyingState(const float dt)
+	void Bandit::onDeathStarted()
 	{
-		Entity::update(dt);
-		
-		if (!isAnimationLocked())
-		{
-			_hp = 0;
-		}
+		updateMovementSound(Audio::SoundPath::Footsteps, false);
+		playSoundEffect(Audio::SoundId::HumanDeath, 0.85f);
 	}
 
 } // namespace Nawia::Entity

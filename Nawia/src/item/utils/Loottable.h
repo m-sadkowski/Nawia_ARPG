@@ -1,35 +1,56 @@
 #pragma once
+
+#include <Item.h>
+
 #include <map>
-#include <vector>
-#include <string>
 #include <memory>
-#include "Item.h"
+#include <string>
+#include <vector>
 
 namespace Nawia::Item {
 
-	class ItemDatabase;
+    class ItemDatabase;
 
-	enum class LOOTTABLE_TYPE 
-	{
-		CAT,
-		CHEST_NOOB,
-		CHEST_BAD,
-		CHEST_GOOD
-	};
+    /**
+     * @enum LOOTTABLE_TYPE
+     * @brief Typ tabeli lootu uzywanej przez skrzynie i NPC.
+     */
+    enum class LOOTTABLE_TYPE {
+        CAT,
+        CHEST_NOOB,
+        CHEST_BAD,
+        CHEST_GOOD
+    };
 
-	struct LootEntry 
-	{
-		std::shared_ptr<Item> _item;
-		float _chance;
-	};
+    /**
+     * @struct LootEntry
+     * @brief Jeden wpis lootu z template'em przedmiotu i szansa wylosowania.
+     */
+    struct LootEntry {
+        std::shared_ptr<Item> _item;
+        float _chance = 0.0f;
+    };
 
-	class Loottable {
-	public:
-		bool loadLootTables(const std::string& filename, ItemDatabase& item_db);
+    /**
+     * @class Loottable
+     * @brief Wczytuje tabele lootu i przechowuje template'y przedmiotow.
+     */
+    class Loottable {
+    public:
+        /**
+         * @brief Wczytuje tabele lootu z JSON.
+         */
+        bool loadLootTables(const std::string& filename, ItemDatabase& item_database);
 
-		std::vector<LootEntry> getLootTable(LOOTTABLE_TYPE loot_table);
-	private:
-		// stores item TEMPLATES, use item->clone to create a new item
-		std::map<LOOTTABLE_TYPE, std::vector<LootEntry>> _loot_tables;
-	};
-}
+        /**
+         * @brief Zwraca wpisy dla wybranej tabeli.
+         */
+        std::vector<LootEntry> getLootTable(LOOTTABLE_TYPE loot_table);
+
+        void clear() { _loot_tables.clear(); }
+
+    private:
+        std::map<LOOTTABLE_TYPE, std::vector<LootEntry>> _loot_tables;
+    };
+
+} // namespace Nawia::Item

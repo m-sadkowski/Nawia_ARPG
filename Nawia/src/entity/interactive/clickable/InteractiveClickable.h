@@ -1,22 +1,33 @@
 #pragma once
-#include "Entity.h"
-#include "Interactable.h"
-#include "Backpack.h"
 
-namespace Nawia::Entity{
-    class InteractiveClickable : public Entity, public Interactable {
-        
-        
-    public:
-        using Entity::Entity;
+#include <Entity.h>
+#include <Interactable.h>
 
-        // Pusta implementacja triggera, bo w te obiekty si� klika
-        void onTriggerEnter(Nawia::Entity::Entity& other) override {}
-
-        // onInteract pozostaje czysto wirtualne do zrobienia w np. Chest.cpp
-
-        virtual Item::Backpack* getInventory() { return nullptr; }
-    };
-	
+namespace Nawia::Item {
+	class Backpack;
 }
 
+namespace Nawia::Entity {
+
+	/**
+	 * @class InteractiveClickable
+	 * @brief Baza obiektów obsługiwanych kliknięciem zamiast wejściem w trigger.
+	 */
+	class InteractiveClickable : public Entity, public Interactable {
+	public:
+		using Entity::Entity;
+
+		/**
+		 * @brief Klikalne obiekty ignorują wejście w trigger.
+		 */
+		void onTriggerEnter(Nawia::Entity::Entity& other) override {}
+
+		/**
+		 * @brief Zwraca ekwipunek obiektu, jeśli dany obiekt go udostępnia.
+		 */
+		virtual Item::Backpack* getInventory() { return nullptr; }
+
+		void onInteractionCompleted(Entity& instigator, Core::Engine& engine) override;
+	};
+
+} // namespace Nawia::Entity

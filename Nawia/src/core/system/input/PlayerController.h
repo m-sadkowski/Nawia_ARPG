@@ -1,54 +1,86 @@
 #pragma once
-#include <Player.h>
 
 #include <raylib.h>
+
 #include <memory>
+#include <vector>
 
-#include "Interactable.h"
-
+namespace Nawia::Entity {
+	class Entity;
+	class Interactable;
+	class Player;
+}
 
 namespace Nawia::Core {
 
 	class Engine;
 
+	/**
+	 * @class PlayerController
+	 * @brief Tlumaczy input gracza na ruch, interakcje i uzycie umiejetnosci.
+	 *
+	 * Kontroler nie posiada silnika, dlatego `_engine` jest surowym wskaznikiem
+	 * nieposiadajacym. Gracz jest wspoldzielony z Engine i EntityManagerem.
+	 */
 	class PlayerController {
 	public:
-		PlayerController(Engine *engine, std::shared_ptr<Entity::Player> player);
+		PlayerController(Engine* engine, std::shared_ptr<Entity::Player> player);
 
-		void handleInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
+		/**
+		 * @brief Obsluguje input myszy i klawiatury dla aktualnej pozycji kursora.
+		 */
+		void handleInput(Vector3 mouse_world_pos, float screen_x, float screen_y);
+		void handleInteractionOnly(Vector3 mouse_world_pos, float screen_x, float screen_y);
+
+		/**
+		 * @brief Aktualizuje akcje oczekujace, autoatak i ruch po sciezce.
+		 */
 		void update(float dt);
-		
+
+		/**
+		 * @brief Kasuje aktualny rozkaz ruchu, ataku lub interakcji.
+		 */
+		void stopCurrentAction();
+
 	private:
-		Engine* _engine;
-		std::shared_ptr<Entity::Player> _player;
-		std::shared_ptr<Entity::Entity> _target_enemy;
-		std::shared_ptr<Entity::Interactable> _target_interactable;
-		void useAbility(int index, float target_x, float target_y) const;
-
-		void handleMouseInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
-		void handleKeyboardInput(float mouse_world_x, float mouse_world_y, float screen_x, float screen_y);
-		void processPendingAction();
-		void processAutoAttack();
-		bool processInteraction();
-		void updateRotation() const;
-
-		bool trySelectEnemy(float screen_x, float screen_y);
-		void handleGroundClick(float x, float y);
-		void queueAbility(int index, float x, float y, float screen_x, float screen_y);
-		void castAbility(int index, float x, float y, float screen_x, float screen_y);
-		void processPendingMove();
-		void processPendingAbility() const;
-		void updateCombatMovement(float dist_sq, float attack_range) const;
-
-		struct PendingAction 
-		{
+		struct PendingAction {
 			enum class Type { None, Move, Ability, Interact } type = Type::None;
 			float x = 0.0f;
 			float y = 0.0f;
+			float world_height = 0.0f;
 			int ability_index = -1;
 			std::weak_ptr<Entity::Entity> target;
 		};
 
+		void useAbility(int index, float target_x, float target_y) const;
+
+		void handleMouseInput(Vector3 mouse_world_pos, float screen_x, float screen_y);
+		void handleKeyboardInput(Vector3 mouse_world_pos, float screen_x, float screen_y);
+		void processPendingAction();
+		void processAutoAttack();
+		bool processInteraction();
+		bool moveToInteractionRange(const std::shared_ptr<Entity::Entity>& target, float interaction_range_sq);
+		bool performInteraction();
+		void updateRotation() const;
+
+		bool trySelectEnemy(const std::shared_ptr<Entity::Entity>& entity);
+		void handleGroundClick(Vector3 pos);
+		void queueAbility(int index, float x, float y, float screen_x, float screen_y);
+		void castAbility(int index, float x, float y, float screen_x, float screen_y);
+		void processPendingMove();
+		void processPendingAbility() const;
+		void updateCombatMovement(float dist_sq, float attack_range);
+		void updatePathMovement();
+		bool moveTowardInteractable(const std::shared_ptr<Entity::Entity>& target, float interaction_range_sq);
+		bool buildPathToWorldPosition(Vector3 desired_world_position);
+		void trimCurrentPathStart();
+		void moveAlongCurrentPath();
+
+		Engine* _engine = nullptr;
+		std::shared_ptr<Entity::Player> _player;
+		std::shared_ptr<Entity::Entity> _target_enemy;
+		std::shared_ptr<Entity::Interactable> _target_interactable;
+		std::vector<Vector2> _current_path;
 		PendingAction _pending_action;
 		float _last_mouse_x = 0.0f;
 		float _last_mouse_y = 0.0f;

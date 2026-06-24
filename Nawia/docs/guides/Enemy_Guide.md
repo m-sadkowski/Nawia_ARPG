@@ -1,119 +1,203 @@
-# Przewodnik po klasie Enemy
+# Przewodnik po Enemy i Ally
 
-Przeciwnicy w grze dziedziczą po klasie `Nawia::Entity::EnemyInterface`, która sama jest rozszerzeniem `Entity`.
+Ten dokument opisuje jednostki bojowe: wrogow, sojusznikow, wspolny `ActorInterface` i aktualny model targetowania.
 
-## Struktura Przeciwnika
+## Hierarchia
 
-Enemy Interface zapewnia dostęp do obiektu mapy (`Core::Map*`), co jest kluczowe dla nawigacji i AI.
+Jednostki bojowe opieraja sie o:
 
-### Podstawowy szkielet
+- `Entity` - baza wszystkich obiektow swiata,
+- `ActorInterface` - wspolna baza actorow z mapa i targetem,
+- `EnemyInterface` - specjalizacja wrogow,
+- `AllyInterface` - specjalizacja sojusznikow,
+- `AllyBrain` - opcjonalny obiekt decyzyjny dla ally.
+
+`ActorInterface` przechowuje `_map` i `_target`, dzieki czemu enemy i ally nie duplikuja tej samej infrastruktury.
+
+## Targetowanie
+
+Cele sa odswiezane centralnie przez `EntityManager::refreshCombatTargets()`:
+
+- enemy wybiera najblizszego `Player` albo `Ally`,
+- ally wybiera najblizszego `Enemy`.
+
+Typowa klasa enemy/ally nie musi recznie wyszukiwac celu. Powinna tylko reagowac na:
+
+- brak celu,
+- cel poza zasiegiem,
+- cel w zasiegu ability,
+- animacje ataku albo hit react.
+
+Nietypowy priorytet celu mozna zrobic lokalnie w klasie albo w przyszlym brainie.
+
+## Nowy enemy
+
+Standardowy wzorzec:
+
+1. Klasa dziedziczy po `EnemyInterface`.
+2. Ma prywatny konstruktor.
+3. Ma builder.
+4. `update()` obsluguje stany.
+5. Typ jest dodany w `EntityFactory`.
+
+Szkielet:
 
 ```cpp
-#include "EnemyInterface.h"
-#include "Collider.h" // Poprawny include
+class Orc : public EnemyInterface {
+public:
+	void update(float dt) override;
+	void takeDamage(int dmg) override;
 
-namespace Nawia::Entity {
+private:
+	Orc();
+	friend class OrcBuilder;
 
-    class Goblin : public EnemyInterface {
-    public:
-        Goblin(float x, float y, Core::Map* map)
-            : EnemyInterface("Goblin", x, y, nullptr, 50, map) // 50 HP
-        {
-            // Ładowanie modelu
-            loadModel("assets/models/goblin.glb");
-            addAnimation("idle", "assets/animations/goblin_idle.glb");
-            addAnimation("walk", "assets/animations/goblin_walk.glb");
-            addAnimation("attack", "assets/animations/goblin_attack.glb");
-            
-            // Collider
-            // Ustawiamy lekki offset w górę (-10), żeby collider obejmował tułów/nogi, a nie tylko stopy.
-            // Sprawdź w trybie debug (Entity::DebugColliders = true) czy pasuje!
-            setCollider(std::make_unique<CircleCollider>(this, 15.0f, 0.0f, -10.0f));
+	enum class State { Idle, Chasing, Attacking, GettingHit };
+	State _state = State::Idle;
+};
+```
 
-            // Frakcja (ważne!)
-            setFaction(Faction::Enemy);
-            
-            // Startowa animacja
-            playAnimation("idle");
-        }
+W konstruktorze ustaw zwykle:
 
-        void update(float dt) override;
-        
-    private:
-        enum class State { Idle, Chasing, Attacking };
-        State _state = State::Idle;
-        std::shared_ptr<Entity> _target; // Gracz
-    };
+- frakcje `Faction::Enemy`,
+- model, animacje i skale,
+- HP,
+- opcjonalny collider,
+- opcjonalne ability.
+
+## Nowy ally
+
+Ally dziala analogicznie, ale:
+
+- ma `Faction::Ally`,
+- walczy po stronie gracza,
+- moze delegowac decyzje do `AllyBrain`.
+
+Aktualny wzorzec to `Friend`, ktory ma `SwordSlashAbility` i prosty fallback bez braina.
+
+## Czarownica
+
+`Witch` to dystansowy enemy dla Czarownicy. Uzywa modelu
+`assets/models/actors/witch/witch.glb` i indeksowanych animacji:
+
+- `death`: 0,
+- `get_hit`: 2,
+- `idle`: 5,
+- `bolt`: 7,
+- `summon`: 10,
+- `run`: 16.
+
+Walka:
+
+- stara sie utrzymac dystans od celu,
+- strzela malym fireballem jako placeholder pioruna,
+- po trafieniu odgrywa hit, a potem kontruje: powala gracza i przywoluje
+  `WalkingDead`.
+
+JSON spawnera:
+
+```json
+{
+    "type": "witch",
+    "name": "Czarownica",
+    "hp": 160
 }
 ```
 
-## Implementacja AI (Metoda Update)
-W metodzie `update` należy zaimplementować maszynę stanów.
+## Typowy `update`
 
 ```cpp
-void Goblin::update(float dt) {
-    EnemyInterface::update(dt); // Obsługa fizyki i animacji
+void MyUnit::update(const float dt)
+{
+	if (isDying()) {
+		Entity::update(dt);
+		return;
+	}
 
-    // Przykład prostej logiki
-    if (!_target) {
-        // ...znajdź gracza...
-        return;
-    }
+	if (isDormant())
+		return;
 
-    // Używamy getCenter() dla precyzji:
-    Vector2 myPos = getCollider() ? getCollider()->getCenter() : _pos;
-    Vector2 targetPos = _target->getCollider() ? _target->getCollider()->getCenter() : _target->getPosition();
+	Entity::update(dt);
+	updateAbilities(dt);
 
-    float dist = Vector2Distance(myPos, targetPos);
+	if (!hasValidTarget()) {
+		playAnimation("idle");
+		return;
+	}
 
-    switch (_state) {
-        case State::Idle:
-            if (dist < 300.0f) {
-                _state = State::Chasing;
-                playAnimation("walk");
-            }
-            break;
+	const float distance = getDistanceToTarget();
+	const Vector2 target_pos = getTargetPosition();
 
-        case State::Chasing:
-            if (dist < 50.0f) {
-                _state = State::Attacking;
-                playAnimation("attack", false, true); // Lock movement
-                setVelocity(0, 0); // Zatrzymaj się
-            } else {
-                // Ruch w stronę gracza
-                rotateTowards(_target->getX(), _target->getY());
-                
-                // Prosty ruch (bez pathfindingu)
-                Vector2 dir = Vector2Normalize(Vector2Subtract(targetPos, myPos));
-                setVelocity(dir.x * 100.0f, dir.y * 100.0f);
-            }
-            break;
-
-        case State::Attacking:
-            if (!isAnimationLocked()) { 
-                // Animacja ataku się skończyła (lock movement puszcza)
-                if (dist < 60.0f) _target->takeDamage(10);
-                
-                _state = State::Idle;
-                playAnimation("idle");
-            }
-            break;
-    }
+	if (distance <= ATTACK_RANGE) {
+		rotateTowardsCenter(target_pos.x, target_pos.y);
+		// cast ability albo zmiana stanu
+	} else {
+		moveTo(target_pos.x, target_pos.y);
+		updateMovement(dt);
+	}
 }
 ```
 
-## Ważne Metody i Pola
+## `takeDamage`
 
-### `_map`
-Wskaźnik na `Core::Map`. Użyj go, aby sprawdzać kolizje ze ścianami lub szukać ścieżki.
+Gdy jednostka ma reakcje na trafienie, nadpisz `takeDamage(...)`:
 
-### `takeDamage(int dmg)`
-Działa standardowo jak w Entity. Możesz nadpisać, aby dodać logikę aggro (zacznij gonić tego, kto cię uderzył) lub efektów (krew, odrzut).
+```cpp
+void MyEnemy::takeDamage(const int damage)
+{
+	Entity::takeDamage(damage);
+	if (isDying())
+		return;
 
-### `setCollider`
-Pamiętaj o colliderze, inaczej gracz będzie przenikał przez przeciwnika, a ataki nie będą wchodzić.
+	_state = State::GettingHit;
+	playAnimation("get_hit", false, true, 10, true);
+	setVelocity(0, 0);
+}
+```
 
-## Tekstury i Animacje
-Używaj `loadModel` i `playAnimation`. 
-- Pamiętaj o ustawieniu flagi `loop = false` dla animacji jednorazowych (atak, śmierć).
-- Użyj `lock_movement = true` dla ataków, żeby postać nie "ślizgała się" podczas machania mieczem.
+Najpierw zawsze wywolaj bazowe obrazenia, potem specjalna reakcje.
+
+`Witch` jest wyjatkiem w sekwencji smierci: po animacji `death` zostaje
+zamrozona na ostatniej klatce, zeby dialog po zwyciestwie pokazywal lezace
+cialo. BossManager ukrywa encje dopiero po zamknieciu dialogu zwyciestwa.
+
+## Ruch i mapy
+
+`ActorInterface` daje dostep do `Map`, czyli mozna sprawdzac walkability i uzywac pathfindingu.
+
+Do zwyklego chase czesto wystarcza:
+
+- `moveTo(...)`,
+- `updateMovement(dt)`,
+- `chaseTarget(dt)`.
+
+Do decyzji bojowych i projectile uzywaj `getCenter()`, a nie tylko `getX()/getY()`.
+
+## JSON i factory
+
+Jednostki tworzy `EntityFactory`, a dane przychodza z `assets/data/locations/objects_*.json`.
+
+Przyklad:
+
+```json
+{
+    "location": "Demo Arena",
+    "type": "bandit",
+    "name": "Bandyta",
+    "x": 15.9,
+    "y": 12.6,
+    "hp": 80,
+    "trigger_radius": 15.0,
+    "abilities": ["KnifeThrow"]
+}
+```
+
+Factory sklada obiekt i podpina assety. AI ma zostac w klasie aktora albo brainie.
+
+## Dobre praktyki
+
+- Nie duplikuj wyszukiwania celu w kazdej klasie.
+- Dla ally najpierw sprawdz, czy wystarczy fallback, a dopiero potem dodawaj brain.
+- Collider jednostki nie zastepuje collidera efektu ataku.
+- Stan animacji i stan AI trzymaj jawnie, gdy logika robi sie wieksza.
+- Nie mieszaj respawnu, lokacji i AI w jednej klasie.

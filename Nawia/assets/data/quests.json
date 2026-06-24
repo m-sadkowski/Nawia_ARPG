@@ -1,0 +1,473 @@
+{
+  "quests": [
+    {
+      "id": "talk_to_cat",
+      "name": "Spotkanie z Olga",
+      "description": "Idz pogadac z Kotem Olga. Moze potrzebuje pomocy?",
+      "level_name": "Demo",
+      "prerequisites": [],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Kot Olga",
+          "count": 1,
+          "description": "Porozmawiaj z Kotem Olga"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 50
+      }
+    },
+    {
+      "id": "get_fish",
+      "name": "Rybka ze skrzyni",
+      "description": "Olga potrzebuje rybki. Znajdz ja w skrzyni diabla.",
+      "level_name": "Demo",
+      "prerequisites": ["talk_to_cat"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "collect_item",
+          "item_id": 6,
+          "count": 1,
+          "description": "Wez rybe ze skrzyni"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 100
+      }
+    },
+    {
+      "id": "deliver_fish",
+      "name": "Rybka dla Olgi",
+      "description": "Zanies rybe do Kota Olgi.",
+      "level_name": "Demo",
+      "prerequisites": ["get_fish"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "deliver_item",
+          "item_id": 6,
+          "target_npc": "Kot Olga",
+          "count": 1,
+          "description": "Daj rybe Kotu Olga"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 50,
+        "exp": 250
+      }
+    },
+    {
+      "id": "kill_devil",
+      "name": "Pogromca Diabla",
+      "description": "Pokonaj diabla strzegacego skrzyni z rybka.",
+      "level_name": "Demo",
+      "prerequisites": [],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Devil",
+          "count": 1,
+          "description": "Zabij Diabla"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 100,
+        "exp": 1100
+      }
+    },
+    {
+      "id": "inspect_wanda_body",
+      "name": "Sprawdz zwloki kobiety",
+      "description": "Podejdz do ciala lezacego nieopodal i sprawdz, kim byla ofiara.",
+      "level_name": "Wczora",
+      "prerequisites": [],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Zwloki Wandy",
+          "count": 1,
+          "description": "Sprawdz zwloki kobiety"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 0
+      }
+    },
+    {
+      "id": "gzib_talk_intro",
+      "name": "Porozmawiaj z Gzibem",
+      "description": "Znajdz Gziba i dowiedz sie, co stalo sie z jego bracmi.",
+      "level_name": "Wczora",
+      "prerequisites": [],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Gzib",
+          "count": 1,
+          "description": "Porozmawiaj z Gzibem"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 50
+      }
+    },
+    {
+      "id": "gzib_follow",
+      "name": "Podazaj za Gzibem",
+      "description": "Podazaj za Gzibem do miejsca, w ktorym czekaja jego zainfekowani bracia.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_talk_intro"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "Checkpoint Gziba",
+          "count": 1,
+          "description": "Dotrzyj za Gzibem na miejsce"
+        },
+        {
+          "type": "talk_to_npc",
+          "target_name": "Gzib",
+          "count": 1,
+          "description": "Porozmawiaj z Gzibem na miejscu"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 100
+      }
+    },
+    {
+      "id": "gzib_rescue_brothers",
+      "name": "Uratuj Gzibkow",
+      "description": "Pokonaj robale, ktore zatruwaja Gzibki.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_follow"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Robal",
+          "count": 5,
+          "description": "Zabij robale"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 300
+      }
+    },
+    {
+      "id": "gzib_report_brothers",
+      "name": "Powiadom Gziba o jego braciach",
+      "description": "Wroc do Gziba i powiedz mu, ze Gzibki sa bezpieczne.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_rescue_brothers"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Gzib",
+          "count": 1,
+          "description": "Powiadom Gziba"
+        }
+      ],
+      "rewards": {
+        "items": [13],
+        "gold": 0,
+        "exp": 200
+      }
+    },
+    {
+      "id": "find_ropuch",
+      "name": "Znajdz Ropucha",
+      "description": "Idz w strone sadzawki i znajdz legowisko Ropucha.",
+      "level_name": "Wczora",
+      "prerequisites": ["gzib_report_brothers"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "Ropuch Trigger",
+          "count": 1,
+          "description": "Znajdz legowisko Ropucha"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 150
+      }
+    },
+    {
+      "id": "recover_scarf",
+      "name": "Odzyskaj chuste",
+      "description": "Pokonaj Ropucha i odzyskaj chuste ukochanej.",
+      "level_name": "Wczora",
+      "prerequisites": ["find_ropuch"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Frog",
+          "count": 1,
+          "description": "Zabij Ropucha"
+        }
+      ],
+      "rewards": {
+        "items": [14],
+        "gold": 0,
+        "exp": 650
+      }
+    },
+    {
+      "id": "rescue_cemetery_survivors",
+      "name": "Ocaleni z cmentarza",
+      "description": "Znajdz dwoje mieszkancow ukrywajacych sie przy cmentarzu i odeslij ich do chaty zielarza.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "cemetery_survivors_arrived",
+          "count": 1,
+          "description": "Odeslij ocalonych z cmentarza do chaty zielarza"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
+    },
+    {
+      "id": "talk_to_village_head_after_ropuch",
+      "name": "Porozmawiaj z Soltysem",
+      "description": "Porozmawiaj z Soltysem po odzyskaniu chusty Mileny.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Soltys",
+          "count": 1,
+          "description": "Porozmawiaj z Soltysem"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 100
+      }
+    },
+    {
+      "id": "rescue_forest_survivors",
+      "name": "Zagubieni w lesie",
+      "description": "Znajdz troje ludzi zagubionych w lesie i pomoz im dotrzec do chaty zielarza.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "forest_lost_group_arrived",
+          "count": 1,
+          "description": "Doprowadz zagubiona grupe do chaty zielarza"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
+    },
+    {
+      "id": "enter_nawia_threshold",
+      "name": "Przedsionek Nawii",
+      "description": "Porozmawiaj z Czarownica i przejdz przez mgle do Przedsionka Nawii.",
+      "level_name": "Wczora",
+      "prerequisites": ["recover_scarf"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "witch_to_nawia",
+          "count": 1,
+          "description": "Wejdz do Przedsionka Nawii"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 150
+      }
+    },
+    {
+      "id": "defeat_bies",
+      "name": "Bies w mgle",
+      "description": "Pokonaj Biesa strzegacego Przedsionka Nawii.",
+      "level_name": "Wczora",
+      "prerequisites": ["enter_nawia_threshold"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Devil",
+          "count": 1,
+          "description": "Pokonaj Biesa"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 500
+      }
+    },
+    {
+      "id": "return_to_witch_after_bies",
+      "name": "Powrot z Nawii",
+      "description": "Wroc do Czarownicy po pokonaniu Biesa.",
+      "level_name": "Wczora",
+      "prerequisites": ["defeat_bies"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "witch_after_bies",
+          "count": 1,
+          "description": "Porozmawiaj z Czarownica po powrocie"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 100
+      }
+    },
+    {
+      "id": "resolve_witch_truth",
+      "name": "Prawda Wiedzmy",
+      "description": "Rozpraw sie z Wiedzma albo wydobadz od niej prawde o gniewie bogow.",
+      "level_name": "Wczora",
+      "prerequisites": ["return_to_witch_after_bies"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "witch_truth_resolved",
+          "count": 1,
+          "description": "Poznaj zrodlo gniewu bogow"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
+    },
+    {
+      "id": "return_to_herbalist_final",
+      "name": "Wiesci dla ocalonych",
+      "description": "Wroc do chaty zielarza i powiedz ludziom, czego dowiedziales sie od Wiedzmy.",
+      "level_name": "Wczora",
+      "prerequisites": ["resolve_witch_truth"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "reach_checkpoint",
+          "target_name": "herbalist_final_report",
+          "count": 1,
+          "description": "Porozmawiaj z medrcem przy chacie zielarza"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 300
+      }
+    },
+    {
+      "id": "clear_spider_nest",
+      "name": "Wielki katnik",
+      "description": "Zabij wielkiego katnika, ktory urzadzil gniazdo przy zawalonym przejsciu.",
+      "level_name": "Wczora",
+      "prerequisites": ["return_to_herbalist_final"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "kill",
+          "target_name": "Straszny pajak",
+          "count": 1,
+          "description": "Zabij wielkiego katnika"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 450
+      }
+    },
+    {
+      "id": "return_to_herbalist_after_spider",
+      "name": "Wroc do Zielarza",
+      "description": "Powiedz Zielarzowi, ze katnik nie zyje i mozna odgruzowac przejscie.",
+      "level_name": "Wczora",
+      "prerequisites": ["clear_spider_nest"],
+      "auto_start": true,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Zielarz",
+          "count": 1,
+          "description": "Wroc do Zielarza"
+        }
+      ],
+      "rewards": {
+        "items": [],
+        "gold": 0,
+        "exp": 250
+      }
+    },
+    {
+      "id": "talk_to_milena_sister",
+      "name": "Siostra Mileny",
+      "description": "Porozmawiaj z siostra Mileny i dowiedz sie, co widziala podczas ucieczki.",
+      "level_name": "Wczora",
+      "prerequisites": ["return_to_herbalist_final"],
+      "auto_start": false,
+      "objectives": [
+        {
+          "type": "talk_to_npc",
+          "target_name": "Siostra Mileny",
+          "count": 1,
+          "description": "Porozmawiaj z siostra Mileny"
+        }
+      ],
+      "rewards": {
+        "items": [20],
+        "gold": 0,
+        "exp": 150
+      }
+    }
+  ]
+}

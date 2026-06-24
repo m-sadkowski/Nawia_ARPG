@@ -1,244 +1,254 @@
 #include "InventoryUI.h"
+
 #include <ResourceManager.h>
+#include <UIDefines.h>
+#include <UIRenderUtils.h>
+
 #include <string>
 
-namespace Nawia::UI {
+namespace Nawia::UI
+{
+    namespace
+    {
+        /**
+         * @brief Wlacza lagodniejsze skalowanie tekstury UI.
+         */
+        void smoothUiTexture(const std::shared_ptr<Texture2D>& texture)
+        {
+            if (!texture || texture->id <= 0)
+                return;
+
+            GenTextureMipmaps(texture.get());
+            SetTextureFilter(*texture, TEXTURE_FILTER_TRILINEAR);
+        }
+    }
 
     InventoryUI::InventoryUI() {}
 
-    void InventoryUI::loadResources(Core::ResourceManager& resourceManager) {
-        _placeholders[Item::EquipmentSlot::Head] = resourceManager.getTexture("../assets/textures/ui/slot_head.png");
-        _placeholders[Item::EquipmentSlot::Chest] = resourceManager.getTexture("../assets/textures/ui/slot_chest.png");
-        _placeholders[Item::EquipmentSlot::Legs] = resourceManager.getTexture("../assets/textures/ui/slot_legs.png");
-        _placeholders[Item::EquipmentSlot::Feet] = resourceManager.getTexture("../assets/textures/ui/slot_feet.png");
-        _placeholders[Item::EquipmentSlot::Weapon] = resourceManager.getTexture("../assets/textures/ui/slot_weapon.png");
+    void InventoryUI::loadResources(Core::ResourceManager& resource_manager)
+    {
+        _background = resource_manager.getTexture("assets/textures/ui/eq.png");
+
+        smoothUiTexture(_background);
     }
 
-    void InventoryUI::render(const Font& font, const Entity::Player& player) const {
-        const float _font_size = Core::GlobalScaling::scaled(FONT_SIZE);
-        const float _slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
-        const float _padding = Core::GlobalScaling::scaled(PADDING);
-        const float _inv_start_x = Core::GlobalScaling::scaled(INV_START_X);
-        const float _inv_start_y = Core::GlobalScaling::scaled(INV_START_Y);
-        const float _inv_width = Core::GlobalScaling::scaled(INV_WIDTH);
-        const float _inv_height = Core::GlobalScaling::scaled(INV_HEIGHT);
-        const float _text_padding_left = Core::GlobalScaling::scaled(TEXT_PADDING_LEFT);
-        const float _text_padding_top = Core::GlobalScaling::scaled(TEXT_PADDING_TOP);
-        const float _eq_width = Core::GlobalScaling::scaled(EQ_WIDTH);
-        const float _eq_start_top = Core::GlobalScaling::scaled(EQ_START_TOP);
-        const float _bp_start_top = Core::GlobalScaling::scaled(BP_START_TOP);
-        const float _gold_padding_bottom = Core::GlobalScaling::scaled(GOLD_PADDING_BOTTOM);
+    Rectangle InventoryUI::getInventoryRect() const
+    {
+        return {
+            Core::GlobalScaling::scaled(50.0f),
+            Core::GlobalScaling::scaled(50.0f),
+            Core::GlobalScaling::scaled(INV_WIDTH),
+            Core::GlobalScaling::scaled(INV_HEIGHT)
+        };
+    }
 
-        // background
-        DrawRectangle(_inv_start_x, _inv_start_y, _inv_width, _inv_height, Fade(BLACK, 0.9f));
-        DrawRectangleLines(_inv_start_x, _inv_start_y, _inv_width, _inv_height, WHITE);
+    Rectangle InventoryUI::getBackpackSlotRect(const int index) const
+    {
+        const Rectangle inventory_rect = getInventoryRect();
+        const float slot_size = inventory_rect.width * 0.072f;
+        const float slot_spacing = inventory_rect.width * 0.0075f;
+        const float backpack_x = inventory_rect.x + inventory_rect.width * 0.433f;
+        const float backpack_y = inventory_rect.y + inventory_rect.height * 0.148f;
+        const int column = index % BACKPACK_COLUMNS;
+        const int row = index / BACKPACK_COLUMNS;
 
-        DrawLine(_inv_start_x + _eq_width, _inv_start_y, _inv_start_x + _eq_width, _inv_start_y + _inv_height, WHITE);
+        return {
+            backpack_x + column * (slot_size + slot_spacing),
+            backpack_y + row * (slot_size + slot_spacing),
+            slot_size,
+            slot_size
+        };
+    }
 
-        DrawTextEx(font, "EKWIPUNEK", { _inv_start_x + _text_padding_left, _inv_start_y + _text_padding_top }, _font_size, 1.0f, WHITE);
-        DrawTextEx(font, "PLECAK", { _inv_start_x + _eq_width + _text_padding_left, _inv_start_y + _text_padding_top }, _font_size, 1.0f, WHITE);
+    Rectangle InventoryUI::getEquipmentSlotRect(const Item::EquipmentSlot slot_type) const
+    {
+        const Rectangle inventory_rect = getInventoryRect();
+        auto slot_from_texture = [&](const float texture_x, const float texture_y, const float size_ratio)
+        {
+            const float slot_size = inventory_rect.width * size_ratio;
+            return Rectangle{
+                inventory_rect.x + inventory_rect.width * texture_x,
+                inventory_rect.y + inventory_rect.height * texture_y,
+                slot_size,
+                slot_size
+            };
+        };
+
+        switch (slot_type)
+        {
+            case Item::EquipmentSlot::Head:
+                return slot_from_texture(0.150f, 0.138f, 0.070f);
+            case Item::EquipmentSlot::Neck:
+                return slot_from_texture(0.254f, 0.176f, 0.046f);
+            case Item::EquipmentSlot::Chest:
+                return slot_from_texture(0.150f, 0.278f, 0.070f);
+            case Item::EquipmentSlot::Legs:
+                return slot_from_texture(0.150f, 0.420f, 0.070f);
+            case Item::EquipmentSlot::Feet:
+                return slot_from_texture(0.150f, 0.560f, 0.070f);
+            case Item::EquipmentSlot::Weapon:
+                return slot_from_texture(0.150f, 0.700f, 0.070f);
+            case Item::EquipmentSlot::OffHand:
+                return slot_from_texture(0.310f, 0.176f, 0.053f);
+            case Item::EquipmentSlot::Ring:
+                return slot_from_texture(0.254f, 0.313f, 0.046f);
+            case Item::EquipmentSlot::None:
+            default:
+                return { 0.0f, 0.0f, 0.0f, 0.0f };
+        }
+    }
+
+    void InventoryUI::render(const Font& font, const Entity::Player& player) const
+    {
+        const float font_size = Core::GlobalScaling::scaled(FONT_SIZE);
+        const Rectangle inventory_rect = getInventoryRect();
+        const float gold_y_offset = Core::GlobalScaling::scaled(GOLD_PADDING_BOTTOM + 30.0f); // Odstep od dolnej krawedzi panelu.
+
+        if (_background && _background->id > 0)
+        {
+            DrawTexturePro(
+                *_background,
+                { 0.0f, 0.0f, static_cast<float>(_background->width), static_cast<float>(_background->height) },
+                inventory_rect,
+                { 0.0f, 0.0f },
+                0.0f,
+                WHITE);
+        }
+        else
+        {
+            DrawRectangleRec(inventory_rect, withAlpha(COLOR_PANEL_BG, 0.98f));
+            DrawRectangleLinesEx(inventory_rect, 2.0f, withAlpha(COLOR_ACCENT, 0.8f));
+        }
 
         const Vector2 mouse_pos = GetMousePosition();
-
-        const float eq_center_x = _inv_start_x + _eq_width/2;
-        const float eq_top_y = _inv_start_y + _eq_start_top;
-
-        drawSpecificSlot(Item::EquipmentSlot::Head, eq_center_x - _slot_size/2, eq_top_y, player, mouse_pos);
-        drawSpecificSlot(Item::EquipmentSlot::Neck, eq_center_x + _slot_size/2 + _padding, eq_top_y, player, mouse_pos);
-        drawSpecificSlot(Item::EquipmentSlot::Chest, eq_center_x - _slot_size / 2, eq_top_y + _slot_size + _padding, player, mouse_pos);
-        drawSpecificSlot(Item::EquipmentSlot::Legs, eq_center_x - _slot_size / 2, eq_top_y + (_slot_size + _padding)*2, player, mouse_pos);
-        drawSpecificSlot(Item::EquipmentSlot::Feet, eq_center_x - _slot_size / 2, eq_top_y + (_slot_size + _padding) * 3, player, mouse_pos);
-        drawSpecificSlot(Item::EquipmentSlot::Weapon, eq_center_x - _slot_size*1.5f - _padding, eq_top_y + _slot_size + _padding, player, mouse_pos);
-        drawSpecificSlot(Item::EquipmentSlot::OffHand, eq_center_x + _slot_size/2 + _padding, eq_top_y + _slot_size + _padding, player, mouse_pos);
-        drawSpecificSlot(Item::EquipmentSlot::Ring, eq_center_x - _slot_size * 1.5f - _padding, eq_top_y + (_slot_size + _padding) * 2, player, mouse_pos);
-
+        drawSpecificSlot(Item::EquipmentSlot::Head, player, mouse_pos);
+        drawSpecificSlot(Item::EquipmentSlot::Neck, player, mouse_pos);
+        drawSpecificSlot(Item::EquipmentSlot::Chest, player, mouse_pos);
+        drawSpecificSlot(Item::EquipmentSlot::Legs, player, mouse_pos);
+        drawSpecificSlot(Item::EquipmentSlot::Feet, player, mouse_pos);
+        drawSpecificSlot(Item::EquipmentSlot::Weapon, player, mouse_pos);
+        drawSpecificSlot(Item::EquipmentSlot::OffHand, player, mouse_pos);
+        drawSpecificSlot(Item::EquipmentSlot::Ring, player, mouse_pos);
 
         const auto& backpack_items = player.getBackpack().getItems();
-        const float backpack_x = _inv_start_x + _eq_width + _text_padding_left;
-        const float backpack_y = _inv_start_y + _bp_start_top;
 
         std::shared_ptr<Item::Item> item_tooltip = nullptr;
-        Vector2 tooltip_pos = { 0, 0 };
+        Vector2 tooltip_pos = { 0.0f, 0.0f };
 
-        for (int i = 0; i < 20; ++i) {
-            const int col = i % 4;
-            const int row = i / 4;
+        for (int i = 0; i < BACKPACK_SLOT_COUNT; ++i)
+        {
+            const Rectangle slot_rect = getBackpackSlotRect(i);
+            const bool is_hovered = CheckCollisionPointRec(mouse_pos, slot_rect);
+            const std::shared_ptr<Item::Item> item = (i < static_cast<int>(backpack_items.size())) ? backpack_items[i] : nullptr;
 
-            const float slot_x = backpack_x + (col * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
-            const float slot_y = backpack_y + (row * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
+            drawSlot(i, slot_rect, is_hovered, item);
 
-            const bool is_hovered = CheckCollisionPointRec(mouse_pos, { slot_x, slot_y, _slot_size, _slot_size });
-
-            std::shared_ptr<Item::Item> item = (i < backpack_items.size()) ? backpack_items[i] : nullptr;
-
-            drawSlot(i, slot_x, slot_y, is_hovered, item);
-
-            if (is_hovered && item != nullptr) {
+            if (is_hovered && item != nullptr)
+            {
                 item_tooltip = item;
-                tooltip_pos = { mouse_pos.x + 15, mouse_pos.y + 15 };
+                tooltip_pos = { mouse_pos.x + 15.0f, mouse_pos.y + 15.0f };
             }
         }
 
-        std::string gold_text = "GOLD: " + std::to_string(player.getGold());
-        DrawTextEx(font, gold_text.c_str(), { _inv_start_x + _eq_width + _text_padding_left, _inv_start_y + _inv_height - _gold_padding_bottom }, _font_size, 1.0f, GOLD);
+        const std::string gold_text = "ZLOTO: " + std::to_string(player.getGold());
+        const Vector2 gold_size = MeasureTextEx(font, gold_text.c_str(), font_size, 1.0f);
+        DrawTextEx(font, gold_text.c_str(), { inventory_rect.x + (inventory_rect.width - gold_size.x) / 2.0f, inventory_rect.y + inventory_rect.height - gold_y_offset }, font_size, 1.0f, COLOR_ACCENT);
     
-        // drawing tooltip
-        if (item_tooltip != nullptr) {
+        if (item_tooltip != nullptr)
             drawTooltip(font, item_tooltip, tooltip_pos.x, tooltip_pos.y);
-        }
     }
 
-    void InventoryUI::drawSpecificSlot(Item::EquipmentSlot slotType, float x, float y, const Entity::Player& player, Vector2 mousePos) const {
-        const float _slot_placeholder_padding = Core::GlobalScaling::scaled(SLOT_PLACEHOLDER_PADDING);
-        const float _slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
-        const float _font_size = Core::GlobalScaling::scaled(FONT_SIZE);
+    void InventoryUI::drawSpecificSlot(const Item::EquipmentSlot slot_type, const Entity::Player& player, const Vector2 mouse_pos) const
+    {
+        const Rectangle slot_rect = getEquipmentSlotRect(slot_type);
+        
+        const auto item = player.getEquipment().getItemAt(slot_type);
+        const bool is_hovered = CheckCollisionPointRec(mouse_pos, slot_rect);
 
-        const auto item = player.getEquipment().getItemAt(slotType);
+        drawSlot(-1, slot_rect, is_hovered, item);
 
-        const bool is_hovered = CheckCollisionPointRec(mousePos, { x, y, _slot_size, _slot_size });
-
-        drawSlot(-1, x, y, is_hovered, item);
-
-        if (item == nullptr) {
-            if (_placeholders.count(slotType)) {
-                const auto tex_ptr = _placeholders.at(slotType);
-
-                if (tex_ptr && tex_ptr->id > 0) {
-                    Texture2D tex = *tex_ptr;
-
-                    Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
-                    Rectangle dest = {
-                        x + _slot_placeholder_padding,
-                        y + _slot_placeholder_padding,
-                        _slot_size - (_slot_placeholder_padding * 2),
-                        _slot_size - (_slot_placeholder_padding * 2)
-                    };
-
-                    DrawTexturePro(tex, source, dest, { 0,0 }, 0.0f, Fade(WHITE, 0.3f));
-                }
-            }
-            else {
-                DrawText("?", x + Core::GlobalScaling::scaled(15.0f), y + Core::GlobalScaling::scaled(15.0f), _font_size, Fade(WHITE, 0.2f));
-            }
-        }
+        if (item == nullptr)
+            DrawRectangleLinesEx(slot_rect, 1.0f, withAlpha(RAYWHITE, 0.10f));
     }
 
-    void InventoryUI::drawSlot(int index, float x, float y, bool isHovered, const std::shared_ptr<Item::Item>& item) const {
-        const float _slot_padding = Core::GlobalScaling::scaled(SLOT_PADDING);
-        const float _slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
-        const float _font_size = Core::GlobalScaling::scaled(FONT_SIZE);
-        const float _padding = Core::GlobalScaling::scaled(PADDING);
+    void InventoryUI::drawSlot([[maybe_unused]] const int index, const Rectangle slot_rect, const bool is_hovered, const std::shared_ptr<Item::Item>& item) const
+    {
+        const float slot_padding = Core::GlobalScaling::scaled(SLOT_PADDING);
 
-        // slot background
-        const Color slot_color = isHovered ? LIGHTGRAY : DARKGRAY;
-        DrawRectangle(x, y, _slot_size, _slot_size, slot_color);
-        DrawRectangleLines(x, y, _slot_size, _slot_size, WHITE);
+        if (is_hovered)
+            DrawRectangleRec(slot_rect, withAlpha(COLOR_ACCENT, 0.20f));
 
-        if (item != nullptr) {
+        if (item != nullptr)
+        {
             const Texture2D icon = item->getIcon();
-
-            // check if texture is loaded
-            if (icon.id > 0) {
-                const Rectangle source = { 0.0f, 0.0f, (float)icon.width, (float)icon.height };
-
+            if (icon.id > 0)
+            {
                 const Rectangle dest = {
-                    x + _slot_padding,
-                    y + _slot_padding,
-                    _slot_size - (_slot_padding * 2),
-                    _slot_size - (_slot_padding * 2)
+                    slot_rect.x + slot_padding,
+                    slot_rect.y + slot_padding,
+                    slot_rect.width - (slot_padding * 2.0f),
+                    slot_rect.height - (slot_padding * 2.0f)
                 };
-
-                DrawTexturePro(icon, source, dest, { 0, 0 }, 0.0f, WHITE);
+                DrawTexturePro(icon, { 0.0f, 0.0f, static_cast<float>(icon.width), static_cast<float>(icon.height) }, dest, { 0, 0 }, 0.0f, WHITE);
             }
         }
     }
 
-    void InventoryUI::drawTooltip(const Font& font, const std::shared_ptr<Item::Item>& item, float x, float y) const {
-        const float _font_size = Core::GlobalScaling::scaled(FONT_SIZE);
+    void InventoryUI::drawTooltip(const Font& font, const std::shared_ptr<Item::Item>& item, float x, float y) const
+    {
+        const float font_size = Core::GlobalScaling::scaled(FONT_SIZE);
+        const char* item_name = item->getName().c_str();
 
-        const char* _item_name = item->getName().c_str();
+        const Vector2 text_size = MeasureTextEx(font, item_name, font_size, 1.0f);
+        const float padding = 12.0f;
 
-        const Vector2 text_size = MeasureTextEx(font, _item_name, _font_size, 1.0f);
-        const float _padding = 8.0f;
+        DrawRectangleRec({ x, y, text_size.x + (padding * 2.0f), text_size.y + (padding * 2.0f) }, withAlpha(COLOR_PANEL_BG, 0.98f));
+        DrawRectangleLinesEx({ x, y, text_size.x + (padding * 2.0f), text_size.y + (padding * 2.0f) }, 1.0f, COLOR_ACCENT);
 
-        DrawRectangle(x, y, text_size.x + (_padding * 2), text_size.y + (_padding * 2), Fade(BLACK, 0.9f));
-        DrawRectangleLines(x, y, text_size.x + (_padding * 2), text_size.y + (_padding * 2), WHITE);
-
-        DrawTextEx(font, _item_name, { x + _padding, y + _padding }, _font_size, 1.0f, YELLOW);
+        DrawTextEx(font, item_name, { x + padding, y + padding }, font_size, 1.0f, COLOR_GOLDEN_TEXT);
     }
 
-    int InventoryUI::handleInput() const {
-        const float _slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
-        const float _inv_start_x = Core::GlobalScaling::scaled(INV_START_X);
-        const float _inv_start_y = Core::GlobalScaling::scaled(INV_START_Y);
-
-        if (!IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+    int InventoryUI::handleInput() const
+    {
+        if (!IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
             return -1;
-        }
 
         const Vector2 mouse_pos = GetMousePosition();
 
-        const float backpack_x = _inv_start_x + Core::GlobalScaling::scaled(240.0f);
-        const float backpack_y = _inv_start_y + Core::GlobalScaling::scaled(50.0f);
-
-        for (int i = 0; i < 20; ++i) {
-            const int col = i % 4;
-            const int row = i / 4;
-            const float slot_x = backpack_x + (col * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
-            const float slot_y = backpack_y + (row * (_slot_size + Core::GlobalScaling::scaled(10.0f)));
-
-            const Rectangle slot_rect = { slot_x, slot_y, _slot_size, _slot_size };
-
-            if (CheckCollisionPointRec(mouse_pos, slot_rect)) {
+        for (int i = 0; i < BACKPACK_SLOT_COUNT; ++i)
+        {
+            if (CheckCollisionPointRec(mouse_pos, getBackpackSlotRect(i)))
                 return i;
-            }
         }
 
         return -1;
     }
 
-    Item::EquipmentSlot InventoryUI::getClickedEquipmentSlot() const {
-        const float _inv_start_x = Core::GlobalScaling::scaled(INV_START_X);
-        const float _inv_start_y = Core::GlobalScaling::scaled(INV_START_Y);
-        const float _slot_size = Core::GlobalScaling::scaled(SLOT_SIZE);
-        const float _padding = Core::GlobalScaling::scaled(PADDING);
-
-        if (!IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+    Item::EquipmentSlot InventoryUI::getClickedEquipmentSlot() const
+    {
+        if (!IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
             return Item::EquipmentSlot::None;
-        }
 
         const Vector2 mouse_pos = GetMousePosition();
 
-        const float cx = _inv_start_x + Core::GlobalScaling::scaled(110.0f);
-        const float cy = _inv_start_y + Core::GlobalScaling::scaled(50.0f);
-        const float size = _slot_size;
-
-        struct SlotHitbox {
-            Item::EquipmentSlot slot;
-            float x;
-            float y;
+        struct SlotDefinition { Item::EquipmentSlot slot; };
+        SlotDefinition slots[] = {
+            { Item::EquipmentSlot::Head },
+            { Item::EquipmentSlot::Neck },
+            { Item::EquipmentSlot::Chest },
+            { Item::EquipmentSlot::Legs },
+            { Item::EquipmentSlot::Feet },
+            { Item::EquipmentSlot::Weapon },
+            { Item::EquipmentSlot::OffHand },
+            { Item::EquipmentSlot::Ring }
         };
 
-        SlotHitbox hitboxes[] = {
-            { Item::EquipmentSlot::Head,    cx - _slot_size / 2, cy },
-            { Item::EquipmentSlot::Neck,    cx + _slot_size / 2 + _padding, cy },
-            { Item::EquipmentSlot::Chest,   cx - _slot_size / 2, cy + _slot_size + _padding },
-            { Item::EquipmentSlot::Legs,    cx - _slot_size / 2, cy + (_slot_size + _padding) * 2 },
-            { Item::EquipmentSlot::Feet,    cx - _slot_size / 2, cy + (_slot_size + _padding) * 3 },
-            { Item::EquipmentSlot::Weapon,  cx - _slot_size * 1.5f - _padding, cy + _slot_size + _padding },
-            { Item::EquipmentSlot::OffHand, cx + _slot_size / 2 + _padding, cy + _slot_size + _padding },
-            { Item::EquipmentSlot::Ring,    cx - _slot_size * 1.5f - _padding, cy + (_slot_size + _padding) * 2 }
-        };
-
-        for (const auto& hb : hitboxes) {
-            const Rectangle rect = { hb.x, hb.y, size, size };
-
-            if (CheckCollisionPointRec(mouse_pos, rect)) {
-                return hb.slot;
-            }
+        for (const auto& slot_definition : slots)
+        {
+            if (CheckCollisionPointRec(mouse_pos, getEquipmentSlotRect(slot_definition.slot)))
+                return slot_definition.slot;
         }
 
         return Item::EquipmentSlot::None;
     }
-
-}
+} // namespace Nawia::UI

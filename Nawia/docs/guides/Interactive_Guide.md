@@ -1,72 +1,83 @@
-# Przewodnik po obiektach Interaktywnych
+# Przewodnik po interakcjach
 
-Obiekty interaktywne to elementy świata, z którymi gracz może wchodzić w interakcję (klikać na nie lub wchodzić w nie).
-Najczęstszym przypadkiem są obiekty "Klikalne", takie jak Skrzynie, NPC, czy Dźwignie.
+Obiekty interaktywne to encje, z ktorymi gracz moze wejsc w interakcje przez klikniecie albo wejscie w obszar triggera.
 
-## Klasa Bazowa: `InteractiveClickable`
+## Glowny podzial
 
-Klasa `Nawia::Entity::InteractiveClickable` dziedziczy po `Entity` (ma pozycję, grafikę) oraz `Interactable` (interfejs interakcji).
+- `Interactable` - interfejs kontraktu interakcji.
+- `InteractiveClickable` - obiekt klikany myszka, np. skrzynia albo NPC.
+- `InteractiveTrigger` - obszar aktywowany wejsciem, np. teleport albo checkpoint.
 
-### Interfejs `Interactable`
-```cpp
-virtual void onInteract(Entity& instigator) = 0;   // Co się dzieje po kliknięciu/interakcji
-virtual void onTriggerEnter(Entity& other) = 0;    // Co się dzieje po wejściu w collider
-virtual bool canInteract() const;                  // Czy można teraz użyć (np. zablokowane drzwi)
-```
+## `Interactable`
 
-## Jak stworzyć klikalną skrzynię?
-
-Należy odziedziczyć po `InteractiveClickable`.
+Kontrakt:
 
 ```cpp
-#include "InteractiveClickable.h"
-#include "Collider.h" // Poprawny include
-
-namespace Nawia::Entity {
-
-    class TreasureChest : public InteractiveClickable {
-    public:
-        TreasureChest(float x, float y) 
-            : InteractiveClickable("Chest", x, y, nullptr, 1) // 1 HP (niezniszczalne logicznie)
-        {
-            // Ładowanie modelu 3D
-            loadModel("assets/models/chest.glb");
-            addAnimation("closed", "assets/animations/chest_closed.glb");
-            addAnimation("open", "assets/animations/chest_open.glb");
-            
-            // Collider jest KONIECZNY, aby wykryć kliknięcie myszką!
-            // Prostokąt 40x40, bez offsetu (0,0) - chyba że model jest przesunięty.
-            setCollider(std::make_unique<RectangleCollider>(this, 40, 40, 0.0f, 0.0f));
-            
-            setFaction(Faction::Neutral); // Obiekty interaktywne zazwyczaj są neutralne.
-            
-            playAnimation("closed");
-        }
-
-        // Ta metoda jest wywoływana przez PlayerController, gdy gracz kliknie na obiekt i podejdzie blisko
-        void onInteract(Entity& instigator) override {
-            if (_is_open) return; // Już otwarta
-
-            _is_open = true;
-            playAnimation("open", false); // Odtwórz raz
-            
-            std::cout << "Skrzynia otwarta przez " << instigator.getName() << "!" << std::endl;
-        }
-
-        // Przydatne do debugowania: włącz Entity::DebugColliders = true aby widzieć obszar klikalny.
-
-    private:
-        bool _is_open = false;
-    };
-}
+virtual void onInteract(Entity& instigator) = 0;
+virtual void onTriggerEnter(Entity& other) = 0;
+virtual bool canInteract() const;
+virtual float getInteractionRange() const;
 ```
 
-## Ważne uwagi
+`onInteract(...)` jest dla klikniecia, `onTriggerEnter(...)` dla wejscia w obszar.
 
-1. **Collider**: Bez collidera metoda `isMouseOver` (używana do detekcji kliknięcia) nie zadziała. Musisz ustawić collider (`Box` lub `Circle`). Jeśli klikanie "nie wchodzi", sprawdź offsety collidera w trybie debugowania.
-2. **Interactable vs Trigger**:
-   - Jeśli chcesz obiekt, na który się **Klika** (NPC, Skrzynia): dziedzicz po `InteractiveClickable` i implementuj `onInteract`.
-   - Jeśli chcesz obiekt, który działa **po wejściu** (Pułapka, Teleport): dziedzicz po `Entity` i `Interactable` (lub stwórz nadrzędną klasę `TriggerBase`) i implementuj `onTriggerEnter`.
-     - *Uwaga*: Domyślny `InteractiveClickable` ma pusty `onTriggerEnter`.
+## Klikalne obiekty
 
-3. **Zasięg interakcji**: To kontroler gracza (`PlayerController`) zazwyczaj decyduje, z jakiej odległości można wejść w interakcję. Obiekt interaktywny tylko odpowiada na wywołanie `onInteract`.
+Dziedzicz po `InteractiveClickable`, gdy gracz ma kliknac konkretny model.
+
+Przyklady:
+
+- `Chest`,
+- `Cat`,
+- przyszli kupcy/NPC.
+
+Klikanie jest oparte o raycast w mesh modelu i fallback bounding box. To oznacza, ze model z dziwna geometria moze byc trudniejszy do trafienia kursorem. W takim przypadku popraw model, bounding box albo interaction range.
+
+## Triggery
+
+Dziedzicz po `InteractiveTrigger`, gdy efekt ma odpalic sie po wejsciu w obszar.
+
+Przyklady:
+
+- `Teleport`,
+- `Checkpoint`.
+
+Trigger powinien miec collider, zwykle `RectangleCollider`, bo jego zadaniem jest wykrycie wejscia encji w obszar.
+
+## Zasieg interakcji
+
+`PlayerController` moze zapamietac klikniety obiekt i podejsc do niego. Interakcja odpali sie dopiero, gdy dystans do obiektu bedzie mniejszy od `getInteractionRange()`.
+
+Skrzynie i NPC moga miec wiekszy zasieg niz zwykly obiekt, jezeli stoja na nierownym terenie albo maja duzy model.
+
+## Skrzynie
+
+`Chest`:
+
+- moze losowac loot z `Loottable`,
+- moze byc zablokowana kluczem,
+- udostepnia `Backpack` dla `ChestUI`,
+- otwiera UI przez `UIHandler::openContainer(...)`.
+
+Zawartosc skrzyni powinna pochodzic z JSON albo loottable, a nie z UI.
+
+## NPC
+
+Aktualny NPC to `Cat`.
+
+`Cat`:
+
+- moze miec loot table,
+- reaguje na oddanie ryby,
+- po zakonczeniu questa nie powinien ponownie otwierac inventory z nagroda,
+- moze delegowac dialog do `DialogueManager`.
+
+Docelowo nowe NPC powinny dostawac dialog/quest binding z danych, ale obecny system ma jeszcze czesc logiki w C++.
+
+## Dobre praktyki
+
+- Klikalne obiekty nie powinny udawac triggerow.
+- Triggery powinny miec czytelny collider.
+- UI otwieraj przez `UIHandler`, nie bezposrednio z encji.
+- Interakcje z itemami trzymaj w `Item`/`Inventory`, nie w klasach UI.
+- Dla problemow z hoverem najpierw sprawdz mesh i bounding box.

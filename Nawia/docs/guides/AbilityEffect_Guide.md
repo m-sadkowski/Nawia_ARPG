@@ -1,87 +1,74 @@
-# Przewodnik po klasie AbilityEffect
+# Przewodnik po AbilityEffect
 
-Klasa `AbilityEffect` (`src/entity/abilities/AbilityEffect.h`) to wyspecjalizowana klasa `Entity` reprezentująca efekty umiejętności, takie jak pociski, eksplozje, czy obszary działania (AoE).
+`AbilityEffect` to encja tworzona przez umiejetnosc: pocisk, cios obszarowy, efekt trafienia albo krotki obiekt bojowy obecny w swiecie.
 
-## Czym różni się od zwykłego Entity?
-- Posiada `AbilityStats` (obrażenia, czas trwania).
-- Posiada wbudowaną obsługę czasu życia (`Lifetime`). zniknie sam po upływie `duration`.
-- Posiada metody do obsługi kolizji specyficzne dla walki (`onCollision`, `checkCollision`).
+## Odpowiedzialnosc
 
-## Jak stworzyć efekt (np. Pocisk)?
+`AbilityEffect` rozszerza `Entity` o:
 
-Tworzymy klasę dziedziczącą po `Nawia::Entity::AbilityEffect` (lub bezpośrednio po `Entity`, jeśli nie potrzebujemy mechanik AbilityEffect, ale zalecane jest użycie dedykowanej bazy).
+- `AbilityStats`,
+- licznik czasu zycia,
+- liste juz trafionych encji,
+- bazowe sprawdzanie kolizji przez collider i bounding box.
 
-### Krok 1: Implementacja
+Efekt wygasa, gdy `isExpired()` zwroci `true`. Usuwa go `EntityManager` podczas aktualizacji.
+
+## Kolizje
+
+Domyslny flow `checkCollision(target)`:
+
+1. `canHitTarget(...)` odrzuca pusty cel, martwe/uspione encje, sam efekt i cele juz trafione.
+2. Collider efektu jest porownywany z bounding boxem celu.
+3. Jezeli szybki test przejdzie, collider robi dokladniejsze sprawdzenie z meshem celu.
+
+Efekty specjalne moga to nadpisac. `Projectile` uzywa wlasnego 3D hitboxa, a `ProjectileHitEffect` zwraca `false`, bo jest tylko wizualem.
+
+## Trafienie
+
+`onCollision(target)` powinno:
+
+1. sprawdzic, czy cel nadal istnieje,
+2. policzyc obrazenia,
+3. wywolac `target->takeDamage(...)`,
+4. zapisac trafienie przez `addHit(target)`,
+5. ewentualnie zakonczyc efekt przez `die()`.
+
+Przyklad:
 
 ```cpp
-#include "AbilityEffect.h"
-#include "Collider.h" // Poprawny include
+void ShockWaveEffect::onCollision(const std::shared_ptr<Entity>& target) {
+	if (!target)
+		return;
 
-namespace Nawia::Entity {
-
-    class FireballEffect : public AbilityEffect {
-    public:
-        FireballEffect(float startX, float startY, const std::shared_ptr<Texture2D>& tex, const AbilityStats& stats, float targetX, float targetY)
-            : AbilityEffect("FireballEffect", startX, startY, tex, stats)
-        {
-            // Oblicz wektor prędkości w stronę celu
-            float angle = atan2(targetY - startY, targetX - startX);
-            float speed = stats.projectile_speed;
-            
-            setVelocity(cos(angle) * speed, sin(angle) * speed);
-
-            // Ustaw collider
-            // Pociski są małe, zazwyczaj koło bez offsetu wystarcza. promień bierzemy z stats.hitbox_radius.
-            setCollider(std::make_unique<CircleCollider>(this, stats.hitbox_radius, 0.0f, 0.0f));
-        }
-
-        // Możesz nadpisać update, jeśli potrzebujesz specjalnego zachowania (np. naprowadzanie)
-        void update(float dt) override {
-            AbilityEffect::update(dt); // WAŻNE: Obsługuje ruch i czas życia (_timer)
-        }
-
-        // Obsługa trafienia
-        void onCollision(const std::shared_ptr<Entity>& target) override {
-            // Klasa bazowa sprawdza czy już trafiliśmy ten cel (żeby nie zadawać dmg co klatkę)
-            if (hasHit(target)) return;
-            
-            // Frakcje są zazwyczaj filtrowane w checkCollision, ale dla pewności:
-            if (target->getFaction() == getFaction()) return;
-
-            // Zadaj obrażenia
-            target->takeDamage(_stats.damage);
-            addHit(target); // Zapisz, że ten cel już dostał
-
-            // Jeśli to pocisk "jednorazowy" (znika po trafieniu):
-            // die(); 
-            // lub stwórz efekt wybuchu i dopiero zgiń.
-        }
-    };
+	target->takeDamage(getDamage());
+	addHit(target);
 }
 ```
 
-## Kluczowe Metody
+## Frakcje
 
-### `checkCollision(target)`
-Domyślna implementacja w `AbilityEffect` używa colliderów obu obiektów oraz sprawdza frakcje (ignoruje sojuszników).
-Nadpisz tę metodę, jeśli potrzebujesz niestandardowej logiki (np. hitscan, ignorowanie ścian).
+Efekt powinien jawnie zdecydowac, kogo moze trafic:
 
-### `onCollision(target)`
-Wywoływana przez silnik, gdy wykryta zostanie kolizja z **wrogim** bytem (zwróconym przez `checkCollision`).
-Tutaj implementujesz logikę: zadanie obrażeń, nałożenie statusu (slow/stun), zniszczenie pocisku.
+- pociski ignoruja zrodlo uzycia i cele z tej samej frakcji,
+- melee zwykle ignoruje castera,
+- efekty wizualne ignoruja wszystko.
 
-### `update(dt)`
-Bazowa metoda `AbilityEffect::update`:
-1. Aktualizuje pozycję na podstawie velocity.
-2. Zlicza `_timer`.
-3. Jeśli `_timer > _stats.duration`, oznacza obiekt jako martwy (`die()`).
+Nie zakladaj, ze `EntityManager` zrobi za efekt caly filtr friendly fire.
 
-## System Kolizji i Frakcji (Szczegóły)
-- Pamiętaj, aby ustawić Frakcję pocisku taką samą jak Castera (`setFaction`).
-- `AbilityEffect` filtruje kolizje sojusznicze. Fireball gracza nie trafi gracza ani innego gracza (w coop), trafil tylko wroga (`Faction::Enemy`).
+## Debug
 
-## Tekstury i Animacje
-Działają tak samo jak w `Entity`.
-- **2D**: Przekaż teksturę w konstruktorze.
-- **3D**: Użyj `loadModel` w ciele konstruktora.
-- **Particles**: Dla efektów cząsteczkowych (np. dym, ogień) możesz stworzyć osobne klasy particles, lub użyć prostych animowanych Entity spawnowanych przy `die()`.
+Do strojenia hitboxow wlacz:
+
+```cpp
+Nawia::Entity::Entity::DebugColliders = true;
+```
+
+Wtedy widac collidery i pomocnicze bounding boxy. To jest szczegolnie przydatne przy `SwordSlashEffect`, projectile i triggerach.
+
+## Dobre praktyki
+
+- Najpierw sprawdz `canHitTarget(target)`.
+- Po skutecznym trafieniu zawsze wolaj `addHit(target)`.
+- Nie dodawaj nowych encji bezposrednio do `EntityManager`.
+- Wizual bez obrazen powinien miec `checkCollision(...) == false`.
+- Collider efektu stroimy pod gameplay, nie pod idealny wyglad modelu.

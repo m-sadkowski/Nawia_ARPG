@@ -1,7 +1,20 @@
+#pragma once
+
 #include <raylib.h>
 
 namespace Nawia::Core {
 
-	Vector2 screenToIso(float mouse_x, float mouse_y, float offset_x, float offset_y);
+	/**
+	 * @brief Przelicza pozycje ekranu na punkt swiata na plaszczyznie Y=0.
+	 *
+	 * Funkcja rzuca promien z kamery przez punkt ekranu i zwraca pozycje
+	 * `{x, z}` na plaskiej plaszczyznie pomocniczej.
+	 */
+	Vector2 screenToWorld(const Camera3D& camera, float screen_x, float screen_y);
+
+	/**
+	 * @brief Przelicza pozycje ekranu na punkt swiata na plaszczyznie o podanej wysokosci.
+	 */
+	Vector2 screenToWorldAtHeight(const Camera3D& camera, float screen_x, float screen_y, float world_y);
 
 } // namespace Nawia::Core

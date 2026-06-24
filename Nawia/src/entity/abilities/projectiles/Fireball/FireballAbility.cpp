@@ -1,19 +1,26 @@
 #include "FireballAbility.h"
-#include "Projectile.h"
 
 namespace Nawia::Entity {
 
-	FireballAbility::FireballAbility(const std::shared_ptr<Texture2D>& projectile_tex, const std::shared_ptr<Texture2D>& hit_tex, const std::shared_ptr<Texture2D>& icon_tex)
-		: Ability("Fireball", Entity::getAbilityStatsFromJson("Fireball"), AbilityTargetType::UNIT, icon_tex), _texture(projectile_tex), _hit_texture(hit_tex) {}
+	FireballAbility::FireballAbility(const std::string& model_path,
+									 const float model_scale,
+									 const std::shared_ptr<Texture2D>& hit_tex,
+									 const std::shared_ptr<Texture2D>& icon_tex,
+									 Core::ResourceManager* resource_manager)
+		: ProjectileAbility(
+			  "Fireball",
+			  "Fireball",
+			  AbilityTargetType::UNIT,
+			  "Fireball Projectile",
+			  model_path,
+			  model_scale,
+			  hit_tex,
+			  icon_tex,
+			  0.0f,
+			  resource_manager) {}
 
-	std::unique_ptr<Entity> FireballAbility::cast(const float target_x, const float target_y) 
-	{
-		if (!isReady())
-			return nullptr;
-
-		startCooldown();
-
-		return std::make_unique<Projectile>("Fireball Projectile", _caster->getX(), _caster->getY(), target_x, target_y, _texture, _hit_texture, _stats, _caster);
+	Vector2 FireballAbility::getSpawnPosition() const {
+		return getCasterPosition();
 	}
 
 } // namespace Nawia::Entity

@@ -1,33 +1,54 @@
-﻿#pragma once
-#include "Constants.h"
+#pragma once
 
-#include <Entity.h>
+#include <Constants.h>
 
-namespace Nawia::Core
-{
+#include <raylib.h>
 
-	struct Camera
-	{
-		float x = 0.0f;
-		float y = 0.0f;
+namespace Nawia::Entity { class Entity; }
 
-		void follow(const Entity::Entity* target)
-		{
-			if (!target) return;
+namespace Nawia::Core {
 
-			const float world_x = target->getX();
-			const float world_y = target->getY();
+	/**
+	 * @class GameCamera
+	 * @brief Opakowuje Camera3D i prowadzi ja za wskazana encja.
+	 *
+	 * Kamera nie posiada celu. `follow()` przyjmuje surowy wskaznik jako
+	 * nieposiadajacy widok encji, ktora zyje w EntityManagerze.
+	 */
+	class GameCamera {
+	public:
+		GameCamera();
 
-			const float player_iso_x = (world_x - world_y) * (TILE_WIDTH / 2.0f);
-			const float player_iso_y = (world_x + world_y) * (TILE_HEIGHT / 2.0f);
+		/**
+		 * @brief Obsluguje zoom kamery z kolka myszy.
+		 */
+		void handleInput();
 
-			// Use actual screen dimensions for proper centering after resolution change
-			const float screen_width = static_cast<float>(GetScreenWidth());
-			const float screen_height = static_cast<float>(GetScreenHeight());
+		/**
+		 * @brief Przywraca domyslny zoom uzywany poza trybem developerskim.
+		 */
+		void resetZoom();
+		void resetZoom(float zoom_factor);
+		[[nodiscard]] float getZoomFactor() const { return _zoom_factor; }
 
-			x = (screen_width / 2.0f) - player_iso_x;
-			y = (screen_height / 2.0f) - player_iso_y;
-		}
+		/**
+		 * @brief Ustawia kamere nad wskazanym celem.
+		 */
+		void follow(const Entity::Entity* target, float target_height_multiplier = 1.0f);
+
+		/**
+		 * @brief Zwraca kamere Raylib tylko do odczytu.
+		 */
+		[[nodiscard]] const Camera3D& get() const;
+
+		/**
+		 * @brief Zwraca modyfikowalna kamere Raylib.
+		 */
+		[[nodiscard]] Camera3D& get();
+
+	private:
+		Camera3D _camera_3d = {};
+		float _zoom_factor = 1.0f;
 	};
 
 } // namespace Nawia::Core

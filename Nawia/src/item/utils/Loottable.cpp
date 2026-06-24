@@ -1,87 +1,96 @@
 #include "Loottable.h"
+
+#include <ItemDatabase.h>
+#include <Logger.h>
+
+#include <json.hpp>
+
+#include <exception>
 #include <fstream>
-#include <iostream>
 #include <string>
-#include "json.hpp"
-#include "Logger.h"
-#include "ItemDatabase.h"
+
+using json = nlohmann::json;
 
 namespace Nawia::Item {
 
-    LOOTTABLE_TYPE stringToLootType(const std::string& type_str) {
-        if (type_str == "CAT") return LOOTTABLE_TYPE::CAT;
-        if (type_str == "CHEST_NOOB") return LOOTTABLE_TYPE::CHEST_NOOB;
-        if (type_str == "CHEST_BAD") return LOOTTABLE_TYPE::CHEST_BAD;
-        if (type_str == "CHEST_GOOD") return LOOTTABLE_TYPE::CHEST_GOOD;
+    namespace {
 
-        // if not found use the worst
-        return LOOTTABLE_TYPE::CHEST_NOOB;
+        LOOTTABLE_TYPE stringToLootType(const std::string& type_name) {
+            if (type_name == "CAT") return LOOTTABLE_TYPE::CAT;
+            if (type_name == "CHEST_NOOB") return LOOTTABLE_TYPE::CHEST_NOOB;
+            if (type_name == "CHEST_BAD") return LOOTTABLE_TYPE::CHEST_BAD;
+            if (type_name == "CHEST_GOOD") return LOOTTABLE_TYPE::CHEST_GOOD;
+
+            return LOOTTABLE_TYPE::CHEST_NOOB;
+        }
+
     }
 
-    bool Loottable::loadLootTables(const std::string& filename, ItemDatabase& item_db) 
-	{
+    bool Loottable::loadLootTables(const std::string& filename, ItemDatabase& item_database) {
         std::ifstream file(filename);
-        if (!file.is_open())
-        {
-            Core::Logger::errorLog("Could not open loot table file: " + filename);
+        if (!file.is_open()) {
+            Core::Logger::errorLog("Loottable: nie mozna otworzyc pliku: " + filename);
             return false;
         }
 
-        try 
-        {
-            json json_data;
+        json json_data;
+        try {
             file >> json_data;
+        } catch (const json::parse_error& error) {
+            Core::Logger::errorLog("Loottable: blad parsowania JSON: " + std::string(error.what()));
+            return false;
+        }
 
-            if (!json_data.is_array()) 
-            {
-                Core::Logger::errorLog("Loot Tables - Wrong JSON format.");
-                return false;
-            }
+        if (!json_data.is_array()) {
+            Core::Logger::errorLog("Loottable: niepoprawny format JSON.");
+            return false;
+        }
 
-            for (const auto& entry : json_data) 
-            {
-                std::string type_str = entry.value("type", "UNKNOWN");
-                LOOTTABLE_TYPE type = stringToLootType(type_str);
+        _loot_tables.clear();
 
-                _loot_tables[type].clear();
+        for (const auto& table_entry : json_data) {
+            const std::string type_name = table_entry.value("type", "UNKNOWN");
+            const LOOTTABLE_TYPE type = stringToLootType(type_name);
+            auto& loot_entries = _loot_tables[type];
+            loot_entries.clear();
 
-                if (entry.contains("loot") && entry["loot"].is_object()) 
-                {
-                    for (auto& [idStr, chance_json] : entry["loot"].items()) {
-                        const int item_id = std::stoi(idStr);
-                        const float chance = chance_json;
+            if (!table_entry.contains("loot") || !table_entry["loot"].is_object())
+                continue;
 
-                        if (const auto item_ptr = item_db.createItem(item_id)) 
-                        {
-                            LootEntry loot_entry;
-                            loot_entry._item = item_ptr;
-                            loot_entry._chance = chance;
+            for (const auto& [item_id_text, chance_json] : table_entry["loot"].items()) {
+                int item_id = 0;
+                try {
+                    item_id = std::stoi(item_id_text);
+                } catch (const std::exception&) {
+                    Core::Logger::errorLog("Loottable: niepoprawne ID przedmiotu: " + item_id_text);
+                    continue;
+                }
 
-                            _loot_tables[type].push_back(loot_entry);
-                        }
-                        else 
-                        {
-                            Core::Logger::errorLog("Loot table references unknown item ID: " + idStr);
-                        }
-                    }
+                float chance = 0.0f;
+                try {
+                    chance = chance_json.get<float>();
+                } catch (const json::type_error& error) {
+                    Core::Logger::errorLog("Loottable: niepoprawna szansa dla ID " + item_id_text + ": " + std::string(error.what()));
+                    continue;
+                }
+
+                if (const auto item_template = item_database.createItem(item_id)) {
+                    loot_entries.push_back({item_template, chance});
+                } else {
+                    Core::Logger::errorLog("Loottable: tabela odwoluje sie do nieznanego ID przedmiotu: " + item_id_text);
                 }
             }
-        }
-        catch (const std::exception& e)
-        {
-            Core::Logger::errorLog("Error parsing loot table: " + std::string(e.what()));
-            return false;
         }
 
         return true;
     }
 
-    std::vector<LootEntry> Loottable::getLootTable(const LOOTTABLE_TYPE loot_table) 
-	{
-        if (_loot_tables.find(loot_table) != _loot_tables.end())
-            return _loot_tables[loot_table];
+    std::vector<LootEntry> Loottable::getLootTable(const LOOTTABLE_TYPE loot_table) {
+        const auto table_it = _loot_tables.find(loot_table);
+        if (table_it != _loot_tables.end())
+            return table_it->second;
 
         return {};
     }
 
-}
+} // namespace Nawia::Item

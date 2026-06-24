@@ -1,0 +1,225 @@
+{
+    "bosses": [
+        {
+            "id": "devil_lord",
+            "name": "Devil Lord",
+            "enemy_type": "Devil",
+            "max_hp": 200,
+            "scale": 0.03,
+            "music_path": "assets/audio/music/soundsbyamelia-slavic-war-dance-drums-stomps-amp-war-pipes-422949.mp3",
+            "music_volume": 0.82,
+            "phases": [
+                {
+                    "hp_threshold": 1.0,
+                    "name": "Faza 1",
+                    "speed_multiplier": 1.0,
+                    "damage_multiplier": 1.0,
+                    "notification": "Devil Lord atakuje!",
+                    "screen_flash": false
+                },
+                {
+                    "hp_threshold": 0.5,
+                    "name": "Faza 2 - Wscieklosc",
+                    "speed_multiplier": 1.4,
+                    "damage_multiplier": 1.3,
+                    "notification": "Devil Lord wpada w szal! Przywoluje slugi!",
+                    "screen_flash": true,
+                    "flash_color": [255, 60, 0, 200],
+                    "minions": [
+                        {
+                            "enemy_type": "WalkingDead",
+                            "count": 3,
+                            "hp": 50,
+                            "offset_x": 5.0,
+                            "offset_y": 5.0
+                        },
+                        {
+                            "enemy_type": "Bandit",
+                            "count": 1,
+                            "hp": 80,
+                            "offset_x": 3.0,
+                            "offset_y": 3.0
+                        }
+                    ]
+                },
+                {
+                    "hp_threshold": 0.2,
+                    "name": "Faza 3 - Ostatni oddech",
+                    "speed_multiplier": 1.8,
+                    "damage_multiplier": 1.6,
+                    "notification": "Devil Lord jest bliski smierci! Wzywa ostatnia fale!",
+                    "screen_flash": true,
+                    "flash_color": [180, 0, 0, 220],
+                    "minions": [
+                        {
+                            "enemy_type": "WalkingDead",
+                            "count": 2,
+                            "hp": 40,
+                            "offset_x": 4.0,
+                            "offset_y": 4.0
+                        }
+                    ]
+                }
+            ],
+            "rewards": {
+                "gold": 500,
+                "exp": 1000,
+                "items": [1, 2]
+            },
+            "on_player_death": "end_fight"
+        },
+        {
+            "id": "bies",
+            "name": "Bies",
+            "enemy_type": "Devil",
+            "max_hp": 520,
+            "scale": 0.03,
+            "music_path": "assets/audio/music/soundsbyamelia-slavic-war-dance-drums-stomps-amp-war-pipes-422949.mp3",
+            "music_volume": 0.82,
+            "phases": [
+                {
+                    "hp_threshold": 1.0,
+                    "name": "Cienie Nawii",
+                    "speed_multiplier": 1.0,
+                    "damage_multiplier": 1.0,
+                    "notification": "Bies wychodzi z mgly!",
+                    "screen_flash": false
+                },
+                {
+                    "hp_threshold": 0.45,
+                    "name": "Gniew Biesa",
+                    "speed_multiplier": 1.3,
+                    "damage_multiplier": 1.25,
+                    "notification": "Bies wpada w szal!",
+                    "screen_flash": true,
+                    "flash_color": [80, 30, 120, 200],
+                    "minions": [
+                        {
+                            "enemy_type": "WalkingDead",
+                            "count": 3,
+                            "hp": 50,
+                            "offset_x": 5.0,
+                            "offset_y": 5.0
+                        },
+                        {
+                            "enemy_type": "Bandit",
+                            "count": 1,
+                            "hp": 80,
+                            "offset_x": 3.0,
+                            "offset_y": 3.0
+                        }
+                    ]
+                },
+                {
+                    "hp_threshold": 0.2,
+                    "name": "Ostatni szept Nawii",
+                    "speed_multiplier": 1.65,
+                    "damage_multiplier": 1.45,
+                    "notification": "Bies wzywa ostatnia fale!",
+                    "screen_flash": true,
+                    "flash_color": [120, 20, 160, 220],
+                    "minions": [
+                        {
+                            "enemy_type": "WalkingDead",
+                            "count": 2,
+                            "hp": 40,
+                            "offset_x": 4.0,
+                            "offset_y": 4.0
+                        }
+                    ]
+                }
+            ],
+            "rewards": {
+                "gold": 0,
+                "exp": 0,
+                "items": []
+            },
+            "on_player_death": "end_fight"
+        },
+        {
+            "id": "czarownica",
+            "name": "Czarownica",
+            "enemy_type": "Witch",
+            "max_hp": 320,
+            "scale": 1.55,
+            "music_path": "assets/audio/music/soundsbyamelia-baba-yaga-ritual-slavic-horror-with-hurdy-gurdy-amp-choir-422979.mp3",
+            "music_volume": 0.8,
+            "victory_dialogue_key": "witch_death",
+            "checkpoint_on_victory": "witch_truth_resolved",
+            "phases": [
+                {
+                    "hp_threshold": 1.0,
+                    "name": "Zaklecie dystansu",
+                    "speed_multiplier": 1.0,
+                    "damage_multiplier": 1.0,
+                    "notification": "Czarownica trzyma dystans!",
+                    "screen_flash": false
+                },
+                {
+                    "hp_threshold": 0.45,
+                    "name": "Gniew szeptow",
+                    "speed_multiplier": 1.18,
+                    "damage_multiplier": 1.2,
+                    "notification": "Czarownica przyspiesza rytual!",
+                    "screen_flash": true,
+                    "flash_color": [120, 70, 180, 190]
+                }
+            ],
+            "rewards": {
+                "gold": 0,
+                "exp": 0,
+                "items": []
+            },
+            "on_player_death": "end_fight"
+        },
+        {
+            "id": "ropuch",
+            "name": "Ropuch",
+            "enemy_type": "Frog",
+            "max_hp": 380,
+            "scale": 1.5,
+            "music_path": "assets/audio/music/soundsbyamelia-slavic-war-dance-drums-stomps-amp-war-pipes-422949.mp3",
+            "music_volume": 0.82,
+            "phases": [
+                {
+                    "hp_threshold": 1.0,
+                    "name": "Glodny Ropuch",
+                    "speed_multiplier": 1.0,
+                    "damage_multiplier": 1.0,
+                    "notification": "Ropuch rusza do ataku!",
+                    "screen_flash": false
+                },
+                {
+                    "hp_threshold": 0.45,
+                    "name": "Wsciekly Ropuch",
+                    "speed_multiplier": 1.25,
+                    "damage_multiplier": 1.2,
+                    "notification": "Ropuch wpada w szal!",
+                    "screen_flash": true,
+                    "flash_color": [80, 180, 40, 180]
+                }
+            ],
+            "rewards": {
+                "gold": 0,
+                "exp": 0,
+                "items": []
+            },
+            "on_player_death": "end_fight",
+            "intro_dialogue": {
+                "enabled": true,
+                "required_active_quest": "find_ropuch",
+                "blocking_active_quest": "recover_scarf",
+                "checkpoint_on_complete": "Ropuch Trigger",
+                "show_preview": true,
+                "final_option": "Rozprawie sie z nim.",
+                "lines": [
+                    {
+                        "speaker": "Logos",
+                        "text": "Alez obrzydlistwo. CO ON MA W GNIEZDZIE? TO JEJ CHUSTA. Musze sie z nim rozprawic.",
+                        "voice_path": "assets/audio/dialogues/Boss/Ropuch/ropuch_intro_logos_00.wav"
+                    }
+                ]
+            }
+        }
+    ]
+}

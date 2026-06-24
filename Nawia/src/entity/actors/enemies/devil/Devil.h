@@ -1,90 +1,100 @@
 #pragma once
-#include "EnemyInterface.h"
 
-#include <Map.h>
+#include <EnemyInterface.h>
+
+#include <memory>
 
 namespace Nawia::Entity {
 
 	/**
 	 * @class Devil
-	 * @brief Demonic enemy with aggressive dash attack behavior.
-	 * 
-	 * Devils are demonic creatures that chase the player and perform
-	 * quick dash attacks. The dash locks onto the player's position
-	 * BEFORE charging, allowing skilled players to dodge.
-	 * 
-	 * ## States
-	 * - Idle: Standing still, watching for player in vision range
-	 * - Chasing: Walking toward player
-	 * - PreparingDash: Brief pause to lock target position (telegraph)
-	 * - Dashing: Fast charge to locked position
-	 * - Attacking: Melee attack when dash ends near player
-	 * - GettingHit: Stagger animation when damaged
-	 * - Dying: Death animation, then marked as dead
-	 * 
-	 * ## Behavior
-	 * - Starts idle, activates when player enters VISION_RANGE
-	 * - When in DASH_TRIGGER_RANGE, prepares dash (locks target position)
-	 * - Dashes to locked position at high speed
-	 * - If player still nearby after dash, attacks
-	 * - Dash has cooldown between uses
+	 * @brief Agresywny demon z atakiem doskoku.
+	 *
+	 * Devil blokuje pozycję celu przed doskokiem, dzięki czemu atak jest
+	 * czytelny i możliwy do uniknięcia przez gracza.
 	 */
 	class Devil : public EnemyInterface {
 	public:
+		/** @brief Tworzy demona w podanym punkcie mapy. */
 		Devil(float x, float y, Core::Map* map);
 
+		/** @brief Aktualizuje maszynę stanów demona. */
 		void update(float dt) override;
-		void takeDamage(int dmg) override;
-		
 
 	private:
-		enum class State { Idle, Chasing, PreparingDash, Dashing, Recovering, Attacking, Dying };
+		Devil();
+		friend class DevilBuilder;
+
+		enum class State {
+			Idle,
+			Chasing,
+			PreparingDash,
+			Dashing,
+			Recovering,
+			Attacking
+		};
+
 		State _state = State::Idle;
 
-
-
-		//Animation speed set
-		static constexpr float DEVIL_DASH_ANIMATION_SPEED = 3.0f;
+		// Prędkości animacji.
+		static constexpr float DEVIL_DASH_ANIMATION_SPEED = 0.85f;
 		static constexpr float DEVIL_WALK_ANIMATION_SPEED = 1.0f;
 		static constexpr float DEVIL_DEAD_ANIMATION_SPEED = 2.0f;
-		static constexpr float DEVIL_ATTACK_ANIMATION_SPEED = 1.0f;
-		
-		// Combat stats
-		static constexpr float VISION_RANGE = 8.0f;
-		static constexpr float ATTACK_RANGE = 1.2f;
+		static constexpr float DEVIL_ATTACK_ANIMATION_SPEED = 1.28f;
+
+		// Statystyki walki.
+		static constexpr float VISION_RANGE = 20.0f;
+		static constexpr float ATTACK_RANGE = 2.0f;
 		static constexpr float SPEED = 0.5f;
 		static constexpr int ATTACK_DAMAGE = 50;
-		static constexpr float ATTACK_COOLDOWN = 1.5f;
-		
-		// Dash stats
-		static constexpr float DASH_TRIGGER_RANGE = 5.0f;   // Distance at which dash can trigger
-		static constexpr float DASH_SPEED = 6.0f;           // Dash speed
-		static constexpr float DASH_COOLDOWN = 4.0f;        // Seconds between dashes
-		static constexpr float DASH_PREPARE_TIME = 0.5f;    // Telegraph time before dash
-		static constexpr float DASH_ARRIVE_THRESHOLD = 0.3f;// Distance to consider arrived
-		static constexpr int DASH_DAMAGE = 35;              // Damage dealt when dash hits
-		static constexpr float DASH_HIT_RANGE = 1.5f;       // Range to check collision during dash
-		static constexpr float DASH_STUN_DURATION = 2.0f;   // Stun duration after dash ends
-		
+		static constexpr float ATTACK_COOLDOWN = 1.0f;
+
+		// Statystyki doskoku.
+		static constexpr float DASH_TRIGGER_RANGE = 9.0f;    // Dystans, od którego doskok może się aktywować.
+		static constexpr float DASH_SPEED = 8.0f;            // Prędkość doskoku.
+		static constexpr float DASH_COOLDOWN = 3.0f;         // Czas między doskokami.
+		static constexpr float DASH_PREPARE_TIME = 0.5f;     // Czas telegrafowania przed startem.
+		static constexpr float DASH_ARRIVE_THRESHOLD = 0.3f; // Dystans uznawany za dotarcie do punktu.
+		static constexpr int DASH_DAMAGE = 35;               // Obrażenia przy trafieniu doskokiem.
+		static constexpr float DASH_HIT_RANGE = 3.5f;        // Zasięg sprawdzania trafienia podczas doskoku.
+		static constexpr float DASH_STUN_DURATION = 0.7f;    // Czas odzyskiwania kontroli po doskoku.
+
 		float _attack_cooldown_timer = 0.0f;
 		float _dash_cooldown_timer = 0.0f;
 		float _dash_prepare_timer = 0.0f;
-		Vector2 _dash_target_pos = {0, 0};  // Locked position for dash
-		bool _dash_hit_target = false;      // Did we already hit during this dash?
-		float _stun_timer = 0.0f;           // Recovery/stun timer after dash
-	
-	
-		// State handlers
+		Vector2 _dash_target_pos = {0.0f, 0.0f}; // Zablokowana pozycja celu dla doskoku.
+		bool _dash_hit_target = false;           // Czy ten doskok już trafił cel.
+		float _stun_timer = 0.0f;                // Licznik odzyskiwania kontroli po doskoku.
+
+		// Obsługa stanów.
 		void handleIdleState(float dt);
 		void handleChasingState(float dt);
 		void handlePreparingDashState(float dt);
 		void handleDashingState(float dt);
 		void handleRecoveringState(float dt);
 		void handleAttackingState(float dt);
+		void onDeathStarted() override;
+	};
 
-		void handleDyingState(float dt);
-		
+	/**
+	 * @class DevilBuilder
+	 * @brief Builder konfigurujący instancję `Devil`.
+	 */
+	class DevilBuilder : public EnemyBuilder<DevilBuilder> {
+	public:
+		/** @brief Tworzy roboczą instancję demona. */
+		DevilBuilder() {
+			_devil_ptr = std::unique_ptr<Devil>(new Devil());
+			this->_entity = _devil_ptr.get();
+		}
 
+		/** @brief Oddaje gotową instancję demona. */
+		std::unique_ptr<Devil> build() {
+			return std::move(_devil_ptr);
+		}
+
+	private:
+		std::unique_ptr<Devil> _devil_ptr;
 	};
 
 } // namespace Nawia::Entity

@@ -1,20 +1,30 @@
 #include "MathUtils.h"
-#include "Map.h"
+
+#include <raymath.h>
+
+#include <cmath>
 
 namespace Nawia::Core {
 
-    Vector2 screenToIso(const float mouse_x, const float mouse_y, const float offset_x, const float offset_y) 
-    {
-        float adj_x = mouse_x - offset_x;
-        const float adj_y = mouse_y - offset_y;
+	Vector2 screenToWorld(const Camera3D& camera, const float screen_x, const float screen_y) {
+		return screenToWorldAtHeight(camera, screen_x, screen_y, 0.0f);
+	}
 
-        constexpr float half_width = TILE_WIDTH / 2.0f;
-        constexpr float half_height = TILE_HEIGHT / 2.0f;
+	Vector2 screenToWorldAtHeight(const Camera3D& camera, const float screen_x, const float screen_y, const float world_y) {
+		const Ray ray = GetScreenToWorldRay({screen_x, screen_y}, camera);
 
-        const float iso_x = (adj_y / half_height + adj_x / half_width) / 2.0f;
-        const float iso_y = (adj_y / half_height - adj_x / half_width) / 2.0f;
+		if (std::abs(ray.direction.y) < 0.0001f)
+			return {camera.target.x, camera.target.z};
 
-        return { iso_x, iso_y };
-    }
+		const float distance_to_ground = (world_y - ray.position.y) / ray.direction.y;
+
+		if (distance_to_ground < 0.0f)
+			return {camera.target.x, camera.target.z};
+
+		const float world_x = ray.position.x + distance_to_ground * ray.direction.x;
+		const float world_z = ray.position.z + distance_to_ground * ray.direction.z;
+
+		return {world_x, world_z};
+	}
 
 } // namespace Nawia::Core

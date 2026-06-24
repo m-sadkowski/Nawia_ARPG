@@ -1,197 +1,176 @@
-# Przewodnik po klasie Entity
+# Przewodnik po Entity
 
-Klasa `Entity` (`src/entity/Entity.h`) jest bazową klasą dla wszystkich obiektów w grze Nawia ARPG. Reprezentuje ona każdy byt, który posiada pozycję w świecie, może być wyświetlany, posiadać punkty życia oraz wchodzić w interakcje fizyczne.
+Ten dokument opisuje aktualny model encji, ruchu, targetowania, colliderow i pending spawn w projekcie Nawia.
 
-## Czym jest Entity?
-Entity to nie tylko statyczny obiekt. To kontener na:
-- **Transformację**: Pozycja (`_pos`), prędkość (`_velocity`), skala (`_scale`), rotacja (`_rotation`).
-- **Grafikę**: Tekstura 2D lub Model 3D z animacjami.
-- **Fizykę**: Collider (`_collider`) służący do detekcji kolizji.
-- **Logikę gry**: Punkty życia (`_hp`), frakcja (`_faction`), umiejętności (`_abilities`).
+## Hierarchia
 
-## Jak zaimplementować własny obiekt?
+Najwazniejsze typy:
 
-Aby stworzyć nowy obiekt, należy stworzyć klasę dziedziczącą publicznie po `Nawia::Entity::Entity`.
+- `Entity` - baza wszystkich obiektow swiata,
+- `ActorInterface` - baza jednostek bojowych z mapa i targetem,
+- `EnemyInterface` - baza wrogow,
+- `AllyInterface` - baza sojusznikow,
+- `Player` - postac gracza,
+- `AbilityEffect` - efekt umiejetnosci jako encja,
+- `InteractiveClickable` i `InteractiveTrigger` - interakcje.
 
-### Krok 1: Nagłówek (.h)
+## Co daje `Entity`
+
+Kazda encja ma:
+
+- pozycje logiczna X/Y mapowana na X/Z swiata 3D,
+- ruch przez `moveTo(...)` i `updateMovement(...)`,
+- HP, smierc i sekwencje dying,
+- model 3D i animacje,
+- frakcje,
+- targetowanie przez `setTarget(...)`, `hasValidTarget()`, `getTargetPosition()`,
+- abilities i pending spawns,
+- stan dormant.
+
+Nowa encja rzadko powinna startowac od zera. Dla jednostek bojowych uzywaj `EnemyInterface` albo `AllyInterface`.
+
+## Pozycja i wysokosc
+
+Najwazniejsze helpery:
+
+- `getX()` / `getY()` - pozycja logiczna na mapie,
+- `getWorldPosition()` - pozycja w 3D,
+- `getCenter()` - srodek modelu, najlepszy do celowania,
+- `rotateTowards(...)` - obrot do punktu z pozycji logicznej,
+- `rotateTowardsCenter(...)` - obrot do punktu z centrum encji.
+
+Do ruchu wystarczy zwykle `getX()/getY()`. Do walki i projectile uzywaj `getCenter()`.
+
+## Collider
+
+Nie kazda encja potrzebuje collidera.
+
+Collider jest wazny dla:
+
+- efektow ability,
+- triggerow,
+- klikalnych obiektow wymagajacych precyzji,
+- specjalnych mechanik.
+
+Typy:
+
+- `CircleCollider` - pociski i radialne efekty,
+- `RectangleCollider` - trigger, skrzynia, prosty obiekt,
+- `ConeCollider` - melee w stylu `SwordSlash`.
+
+Zwykle jednostki bojowe sa odpychane centralnie przez `EntityManager`, a collider efektu odpowiada za trafienie ataku.
+
+## Hover, klik i mesh
+
+Klikanie encji dziala przez raycast:
+
+1. szybki test bounding box,
+2. dokladniejszy test mesha, jesli model istnieje,
+3. fallback box dla encji bez modelu.
+
+Dla modeli trudnych do trafienia zwieksz fallback/interaction range albo popraw collider/mesh, zamiast dodawac sztuczne UI hacki.
+
+## `update`
+
+Typowy pattern:
+
 ```cpp
-#pragma once
-#include "Entity.h"
+void MyEntity::update(const float dt)
+{
+	if (isDying()) {
+		Entity::update(dt);
+		return;
+	}
 
-namespace Nawia::Entity {
+	if (isDormant())
+		return;
 
-    class MyCustomEntity : public Entity {
-    public:
-        // Konstruktor
-        MyCustomEntity(float x, float y, const std::shared_ptr<Texture2D>& texture);
+	Entity::update(dt);
+	updateAbilities(dt);
 
-        // Nadpisane metody
-        void update(float dt) override;
-        void render(float offset_x, float offset_y) override; // Opcjonalne, jeśli standardowy render wystarcza
-        void takeDamage(int dmg) override; // Opcjonalne
-
-    private:
-        float _timer = 0.0f;
-    };
-
+	// logika wlasna
 }
 ```
 
-### Krok 2: Implementacja (.cpp)
-```cpp
-#include "MyCustomEntity.h"
-#include "Collider.h" // Poprawny include (bez podkatalogów)
+`Entity::update(dt)` obsluguje bazowy ruch, animacje i koniec sekwencji smierci.
 
-namespace Nawia::Entity {
+## Obrazenia
 
-    MyCustomEntity::MyCustomEntity(float x, float y, const std::shared_ptr<Texture2D>& texture)
-        : Entity("MyEntity", x, y, texture, 100) // 100 to Max HP
-    {
-        // ------------------------------------------------------------------
-        // KONFIGURACJA COLLIDERA
-        // ------------------------------------------------------------------
-        // Collider jest kluczowy nie tylko dla kolizji, ale też dla hitboxów.
-        // Często tekstury mają dużo pustego, przezroczystego miejsca naokoło postaci.
-        // Dlatego NIE NALEŻY polegać na środku tekstury, ale ustawić collider z offsetem.
-        
-        float radius = 20.0f;
-        float offsetX = 0.0f; 
-        float offsetY = -10.0f; // Przesunięcie w górę, żeby collider był np. na nogach lub tułowiu
-        
-        setCollider(std::make_unique<CircleCollider>(this, radius, offsetX, offsetY));
-        
-        // WAŻNE: Od teraz, jeśli chcesz pobrać "prawdziwy" środek bytu (np. żeby wycelować w niego pocisk),
-        // używaj: getCollider()->getCenter().
-        // Metody getX()/getY() zwracają pozycję "zakotwiczenia" entity (zazwyczaj pod nogami/środek sprita),
-        // ale to collider definiuje "bryłę" w którą się trafia.
-        
-        // ------------------------------------------------------------------
-        // FRAKCJA
-        // ------------------------------------------------------------------
-        // Aby system walki wiedział, kogo można atakować, ustaw frakcję.
-        setFaction(Faction::Enemy); // Inne opcje: Player, Neutral, Ally, None
-    }
+`Entity::takeDamage(...)`:
 
-    void MyCustomEntity::update(float dt) {
-        // Wywołaj bazowe update (obsługuje animacje, fizykę ruchu, cooldowny skilli)
-        Entity::update(dt);
+- odejmuje HP,
+- uruchamia dying, gdy HP spadnie do zera,
+- zmienia frakcje martwej encji na `None`,
+- zostawia encje przy zyciu do zakonczenia animacji smierci.
 
-        // Twoja logika
-        _timer += dt;
-        if (_timer > 5.0f) {
-            // Zrób coś co 5 sekund
-            _timer = 0.0f;
-        }
-    }
+Nadpisuj `takeDamage(...)`, gdy encja ma hit react, stagger albo specjalna logike.
 
-    void MyCustomEntity::render(float offset_x, float offset_y) {
-        // Jeśli chcesz narysować standardową teksturę/model:
-        Entity::render(offset_x, offset_y);
+## Dormant i lokacje
 
-        // Tutaj można dodać np. pasek życia rysowany nad postacią
-    }
+Dormant encja:
 
-}
-```
+- nie renderuje sie,
+- nie aktualizuje AI,
+- nie bierze udzialu w kolizjach,
+- nie ma healthbara,
+- nie reaguje na hover/klik.
 
-## System Fizyki i Colliderów
+Tego uzywa `SpawnManager` przy lokacjach i proximity spawnach.
 
-### Dlaczego offsety są ważne?
-W grach izometrycznych/top-down, sprite postaci często obejmuje też przestrzeń nad głową. Jeśli ustawisz collider na środku obrazka, będzie on wisiał w powietrzu lub obejmował pustą przestrzeń.
-W konstruktorze collidera (Circle, Rectangle, Cone) ostatnie dwa parametry to `offset_x` i `offset_y` względem pozycji Entity (`_pos`).
+## Pending spawns
 
-**Przykład:** Postać stoi na ziemi w punkcie (X, Y). Tekstura jest wysoka. Chcemy, aby kolizja (np. z przeszkodami) dotyczyła jej stóp.
-```cpp
-// Promień 15, przesunięcie Y o 0 (jeśli punkt zaczepienia to stopy) lub dopasowane eksperymentalnie.
-setCollider(std::make_unique<CircleCollider>(this, 15.0f, 0.0f, 0.0f));
-```
-
-### Pobieranie pozycji: `getCollider()->getCenter()` czy `getX()`?
-- `getX() / getY()`: Zwraca surową pozycję entity w świecie. To punkt, w którym rysowana jest tekstura (z uwzględnieniem offsetu rysowania).
-- `getCollider()->getCenter()`: **ZALECANE** do logiki gry. Zwraca rzeczywisty środek bryły kolizyjnej.
-    - Jeśli strzelasz fireballa: celuj w `target->getCollider()->getCenter()`.
-    - Jeśli sprawdzasz odległość AI: sprawdzaj dystans do `center`.
-
-### Typy Colliderów (`Collider.h`)
-1. **CircleCollider**: `(Entity* owner, float radius, float offX, float offY)`
-   - Najlepszy dla postaci i pocisków. Szybki w obliczeniach.
-2. **RectangleCollider**: `(Entity* owner, float w, float h, float offX, float offY)`
-   - Dla skrzyń, ścian, drzwi.
-3. **ConeCollider**: `(Entity* owner, float radius, float angle, float offX, float offY)`
-   - Specjalistyczny, np. do wykrywania trafień obszarowych w stożku przed postacią.
-
-### Debugowanie
-Nie musisz zgadywać offsetów. Włącz tryb debugowania, aby zobaczyć obrysy colliderów (zielone linie).
-Aby włączyć globalne rysowanie colliderów, ustaw statyczną flagę:
-```cpp
-// Np. w Game.cpp lub na przycisk
-Nawia::Entity::Entity::DebugColliders = true;
-```
-
-## Frakcje (Faction System)
-
-Każde Entity posiada pole `_faction` (enum `Faction`).
-```cpp
-enum class Faction {
-    Player,
-    Enemy,
-    Neutral,
-    Ally,
-    None
-};
-```
-Ustawienie frakcji (`setFaction(...)`) jest niezbędne, aby:
-1. Pociski wiedziały, kogo ranić (Fireball rzucony przez Enemy nie rani Enemy).
-2. AI wiedziało, kogo gonić.
-3. System targetowania (myszką) wiedział, kogo podświetlić jako wroga.
-
-## System Graficzny: 2D vs 3D
-
-Entity wspiera dwa tryby wyświetlania.
-
-### 1. Tryb 2D (Sprite)
-Domyślny tryb. Wymaga podania `std::shared_ptr<Texture2D>` w konstruktorze. Obiekt będzie rysowany jako sprite w rzucie izometrycznym.
-
-### 2. Tryb 3D (Modele i Animacje)
-Aby używać modelu 3D:
-1. W konstruktorze przekaż teksturę (może być używana jako fallback lub UI), lub `nullptr`.
-2. Załaduj model metodą `loadModel`.
-3. Dodaj animacje metodą `addAnimation`.
+Encja moze dodac nowa encje przez:
 
 ```cpp
-// W konstruktorze:
-loadModel("assets/models/character.glb"); // Ładuje model
-addAnimation("idle", "assets/animations/idle.glb");
-addAnimation("run", "assets/animations/run.glb");
-
-// Uruchom animację startową
-playAnimation("idle");
+addPendingSpawn(effect);
 ```
 
-**Ważne o animacjach:**
-- `playAnimation(name, loop, lock_movement)`:
-    - `loop`: czy animacja ma się pętlalć (np. bieg).
-    - `lock_movement`: czy zablokować ruch postaci na czas trwania animacji (np. atak).
+`Engine` zbiera pending spawns po update i dopina je do swiata. To chroni `EntityManager` przed modyfikacja listy encji podczas iteracji.
 
-## Metody do nadpisania (Override)
+## Dodanie nowej encji do JSON
 
-| Metoda | Opis | Czy wywoływać `Base::Metoda`? |
-| --- | --- | --- |
-| `update(float dt)` | Główna pętla logiki. | **TAK**, na początku. Obsługuje ruch i animacje. |
-| `render(float ox, float oy)` | Rysowanie na ekranie. | **TAK**, jeśli chcesz narysować bazowy model/teksturę. **NIE**, jeśli chcesz rysować coś zupełnie własnego. |
-| `takeDamage(int dmg)` | Reakcja na obrażenia. | **TAK**, odejmuje HP i sprawdza śmierć. Dodaj tu np. dźwięk oberwania. |
-| `isMouseOver(...)` | Sprawdza czy myszka jest nad obiektem. | Zazwyczaj nie trzeba nadpisywać, bazowa wersja poprawnie używa collidera. |
+1. Dodaj klase encji.
+2. Dodaj builder, jesli pasuje do istniejacego wzorca.
+3. Dodaj obsluge typu w `EntityFactory`.
+4. Dodaj wpis w `assets/data/locations/objects_<lokacja>.json` albo ustaw encje w Kreatorze leveli.
+5. Sprawdz, czy encja dostaje mape, frakcje, model i HP.
 
-## Przydatne Metody (API)
+## Fabularni NPC
 
-- `move(float x, float y)` / `setVelocity(vx, vy)`: Poruszanie postacią. Bazowa klasa używa `_velocity` w `update`.
-- `rotateTowards(x, y)`: Obraca postać (model 3D) w stronę wybranego punktu w świecie.
-- `playAnimation(...)`: Sterowanie animacjami.
-- `addAbility(...)`: Dodawanie umiejętności do listy dostępnych.
-- `die()`: Zabija enta (HP = 0), zazwyczaj wywołuje animację śmierci lub usuwa obiekt.
+Fabularne NPC dziedzicza zwykle po `StoryNpc`.
 
-## Cykl Życia
-1. **Konstruktor**: Inicjalizacja zasobów, collidera, modelu.
-2. **Update**: Co klatkę. Logika, AI, ruch.
-3. **Render**: Co klatkę (po update). Rysowanie.
-4. **Destruktor**: Sprzątanie zasobów.
+- `GenericStoryNpc` obsluguje pojedynczych ludzi i zielarza konfigurowanych z JSON-a przez `model`, `animation_bundle`, nazwy animacji, `dialogue_key` oraz opcjonalna trase po dialogu.
+- `CemeterySurvivorGroupNpc` jest zlozona encja dla dwojga ocalonych z cmentarza. Encja glowna to `female_warrior`, a dodatkowy wizual to `male_npc_1`; jeden dialog wysyla oboje do huba zielarza i dopiero dotarcie grupy zalicza checkpoint.
+- `ForestLostGroupNpc` jest zlozona encja dla grupy z lasu. Encja glowna to `female_npc_2`, a dodatkowe wizuale to `male_npc_2` i `milena_sister`.
+
+`StoryNpc` obraca sie w strone pobliskiego gracza, jezeli w danej chwili
+`canInteract()` zwraca true i NPC nie idzie. Dzieki temu zachowanie dotyczy nie
+tylko Mushrooma, ale tez ludzi fabularnych i grup NPC. Wyjatkiem sa obiekty,
+ktore nadpisza `shouldLookAtPlayerWhenNearby()`, np. `WandaCorpseNpc`.
+
+`CemeterySurvivorGroupNpc` uzywa tych samych indeksow animacji co pozostali
+tymczasowi NPC: `9` dla idle i `16` dla chodu. Po dotarciu do `Herbalist Hub`
+ocaleni wybieraja losowe punkty w promieniu huba i dochodza tam ruchem.
+
+`ForestLostGroupNpc` ma kilka etapow: oczekiwanie na rozmowe, niesienie siostry
+Mileny do `Herbalist Hub`, opuszczenie jej na ziemie, wstawanie z animacji
+`Death` od konca i rozejscie sie calej trojki do losowych punktow w hubie.
+Parametry niesienia trzymane sa w `CarryTuning`, a indeksy animacji w
+`AnimationIndices`, zeby strojenie JSON-em nie rozlewalo sie po logice stanu.
+
+`Entity::loadModel` uzupelnia brakujace bufory animacji dla skinned modeli,
+ktore maja dodatkowe nieskinned meshe, np. miecz w `female_warrior.glb`.
+Bez tego jeden akcesoryjny mesh potrafil blokowac `UpdateModelAnimation` dla
+calej postaci i zostawial ja w T-pose.
+
+`female_warrior.glb` ma osobny mesh `1` dla miecza. Encje fabularne uzywajace
+tego modelu wywoluja `hideMeshIndex(1)`, zeby ocalona z cmentarza nie nosila
+broni.
+
+## Dobre praktyki
+
+- Factory sklada obiekt, nie prowadzi AI.
+- Do targetowania w walce uzywaj helperow z `Entity`.
+- Nie rob bezposredniego dostepu do `EntityManager` z ability.
+- Debug colliderow wlaczaj przez `Entity::DebugColliders`.
+- Stan uzywany tylko przez subclass trzymaj w subclass.

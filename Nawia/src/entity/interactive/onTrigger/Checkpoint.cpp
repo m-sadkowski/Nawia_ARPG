@@ -1,9 +1,10 @@
-﻿#include "Checkpoint.h"
-#include <iostream>
+#include "Checkpoint.h"
 
-#include "Collider.h"
-#include "InteractiveTrigger.h"
-#include "Constants.h"
+#include <Collider.h>
+#include <Engine.h>
+#include <Player.h>
+
+#include <iostream>
 
 namespace Nawia::Entity {
 
@@ -11,60 +12,75 @@ namespace Nawia::Entity {
         : Nawia::Entity::InteractiveTrigger(name, x, y, nullptr, 1)
     {
         setFaction(Faction::None);
-        _use_3d_rendering = false;
         setCollider(std::make_unique<RectangleCollider>(this, 2.0f, 1.0f, 0.0f, 0.0f));
     }
 
     void Checkpoint::onTriggerEnter(Entity& other) {
-        if (!_activated && other.getFaction() == Faction::Player) {
-            std::cout << "Checkpoint '" << _name << "' aktywowany przez " << other.getName() << "!" << std::endl;
-            _activated = true;
-        }
+        if (_activated || other.getFaction() != Faction::Player)
+            return;
+
+        std::cout << "Checkpoint '" << _name << "' aktywowany przez " << other.getName() << "!" << std::endl;
+        _activated = true;
+
+        auto* player = dynamic_cast<Player*>(&other);
+        if (!player)
+            return;
+
+        player->setRespawnPoint(this->getCenter());
+
+        Core::Engine* engine = player->getEngine();
+        if (!engine)
+            return;
+
+        engine->getQuestManager().notifyCheckpointReached(getName());
+        engine->getQuestManager().update(engine);
+        engine->saveGameToActiveSlot();
     }
 
     void Checkpoint::update(float delta_time) {
         Entity::update(delta_time);
     }
 
-    void Checkpoint::render(float offset_x, float offset_y) {
-        // Checkpoint is invisible to the player - visible only in debug mode
+    void Checkpoint::render(const Camera3D& camera) {
+		// Checkpoint jest niewidoczny dla gracza, widoczny tylko w trybie diagnostycznym.
         if (DebugColliders && _collider) {
             auto* rect_collider = dynamic_cast<RectangleCollider*>(_collider.get());
             if (rect_collider) {
-                // Draw isometric rhombus like map tiles
-                float world_x = rect_collider->getPosition().x;
-                float world_y = rect_collider->getPosition().y;
-                float half_w = rect_collider->getWidth() / 2.0f;
-                float half_h = rect_collider->getHeight() / 2.0f;
-                
-                // 4 corners of the collider in world space
-                Vector2 top = getIsoPos(world_x - half_w, world_y - half_h, offset_x, offset_y);     // top
-                Vector2 right = getIsoPos(world_x + half_w, world_y - half_h, offset_x, offset_y);   // right
-                Vector2 bottom = getIsoPos(world_x + half_w, world_y + half_h, offset_x, offset_y);  // bottom
-                Vector2 left = getIsoPos(world_x - half_w, world_y + half_h, offset_x, offset_y);    // left
-                
-                // Semi-transparent green fill - drawn as 2 triangles
+		// Rysujemy diagnostyczne pudełko 3D w pozycji kolidera.
+                Vector2 center = rect_collider->getPosition();
+                float w = rect_collider->getWidth();
+                float h = rect_collider->getHeight();
+
+                const float ground_height = getAltitude();
                 Color fill_color = Color{0, 255, 0, 100};
-                DrawTriangle(top, left, bottom, fill_color);
-                DrawTriangle(top, bottom, right, fill_color);
-                
-                // Isometric rhombus border
-                DrawLineV(top, right, GREEN);
-                DrawLineV(right, bottom, GREEN);
-                DrawLineV(bottom, left, GREEN);
-                DrawLineV(left, top, GREEN);
+                DrawCube(Vector3{center.x, ground_height + 0.1f, center.y}, w, 0.2f, h, fill_color);
+                DrawCubeWires(Vector3{center.x, ground_height + 0.1f, center.y}, w, 0.2f, h, GREEN);
                 
                 if (_activated) {
-                    Vector2 center_pt = getIsoPos(world_x, world_y, offset_x, offset_y);
-                    DrawText("SAVED", (int)(center_pt.x - 15), (int)(center_pt.y - 10), 10, GREEN);
+                    // Tekst "SAVED" pojawia się nad checkpointem w przestrzeni ekranu.
+                    Vector2 screen_pos = GetWorldToScreen(Vector3{center.x, ground_height + 0.5f, center.y}, camera);
+                    DrawText("SAVED", (int)(screen_pos.x - 15), (int)(screen_pos.y - 10), 10, GREEN);
                 }
             }
         }
-        // In normal mode we render nothing - checkpoint is invisible
     }
 
     float Checkpoint::getInteractionRange() {
         return 0;
     }
-    
+
+    nlohmann::json Checkpoint::serializeState() const {
+        nlohmann::json state = Entity::serializeState();
+        state["activated"] = _activated;
+        return state;
+    }
+
+    void Checkpoint::applyState(const nlohmann::json& state, Item::ItemDatabase* item_database) {
+        Entity::applyState(state, item_database);
+        if (!state.is_object())
+            return;
+
+        _activated = state.value("activated", _activated);
+    }
+
 } // namespace Nawia::Entity

@@ -1,116 +1,106 @@
-# Przewodnik po klasie Ability
+# Przewodnik po Ability
 
-Klasa `Ability` (`src/entity/abilities/Ability.h`) jest bazą dla wszystkich umiejętności (skilli) w grze. Odpowiada za logikę "rzucania" czaru, zarządzanie cooldownem oraz statystykami.
+Ten dokument opisuje aktualny system umiejetnosci: statystyki z JSON, cooldown, typ celowania i tworzenie efektow w swiecie.
 
-## Czym jest Ability?
-Ability to obiekt logiczny (nie jest Entity, nie renderuje się na mapie), który należy do `Entity` (castera).
-Jego głównym zadaniem jest stworzenie efektu (np. pocisku) w momencie użycia.
+## Glowny model
 
-## Jak stworzyć nową umiejętność?
+`Ability` jest obiektem logicznym przypietym do encji przez `Entity::addAbility(...)`.
 
-Należy stworzyć klasę dziedziczącą po `Nawia::Entity::Ability`.
+Umiejetnosc:
 
-### Wymagania
-1. Konstruktor przyjmujący tekstury (ikona, efekt) i ewentualnie statystyki.
-2. Nadpisanie metody `cast`.
-3. (Opcjonalnie) Nadpisanie `update`.
+- trzyma nazwe, ikone i `AbilityStats`,
+- pilnuje cooldownu,
+- zna typ celowania,
+- po uzyciu tworzy efekt, pocisk albo wpis do pending spawn.
 
-### Przykład: FireballAbility
+Najwazniejsze pliki:
 
-#### Nagłówek (.h)
+- `src/entity/abilities/Ability.h`
+- `src/entity/abilities/AbilityStats.h`
+- `src/entity/abilities/AbilityEffect.h`
+- `src/entity/abilities/projectiles/ProjectileAbility.h`
+
+## Statystyki
+
+Statystyki sa w `assets/data/abilities.json` i sa wczytywane przez:
+
 ```cpp
-#pragma once
-#include "Ability.h"
-
-namespace Nawia::Entity {
-
-    class FireballAbility : public Ability {
-    public:
-        // Konstruktor przyjmuje teksturę dla pocisku (którą przekaże do effectu) i ikonę do UI
-        FireballAbility(const std::shared_ptr<Texture2D>& projectile_tex, const std::shared_ptr<Texture2D>& icon_tex);
-
-        // Metoda cast zwraca wskaźnik na nowy Entity (efekt/pocisk)
-        std::unique_ptr<Entity> cast(float target_x, float target_y) override;
-
-    private:
-        std::shared_ptr<Texture2D> _projectile_tex;
-    };
-
-}
+const AbilityStats stats = Entity::getAbilityStatsFromJson("SwordSlash");
 ```
 
-#### Implementacja (.cpp)
-```cpp
-#include "FireballAbility.h"
-#include "AbilityEffect.h" // Poprawny include
+Najczestsze pola:
 
-namespace Nawia::Entity {
+- `damage` - bazowe obrazenia,
+- `cooldown` - czas odnowienia,
+- `cast_range` - maksymalny zasieg uzycia,
+- `hitbox_radius` - promien lub rozmiar obszaru trafienia,
+- `duration` - czas zycia efektu,
+- `projectile_speed` - predkosc pocisku.
 
-    FireballAbility::FireballAbility(const std::shared_ptr<Texture2D>& proj_tex, const std::shared_ptr<Texture2D>& icon_tex)
-        : Ability(
-            "Fireball", // Nazwa
-            Ability::getStatsFromJson("fireball"), // Możesz pobrać staty z JSON lub wpisać ręcznie
-            AbilityTargetType::POINT, // Typ celowania (POINT, UNIT, SELF)
-            icon_tex // Ikona do UI
-          ),
-          _projectile_tex(proj_tex)
-    {
-        // Jeśli nie korzystasz z JSONa:
-        // _stats.cooldown = 2.0f;
-    }
+## Typ celowania
 
-    std::unique_ptr<Entity> FireballAbility::cast(float target_x, float target_y) {
-        // Oblicz pozycję startową - użyj getCollider()->getCenter() jeśli to możliwe
-        Vector2 startPos = _caster->getCollider() ? _caster->getCollider()->getCenter() : _caster->getPosition();
-        
-        // Stwórz efekt (pocisk). Klasa FireballEffect musi dziedziczyć po AbilityEffect (lub Entity).
-        auto fireball = std::make_unique<FireballEffect>(
-            startPos.x, startPos.y, 
-            _projectile_tex, 
-            _stats, // Przekazujemy statystyki (damage itp.)
-            target_x, target_y // Cel
-        );
+`AbilityTargetType` opisuje, jak caller ma interpretowac cel:
 
-        // WAŻNE: Ustaw faction castera, żeby pocisk nie ranił twórcy ani sojuszników!
-        fireball->setFaction(_caster->getFaction());
+- `POINT` - punkt swiata,
+- `UNIT` - konkretna encja,
+- `SELF` - zrodlo uzycia.
 
-        return fireball;
-    }
+Typ powinien opisywac kontrakt `cast(...)`, nie tylko aktualny wizual. Pocisk lecacy do punktu powinien miec `POINT`, nawet jesli target pochodzi od kliknietej encji.
 
-}
-```
+## Kontrakt `cast`
 
-## Szczegóły implementacji
+`cast(float target_x, float target_y)` zwraca `AbilitySpawn`, czyli `std::shared_ptr<Entity>`.
 
-### Statystyki (`AbilityStats`)
-Struktura `AbilityStats` zawiera:
-- `damage`: obrażenia
-- `cooldown`: czas odnowienia (s)
-- `projectile_speed`: prędkość pocisku
-- `cast_range`: zasięg
-- `hitbox_radius`: wielkość kolizji
-- `duration`: czas trwania efektu
+Zasady:
 
-### Typy celowania (`AbilityTargetType`)
-Enum `AbilityTargetType` określa, jak gracz używa umiejętności:
-- `POINT`: Umiejętność celowana w dowolny punkt na ziemi (np. Fireball, Blink). Wymaga myszki.
-- `UNIT`: Umiejętność wymagająca kliknięcia w konkretny cel (np. targeted stun).
-- `SELF`: Umiejętność natychmiastowa na sobie (np. tarcza, leczenie w miejscu). Nie wymaga myszki.
+1. Na poczatku wywolaj `beginCast()`.
+2. Jesli efekt powstaje od razu, zwroc utworzona encje.
+3. Jesli efekt powstaje z opoznieniem animacji, zwroc `nullptr` i dodaj efekt przez `_caster->addPendingSpawn(...)`.
+4. Nie dodawaj encji bezposrednio do `EntityManager`.
 
-### Metoda `cast(x, y)`
-To najważniejsza metoda.
-- **Wejście**: Koordynaty myszki/celu w świecie gry.
-- **Wyjście**: `std::unique_ptr<Entity>`.
-  - Jeśli umiejętność tworzy pocisk/efekt, zwróć go. System gry doda go do świata (`_pending_spawns`).
-  - Jeśli umiejętność jest natychmiastowa i nie tworzy wizualnego bytu w świecie (np. leczenie), wykonaj logikę tutaj i zwróć `nullptr`.
+`beginCast()` sprawdza `_caster`, cooldown i uruchamia odnowienie. Dzieki temu klasy ability nie duplikuja guardow.
 
-## Co robi klasa bazowa?
-Klasa `Ability` automatycznie obsługuje:
-- **Cooldown**: `isReady()` zwróci fałsz, dopóki cooldown nie minie. Po wywołaniu `cast` (przez silnik), cooldown resetuje się sam (jeśli używasz standardowego flow).
-- **Dostęp do Castera**: Masz wskaźnik `_caster` (Entity, który rzucił czar).
+## Pociski
 
-## Najczęstsze błędy
-- Zapominanie o przekazaniu `_stats` do efektu (powoduje 0 dmg).
-- Nie ustawianie `_faction` dla stworzonego pocisku (może ranić sojuszników).
-- Zwracanie `nullptr` w `cast` kiedy powinien pojawić się efekt wizualny (nic się nie pojawi).
-- Błędne obliczanie pozycji startowej (pocisk wylatuje z "nóg" zamiast ze środka postaci) -> Używaj `getCollider()->getCenter()`.
+Dla pociskow dziedzicz po `ProjectileAbility`.
+
+Ta klasa trzyma wspolne dane:
+
+- nazwe pocisku,
+- model i skale,
+- teksture trafienia,
+- ikone,
+- offset kierunku modelu.
+
+`ProjectileAbility::cast(...)` tworzy `Projectile`, ktory leci w strone celu i filtruje cele po frakcji.
+
+## Melee i opoznione efekty
+
+`SwordSlashAbility` jest aktualnym wzorcem melee:
+
+- od razu obraca castera w strone celu,
+- odpala animacje ataku,
+- zapisuje dane opoznionego spawnu,
+- w `update(...)` tworzy `SwordSlashEffect` w odpowiedniej fazie animacji.
+
+Ten pattern stosuj dla atakow, gdzie hitbox ma pojawic sie dopiero w momencie impaktu.
+
+## Pending spawns
+
+Efekty nie powinny modyfikowac listy encji podczas iteracji po swiecie.
+
+Aktualny przeplyw:
+
+1. Ability zwraca efekt albo dodaje go do pending spawn castera.
+2. `Engine` po update zbiera pending spawns z encji.
+3. Nowe encje trafiaja do `EntityManager` po bezpiecznej stronie petli.
+
+To samo dotyczy efektow wtornych, np. `ProjectileHitEffect`.
+
+## Dobre praktyki
+
+- Do celowania w walce uzywaj `getCenter()`, gdy liczy sie wysokosc modelu.
+- Ability nie powinno znac `EntityManager`.
+- Cooldown uruchamiaj przez `beginCast()` albo `startCooldown()`.
+- Filtr friendly fire trzymaj w efekcie/pocisku, bo to on zna realny kontakt.
+- Ikony ability laduj przez `ResourceManager`, tak jak inne tekstury UI.

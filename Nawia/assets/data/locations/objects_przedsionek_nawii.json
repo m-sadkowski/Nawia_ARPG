@@ -1,0 +1,30 @@
+{
+    "entities": [
+        {
+            "boss_id": "bies",
+            "category": "boss_triggers",
+            "height": 40.0,
+            "location": "Przedsionek Nawii",
+            "name": "Boss Trigger",
+            "type": "boss_trigger",
+            "width": 40.0,
+            "x": 4.974282264709473,
+            "y": 0.18451881408691406
+        },
+        {
+            "category": "teleports",
+            "conditions": {
+                "required_boss_defeated": "bies"
+            },
+            "location": "Przedsionek Nawii",
+            "name": "Powrot do Doliny Nedzy",
+            "scale": 1.0,
+            "target_location": "Dolina Nedzy",
+            "type": "teleport",
+            "x": -10.86701774597168,
+            "y": 1.683828353881836
+        }
+    ],
+    "location": "Przedsionek Nawii",
+    "schema_version": 1
+}
