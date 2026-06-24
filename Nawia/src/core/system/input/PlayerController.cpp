@@ -45,7 +45,6 @@ namespace Nawia::Core {
 		_last_mouse_y = mouse_world_pos.z;
 
 		if (_engine->getUIHandler().isInputBlocked()) {
-			_player->stop();
 			return;
 		}
 
@@ -65,7 +64,6 @@ namespace Nawia::Core {
 		_last_mouse_y = mouse_world_pos.z;
 
 		if (_engine->getUIHandler().isInputBlocked()) {
-			_player->stop();
 			return;
 		}
 
@@ -102,6 +100,11 @@ namespace Nawia::Core {
 
 	void PlayerController::update(const float dt) {
 		if (!_player || _player->isControlLocked()) {
+			stopCurrentAction();
+			return;
+		}
+
+		if (_engine && _engine->getUIHandler().isDialogueOpen()) {
 			stopCurrentAction();
 			return;
 		}

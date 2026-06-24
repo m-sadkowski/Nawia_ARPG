@@ -45,6 +45,7 @@ namespace Nawia::Entity {
             Core::Logger::debugLog("Teleporting player to: " + _target_location);
             
             if (_engine) {
+                _engine->cancelPlayerAction();
                 auto* current_level = _engine->getLevelManager().getCurrentLevel();
                 if (current_level)
                     current_level->changeLocation(_engine, _target_location);
