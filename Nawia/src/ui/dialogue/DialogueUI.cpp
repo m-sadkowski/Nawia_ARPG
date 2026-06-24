@@ -16,6 +16,7 @@ namespace Nawia::UI
     namespace
     {
         constexpr float PANEL_WIDTH_RATIO = 0.74f;
+        constexpr const char* DIALOGUE_PLACEHOLDER_VOICE = "assets/audio/dialogues/Placeholders/dialogue_placeholder.wav";
 
         struct DialogueLayout
         {
@@ -284,11 +285,12 @@ namespace Nawia::UI
             return;
 
         const auto* node = _current_tree.getNode(_current_node_id);
-        if (!node || node->voice_path.empty())
+        if (!node)
             return;
 
-        _current_voice_id = "dialogue_voice:" + node->voice_path;
-        _audio_manager->playSoundFile(_current_voice_id, node->voice_path, {1.0f, 1.0f, true});
+        const std::string voice_path = node->voice_path.empty() ? DIALOGUE_PLACEHOLDER_VOICE : node->voice_path;
+        _current_voice_id = "dialogue_voice:" + voice_path;
+        _audio_manager->playSoundFile(_current_voice_id, voice_path, {1.0f, 1.0f, true});
     }
 
     void DialogueUI::stopCurrentVoice()

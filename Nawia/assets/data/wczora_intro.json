@@ -2,31 +2,31 @@
   "slides": [
     {
       "text": "Okolo dwa tysiace lat temu.\nDzisiejsze Kaszuby.",
-      "voice_path": "assets/audio/dialogues/Intro/slide_01.wav",
+      "voice_path": "assets/audio/dialogues/Narrator/Intro/slide_01.wav",
       "image_path": "assets/textures/intro/dzisiejsze_kaszuby.png",
       "duration": 8.0
     },
     {
       "text": "Tej nocy osada swietowala zaslubiny Wandy. Piesni niosly sie po lesie, miod lal sie z dzbanow, a ogniska hulaly jak mlodzi w tancu.\n\nNikt nie patrzyl w niebo.\nNikt nie sluchal lasu.\n\nOgnisko trzaskalo.",
-      "voice_path": "assets/audio/dialogues/Intro/slide_02.wav",
+      "voice_path": "assets/audio/dialogues/Narrator/Intro/slide_02.wav",
       "image_path": "assets/textures/intro/dzisiejsze_kaszuby.png",
       "duration": 20.0
     },
     {
       "text": "Logos szukal Mileny. Wsrod smiechu, spiewow i pijackich zakladow nie mogl dostrzec jej twarzy.\n\nW koncu zobaczyl cien znikajacy w oborze. Ruszyl za nim.\n\nOgnisko trzaskalo.",
-      "voice_path": "assets/audio/dialogues/Intro/slide_03.wav",
+      "voice_path": "assets/audio/dialogues/Narrator/Intro/slide_03.wav",
       "image_path": "assets/textures/intro/logos_szuka_mileny.png",
       "duration": 16.0
     },
     {
       "text": "Drzwi obory zatrzasnely sie za Logosem.\n\nMileny tam nie bylo.\n\nZ zewnatrz dobiegl krzyk. Potem drugi. Potem tyle naraz, ze nie dalo sie juz poznac, kto wola o pomoc, a kto modli sie po raz ostatni.\n\nOgnisko trzaskalo.\n\nNie.\nTrzeszczalo cos jeszcze.",
-      "voice_path": "assets/audio/dialogues/Intro/slide_04.wav",
+      "voice_path": "assets/audio/dialogues/Narrator/Intro/slide_04.wav",
       "image_path": "assets/textures/intro/zrywa_sie_wiatr.png",
       "duration": 18.0
     },
     {
       "text": "Logos wybiegl na zewnatrz i zobaczyl ogien.\n\nPlonely chaty.\nPlonely drzewa.\nPlonelo wesele.\n\nNiebo czernialo od burzy, jakby sami bogowie rozdarli je pazurami.\n\nPotem cos uderzylo go w glowe.",
-      "voice_path": "assets/audio/dialogues/Intro/slide_05.wav",
+      "voice_path": "assets/audio/dialogues/Narrator/Intro/slide_05.wav",
       "image_path": "assets/textures/intro/logos_wybiega_na_dwor.png",
       "duration": 21.0
     }
@@ -34,37 +34,37 @@
   "awakening_dialogue": {
     "speaker": "Logos",
     "text": "Strasznie wczoraj zachlalem... Nie. To nie byl miod. To nie byla zwykla noc. Pamietam krzyki. Ogien. Milene... Gdzie ja jestem?\n\nChwila.\n\nKto tu lezy?\n\nCzy to wszystko stalo sie naprawde?",
-    "voice_path": "assets/audio/dialogues/Intro/awakening.wav",
+    "voice_path": "assets/audio/dialogues/Intro/Awakening/awakening.wav",
     "option": "Wstac."
   },
   "szeptucha": {
     "spawn_offset": {
-      "x": 1.8,
-      "y": 0.8
+      "x": 4.0,
+      "y": 1.2
     },
     "final_option": "Co?",
     "lines": [
       {
         "speaker": "Szeptucha",
         "text": "Glupis... jeszcze zyjesz, a juz chcesz biec za dziewczyna. Bogowie nie skonczyli z toba.",
-        "voice_path": "assets/audio/dialogues/Intro/szeptucha_glupis.wav"
+        "voice_path": "assets/audio/dialogues/Intro/Szeptucha/szeptucha_glupis.wav"
       },
       {
         "speaker": "Logos",
         "text": "Kim jestes? O czym prawisz? Gdzie Milena?",
-        "voice_path": "assets/audio/dialogues/Intro/player_kim_jestes.wav"
+        "voice_path": "assets/audio/dialogues/Intro/Szeptucha/player_kim_jestes.wav"
       },
       {
         "speaker": "Szeptucha",
         "text": "Lud zapomnial, kto oddycha w korzeniach, kto patrzy z kamieni, kto trzyma burze za uzda. Bawiliscie sie, piliscie, budowaliscie twierdze, a ofiar nie bylo. Gniew bogow spadl na was jak siekiera.\n\nPodazaj sciezka do Nawii, Logosie. Albo wszystkich was przykryje ziemia.",
-        "voice_path": "assets/audio/dialogues/Intro/szeptucha_gniew_bogow.wav"
+        "voice_path": "assets/audio/dialogues/Intro/Szeptucha/szeptucha_gniew_bogow.wav"
       }
     ]
   },
   "final_dialogue": {
     "speaker": "Logos",
     "text": "Bogowie, wiedzmy, trupy na drodze... Nie wiem, czemu akurat ja mam jeszcze nogi pod soba. Ale Milena zyje. Musze ja znalezc. I kazdego, kto ocalal.",
-    "voice_path": "assets/audio/dialogues/Intro/player_final.wav",
+    "voice_path": "assets/audio/dialogues/Intro/Final/player_final.wav",
     "option": "Ruszac."
   }
 }

@@ -33,6 +33,10 @@ namespace Nawia::World {
 		constexpr const char* FIRST_LEVEL_NAWIA_LIGHTING_FILE = "assets/maps/wczora_przedsionek_nawii_lighting.json";
 		constexpr float WCZORA_INTRO_CAMERA_ZOOM_FACTOR = 0.5f;
 		constexpr float WCZORA_INTRO_CAMERA_TARGET_HEIGHT_FACTOR = 0.55f;
+		constexpr float WCZORA_SLIDE_VOICE_VOLUME = 0.3f;
+		constexpr float WCZORA_SLIDE_VOICE_TAIL_SECONDS = 1.25f;
+		constexpr float WCZORA_SZEPTUCHA_DEFAULT_FORWARD_OFFSET = 4.0f;
+		constexpr float WCZORA_SZEPTUCHA_DEFAULT_SIDE_OFFSET = 1.2f;
 		constexpr int PRESENTATION_BOOTS_ITEM_ID = 19;
 
 		const std::vector<LevelLocationFile> FIRST_LEVEL_LOCATIONS = {
@@ -186,6 +190,31 @@ namespace Nawia::World {
 		const nlohmann::json& getOutroConfig() {
 			static const nlohmann::json config = loadJsonDocument("assets/data/wczora_outro.json");
 			return config;
+		}
+
+		float getSoundDurationSeconds(const std::string& path) {
+			if (path.empty() || !IsAudioDeviceReady())
+				return 0.0f;
+
+			const Sound sound = LoadSound(path.c_str());
+			if (sound.frameCount == 0 || sound.stream.sampleRate == 0) {
+				Core::Logger::errorLog("FirstLevel: nie mozna odczytac dlugosci audio slajdu: " + path);
+				return 0.0f;
+			}
+
+			const float duration = static_cast<float>(sound.frameCount) / static_cast<float>(sound.stream.sampleRate);
+			UnloadSound(sound);
+			return duration;
+		}
+
+		float resolveSlideDuration(const nlohmann::json& slide_json, const float fallback_duration) {
+			const float configured_duration = slide_json.value("duration", fallback_duration);
+			const std::string voice_path = slide_json.value("voice_path", "");
+			const float voice_duration = getSoundDurationSeconds(voice_path);
+			if (voice_duration <= 0.0f)
+				return configured_duration;
+
+			return std::max(configured_duration, voice_duration + WCZORA_SLIDE_VOICE_TAIL_SECONDS);
 		}
 
 		bool isPlayerDialogueSpeaker(const std::string& speaker) {
@@ -367,7 +396,7 @@ namespace Nawia::World {
 				slide.text = slide_json.value("text", "");
 				slide.voice_path = slide_json.value("voice_path", "");
 				slide.image_path = slide_json.value("image_path", "");
-				slide.duration = slide_json.value("duration", 6.0f);
+				slide.duration = resolveSlideDuration(slide_json, 6.0f);
 				_intro_slides.push_back(std::move(slide));
 			}
 		}
@@ -413,12 +442,25 @@ namespace Nawia::World {
 		openAwakeningDialogue(engine);
 	}
 
+	void FirstLevel::skipOutroSlides(Core::Engine* engine) {
+		if (!engine)
+			return;
+
+		stopSlideVoice(engine);
+		_intro_slides.clear();
+		_intro_slide_index = 0;
+		_intro_timer = 0.0f;
+		_intro_overlay_alpha = 1.0f;
+		_intro_phase = IntroPhase::OutroFadeToMenu;
+		engine->requestReturnToMainMenu(getOutroConfig().value("beta_message", "Twierdza Kamienna nie jest dostepna w wersji Beta."));
+	}
+
 	void FirstLevel::equipPresentationBoots(Core::Engine* engine) const {
 		if (!engine || !engine->getPlayer())
 			return;
 
 		if (const auto boots = engine->getItemDatabase().createItem(PRESENTATION_BOOTS_ITEM_ID))
-			engine->getPlayer()->equipItem(boots);
+			engine->getPlayer()->getBackpack().addItem(boots);
 	}
 
 	void FirstLevel::spawnIntroCorpse(Core::Engine* engine) {
@@ -508,8 +550,30 @@ namespace Nawia::World {
 
 		removeIntroNpc();
 
+		const auto player = engine->getPlayer();
 		const auto& szeptucha_config = getIntroConfig()["szeptucha"];
-		Vector3 spawn_position = {corpse_position.x, engine->getPlayer()->getAltitude(), corpse_position.y};
+		const Vector2 player_center = player->getCenter();
+		Vector2 spawn_direction = {
+			corpse_position.x - player_center.x,
+			corpse_position.y - player_center.y
+		};
+		const float direction_length = std::sqrt(spawn_direction.x * spawn_direction.x + spawn_direction.y * spawn_direction.y);
+		if (direction_length > 0.001f) {
+			spawn_direction.x /= direction_length;
+			spawn_direction.y /= direction_length;
+		} else {
+			spawn_direction = {1.0f, 0.0f};
+		}
+
+		const auto& spawn_offset = szeptucha_config["spawn_offset"];
+		const float forward_offset = spawn_offset.value("x", WCZORA_SZEPTUCHA_DEFAULT_FORWARD_OFFSET);
+		const float side_offset = spawn_offset.value("y", WCZORA_SZEPTUCHA_DEFAULT_SIDE_OFFSET);
+		const Vector2 side_direction = {-spawn_direction.y, spawn_direction.x};
+		Vector3 spawn_position = {
+			corpse_position.x + spawn_direction.x * forward_offset + side_direction.x * side_offset,
+			player->getAltitude(),
+			corpse_position.y + spawn_direction.y * forward_offset + side_direction.y * side_offset
+		};
 		if (engine->getCurrentMap() && engine->getCurrentMap()->getNavMesh().isReady())
 			spawn_position = engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(spawn_position);
 
@@ -584,7 +648,7 @@ namespace Nawia::World {
 				slide.text = slide_json.value("text", "");
 				slide.voice_path = slide_json.value("voice_path", "");
 				slide.image_path = slide_json.value("image_path", "");
-				slide.duration = slide_json.value("duration", 7.0f);
+				slide.duration = resolveSlideDuration(slide_json, 7.0f);
 				_intro_slides.push_back(std::move(slide));
 			}
 		}
@@ -598,9 +662,9 @@ namespace Nawia::World {
 		}
 
 		_intro_slide_index = 0;
-		_intro_phase = _intro_slides.empty() ? IntroPhase::OutroFadeToMenu : IntroPhase::OutroSlides;
+		_intro_phase = _intro_slides.empty() ? IntroPhase::OutroFadeToMenu : IntroPhase::OutroFadeFromGame;
 		_intro_timer = 0.0f;
-		_intro_overlay_alpha = 1.0f;
+		_intro_overlay_alpha = 0.0f;
 		_intro_dialogue_opened = false;
 		_intro_flash_timer = 0.0f;
 		_pending_szeptucha_encounter = false;
@@ -611,14 +675,14 @@ namespace Nawia::World {
 		if (const auto player = engine->getPlayer())
 			player->stop();
 
-		playSlideVoice(engine);
+		if (_intro_slides.empty())
+			return;
 	}
 
 	void FirstLevel::finishOutroSequence(Core::Engine* engine) {
 		stopSlideVoice(engine);
-		_intro_phase = IntroPhase::Inactive;
 		_intro_timer = 0.0f;
-		_intro_overlay_alpha = 0.0f;
+		_intro_overlay_alpha = 1.0f;
 		_intro_slides.clear();
 		_intro_slide_index = 0;
 
@@ -642,7 +706,7 @@ namespace Nawia::World {
 			return;
 
 		_intro_slide_voice_id = "intro_slide:" + slide.voice_path;
-		engine->getAudioManager().playSoundFile(_intro_slide_voice_id, slide.voice_path, {1.0f, 1.0f, true});
+		engine->getAudioManager().playSoundFile(_intro_slide_voice_id, slide.voice_path, {WCZORA_SLIDE_VOICE_VOLUME, 1.0f, true});
 	}
 
 	void FirstLevel::stopSlideVoice(Core::Engine* engine) {
@@ -662,6 +726,14 @@ namespace Nawia::World {
 			const Rectangle skip_rect = getIntroSkipButtonRect(GetScreenWidth(), GetScreenHeight());
 			if (CheckCollisionPointRec(GetMousePosition(), skip_rect)) {
 				skipIntroSlides(engine);
+				return;
+			}
+		}
+
+		if (_intro_phase == IntroPhase::OutroSlides && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			const Rectangle skip_rect = getIntroSkipButtonRect(GetScreenWidth(), GetScreenHeight());
+			if (CheckCollisionPointRec(GetMousePosition(), skip_rect)) {
+				skipOutroSlides(engine);
 				return;
 			}
 		}
@@ -740,6 +812,16 @@ namespace Nawia::World {
 			case IntroPhase::SzeptuchaDialogue:
 			case IntroPhase::FinalDialogue:
 				_intro_overlay_alpha = 0.22f;
+				break;
+			case IntroPhase::OutroFadeFromGame:
+				_intro_overlay_alpha = std::clamp(_intro_timer / 1.35f, 0.0f, 1.0f);
+				if (_intro_timer >= 1.35f) {
+					_intro_phase = IntroPhase::OutroSlides;
+					_intro_timer = 0.0f;
+					_intro_overlay_alpha = 1.0f;
+					_intro_slide_index = 0;
+					playSlideVoice(engine);
+				}
 				break;
 			case IntroPhase::OutroFadeToMenu:
 				_intro_overlay_alpha = std::clamp(_intro_timer / 2.5f, 0.0f, 1.0f);
@@ -832,7 +914,7 @@ namespace Nawia::World {
 			}
 		}
 
-		if ((_intro_phase == IntroPhase::Slides || _intro_phase == IntroPhase::FadeFromBlackAfterSlides) && engine)
+		if ((_intro_phase == IntroPhase::Slides || _intro_phase == IntroPhase::FadeFromBlackAfterSlides || _intro_phase == IntroPhase::OutroSlides) && engine)
 			drawIntroSkipButton(engine->getUIHandler().getFont(), getIntroSkipButtonRect(width, height));
 
 		if (_intro_flash_timer > 0.0f) {

@@ -66,3 +66,21 @@ Sound Effect by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_s
 
 24. freesound_community-young-man-being-hurt-95628.mp3:
 - Sound Effect by <a href="https://pixabay.com/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=95628">freesound_community</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=95628">Pixabay</a>
+
+25. gargamel10-frog-sound-effect-380312.mp3:
+Sound Effect by <a href="https://pixabay.com/users/gargamel10-49441056/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=380312">gargamel10</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=380312">Pixabay</a>
+
+26. freesound_community-cartoon-jump-6462.mp3:
+Sound Effect by <a href="https://pixabay.com/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=6462">freesound_community</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=6462">Pixabay</a>
+
+27. universfield-worm-movement-277577.mp3:
+Sound Effect by <a href="https://pixabay.com/users/universfield-28281460/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=277577">Universfield</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=277577">Pixabay</a>
+
+28. yodguard-spider-attack-1-482542.mp3:
+Sound Effect by <a href="https://pixabay.com/users/yodguard-12455005/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=482542">Yodguard</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=482542">Pixabay</a>
+
+29. dragon-studio-giant-spider-walking-504034.mp3:
+Sound Effect by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=504034">DRAGON-STUDIO</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=504034">Pixabay</a>
+
+30. yodguard-spider-attack-3-482540.mp3:
+Sound Effect by <a href="https://pixabay.com/users/yodguard-12455005/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=482540">Yodguard</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=482540">Pixabay</a>

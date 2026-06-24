@@ -204,6 +204,7 @@ namespace Nawia::World {
 		std::vector<LocationDefinition> _location_definitions;
 		std::map<std::string, Vector2> _location_return_positions;
 		std::optional<Vector2> _pending_player_position_override;
+		float _spawn_update_timer = 0.0f;
 		bool _uses_location_files = false;
     };
 

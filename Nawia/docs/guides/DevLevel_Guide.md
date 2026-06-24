@@ -65,7 +65,7 @@ przy ID. Zapis trafia do `objects_*.json` jako `locked: true` i `key_id`.
 W menu NPC sa dodatkowe presety fabularne:
 
 - `Story Human` - ogolny NPC oparty o pola `model`, `animation_bundle`, `idle_animation`, `walk_animation`, `dialogue_key` i opcjonalna trase po dialogu.
-- `Zielarz` - story NPC z domyslnym `dialogue_key: herbalist_placeholder`. Tymczasowo uzywa modelu i animacji soltysa: `assets/models/actors/village_head/village_head.glb`.
+- `Zielarz` - story NPC klasy `herbalist`; dialog buduje sie dynamicznie w kodzie, bez stalego `dialogue_key`. Tymczasowo uzywa modelu i animacji soltysa: `assets/models/actors/village_head/village_head.glb`.
 - `Wiedzma` - pasywny story NPC do sceny przed walka. Uzywa `assets/models/actors/witch/witch.glb`, indeksu idle `5`, walk `16`, cast `7`, `can_talk: false`; dialog uruchamia osobny `Story Trigger`.
 - `Cmentarz: Ocaleni` - jedna grupa dwoch ocalonych z cmentarza: `female_warrior` jako rozmowna encja glowna i `male_npc_1` jako dodatkowy wizual. Jeden dialog wysyla oboje do `Herbalist Hub` i zalicza checkpoint `cemetery_survivors_arrived`.
 - `Forest Lost NPC` - grupa trzech NPC z lasu: `female_npc_2`, `male_npc_2` i `milena_sister`.
@@ -134,11 +134,8 @@ Dla aktualnego flow nie trzeba wypelniac wszystkich pol kreatora. Wystarcza:
   `dialogue_key = witch_after_bies_placeholder`,
   `condition boss defeated = bies`, `checkpoint = witch_after_bies`,
   bez target location.
-- Final przy chacie zielarza ma dwa zapisane triggery w `objects_wczora.json`:
-  `herbalist_final_success` odpala sie, gdy `return_to_herbalist_final` jest
-  aktywny i `rescue_forest_survivors` ukonczony; `herbalist_final_fail`
-  odpala sie, gdy ten quest nie jest ukonczony, failuje go i ukrywa
-  `Forest Lost NPC`.
+- Final przy chacie zielarza obsluguje NPC klasy `herbalist` przez dynamiczny
+  dialog w `GenericStoryNpc::buildHerbalistDialogue()`.
 
 W `Przedsionek Nawii` jest juz zapisany `boss_trigger` na `bies` i teleport
 powrotny do `Dolina Nedzy` odblokowywany po pokonaniu Biesa.

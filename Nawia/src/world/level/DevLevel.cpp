@@ -2371,7 +2371,7 @@ namespace Nawia::World {
 			_npc_idle_animation_buffer = "Idle";
 			_npc_walk_animation_buffer = "Walk";
 			_npc_talk_animation_buffer = "Idle";
-			_story_dialogue_key_buffer = "herbalist_placeholder";
+			_story_dialogue_key_buffer.clear();
 			_current_mode = EditorMode::NPCStoryDetails;
 		}
 		if (drawButton(font, "Cmentarz: Ocaleni", start_x, start_y + 420, 300, 50, BLUE)) {

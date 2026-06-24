@@ -57,6 +57,7 @@ namespace Nawia::Core {
 		void refreshCombatTargets();
 
 		[[nodiscard]] std::shared_ptr<Entity::Entity> getEntityAt(float screen_x, float screen_y, const Camera3D& camera) const;
+		[[nodiscard]] std::shared_ptr<Entity::Entity> getHoveredEntity() const { return _hovered_entity.lock(); }
 		void updateHoverState(float screen_x, float screen_y, const Camera3D& camera);
 
 		void processAbilityCollisions() const;
@@ -70,6 +71,7 @@ namespace Nawia::Core {
 		Engine* _engine = nullptr;
 		std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
 		std::shared_ptr<Entity::Entity> _player;
+		std::weak_ptr<Entity::Entity> _hovered_entity;
 		float _combat_target_refresh_timer = 0.0f;
 		float _altitude_snap_timer = 0.0f;
 

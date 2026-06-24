@@ -51,6 +51,21 @@ namespace Nawia::Entity {
 			static const nlohmann::json config = loadJsonDocument("assets/data/npc_dialogues.json");
 			return config;
 		}
+
+		std::vector<std::string> readActionIds(const nlohmann::json& option_json) {
+			std::vector<std::string> actions;
+			if (option_json.contains("action") && option_json["action"].is_string())
+				actions.push_back(option_json["action"].get<std::string>());
+
+			if (option_json.contains("actions") && option_json["actions"].is_array()) {
+				for (const auto& action_json : option_json["actions"]) {
+					if (action_json.is_string())
+						actions.push_back(action_json.get<std::string>());
+				}
+			}
+
+			return actions;
+		}
 	}
 
 	StoryNpc::StoryNpc(const std::string& name, const float x, const float y, Core::Engine* engine)
@@ -262,6 +277,63 @@ namespace Nawia::Entity {
 		return has_voice
 			? buildVoicedLinearDialogue(voiced_lines, final_option)
 			: buildLinearDialogue(plain_lines, final_option);
+	}
+
+	Game::DialogueTree StoryNpc::buildDialogueFromConfig(
+		const std::string& key,
+		const std::function<void(const std::string&)>& execute_option_action) const {
+		const auto& config = getNpcDialogueConfig();
+		if (!config.contains(key) || !config[key].is_object())
+			return {};
+
+		const auto& dialogue = config[key];
+		const auto nodes_it = dialogue.find("nodes");
+		if (nodes_it == dialogue.end() || !nodes_it->is_array())
+			return buildDialogueFromConfig(key);
+
+		Game::DialogueTree tree;
+		for (const auto& node_json : *nodes_it) {
+			if (!node_json.is_object())
+				continue;
+
+			Game::DialogueNode node;
+			node.id = node_json.value("id", 0);
+			node.speaker_name = node_json.value("speaker", "");
+			node.text = node_json.value("text", "");
+			node.voice_path = node_json.value("voice_path", "");
+
+			if (node_json.contains("options") && node_json["options"].is_array()) {
+				for (const auto& option_json : node_json["options"]) {
+					if (!option_json.is_object())
+						continue;
+
+					Game::DialogueOption option;
+					option.text = option_json.value("text", "Dalej");
+					option.next_node_id = option_json.value("next_node_id", option_json.value("next", -1));
+
+					auto actions = readActionIds(option_json);
+					if (!actions.empty() && execute_option_action) {
+						option.action = [actions = std::move(actions), execute_option_action]() {
+							for (const auto& action : actions)
+								execute_option_action(action);
+						};
+					}
+
+					node.options.push_back(std::move(option));
+				}
+			}
+
+			if (node.options.empty()) {
+				Game::DialogueOption option;
+				option.text = node_json.value("option", "Rozumiem.");
+				option.next_node_id = -1;
+				node.options.push_back(std::move(option));
+			}
+
+			tree.addNode(node);
+		}
+
+		return tree;
 	}
 
 	void StoryNpc::rotateToNearbyPlayer(const float delta_time) {

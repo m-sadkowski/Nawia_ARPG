@@ -44,7 +44,9 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool isMilenaSisterAlive() const;
 		[[nodiscard]] bool isMilenaSisterOptionalTalkCompleted() const;
 		[[nodiscard]] bool isSpiderNestCleared() const;
-		[[nodiscard]] Game::DialogueTree buildHerbalistDialogue() const;
+		[[nodiscard]] std::string resolveHerbalistDialogueKey() const;
+		[[nodiscard]] Game::DialogueTree buildHerbalistDialogue(const std::string& dialogue_key) const;
+		void executeHerbalistDialogueAction(const std::string& action) const;
 		void startHerbalistSpiderQuest(Core::Engine& engine) const;
 		void startMilenaSisterOptionalQuest(Core::Engine& engine) const;
 		void finishWczoraLevel(Core::Engine& engine) const;

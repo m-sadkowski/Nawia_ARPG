@@ -63,7 +63,7 @@ namespace Nawia::Core {
 		bool performInteraction();
 		void updateRotation() const;
 
-		bool trySelectEnemy(float screen_x, float screen_y);
+		bool trySelectEnemy(const std::shared_ptr<Entity::Entity>& entity);
 		void handleGroundClick(Vector3 pos);
 		void queueAbility(int index, float x, float y, float screen_x, float screen_y);
 		void castAbility(int index, float x, float y, float screen_x, float screen_y);

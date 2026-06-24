@@ -5,47 +5,47 @@
       {
         "speaker": "Logos",
         "text": "Alez smrod... jakby bagno zdechlo i jeszcze raz sie obudzilo.\n\nZaraz. Soltys?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/village_head_00.wav"
+        "voice_path": "assets/audio/dialogues/VillageHead/village_head_00.wav"
       },
       {
         "speaker": "Soltys",
         "text": "Dzieki ci za ratunek. To przeklete monstrum trzymalo mnie w tym cielsku jak robaka w garnku. Patrzylem jego slepiami, slyszalem jego rechot, czulem smak wszystkiego, co zarlo.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/village_head_01.wav"
+        "voice_path": "assets/audio/dialogues/VillageHead/village_head_01.wav"
       },
       {
         "speaker": "Logos",
         "text": "Rad jestem, ze zyjesz. Ale powiedz mi prawde. Milena. Jej chusta lezala przy sadzawce. Czy ty... czy ono...",
-        "voice_path": "assets/audio/dialogues/StoryFinal/village_head_02.wav"
+        "voice_path": "assets/audio/dialogues/VillageHead/village_head_02.wav"
       },
       {
         "speaker": "Soltys",
         "text": "Nie. Na szczescie nie. Ropuch tylko zerwal jej chuste. Dziewczyna wyrwala sie i uciekla na polnoc. Moze ku Twierdzy Kamiennej.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/village_head_03.wav"
+        "voice_path": "assets/audio/dialogues/VillageHead/village_head_03.wav"
       },
       {
         "speaker": "Logos",
-        "text": "Musze ja dogonic. Dasz rade wrocic do osady?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/village_head_04.wav"
+        "text": "Musze ja dogonic. Dasz rade wrocic sam do osady?",
+        "voice_path": "assets/audio/dialogues/VillageHead/village_head_04.wav"
       },
       {
         "speaker": "Soltys",
         "text": "Do osady? Tam nie ma juz osady, Logosie. Jest popiol, trupy i gniew bogow nad dymem. Trzeba zebrac zywych. Odprawic dziady. Blagac, poki jeszcze jest kogo blagac.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/village_head_05.wav"
+        "voice_path": "assets/audio/dialogues/VillageHead/village_head_05.wav"
       },
       {
         "speaker": "Logos",
         "text": "Jesli ktos przezyl, znajde go. Dokad ich odsylac?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/village_head_06.wav"
+        "voice_path": "assets/audio/dialogues/VillageHead/village_head_06.wav"
       },
       {
         "speaker": "Soltys",
         "text": "Do chaty Jakuba. Zielarz ma dach, obore i wiecej rozumu niz my wszyscy razem. Powiedz ludziom, ze tam maja isc. I spiesz sie. Nie wiem, ile czasu dali nam bogowie.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/village_head_07.wav"
+        "voice_path": "assets/audio/dialogues/VillageHead/village_head_07.wav"
       },
       {
         "speaker": "Logos",
         "text": "Bywaj, soltysie. I nie wlaz juz w zadne zaby.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/village_head_08.wav"
+        "voice_path": "assets/audio/dialogues/VillageHead/village_head_08.wav"
       }
     ]
   },
@@ -55,7 +55,7 @@
       {
         "speaker": "Logos",
         "text": "Wanda... bogowie. Co cie tak urzadzilo?\n\nTe slady... wieksze niz niedzwiedzie lapy. Pazury wbily sie az w kosc.\n\nMilena mogla isc ta sama droga. Musze ja znalezc.",
-        "voice_path": "assets/audio/dialogues/Intro/wanda_body.wav"
+        "voice_path": "assets/audio/dialogues/Intro/WandaCorpse/wanda_body.wav"
       }
     ]
   },
@@ -65,27 +65,27 @@
       {
         "speaker": "Gzib",
         "text": "GZIBY URATOWANE! DZIEKUJE",
-        "voice_path": "assets/audio/dialogues/Mushroom/gziby_uratowane_dziekuje.mp3"
+        "voice_path": "assets/audio/dialogues/Gzib/gziby_uratowane_dziekuje.mp3"
       },
       {
         "speaker": "Logos",
         "text": "Wydaje mi sie ze ten ropuch tez bral udzial w ataku na wioske. Pamietam jak przez mgle jakis rechot.",
-        "voice_path": "assets/audio/dialogues/Player/ropuch_bral_udzial.wav"
+        "voice_path": "assets/audio/dialogues/Gzib/ropuch_bral_udzial.wav"
       },
       {
         "speaker": "Gzib",
         "text": "GZIBY MOWIA, ZE W SADZAWCE SLYCHAC RE RE KUM KUM",
-        "voice_path": "assets/audio/dialogues/Mushroom/gziby_mowia_ze.mp3"
+        "voice_path": "assets/audio/dialogues/Gzib/gziby_mowia_ze.mp3"
       },
       {
         "speaker": "Logos",
         "text": "Pora go odwiedzic. Widziales moze innych mieszkancow wioski ktorzy tedy uciekali?",
-        "voice_path": "assets/audio/dialogues/Player/pora_go_odwiedzic.wav"
+        "voice_path": "assets/audio/dialogues/Gzib/pora_go_odwiedzic.wav"
       },
       {
         "speaker": "Gzib",
         "text": "NIE WIDZIAL. ALE NAGRODA OD GZIBOW - WEZ",
-        "voice_path": "assets/audio/dialogues/Mushroom/nie_widzial_ale.mp3"
+        "voice_path": "assets/audio/dialogues/Gzib/nie_widzial_ale.mp3"
       }
     ]
   },
@@ -95,17 +95,17 @@
       {
         "speaker": "Logos",
         "text": "One wygladaja jakby juz nie chcialy sie z toba kolegowac.",
-        "voice_path": "assets/audio/dialogues/Player/one_wygladaja.wav"
+        "voice_path": "assets/audio/dialogues/Gzib/one_wygladaja.wav"
       },
       {
         "speaker": "Gzib",
         "text": "WYTNIJ ROBAKI RATUJ GZIBY, RATUJ GZIBYYY",
-        "voice_path": "assets/audio/dialogues/Mushroom/wytnij_robaki_ratuj.mp3"
+        "voice_path": "assets/audio/dialogues/Gzib/wytnij_robaki_ratuj.mp3"
       },
       {
         "speaker": "Logos",
         "text": "No dobra, sprobuje",
-        "voice_path": "assets/audio/dialogues/Player/no_dobra_sprobuje.wav"
+        "voice_path": "assets/audio/dialogues/Gzib/no_dobra_sprobuje.wav"
       }
     ]
   },
@@ -115,12 +115,12 @@
       {
         "speaker": "Logos",
         "text": "Robale juz wyciete. Gziby sa bezpieczne.",
-        "voice_path": "assets/audio/dialogues/Player/robale_bezpieczne.wav"
+        "voice_path": "assets/audio/dialogues/Gzib/robale_bezpieczne.wav"
       },
       {
         "speaker": "Gzib",
         "text": "GZIBY URATOWANE! DZIEKUJE",
-        "voice_path": "assets/audio/dialogues/Mushroom/gziby_uratowane_dziekuje.mp3"
+        "voice_path": "assets/audio/dialogues/Gzib/gziby_uratowane_dziekuje.mp3"
       }
     ]
   },
@@ -130,117 +130,47 @@
       {
         "speaker": "Gzib",
         "text": "GZIBYYY, GDZIE MOJE GZIBYYY",
-        "voice_path": "assets/audio/dialogues/Mushroom/gziby_gdzie_moje_gziby.mp3"
+        "voice_path": "assets/audio/dialogues/Gzib/gziby_gdzie_moje_gziby.mp3"
       },
       {
         "speaker": "Logos",
         "text": "O, nie tylko ja mam omamy. Co sie stalo muchomorku?",
-        "voice_path": "assets/audio/dialogues/Player/omamy_co_sie_stalo.wav"
+        "voice_path": "assets/audio/dialogues/Gzib/omamy_co_sie_stalo.wav"
       },
       {
         "speaker": "Gzib",
         "text": "MOJE GZIBY, NIE MA GZIBOW",
-        "voice_path": "assets/audio/dialogues/Mushroom/moje_gziby_nie_ma_gzibow.mp3"
+        "voice_path": "assets/audio/dialogues/Gzib/moje_gziby_nie_ma_gzibow.mp3"
       },
       {
         "speaker": "Logos",
         "text": "Pomoc ci jakos?",
-        "voice_path": "assets/audio/dialogues/Player/pomoc_ci_jakos.wav"
+        "voice_path": "assets/audio/dialogues/Gzib/pomoc_ci_jakos.wav"
       },
       {
         "speaker": "Gzib",
         "text": "GZIBY, URATUJ, ZATRUTANE, ZACZAROWANE",
-        "voice_path": "assets/audio/dialogues/Mushroom/gziby_uratuj_zatrutane.mp3"
+        "voice_path": "assets/audio/dialogues/Gzib/gziby_uratuj_zatrutane.mp3"
       },
       {
         "speaker": "Logos",
         "text": "Kto zaczarowal twoich kolegow?",
-        "voice_path": "assets/audio/dialogues/Player/kto_zaczarowal.wav"
+        "voice_path": "assets/audio/dialogues/Gzib/kto_zaczarowal.wav"
       },
       {
         "speaker": "Gzib",
         "text": "GRUBY ROPUCH. ROPUCH KRZYCZY ZE GO BRZUCH BOLI OD GZIBY",
-        "voice_path": "assets/audio/dialogues/Mushroom/gruby_ropuch_ropuch.mp3"
+        "voice_path": "assets/audio/dialogues/Gzib/gruby_ropuch_ropuch.mp3"
       },
       {
         "speaker": "Logos",
-        "text": "No chyba ty jestes jakis rozjebany muchmorze.",
-        "voice_path": "assets/audio/dialogues/Player/rozjebany_muchomorze.wav"
+        "text": "No chyba ty jestes jakis zwariowany muchmorze.",
+        "voice_path": "assets/audio/dialogues/Gzib/rozjebany_muchomorze.wav"
       },
       {
         "speaker": "Gzib",
         "text": "CHODZ RATUJ GZIBY",
-        "voice_path": "assets/audio/dialogues/Mushroom/chodz_ratuj_gziby.mp3"
-      }
-    ]
-  },
-  "cemetery_female_survivor": {
-    "final_option": "Idzcie do chaty zielarza.",
-    "lines": [
-      {
-        "speaker": "Ocalona",
-        "text": "Dzieki za ratunek. Siedzielismy miedzy grobami cicho jak myszy. Umarli chodzili blizej niz zywi.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_female_survivor_00.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Widzieliscie innych z osady?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_female_survivor_01.wav"
-      },
-      {
-        "speaker": "Ocalona",
-        "text": "Widzielismy, jak uciekali. Chcielismy wolac, ale gdyby te scierwa nas uslyszaly, byloby po nas. Poszli na polnoc, w strone lasu.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_female_survivor_02.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Poszukam ich. Wy idzcie do zielarza. Prosto na poludnie stad. Jakub przyjmie kazdego, kto jeszcze oddycha.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_female_survivor_03.wav"
-      },
-      {
-        "speaker": "Ocalona",
-        "text": "Niech ci bogowie droge prostuja. Jesli jeszcze nas sluchaja.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_female_survivor_04.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Nie liczylbym na to. Ale idzcie.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_female_survivor_05.wav"
-      }
-    ]
-  },
-  "cemetery_male_survivor": {
-    "final_option": "Idzcie do chaty zielarza.",
-    "lines": [
-      {
-        "speaker": "Ocalony",
-        "text": "Dzieki za ratunek. Siedzielismy miedzy grobami cicho jak myszy. Umarli chodzili blizej niz zywi.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_male_survivor_00.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Widzieliscie innych z osady?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_male_survivor_01.wav"
-      },
-      {
-        "speaker": "Ocalony",
-        "text": "Widzielismy, jak uciekali. Chcielismy wolac, ale gdyby te scierwa nas uslyszaly, byloby po nas. Poszli na polnoc, w strone lasu.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_male_survivor_02.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Poszukam ich. Wy idzcie do zielarza. Prosto na poludnie stad. Jakub przyjmie kazdego, kto jeszcze oddycha.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_male_survivor_03.wav"
-      },
-      {
-        "speaker": "Ocalony",
-        "text": "Niech ci bogowie droge prostuja. Jesli jeszcze nas sluchaja.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_male_survivor_04.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Nie liczylbym na to. Ale idzcie.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_male_survivor_05.wav"
+        "voice_path": "assets/audio/dialogues/Gzib/chodz_ratuj_gziby.mp3"
       }
     ]
   },
@@ -250,32 +180,32 @@
       {
         "speaker": "Ocalona",
         "text": "Dzieki za ratunek. Siedzielismy miedzy grobami cicho jak myszy. Umarli chodzili blizej niz zywi.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_survivors_00.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_00.wav"
       },
       {
         "speaker": "Logos",
         "text": "Widzieliscie innych z osady?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_survivors_01.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_01.wav"
       },
       {
-        "speaker": "Ocalony",
+        "speaker": "Ocalona",
         "text": "Widzielismy, jak uciekali. Chcielismy wolac, ale gdyby te scierwa nas uslyszaly, byloby po nas. Poszli na polnoc, w strone lasu.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_survivors_02.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_02.wav"
       },
       {
         "speaker": "Logos",
         "text": "Poszukam ich. Wy idzcie do zielarza. Prosto na poludnie stad. Jakub przyjmie kazdego, kto jeszcze oddycha.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_survivors_03.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_03.wav"
       },
       {
         "speaker": "Ocalona",
         "text": "Niech ci bogowie droge prostuja. Jesli jeszcze nas sluchaja.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_survivors_04.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_04.wav"
       },
       {
         "speaker": "Logos",
         "text": "Nie liczylbym na to. Ale idzcie.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/cemetery_survivors_05.wav"
+        "voice_path": "assets/audio/dialogues/CemeteryFemaleSurvivor/cemetery_female_survivor_05.wav"
       }
     ]
   },
@@ -285,34 +215,17 @@
       {
         "speaker": "Zagubiona",
         "text": "Pomoz nam. Ona traci krew. Cos wyskoczylo z mgly i rozcielo ja jak plotno.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/forest_lost_group_00.wav"
+        "voice_path": "assets/audio/dialogues/ForestLostGroup/forest_lost_group_00.wav"
       },
       {
         "speaker": "Logos",
         "text": "Musicie isc do Jakuba, zielarza na poludniu. Ma ziola, opatrunki i twardsze serce, niz udaje.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/forest_lost_group_01.wav"
+        "voice_path": "assets/audio/dialogues/ForestLostGroup/forest_lost_group_01.wav"
       },
       {
         "speaker": "Zagubiona",
         "text": "Probowalismy. Mgla kreci nas w kolko. Wracamy pod to samo drzewo, choc idziemy prosto.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/forest_lost_group_02.wav"
-      }
-    ]
-  },
-  "herbalist_placeholder": {
-    "final_option": "Wroce pozniej.",
-    "lines": [
-      {
-        "speaker": "Zielarz",
-        "text": "Dach przecieka, ziola plesnieja, a w oborze smierdzi koza i strachem. Ale zywych jeszcze przyjme."
-      },
-      {
-        "speaker": "Logos",
-        "text": "Beda przychodzic ludzie z cmentarza i z lasu. Jedna ranna moze potrzebowac loza."
-      },
-      {
-        "speaker": "Zielarz",
-        "text": "Nie pytam o nazwiska, kiedy krew idzie przez palce. Przyprowadz ich. A ja zrobie, co umiem. Reszte niech dopowie los."
+        "voice_path": "assets/audio/dialogues/ForestLostGroup/forest_lost_group_02.wav"
       }
     ]
   },
@@ -322,27 +235,27 @@
       {
         "speaker": "Wiedzma",
         "text": "Wiedzialam, ze ktorys sie przypaleta. Zawsze ktorys musi przyjsc z zelazem w garsci i pustka w glowie.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_to_nawia_00.wav"
+        "voice_path": "assets/audio/dialogues/Witch/ToNawia/witch_to_nawia_00.wav"
       },
       {
         "speaker": "Logos",
         "text": "O co ci chodzi, wiedzmo?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_to_nawia_01.wav"
+        "voice_path": "assets/audio/dialogues/Witch/ToNawia/witch_to_nawia_01.wav"
       },
       {
         "speaker": "Wiedzma",
         "text": "Wiedzmo? Tak zaczynasz rozmowe z kims, kto slyszal, jak bogowie zgrzytaja zebami? Niczego was ta noc nie nauczyla.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_to_nawia_02.wav"
+        "voice_path": "assets/audio/dialogues/Witch/ToNawia/witch_to_nawia_02.wav"
       },
       {
         "speaker": "Wiedzma",
         "text": "Moze umarli powiedza ci to wyrazniej.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_to_nawia_03.wav"
+        "voice_path": "assets/audio/dialogues/Witch/ToNawia/witch_to_nawia_03.wav"
       },
       {
         "speaker": "Logos",
         "text": "Jaka znowu lekcja?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_to_nawia_04.wav"
+        "voice_path": "assets/audio/dialogues/Witch/ToNawia/witch_to_nawia_04.wav"
       }
     ]
   },
@@ -355,6 +268,22 @@
         "options": [
           {
             "text": "Nie twoj interes. Pomszcze moich ludzi!",
+            "next": 4
+          },
+          {
+            "text": "Logos. Powiedz mi, co tu sie dzieje. I czemu ty tez na nas szczujesz?",
+            "next": 5
+          }
+        ],
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_placeholder_node_0.wav"
+      },
+      {
+        "id": 4,
+        "speaker": "Logos",
+        "text": "Nie twoj interes. Pomszcze moich ludzi!",
+        "options": [
+          {
+            "text": "Dalej.",
             "next": -1,
             "actions": [
               {
@@ -366,13 +295,21 @@
                 "boss_id": "czarownica"
               }
             ]
-          },
+          }
+        ],
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_pomszcze_ludzi.wav"
+      },
+      {
+        "id": 5,
+        "speaker": "Logos",
+        "text": "Logos. Powiedz mi, co tu sie dzieje. I czemu ty tez na nas szczujesz?",
+        "options": [
           {
-            "text": "Logos. Powiedz mi, co tu sie dzieje. I czemu ty tez na nas szczujesz?",
+            "text": "Dalej.",
             "next": 1
           }
         ],
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_after_bies_placeholder_node_0.wav"
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_co_tu_sie_dzieje.wav"
       },
       {
         "id": 1,
@@ -381,10 +318,22 @@
         "options": [
           {
             "text": "Mow dalej.",
+            "next": 9
+          }
+        ],
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_placeholder_node_1.wav"
+      },
+      {
+        "id": 9,
+        "speaker": "Logos",
+        "text": "Mow dalej.",
+        "options": [
+          {
+            "text": "Dalej.",
             "next": 2
           }
         ],
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_after_bies_placeholder_node_1.wav"
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_mow_dalej.wav"
       },
       {
         "id": 2,
@@ -392,25 +341,49 @@
         "text": "Tanczyliscie na weselach, ale przy grobach milczeliscie. Piliscie za zdrowie mlodych, ale zmarlym nie daliscie nawet okrucha. Dziwi cie gniew bogow? Dziwi cie, ze przyszli upomniec sie o swoje?",
         "options": [
           {
-            "text": "Pierdolenie. Nie wierze ci.",
-            "next": -1,
-            "actions": [
-              {
-                "type": "hide_entity",
-                "name": "Wiedzma"
-              },
-              {
-                "type": "start_boss",
-                "boss_id": "czarownica"
-              }
-            ]
+            "text": "Splywka. Nie wierze ci.",
+            "next": 6
           },
           {
             "text": "Mozemy to jeszcze naprawic?",
+            "next": 7
+          }
+        ],
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_placeholder_node_2.wav"
+      },
+        {
+            "id": 6,
+            "speaker": "Logos",
+            "text": "Spływka. Nie wierze ci.",
+            "options": [
+                {
+                    "text": "Dalej.",
+                    "next": -1,
+                    "actions": [
+                        {
+                            "type": "hide_entity",
+                            "name": "Wiedzma"
+                        },
+                        {
+                            "type": "start_boss",
+                            "boss_id": "czarownica"
+                        }
+                    ]
+                }
+            ],
+            "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_nie_wierze_ci.wav"
+        },
+      {
+        "id": 7,
+        "speaker": "Logos",
+        "text": "Mozemy to jeszcze naprawic?",
+        "options": [
+          {
+            "text": "Dalej.",
             "next": 3
           }
         ],
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_after_bies_placeholder_node_2.wav"
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_mozemy_to_naprawic.wav"
       },
       {
         "id": 3,
@@ -419,6 +392,18 @@
         "options": [
           {
             "text": "Dzieki. Bywaj.",
+            "next": 8
+          }
+        ],
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_placeholder_node_3.wav"
+      },
+      {
+        "id": 8,
+        "speaker": "Logos",
+        "text": "Dzieki. Bywaj.",
+        "options": [
+          {
+            "text": "Dalej.",
             "next": -1,
             "actions": [
               {
@@ -436,7 +421,7 @@
             ]
           }
         ],
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_after_bies_placeholder_node_3.wav"
+        "voice_path": "assets/audio/dialogues/Witch/AfterBies/witch_after_bies_logos_dzieki_bywaj.wav"
       }
     ]
   },
@@ -446,92 +431,12 @@
       {
         "speaker": "Wiedzma",
         "text": "Strzezcie sie boskiego gniewu. To dopiero pierwszy pazur na gardle. Zesla na was monstra z opowiesci, ktorych baliscie sie powtarzac przy ogniu.\n\nNawia juz patrzy.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_death_00.wav"
+        "voice_path": "assets/audio/dialogues/Witch/Death/witch_death_00.wav"
       },
       {
         "speaker": "Logos",
         "text": "Niech patrzy. Ja tez bede.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/witch_death_01.wav"
-      }
-    ]
-  },
-  "herbalist_final_success": {
-    "final_option": "Porozmawiam z nia.",
-    "lines": [
-      {
-        "speaker": "Logos",
-        "text": "Wiedzma mowila o dziadach. O winie, bogach i zmarlych, ktorzy nie dostali naleznego glosu. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_success_00.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Mam dobre i zle wiesci. Dobre sa takie, ze ranna, ktora ocaliles, to siostra Mileny. Jeszcze slaba, ale przytomna. Powie ci wiecej niz ja.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_success_01.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Ja wiem tylko tyle: Milena uciekla z wioski i ruszyla z innymi na zachod.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_success_02.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Zyje... Bogowie. A zle wiesci?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_success_03.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Nie pojdziesz za nia od razu. Tunel do doliny sie zawalil. Kamien siedzi na kamieniu jak przeklenstwo. Odgruzowanie zajmie pare dni.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_success_04.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Kurwa... Kazda chwila moze ja kosztowac zycie.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_success_05.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Wiem. Ale martwy jej nie pomozesz. Porozmawiaj z jej siostra. A o dziadach pomyslimy, gdy lud przestanie drzec na sam dzwiek wiatru.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_success_06.wav"
-      }
-    ]
-  },
-  "herbalist_final_fail": {
-    "final_option": "Niech bedzie.",
-    "lines": [
-      {
-        "speaker": "Logos",
-        "text": "Wiedzma mowila o dziadach. O winie, bogach i zmarlych. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_fail_00.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Mam zle wiesci, Logosie. Wiem tylko, ze Milena uciekla z wioski i ruszyla z innymi na zachod.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_fail_01.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Rano, gdy szedlem po ziola, znalazlem w lesie cialo jej siostry. I jeszcze dwoje naszych. Mgla juz prawie ich przykryla.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_fail_02.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Kurwa... To byla dobra dziewczyna. Milena nie moze sie o tym dowiedziec od obcego.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_fail_03.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Nie ruszysz za nia teraz. Tunel do doliny sie zawalil. Odgruzowanie zajmie pare dni.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_fail_04.wav"
-      },
-      {
-        "speaker": "Logos",
-        "text": "Wiec bede czekal, az los ja dopadnie?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_fail_05.wav"
-      },
-      {
-        "speaker": "Medrzec",
-        "text": "Bedziesz zyl, zeby miec jeszcze kogo ratowac. O dziadach pomyslimy, gdy zbierzemy tych, co zostali.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/herbalist_final_fail_06.wav"
+        "voice_path": "assets/audio/dialogues/Witch/Death/witch_death_01.wav"
       }
     ]
   },
@@ -541,42 +446,271 @@
       {
         "speaker": "Siostra Mileny",
         "text": "Logos... Jakub mowil, ze zyjesz. Milena tez zyje. Widzialam, jak uciekala na zachod, ku Twierdzy Kamiennej. Byla ranna w bok, ale szla o wlasnych silach.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_00.wav"
+        "voice_path": "assets/audio/dialogues/Herbalist/MilenaSisterAfterHerbalist/milena_sister_after_herbalist_00.wav"
       },
       {
         "speaker": "Logos",
         "text": "Co was gonilo?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_01.wav"
+        "voice_path": "assets/audio/dialogues/Herbalist/MilenaSisterAfterHerbalist/milena_sister_after_herbalist_01.wav"
       },
       {
         "speaker": "Siostra Mileny",
         "text": "Wszystko naraz. Bies przeszedl przez ogien jak przez mgle. Ziemia wyrzucila zywe trupy spod plotow. W lesie cos wysokiego, z rogami jak konary, rozdarlo ciemnosc. Chyba leszy. To on mnie dopadl.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_02.wav"
+        "voice_path": "assets/audio/dialogues/Herbalist/MilenaSisterAfterHerbalist/milena_sister_after_herbalist_02.wav"
       },
       {
         "speaker": "Logos",
         "text": "Milena wiedziala, dokad isc?",
-        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_03.wav"
+        "voice_path": "assets/audio/dialogues/Herbalist/MilenaSisterAfterHerbalist/milena_sister_after_herbalist_03.wav"
       },
       {
         "speaker": "Siostra Mileny",
         "text": "Powtarzala, ze przy Twierdzy Kamiennej jest potok i stare miejsce dziadow. Ze jesli ktos jeszcze pamieta modlitwy, to tam. Bardzo za nia tesknie, Logosie.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_04.wav"
+        "voice_path": "assets/audio/dialogues/Herbalist/MilenaSisterAfterHerbalist/milena_sister_after_herbalist_04.wav"
       },
       {
         "speaker": "Logos",
         "text": "Mam cos jej. Chuste. Ropuch zerwal ja przy sadzawce, ale odzyskalem.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_05.wav"
+        "voice_path": "assets/audio/dialogues/Herbalist/MilenaSisterAfterHerbalist/milena_sister_after_herbalist_05.wav"
       },
       {
         "speaker": "Siostra Mileny",
         "text": "Jej chusta... Dziekuje. Wez to. Milena wyryla te rune, kiedy jeszcze smialysmy sie z takich rzeczy. Mowila, ze chroni serce przed strachem. Tobie przyda sie bardziej niz mnie.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_06.wav"
+        "voice_path": "assets/audio/dialogues/Herbalist/MilenaSisterAfterHerbalist/milena_sister_after_herbalist_06.wav"
       },
       {
         "speaker": "Logos",
         "text": "Odnajde ja. I powiem, ze czekasz.",
-        "voice_path": "assets/audio/dialogues/StoryFinal/milena_sister_after_herbalist_07.wav"
+        "voice_path": "assets/audio/dialogues/Herbalist/MilenaSisterAfterHerbalist/milena_sister_after_herbalist_07.wav"
+      }
+    ]
+  },
+  "herbalist_before_spider_sister_alive": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Logos",
+        "text": "Wiedzma mowila o dziadach. O winie, bogach i zmarlych, ktorzy nie dostali naleznego glosu. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_intro_logos_00.wav",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": 1
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "speaker": "Zielarz",
+        "text": "Mam dobre i zle wiesci. Dobre sa takie, ze ranna, ktora ocaliles, to siostra Mileny. Jeszcze slaba - chcesz z nia porozmawiac?",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_alive_01.wav",
+        "options": [
+          {
+            "text": "Zyje... Bogowie. A zle wiesci?",
+            "next": 2
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "speaker": "Zielarz",
+        "text": "Przejscie jest zawalone. Kamien siedzi na kamieniu jak przeklenstwo, a w rumowisku gniazdo urzadzil wielki katnik. Dopoki to bydle tam zyje, nikt nie podejdzie z lopata ani modlitwa.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_rubble_02.wav",
+        "options": [
+          {
+            "text": "Czyli najpierw pajak.",
+            "next": 3
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "speaker": "Logos",
+        "text": "Zabije go. Potem odgruzujemy przejscie i odprawimy dziady tam, gdzie trzeba.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_quest_logos_03.wav",
+        "options": [
+          {
+            "text": "Porozmawiam z jej siostra i zajme sie katnikiem.",
+            "next": -1,
+            "action": "start_spider_quest_and_open_sister_talk"
+          }
+        ]
+      }
+    ]
+  },
+  "herbalist_before_spider_sister_dead": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Logos",
+        "text": "Wiedzma mowila o dziadach. O winie, bogach i zmarlych, ktorzy nie dostali naleznego glosu. Ale ja musze ruszyc za Milena. Wiesz, dokad poszla?",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_intro_logos_00.wav",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": 1
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "speaker": "Zielarz",
+        "text": "Mam zle wiesci, Logosie. Wiem tylko, ze Milena uciekla z wioski i ruszyla z innymi na zachod. Jej siostra nie dotarla do mnie zywa.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_sister_dead_01.wav",
+        "options": [
+          {
+            "text": "Kurwa...",
+            "next": 2
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "speaker": "Zielarz",
+        "text": "Przejscie jest zawalone. Kamien siedzi na kamieniu jak przeklenstwo, a w rumowisku gniazdo urzadzil wielki katnik. Dopoki to bydle tam zyje, nikt nie podejdzie z lopata ani modlitwa.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_rubble_02.wav",
+        "options": [
+          {
+            "text": "Czyli najpierw pajak.",
+            "next": 3
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "speaker": "Logos",
+        "text": "Zabije go. Potem odgruzujemy przejscie i odprawimy dziady tam, gdzie trzeba.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_quest_logos_03.wav",
+        "options": [
+          {
+            "text": "Zajme sie katnikiem.",
+            "next": -1,
+            "action": "start_spider_quest"
+          }
+        ]
+      }
+    ]
+  },
+  "herbalist_after_spider_sister_waiting": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Zielarz",
+        "text": "Wiec wielki katnik juz nie pilnuje rumowiska. Dobrze. Mozemy zabrac ludzi i narzedzia, ale zanim ruszymy... jej siostra czeka. Chcesz z nia porozmawiac, zanim wezmiemy sie do odgruzowania?",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_done_00.wav",
+        "options": [
+          {
+            "text": "Tak. Najpierw z nia porozmawiam.",
+            "next": -1,
+            "action": "start_spider_quest_and_open_sister_talk"
+          },
+          {
+            "text": "Nie. Konczmy to.",
+            "next": -1,
+            "action": "start_spider_quest_and_finish_wczora"
+          }
+        ]
+      }
+    ]
+  },
+  "herbalist_after_spider_ready": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Zielarz",
+        "text": "Katnik nie zyje, a przejscie czeka. Ludzie sa gotowi. Jesli odprawimy dziady przy potoku nad Twierdza Kamienna, moze jeszcze uda sie odwrocic gniew, ktory spadl na Wczore.",
+        "voice_path": "assets/audio/dialogues/Herbalist/Dynamic/herbalist_dynamic_spider_done_00_2.wav",
+        "options": [
+          {
+            "text": "Ruszajmy.",
+            "next": -1,
+            "action": "finish_wczora_level"
+          }
+        ]
+      }
+    ]
+  },
+  "cat_intro": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Kot Olga",
+        "text": "Miau. Bandyci ukradli moje ryby i schowali je w skrzyni. Mam klucz, ale sam jej nie otworze.",
+        "options": [
+          {
+            "text": "Jasne!",
+            "next": 1
+          },
+          {
+            "text": "Nie?",
+            "next": 2
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "speaker": "Logos",
+        "text": "Jasne!",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": -1,
+            "action": "open_cat_container"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "speaker": "Logos",
+        "text": "Nie?",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": -1
+          }
+        ]
+      }
+    ]
+  },
+  "cat_quest_completed": {
+    "nodes": [
+      {
+        "id": 0,
+        "speaker": "Kot Olga",
+        "text": "Miau! To moja ryba. Dzieki, ze zabrales ja bandytom. Masz tu prezent.",
+        "options": [
+          {
+            "text": "Pokaz prezent.",
+            "next": 1
+          },
+          {
+            "text": "Na nic mi twoje prezenty, bywaj.",
+            "next": 2
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "speaker": "Logos",
+        "text": "Pokaz prezent.",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": -1,
+            "action": "open_cat_container"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "speaker": "Logos",
+        "text": "Na nic mi twoje prezenty, bywaj.",
+        "options": [
+          {
+            "text": "Dalej.",
+            "next": -1
+          }
+        ]
       }
     ]
   }

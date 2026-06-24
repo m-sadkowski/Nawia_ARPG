@@ -47,6 +47,7 @@ namespace Nawia::World {
 			InspectCorpse,
 			SzeptuchaDialogue,
 			FinalDialogue,
+			OutroFadeFromGame,
 			OutroSlides,
 			OutroFadeToMenu
 		};
@@ -62,6 +63,7 @@ namespace Nawia::World {
 
 		void startIntroSequence(Core::Engine* engine);
 		void skipIntroSlides(Core::Engine* engine);
+		void skipOutroSlides(Core::Engine* engine);
 		void equipPresentationBoots(Core::Engine* engine) const;
 		void spawnIntroCorpse(Core::Engine* engine);
 		void queueCorpseInspected(const Vector2& corpse_position);

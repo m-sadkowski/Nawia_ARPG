@@ -16,6 +16,8 @@ namespace Nawia::World {
 
 	namespace {
 
+		constexpr float k_spawn_update_interval = 0.15f;
+
 		bool isPlaceholderMapName(const std::string& model_name) {
 			return model_name.empty() || model_name == "placeholder";
 		}
@@ -56,6 +58,12 @@ namespace Nawia::World {
 
 	void Level::update(Core::Engine* engine, float dt) {
 		if (!engine) return;
+
+		_spawn_update_timer -= dt;
+		if (_spawn_update_timer > 0.0f)
+			return;
+
+		_spawn_update_timer = k_spawn_update_interval;
 
 		const auto player = engine->getPlayer();
 		if (!player) return;

@@ -57,6 +57,9 @@ namespace Nawia::Entity {
 		 */
 		virtual void update(float dt);
 
+		/** @brief Przerywa aktywne, opoznione uzycie ability bez resetowania cooldownu. */
+		virtual void cancel() {}
+
 		/**
 		 * @brief Sprawdza, czy umiejętność jest gotowa do użycia.
 		 * @return `true`, jeśli czas odnowienia dobiegł końca.

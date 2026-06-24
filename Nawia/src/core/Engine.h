@@ -15,6 +15,7 @@
 #include <ResourceManager.h>
 #include <SaveGameManager.h>
 #include <Settings.h>
+#include <CustomCursor.h>
 #include <UIHandler.h>
 
 #include <AssetLoadManifest.h>
@@ -187,6 +188,7 @@ namespace Nawia::Core {
 		Game::QuestManager _quest_manager;
 		Game::BossManager _boss_manager;
 		Game::SaveGameManager _save_game_manager;
+		mutable UI::CustomCursor _custom_cursor; ///< Customowy kursor gry w stylu slowianskim.
 		Vector2 _last_hover_mouse_pos = {-10000.0f, -10000.0f}; ///< Ostatnia pozycja myszy dla raycastow hover.
 		float _hover_update_timer = 0.0f; ///< Ogranicza kosztowne testy hover 3D.
 	};

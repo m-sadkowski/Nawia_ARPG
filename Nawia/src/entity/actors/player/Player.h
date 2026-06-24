@@ -36,10 +36,12 @@ namespace Nawia::Entity {
 
 		/** @brief Zwraca, czy gracz jest w sekwencji powalenia. */
 		[[nodiscard]] bool isKnockedDown() const { return _is_knocked_down; }
+		[[nodiscard]] bool isControlLocked() const { return _control_lock_timer > 0.0f || _is_knocked_down; }
 
 		/** @brief Ustawia cel ruchu gracza. */
 		void moveTo(float x, float y) override;
 		void applyRoot(float duration) override;
+		void applyControlLock(float duration);
 
 		/** @brief Natychmiast zatrzymuje ruch gracza. */
 		void stop();
@@ -187,6 +189,7 @@ namespace Nawia::Entity {
 		bool _is_knocked_down = false;
 		bool _is_consuming_food = false;
 		float _consume_food_timer = 0.0f;
+		float _control_lock_timer = 0.0f;
 
 		enum class KnockdownPhase {
 			None,
