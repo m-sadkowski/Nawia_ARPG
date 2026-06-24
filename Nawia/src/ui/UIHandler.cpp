@@ -1,4 +1,4 @@
-﻿#include "UIHandler.h"
+#include "UIHandler.h"
 
 #include <Ability.h>
 #include <Camera.h>
@@ -55,9 +55,10 @@ namespace Nawia::UI
             "Jakub \"Gruby\" Kulesza - Gzib",
             "Anastazja \"Babka\" Neczajewska - Szeptucha & Ocalona",
             "Jan \"Roki\" Ciupa - Soltys",
-            "Sara \"Sara\" Rzoska - Wiedzma",
+            "Sara \"Kierownik\" Rzoska - Wiedzma",
             "Julia \"Julka\" Morawska - Zagubiona",
-            "Pawel \"Pawko\" Kondratowicz - Zielarz"
+            "Pawel \"Pawko\" Kondratowicz - Zielarz",
+		    "Kalina \"Smyk\" Cheba - Siostra Mileny"
         };
 
         /**

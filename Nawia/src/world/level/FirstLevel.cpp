@@ -460,7 +460,7 @@ namespace Nawia::World {
 			return;
 
 		if (const auto boots = engine->getItemDatabase().createItem(PRESENTATION_BOOTS_ITEM_ID))
-			engine->getPlayer()->equipItem(boots);
+			engine->getPlayer()->getBackpack().addItem(boots);
 	}
 
 	void FirstLevel::spawnIntroCorpse(Core::Engine* engine) {
