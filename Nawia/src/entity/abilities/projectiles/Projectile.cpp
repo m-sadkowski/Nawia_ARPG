@@ -131,7 +131,7 @@ namespace Nawia::Entity {
 		if (const auto player = dynamic_cast<Player*>(_caster))
 			final_damage += player->getStats().power;
 
-		target->rememberDamageSource(_caster);
+		target->rememberDamageSource(_caster, getName());
 		target->takeDamage(final_damage);
 		addHit(target);
 

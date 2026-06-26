@@ -156,7 +156,7 @@ namespace Nawia::Entity {
 		if (!_attack_damage_applied && attack_frame_count > 0 && _anim_frame_counter >= damage_frame) {
 			if (const auto target = _target.lock()) {
 				if (getDistanceToTarget() <= _attack_range * 1.6f) {
-					target->rememberDamageSource(this);
+					target->rememberDamageSource(this, "Melee Attack");
 					target->takeDamage(static_cast<int>(_attack_damage * _damage_multiplier));
 					_attack_damage_applied = true;
 					onAttackDamageApplied(*target);

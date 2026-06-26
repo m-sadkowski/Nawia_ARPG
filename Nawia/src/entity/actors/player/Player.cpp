@@ -583,6 +583,7 @@ namespace Nawia::Entity {
 		clearStatusEffects();
 		_hp = std::max(1, _max_hp / 2);
 		_is_dying = false;
+		_combat_death_event_emitted = false;
 		_is_knocked_down = false;
 		_knockdown_phase = KnockdownPhase::None;
 		_control_lock_timer = 0.0f;

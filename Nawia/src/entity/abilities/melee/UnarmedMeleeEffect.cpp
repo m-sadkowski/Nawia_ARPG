@@ -115,7 +115,7 @@ namespace Nawia::Entity {
 		if (const auto player = dynamic_cast<Player*>(_caster))
 			final_damage += std::max(0, player->getStats().damage / 2);
 
-		enemy->rememberDamageSource(_caster);
+		enemy->rememberDamageSource(_caster, getName());
 		enemy->takeDamage(final_damage);
 
 		if (_knockback_distance > 0.0f && _caster) {

@@ -37,7 +37,7 @@ namespace Nawia::Entity {
 		  _ping_pong_animation(ping_pong_animation) {}
 
 	AbilitySpawn UnarmedMeleeAbility::cast(const float target_x, const float target_y) {
-		if (!beginCast())
+		if (!beginCast(target_x, target_y))
 			return nullptr;
 
 		_caster->rotateTowardsCenter(target_x, target_y);
@@ -61,7 +61,7 @@ namespace Nawia::Entity {
 				if (const auto player = dynamic_cast<Player*>(_caster))
 					final_damage += std::max(0, player->getStats().damage / 2);
 
-				enemy->rememberDamageSource(_caster);
+				enemy->rememberDamageSource(_caster, getName());
 				enemy->takeDamage(final_damage);
 				Core::Logger::debugLog(
 					getName() + " trafil " + enemy->getName() + " za " + std::to_string(final_damage) + " obrazen.");

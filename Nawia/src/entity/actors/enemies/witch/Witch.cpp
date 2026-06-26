@@ -286,7 +286,7 @@ namespace Nawia::Entity {
 		stopMoving();
 
 		if (const auto target = std::dynamic_pointer_cast<Player>(_target.lock())) {
-			target->rememberDamageSource(this);
+			target->rememberDamageSource(this, "Witch Retaliation");
 			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * _damage_multiplier));
 		}
 
@@ -297,7 +297,7 @@ namespace Nawia::Entity {
 	void Witch::applyRetaliation() {
 		const auto target = std::dynamic_pointer_cast<Player>(_target.lock());
 		if (target) {
-			target->rememberDamageSource(this);
+			target->rememberDamageSource(this, "Witch Retaliation");
 			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * _damage_multiplier));
 		}
 

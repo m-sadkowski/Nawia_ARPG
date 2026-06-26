@@ -115,6 +115,8 @@ namespace Nawia::Entity {
      * @brief Rozpoczyna użycie i uruchamia czas odnowienia, jeśli umiejętność jest gotowa.
 		 */
 		bool beginCast();
+		bool beginCast(float target_x, float target_y);
+		bool beginCast(float target_x, float target_y, bool has_target_position);
 
 		/** @brief Uruchamia czas odnowienia po udanym użyciu. */
 		void startCooldown();

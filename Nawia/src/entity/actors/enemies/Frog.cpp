@@ -372,7 +372,7 @@ namespace Nawia::Entity {
 	void Frog::releaseTongueStrike() {
 		const auto target = getTarget();
 		if (target && isTargetInTongueLane(*target)) {
-			target->rememberDamageSource(this);
+			target->rememberDamageSource(this, "Tongue Strike");
 			target->takeDamage(static_cast<int>(TONGUE_DAMAGE * _damage_multiplier));
 			target->applyRoot(TONGUE_PULL_TIME + 0.18f);
 			_tongue_victim = target;

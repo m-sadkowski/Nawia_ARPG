@@ -12,6 +12,8 @@
 #include <Player.h>
 #include <QuestManager.h>
 #include <BossManager.h>
+#include <CombatEventBus.h>
+#include <CombatTelemetryServer.h>
 #include <ResourceManager.h>
 #include <SaveGameManager.h>
 #include <Settings.h>
@@ -86,6 +88,8 @@ namespace Nawia::Core {
 		System::Renderer::LightingSystem& getLightingSystem() { return _lighting_system; }
 		Game::QuestManager& getQuestManager() { return _quest_manager; }
 		Audio::AudioManager& getAudioManager() { return _audio_manager; }
+		Game::CombatEventBus& getCombatEventBus() { return _combat_event_bus; }
+		const Game::CombatEventBus& getCombatEventBus() const { return _combat_event_bus; }
 		Game::BossManager& getBossManager() { return _boss_manager; }
 		const Game::BossManager& getBossManager() const { return _boss_manager; }
 		Game::SaveGameManager& getSaveGameManager() { return _save_game_manager; }
@@ -186,6 +190,9 @@ namespace Nawia::Core {
 		Item::Loottable _loottable;
 		Game::DialogueManager _dialogue_manager;
 		Game::QuestManager _quest_manager;
+		Game::CombatEventBus _combat_event_bus;
+		Game::CombatEventBus::SubscriptionId _combat_telemetry_subscription_id = 0;
+		Game::CombatTelemetryServer _combat_telemetry_server;
 		Game::BossManager _boss_manager;
 		Game::SaveGameManager _save_game_manager;
 		mutable UI::CustomCursor _custom_cursor; ///< Customowy kursor gry w stylu slowianskim.

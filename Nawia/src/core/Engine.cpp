@@ -48,6 +48,15 @@ namespace Nawia::Core {
 		_lighting_system.initialize();
 		_lighting_system.addLight(System::Renderer::LightingSystem::LIGHT_DIRECTIONAL, {-50.0f, 50.0f, -50.0f}, {0.0f, 0.0f, 0.0f}, WHITE);
 		_lighting_system.addLight(System::Renderer::LightingSystem::LIGHT_POINT, {0.0f, 5.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, ORANGE);
+		Entity::Entity::setCombatEventBus(&_combat_event_bus);
+		if (_combat_telemetry_server.start()) {
+			_combat_telemetry_subscription_id = _combat_event_bus.subscribe([this](const Game::CombatEvent& event) {
+				_combat_telemetry_server.publish(event);
+			});
+		}
+		else {
+			Core::Logger::debugLog("Combat telemetry disabled: " + _combat_telemetry_server.getLastError());
+		}
 
 		if (_settings.load())
 			SetWindowSize(_settings.resolution.width, _settings.resolution.height);
@@ -84,7 +93,13 @@ namespace Nawia::Core {
 		if (_level_manager && _level_manager->getCurrentLevel())
 			_level_manager->getCurrentLevel()->onExit(this);
 
+		if (_combat_telemetry_subscription_id != 0) {
+			_combat_event_bus.unsubscribe(_combat_telemetry_subscription_id);
+			_combat_telemetry_subscription_id = 0;
+		}
+		_combat_telemetry_server.stop();
 		_ui_handler.reset();
+		Entity::Entity::setCombatEventBus(nullptr);
 		_controller.reset();
 		_level_manager.reset();
 		_entity_manager.reset();
@@ -646,6 +661,7 @@ namespace Nawia::Core {
 
 	void Engine::update(const float delta_time) {
 		_audio_manager.update();
+		_combat_event_bus.update(delta_time);
 
 		if (_game_state == GameState::Loading) {
 			processLoading();

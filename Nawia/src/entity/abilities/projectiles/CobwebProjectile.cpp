@@ -131,7 +131,7 @@ namespace Nawia::Entity {
 		if (!target || isDead() || !_attached_target.expired())
 			return;
 
-		target->rememberDamageSource(_caster);
+		target->rememberDamageSource(_caster, getName());
 		target->takeDamage(getDamage());
 		target->applyRoot(STUCK_DURATION);
 		if (auto* player = dynamic_cast<Player*>(target.get()))

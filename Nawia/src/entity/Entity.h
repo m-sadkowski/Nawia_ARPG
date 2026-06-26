@@ -29,6 +29,10 @@ namespace Nawia::Core {
 	class ResourceManager;
 }
 
+namespace Nawia::Game {
+	class CombatEventBus;
+}
+
 namespace Nawia::Entity {
 
 	/**
@@ -251,6 +255,8 @@ namespace Nawia::Entity {
 		static void setSharedResourceManager(Core::ResourceManager* manager);
 
 		[[nodiscard]] static Core::ResourceManager* getSharedResourceManager();
+		static void setCombatEventBus(Game::CombatEventBus* event_bus);
+		[[nodiscard]] static Game::CombatEventBus* getCombatEventBus();
 		static void setAudioListener(const std::shared_ptr<Entity>& listener);
 
 		/**
@@ -380,8 +386,9 @@ namespace Nawia::Entity {
 		 * Trzymamy weak_ptr, zeby AI moglo preferowac ostatniego agresora bez
 		 * wydluzania jego cyklu zycia.
 		 */
-		void rememberDamageSource(Entity* source) {
+		void rememberDamageSource(Entity* source, std::string source_label = {}) {
 			_last_damage_source = source ? source->weak_from_this() : std::weak_ptr<Entity>{};
+			_last_damage_source_label = std::move(source_label);
 		}
 
 		[[nodiscard]] std::shared_ptr<Entity> getLastDamageSource() const { return _last_damage_source.lock(); }
@@ -506,6 +513,7 @@ namespace Nawia::Entity {
 		bool _hovered = false;
 		bool _dormant = false;
 		bool _heal_to_full_on_kill = false;
+		bool _combat_death_event_emitted = false;
 		std::vector<int> _hidden_mesh_indices;
 
 		bool _is_dying = false;
@@ -528,6 +536,7 @@ namespace Nawia::Entity {
 		// Śledzenie celu.
 		std::weak_ptr<Entity> _target;             ///< Aktualny cel AI/walki, nieposiadany.
 		std::weak_ptr<Entity> _last_damage_source; ///< Ostatni agresor uzywany przy wyborze celu.
+		std::string _last_damage_source_label;     ///< Nazwa ability lub ataku zwiazanego z ostatnim trafieniem.
 		float _path_recalc_timer = 0.0f;
 
 		Faction _faction = Faction::None;

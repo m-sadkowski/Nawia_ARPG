@@ -27,7 +27,7 @@ namespace Nawia::Entity {
 				return nullptr;
 		}
 
-		if (!beginCast())
+		if (!beginCast(target_x, target_y))
 			return nullptr;
 
 		// Od razu obracamy źródło użycia w stronę celu.

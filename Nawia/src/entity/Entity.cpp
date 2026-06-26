@@ -1,6 +1,7 @@
 #include "Entity.h"
 #include <Ability.h>
 #include <AudioManager.h>
+#include <CombatEventBus.h>
 #include <Collider.h>
 #include <ResourceManager.h>
 
@@ -108,6 +109,7 @@ namespace Nawia::Entity {
 
 namespace {
 	Core::ResourceManager* g_shared_resource_manager = nullptr;
+	Game::CombatEventBus* g_combat_event_bus = nullptr;
 	std::map<std::string, std::shared_ptr<const AnimationBundle>> g_animation_cache;
 	std::weak_ptr<Entity> g_audio_listener;
 
@@ -214,6 +216,14 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	Core::ResourceManager* Entity::getSharedResourceManager() {
 		return g_shared_resource_manager;
+	}
+
+	void Entity::setCombatEventBus(Game::CombatEventBus* event_bus) {
+		g_combat_event_bus = event_bus;
+	}
+
+	Game::CombatEventBus* Entity::getCombatEventBus() {
+		return g_combat_event_bus;
 	}
 
 	void Entity::setAudioListener(const std::shared_ptr<Entity>& listener) {
@@ -730,28 +740,55 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (_is_dying) return;
 
 		Core::Logger::debugLog("Entity " + getName() + " otrzymuje obrażenia: " + std::to_string(dmg) + ". Obecne HP: " + std::to_string(_hp));
+		const int hp_before = _hp;
+		const int hp_after = std::clamp(_hp - dmg, 0, _max_hp);
+		const auto damage_source = _last_damage_source.lock();
+		const std::string damage_source_label = _last_damage_source_label;
+
+		if (g_combat_event_bus && dmg > 0) {
+			g_combat_event_bus->emitDamageDealt(
+				damage_source.get(),
+				this,
+				dmg,
+				hp_before,
+				hp_after,
+				damage_source_label);
+		}
+
 		if (_hp - dmg <= 0) 
 		{
 			const bool killed_player_side = _type == EntityType::Player || _type == EntityType::Ally;
-			const auto killer = _last_damage_source.lock();
 			_hp = 1; // Utrzymujemy encję przy życiu do końca animacji śmierci.
 			_is_dying = true;
 			playAnimation(_death_anim_name, false, true, 0, true);
 			setFaction(Faction::None);
 			onDeathStarted();
-			if (killed_player_side && killer && killer->healsToFullOnKill() && !killer->isDead() && !killer->isDying())
-				killer->setHP(killer->getMaxHP());
+			if (!_combat_death_event_emitted && g_combat_event_bus) {
+				g_combat_event_bus->emitEntityKilled(damage_source.get(), this, damage_source_label);
+				_combat_death_event_emitted = true;
+			}
+			if (killed_player_side && damage_source && damage_source->healsToFullOnKill() && !damage_source->isDead() && !damage_source->isDying())
+				damage_source->setHP(damage_source->getMaxHP());
 			Core::Logger::debugLog("Entity " + getName() + " rozpoczęła sekwencję śmierci.");
 		}
 		else
 		{
 			_hp -= dmg;
 		}
+
+		_last_damage_source_label.clear();
 	}
 
 	void Entity::die()
 	{
+		const auto damage_source = _last_damage_source.lock();
+		const std::string damage_source_label = _last_damage_source_label;
 		_hp = 0;
+		if (!_combat_death_event_emitted && g_combat_event_bus) {
+			g_combat_event_bus->emitEntityKilled(damage_source.get(), this, damage_source_label);
+			_combat_death_event_emitted = true;
+		}
+		_last_damage_source_label.clear();
 		Core::Logger::debugLog("Entity " + getName() + " została zabita.");
 	}
 
@@ -759,12 +796,15 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	{
 		_max_hp = max_hp;
 		_hp = max_hp;
+		_combat_death_event_emitted = false;
 	}
 
 	void Entity::setHP(const int hp)
 	{
 		_hp = std::clamp(hp, 0, _max_hp);
 		_is_dying = false;
+		if (_hp > 0)
+			_combat_death_event_emitted = false;
 		if (_hp > 0 && _type != EntityType::Projectile)
 			setFaction(_faction);
 	}

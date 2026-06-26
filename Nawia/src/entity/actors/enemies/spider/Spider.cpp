@@ -200,7 +200,7 @@ namespace Nawia::Entity {
 		const float damage_frame = static_cast<float>(frame_count) * MELEE_DAMAGE_FRAME_RATIO;
 		if (!_melee_damage_applied && frame_count > 0 && _anim_frame_counter >= damage_frame) {
 			if (target && !target->isDead() && !target->isDying() && getDistanceToTarget() <= MELEE_RANGE * 1.8f) {
-				target->rememberDamageSource(this);
+				target->rememberDamageSource(this, "Spider Bite");
 				target->takeDamage(static_cast<int>(MELEE_DAMAGE * _damage_multiplier));
 				target->applyPoison(POISON_DURATION, POISON_TICK_DAMAGE, 1.0f);
 				playSoundEffect(Audio::SoundId::SpiderMeleeAttack, 0.75f, true, 1.0f);
