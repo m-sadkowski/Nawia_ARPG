@@ -35,6 +35,7 @@ namespace Nawia::Core {
 		constexpr float k_hover_update_interval = 0.05f;
 		constexpr float k_hover_mouse_move_threshold_sq = 1.0f;
 		constexpr float k_camera_zoom_return_speed = 1.7f;
+		constexpr float k_agent_perception_telemetry_interval = 0.25f;
 
 	}
 
@@ -724,6 +725,7 @@ namespace Nawia::Core {
 		if (isLevelBlockingControl()) {
 			_entity_manager->updateEntities(delta_time);
 			collectPendingSpawns();
+			updateAgentPerceptionTelemetry(delta_time);
 			return;
 		}
 		_controller->update(delta_time);
@@ -733,6 +735,7 @@ namespace Nawia::Core {
 		_quest_manager.update(this);
 		_boss_manager.update(this, delta_time);
 		collectPendingSpawns();
+		updateAgentPerceptionTelemetry(delta_time);
 	}
 
 	void Engine::collectPendingSpawns() {
@@ -747,6 +750,23 @@ namespace Nawia::Core {
 
 		for (const auto& spawn : new_spawns)
 			spawnEntity(spawn);
+	}
+
+	void Engine::updateAgentPerceptionTelemetry(const float delta_time) {
+		if (!_entity_manager)
+			return;
+
+		_agent_perception_system.update(*_entity_manager, _combat_event_bus);
+		if (!_combat_telemetry_server.isRunning())
+			return;
+
+		_agent_perception_telemetry_timer -= delta_time;
+		if (_agent_perception_telemetry_timer > 0.0f)
+			return;
+
+		_agent_perception_telemetry_timer = k_agent_perception_telemetry_interval;
+		for (const auto& snapshot : _agent_perception_system.getSnapshots())
+			_combat_telemetry_server.publishAgentPerception(snapshot);
 	}
 
 	void Engine::loadGameplaySounds() {

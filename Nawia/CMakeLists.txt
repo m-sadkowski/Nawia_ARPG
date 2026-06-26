@@ -13,6 +13,7 @@ include_directories(
     src/audio
     src/core
     src/core/game
+    src/core/game/agent
     src/core/game/combat
     src/core/game/telemetry
     src/core/game/save

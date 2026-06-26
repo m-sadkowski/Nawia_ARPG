@@ -74,6 +74,19 @@ namespace Nawia::Game {
 			return "Unknown";
 		}
 
+		[[nodiscard]] const char* toString(const Entity::AbilityTargetType target_type) {
+			switch (target_type) {
+				case Entity::AbilityTargetType::POINT:
+					return "POINT";
+				case Entity::AbilityTargetType::UNIT:
+					return "UNIT";
+				case Entity::AbilityTargetType::SELF:
+					return "SELF";
+			}
+
+			return "UNKNOWN";
+		}
+
 		[[nodiscard]] nlohmann::json vectorToJson(const Vector2 value) {
 			return {
 				{"x", value.x},
@@ -91,6 +104,52 @@ namespace Nawia::Game {
 				{"position", vectorToJson(ref.position)},
 				{"hp", ref.hp},
 				{"max_hp", ref.max_hp}
+			};
+		}
+
+		[[nodiscard]] nlohmann::json agentEntityToJson(const AgentEntitySnapshot& snapshot) {
+			return {
+				{"valid", snapshot.valid},
+				{"runtime_id", static_cast<std::uint64_t>(snapshot.runtime_id)},
+				{"name", snapshot.name},
+				{"entity_type", toString(snapshot.type)},
+				{"faction", toString(snapshot.faction)},
+				{"position", vectorToJson(snapshot.position)},
+				{"velocity", vectorToJson(snapshot.velocity)},
+				{"hp", snapshot.hp},
+				{"max_hp", snapshot.max_hp},
+				{"hp_ratio", snapshot.hp_ratio},
+				{"alive", snapshot.alive},
+				{"dying", snapshot.dying},
+				{"dormant", snapshot.dormant},
+				{"visible", snapshot.visible},
+				{"interactable", snapshot.interactable},
+				{"interaction_available", snapshot.interaction_available},
+				{"interaction_range", snapshot.interaction_range},
+				{"interaction_state", snapshot.interaction_state},
+				{"moving", snapshot.moving},
+				{"rooted", snapshot.rooted},
+				{"poisoned", snapshot.poisoned},
+				{"root_remaining", snapshot.root_remaining},
+				{"poison_remaining", snapshot.poison_remaining}
+			};
+		}
+
+		[[nodiscard]] nlohmann::json combatEventToJson(const CombatEvent& event) {
+			return {
+				{"sequence_id", event.sequence_id},
+				{"time_seconds", event.time_seconds},
+				{"event_type", toString(event.type)},
+				{"source", entityRefToJson(event.source)},
+				{"target", entityRefToJson(event.target)},
+				{"source_label", event.source_label},
+				{"amount", event.amount},
+				{"hp_before", event.hp_before},
+				{"hp_after", event.hp_after},
+				{"lethal", event.lethal},
+				{"has_target_position", event.has_target_position},
+				{"target_position", vectorToJson(event.target_position)},
+				{"event_position", vectorToJson(event.event_position)}
 			};
 		}
 
@@ -166,12 +225,21 @@ namespace Nawia::Game {
 		if (!_running.load())
 			return;
 
-		const std::string payload = serializeEvent(event);
+		queueMessage(serializeEvent(event));
+	}
 
+	void CombatTelemetryServer::publishAgentPerception(const AgentPerceptionSnapshot& snapshot) {
+		if (!_running.load())
+			return;
+
+		queueMessage(serializeAgentPerception(snapshot));
+	}
+
+	void CombatTelemetryServer::queueMessage(std::string payload) {
 		std::lock_guard lock(_mutex);
 		if (_queued_messages.size() >= _settings.max_queued_messages)
 			_queued_messages.pop_front();
-		_queued_messages.push_back(payload);
+		_queued_messages.push_back(std::move(payload));
 	}
 
 	std::string CombatTelemetryServer::getLastError() const {
@@ -180,24 +248,82 @@ namespace Nawia::Game {
 	}
 
 	std::string CombatTelemetryServer::serializeEvent(const CombatEvent& event) const {
-		nlohmann::json json_event = {
-			{"schema", "nawia.telemetry.combat.v1"},
-			{"sequence_id", event.sequence_id},
-			{"time_seconds", event.time_seconds},
-			{"event_type", toString(event.type)},
-			{"source", entityRefToJson(event.source)},
-			{"target", entityRefToJson(event.target)},
-			{"source_label", event.source_label},
-			{"amount", event.amount},
-			{"hp_before", event.hp_before},
-			{"hp_after", event.hp_after},
-			{"lethal", event.lethal},
-			{"has_target_position", event.has_target_position},
-			{"target_position", vectorToJson(event.target_position)},
-			{"event_position", vectorToJson(event.event_position)}
-		};
+		nlohmann::json json_event = combatEventToJson(event);
+		json_event["schema"] = "nawia.telemetry.combat.v1";
 
 		return json_event.dump() + '\n';
+	}
+
+	std::string CombatTelemetryServer::serializeAgentPerception(const AgentPerceptionSnapshot& snapshot) const {
+		nlohmann::json observed_entities = nlohmann::json::array();
+		for (const auto& observed : snapshot.observed_entities) {
+			observed_entities.push_back({
+				{"entity", agentEntityToJson(observed.entity)},
+				{"relation", toString(observed.relation)},
+				{"distance", observed.distance},
+				{"direction", vectorToJson(observed.direction)},
+				{"is_current_target", observed.is_current_target}
+			});
+		}
+
+		nlohmann::json abilities = nlohmann::json::array();
+		for (const auto& ability : snapshot.abilities) {
+			abilities.push_back({
+				{"slot", ability.slot},
+				{"name", ability.name},
+				{"target_type", toString(ability.target_type)},
+				{"ready", ability.ready},
+				{"can_cast", ability.can_cast},
+				{"cooldown_remaining", ability.cooldown_remaining},
+				{"cooldown_ratio", ability.cooldown_ratio},
+				{"cooldown", ability.cooldown},
+				{"cast_range", ability.cast_range},
+				{"duration", ability.duration},
+				{"projectile_speed", ability.projectile_speed},
+				{"hitbox_radius", ability.hitbox_radius},
+				{"damage", ability.damage}
+			});
+		}
+
+		nlohmann::json lost_entities = nlohmann::json::array();
+		for (const auto& lost : snapshot.lost_entities) {
+			lost_entities.push_back({
+				{"last_known_entity", agentEntityToJson(lost.last_known_entity)},
+				{"relation", toString(lost.relation)},
+				{"last_known_position", vectorToJson(lost.last_known_position)},
+				{"last_seen_time_seconds", lost.last_seen_time_seconds},
+				{"seconds_since_seen", lost.seconds_since_seen},
+				{"was_current_target", lost.was_current_target},
+				{"disappearance_reason", lost.disappearance_reason}
+			});
+		}
+
+		nlohmann::json recent_events = nlohmann::json::array();
+		for (const auto& event : snapshot.recent_combat_events)
+			recent_events.push_back(combatEventToJson(event));
+
+		nlohmann::json json_snapshot = {
+			{"schema", "nawia.telemetry.agent_perception.v1"},
+			{"frame_id", snapshot.frame_id},
+			{"time_seconds", snapshot.time_seconds},
+			{"perception_radius", snapshot.perception_radius},
+			{"event_memory_seconds", snapshot.event_memory_seconds},
+			{"agent", agentEntityToJson(snapshot.self)},
+			{"current_target", snapshot.current_target ? agentEntityToJson(*snapshot.current_target) : nlohmann::json(nullptr)},
+			{"last_damage_source", snapshot.last_damage_source ? agentEntityToJson(*snapshot.last_damage_source) : nlohmann::json(nullptr)},
+			{"observed_entities", observed_entities},
+			{"lost_entities", lost_entities},
+			{"abilities", abilities},
+			{"recent_combat_events", recent_events},
+			{"nearby_enemy_count", snapshot.nearby_enemy_count},
+			{"nearby_ally_count", snapshot.nearby_ally_count},
+			{"nearby_neutral_count", snapshot.nearby_neutral_count},
+			{"nearby_npc_count", snapshot.nearby_npc_count},
+			{"nearby_projectile_count", snapshot.nearby_projectile_count},
+			{"lost_entity_count", snapshot.lost_entity_count}
+		};
+
+		return json_snapshot.dump() + '\n';
 	}
 
 	void CombatTelemetryServer::setLastError(std::string error) {

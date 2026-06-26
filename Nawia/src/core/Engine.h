@@ -11,6 +11,7 @@
 #include <Loottable.h>
 #include <Player.h>
 #include <QuestManager.h>
+#include <AgentPerceptionSystem.h>
 #include <BossManager.h>
 #include <CombatEventBus.h>
 #include <CombatTelemetryServer.h>
@@ -88,6 +89,8 @@ namespace Nawia::Core {
 		System::Renderer::LightingSystem& getLightingSystem() { return _lighting_system; }
 		Game::QuestManager& getQuestManager() { return _quest_manager; }
 		Audio::AudioManager& getAudioManager() { return _audio_manager; }
+		Game::AgentPerceptionSystem& getAgentPerceptionSystem() { return _agent_perception_system; }
+		const Game::AgentPerceptionSystem& getAgentPerceptionSystem() const { return _agent_perception_system; }
 		Game::CombatEventBus& getCombatEventBus() { return _combat_event_bus; }
 		const Game::CombatEventBus& getCombatEventBus() const { return _combat_event_bus; }
 		Game::BossManager& getBossManager() { return _boss_manager; }
@@ -128,6 +131,7 @@ namespace Nawia::Core {
 		[[nodiscard]] float getLevelCameraZoomMultiplier() const;
 		[[nodiscard]] float getLevelCameraTargetHeightMultiplier() const;
 		void collectPendingSpawns();
+		void updateAgentPerceptionTelemetry(float delta_time);
 		void loadGameplaySounds();
 		void applySettings(const Settings& new_settings);
 		void createFreshPlayer();
@@ -190,6 +194,8 @@ namespace Nawia::Core {
 		Item::Loottable _loottable;
 		Game::DialogueManager _dialogue_manager;
 		Game::QuestManager _quest_manager;
+		Game::AgentPerceptionSystem _agent_perception_system;
+		float _agent_perception_telemetry_timer = 0.0f;
 		Game::CombatEventBus _combat_event_bus;
 		Game::CombatEventBus::SubscriptionId _combat_telemetry_subscription_id = 0;
 		Game::CombatTelemetryServer _combat_telemetry_server;

@@ -65,6 +65,13 @@ namespace Nawia::Entity {
 			freezeOnDeathFrame();
 	}
 
+	bool MiniMushroomInfected::isPerceptionVisible() const {
+		if (_corruption_released && !_purified)
+			return false;
+
+		return Entity::isPerceptionVisible();
+	}
+
 	void MiniMushroomInfected::spawnLinkedWorm() {
 		auto worm = std::shared_ptr<Worm>(WormBuilder()
 			.setName("Robal")

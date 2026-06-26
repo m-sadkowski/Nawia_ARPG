@@ -139,3 +139,6 @@ ma tylko dostarczyc wiarygodne, spojne dane wejsciowe.
 NDJSON po `127.0.0.1:19777`. Osobna aplikacja PyQt w katalogu `NawiaMonitor`
 odbiera te wiadomosci i pokazuje je w panelach debugowych. Szczegoly sa w
 `docs/ET systems/NawiaMonitor_README.md`.
+
+`AgentPerceptionSystem` korzysta z tego samego `CombatEventBus`, aby dolaczac
+do snapshotow agentow istotne eventy z ostatniego okna czasu.

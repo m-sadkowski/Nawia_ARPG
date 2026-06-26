@@ -164,6 +164,7 @@ namespace Nawia::Entity {
 		 */
 		[[nodiscard]] RayCollision getRayMeshCollision(const Ray& ray) const;
 		[[nodiscard]] bool isVisibleInCamera(const Camera3D& camera, float screen_margin = 96.0f) const;
+		[[nodiscard]] virtual bool isPerceptionVisible() const { return !_dormant && !isDead() && !isDying(); }
 
 		// Transformacja i ruch.
 		void setVelocity(float x, float y) { _velocity.x = x; _velocity.y = y; }

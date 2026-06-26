@@ -66,6 +66,7 @@ Przykladowy event:
 - licznik eventow,
 - licznik `DamageDealt`, `EntityKilled`, `AbilityCastStarted`,
 - tabela eventow,
+- tabela `Agent Perception` z aktualnie widzianymi i utraconymi encjami,
 - surowy JSON zaznaczonego eventu.
 
 ## Miejsca rozbudowy
