@@ -72,6 +72,11 @@ namespace Nawia::Core {
 			return;
 		}
 
+		if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
+			_engine->getPingManager().placePing(_player, mouse_world_pos);
+			return;
+		}
+
 		if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 			return;
 
@@ -196,6 +201,11 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::handleMouseInput(Vector3 mouse_world_pos, const float screen_x, const float screen_y) {
+		if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
+			_engine->getPingManager().placePing(_player, mouse_world_pos);
+			return;
+		}
+
 		if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) return;
 
 		if (const auto entity = _engine->getEntityAt(screen_x, screen_y)) {

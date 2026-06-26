@@ -175,7 +175,7 @@ class MainWindow(QMainWindow):
 		title.setObjectName("panelTitle")
 		layout.addWidget(title)
 
-		self._perception_table = QTableWidget(0, 14)
+		self._perception_table = QTableWidget(0, 17)
 		self._perception_table.setHorizontalHeaderLabels([
 			"Frame",
 			"Time",
@@ -186,6 +186,9 @@ class MainWindow(QMainWindow):
 			"Target",
 			"Seen",
 			"Lost",
+			"Info Pings",
+			"Threat Pings",
+			"Ping Memory",
 			"Enemies",
 			"Allies",
 			"NPCs",
@@ -197,7 +200,7 @@ class MainWindow(QMainWindow):
 		self._perception_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
 		self._perception_table.verticalHeader().setVisible(False)
 		self._perception_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-		self._perception_table.horizontalHeader().setSectionResizeMode(13, QHeaderView.ResizeMode.Stretch)
+		self._perception_table.horizontalHeader().setSectionResizeMode(16, QHeaderView.ResizeMode.Stretch)
 		self._perception_table.itemSelectionChanged.connect(self._show_selected_perception)
 		layout.addWidget(self._perception_table, 1)
 
@@ -354,6 +357,12 @@ class MainWindow(QMainWindow):
 			if isinstance(ability, dict) and ability.get("ready")
 		]
 		current_target = snapshot.get("current_target")
+		visible_pings = [
+			ping for ping in snapshot.get("visible_pings", [])
+			if isinstance(ping, dict)
+		]
+		info_ping_count = sum(1 for ping in visible_pings if ping.get("ping_type") == "Info")
+		threat_ping_count = sum(1 for ping in visible_pings if ping.get("ping_type") == "Threat")
 		values = [
 			snapshot.get("frame_id", ""),
 			f"{float(snapshot.get('time_seconds', 0.0)):.2f}",
@@ -364,6 +373,9 @@ class MainWindow(QMainWindow):
 			self._entity_label(current_target),
 			len(snapshot.get("observed_entities", [])),
 			len(snapshot.get("lost_entities", [])),
+			info_ping_count,
+			threat_ping_count,
+			len(snapshot.get("remembered_pings", [])),
 			snapshot.get("nearby_enemy_count", 0),
 			snapshot.get("nearby_ally_count", 0),
 			snapshot.get("nearby_npc_count", 0),
@@ -377,7 +389,7 @@ class MainWindow(QMainWindow):
 				item = QTableWidgetItem()
 				self._perception_table.setItem(row, column, item)
 			item.setText(str(value))
-			if column in (0, 1, 7, 8, 9, 10, 11, 12):
+			if column in (0, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15):
 				item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
 	def _remove_stale_perception_rows(self) -> None:

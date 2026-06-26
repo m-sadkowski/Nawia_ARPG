@@ -69,7 +69,8 @@ namespace Nawia::Game {
 
 	void AgentPerceptionSystem::update(
 		const Core::EntityManager& entity_manager,
-		const CombatEventBus& combat_event_bus)
+		const CombatEventBus& combat_event_bus,
+		const MapPingManager& ping_manager)
 	{
 		_snapshots.clear();
 		const auto& entities = entity_manager.getEntities();
@@ -82,7 +83,7 @@ namespace Nawia::Game {
 			if (!isAgentCandidate(entity))
 				continue;
 
-			auto snapshot = buildSnapshot(entity, entities, recent_events, combat_event_bus.getTimeSeconds(), frame_id);
+			auto snapshot = buildSnapshot(entity, entities, recent_events, ping_manager, combat_event_bus.getTimeSeconds(), frame_id);
 			active_agent_ids.insert(snapshot.self.runtime_id);
 			_snapshots.push_back(std::move(snapshot));
 		}
@@ -160,6 +161,7 @@ namespace Nawia::Game {
 		const std::shared_ptr<Entity::Entity>& agent,
 		const std::vector<std::shared_ptr<Entity::Entity>>& entities,
 		const std::vector<CombatEvent>& recent_events,
+		const MapPingManager& ping_manager,
 		const float time_seconds,
 		const std::uint64_t frame_id)
 	{
@@ -183,6 +185,16 @@ namespace Nawia::Game {
 		for (size_t index = 0; index < abilities.size(); ++index) {
 			if (abilities[index])
 				snapshot.abilities.push_back(makeAbilitySnapshot(abilities[index], static_cast<int>(index)));
+		}
+
+		for (const auto& ping : ping_manager.getActivePings()) {
+			if (isPingRelevantToAgent(*agent, ping))
+				snapshot.visible_pings.push_back(ping);
+		}
+
+		for (const auto& ping : ping_manager.getRememberedPings()) {
+			if (isPingRelevantToAgent(*agent, ping))
+				snapshot.remembered_pings.push_back(ping);
 		}
 
 		const Vector2 agent_position = agent->getCenter();
@@ -356,6 +368,13 @@ namespace Nawia::Game {
 			return true;
 
 		return false;
+	}
+
+	bool AgentPerceptionSystem::isPingRelevantToAgent(const Entity::Entity& agent, const MapPing& ping) const {
+		if (!ping.source.valid)
+			return false;
+
+		return isPlayerSide(agent.getFaction()) && isPlayerSide(ping.source.faction);
 	}
 
 	void AgentPerceptionSystem::updateMemory(

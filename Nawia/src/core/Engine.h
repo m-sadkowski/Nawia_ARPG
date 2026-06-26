@@ -9,6 +9,7 @@
 #include <LevelManager.h>
 #include <LightingSystem.h>
 #include <Loottable.h>
+#include <MapPingManager.h>
 #include <Player.h>
 #include <QuestManager.h>
 #include <AgentPerceptionSystem.h>
@@ -93,6 +94,8 @@ namespace Nawia::Core {
 		const Game::AgentPerceptionSystem& getAgentPerceptionSystem() const { return _agent_perception_system; }
 		Game::CombatEventBus& getCombatEventBus() { return _combat_event_bus; }
 		const Game::CombatEventBus& getCombatEventBus() const { return _combat_event_bus; }
+		Game::MapPingManager& getPingManager() { return _ping_manager; }
+		const Game::MapPingManager& getPingManager() const { return _ping_manager; }
 		Game::BossManager& getBossManager() { return _boss_manager; }
 		const Game::BossManager& getBossManager() const { return _boss_manager; }
 		Game::SaveGameManager& getSaveGameManager() { return _save_game_manager; }
@@ -125,6 +128,7 @@ namespace Nawia::Core {
 		void handlePlayingInput();
 		void renderWorld() const;
 		void renderGameplay() const;
+		void renderPingSelector() const;
 		void renderGameplayVignetteOverlay() const;
 		[[nodiscard]] bool isLevelInteractionOnly() const;
 		[[nodiscard]] bool isLevelBlockingControl() const;
@@ -199,6 +203,7 @@ namespace Nawia::Core {
 		Game::CombatEventBus _combat_event_bus;
 		Game::CombatEventBus::SubscriptionId _combat_telemetry_subscription_id = 0;
 		Game::CombatTelemetryServer _combat_telemetry_server;
+		Game::MapPingManager _ping_manager;
 		Game::BossManager _boss_manager;
 		Game::SaveGameManager _save_game_manager;
 		mutable UI::CustomCursor _custom_cursor; ///< Customowy kursor gry w stylu slowianskim.

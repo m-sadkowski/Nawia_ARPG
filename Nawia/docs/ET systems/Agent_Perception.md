@@ -17,7 +17,7 @@ te obserwacje do podejmowania decyzji i wspolpracy z innymi agentami.
 Aktualny przeplyw:
 
 ```text
-EntityManager + CombatEventBus -> AgentPerceptionSystem -> snapshots -> NawiaMonitor
+EntityManager + CombatEventBus + MapPingManager -> AgentPerceptionSystem -> snapshots -> NawiaMonitor
 ```
 
 ## Glowny kod
@@ -41,6 +41,8 @@ Snapshot zawiera:
 - `observed_entities` - aktualnie widziane encje w promieniu percepcji,
 - `lost_entities` - encje widziane wczesniej, ktore zniknely z pola widzenia,
 - `abilities` - stan ability, cooldowny i podstawowe metadata,
+- `visible_pings` - aktywne pingi druzyny widoczne na mapie,
+- `remembered_pings` - ostatni zapamietany ping od kazdego zrodla i typu,
 - `recent_combat_events` - istotne eventy z ostatniego okna czasu,
 - liczniki pobliskich wrogow, sojusznikow, NPC, neutralnych i pociskow.
 
@@ -66,12 +68,20 @@ sa zapamietywani jako neutralne encje obserwowalne; snapshot pokazuje, czy
 widzenia i powod znikniecia, np. `OutOfRange`, `Dormant` albo `NotVisible`.
 Encje potwierdzone jako martwe albo usuniete ze swiata sa usuwane z pamieci.
 
+Pingi z `MapPingManager` sa traktowane jako komunikacja druzyny, a nie jako
+wynik FOV/raycast. Snapshoty player/ally-side dostaja aktywne pingi w
+`visible_pings` i ostatnie znane pingi zrodel oraz typow w
+`remembered_pings`. Snapshoty enemy nie dostaja player/ally-side pingow.
+
+Kazdy ping ma `ping_type`: `Info` albo `Threat`.
+
 ## Najwazniejsze funkcje
 
 ### `AgentPerceptionSystem::update(...)`
 
-Buduje nowe snapshoty na podstawie aktywnych encji z `EntityManager` i eventow
-z `CombatEventBus`. Jest wolane przez `Engine` po update swiata.
+Buduje nowe snapshoty na podstawie aktywnych encji z `EntityManager`, eventow
+z `CombatEventBus` i pingow z `MapPingManager`. Jest wolane przez `Engine` po
+update swiata.
 
 ### `AgentPerceptionSystem::getSnapshots()`
 
@@ -112,6 +122,9 @@ Monitor ma osobna zakladke `Agent Perception`. Pokazuje:
 - aktualny target,
 - liczbe aktualnie widzianych encji,
 - liczbe encji w pamieci `lost_entities`,
+- liczbe aktywnych pingow informacyjnych,
+- liczbe aktywnych pingow zagrozenia,
+- liczbe zapamietanych pingow,
 - liczbe pobliskich wrogow i sojusznikow,
 - liczbe pobliskich NPC,
 - liczbe istotnych eventow,

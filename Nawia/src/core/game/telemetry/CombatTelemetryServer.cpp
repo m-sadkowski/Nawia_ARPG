@@ -94,6 +94,14 @@ namespace Nawia::Game {
 			};
 		}
 
+		[[nodiscard]] nlohmann::json vectorToJson(const Vector3 value) {
+			return {
+				{"x", value.x},
+				{"y", value.y},
+				{"z", value.z}
+			};
+		}
+
 		[[nodiscard]] nlohmann::json entityRefToJson(const CombatEntityRef& ref) {
 			return {
 				{"valid", ref.valid},
@@ -150,6 +158,29 @@ namespace Nawia::Game {
 				{"has_target_position", event.has_target_position},
 				{"target_position", vectorToJson(event.target_position)},
 				{"event_position", vectorToJson(event.event_position)}
+			};
+		}
+
+		[[nodiscard]] nlohmann::json pingSourceToJson(const MapPingSource& source) {
+			return {
+				{"valid", source.valid},
+				{"runtime_id", static_cast<std::uint64_t>(source.runtime_id)},
+				{"name", source.name},
+				{"entity_type", toString(source.type)},
+				{"faction", toString(source.faction)}
+			};
+		}
+
+		[[nodiscard]] nlohmann::json mapPingToJson(const MapPing& ping) {
+			return {
+				{"id", ping.id},
+				{"ping_type", Nawia::Game::toString(ping.type)},
+				{"created_time_seconds", ping.created_time_seconds},
+				{"age_seconds", ping.age_seconds},
+				{"duration_seconds", ping.duration_seconds},
+				{"active", ping.active},
+				{"position", vectorToJson(ping.position)},
+				{"source", pingSourceToJson(ping.source)}
 			};
 		}
 
@@ -302,6 +333,14 @@ namespace Nawia::Game {
 		for (const auto& event : snapshot.recent_combat_events)
 			recent_events.push_back(combatEventToJson(event));
 
+		nlohmann::json visible_pings = nlohmann::json::array();
+		for (const auto& ping : snapshot.visible_pings)
+			visible_pings.push_back(mapPingToJson(ping));
+
+		nlohmann::json remembered_pings = nlohmann::json::array();
+		for (const auto& ping : snapshot.remembered_pings)
+			remembered_pings.push_back(mapPingToJson(ping));
+
 		nlohmann::json json_snapshot = {
 			{"schema", "nawia.telemetry.agent_perception.v1"},
 			{"frame_id", snapshot.frame_id},
@@ -314,6 +353,8 @@ namespace Nawia::Game {
 			{"observed_entities", observed_entities},
 			{"lost_entities", lost_entities},
 			{"abilities", abilities},
+			{"visible_pings", visible_pings},
+			{"remembered_pings", remembered_pings},
 			{"recent_combat_events", recent_events},
 			{"nearby_enemy_count", snapshot.nearby_enemy_count},
 			{"nearby_ally_count", snapshot.nearby_ally_count},

@@ -3,6 +3,7 @@
 #include <Ability.h>
 #include <CombatEventBus.h>
 #include <Entity.h>
+#include <MapPingManager.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -99,6 +100,8 @@ namespace Nawia::Game {
 		std::vector<AgentObservedEntity> observed_entities;
 		std::vector<AgentLostEntity> lost_entities;
 		std::vector<AgentAbilitySnapshot> abilities;
+		std::vector<MapPing> visible_pings;
+		std::vector<MapPing> remembered_pings;
 		std::vector<CombatEvent> recent_combat_events;
 		size_t nearby_enemy_count = 0;
 		size_t nearby_ally_count = 0;
@@ -134,7 +137,10 @@ namespace Nawia::Game {
 			bool include_projectiles = true;
 		};
 
-		void update(const Core::EntityManager& entity_manager, const CombatEventBus& combat_event_bus);
+		void update(
+			const Core::EntityManager& entity_manager,
+			const CombatEventBus& combat_event_bus,
+			const MapPingManager& ping_manager);
 		void clear();
 
 		[[nodiscard]] const Settings& getSettings() const { return _settings; }
@@ -160,6 +166,7 @@ namespace Nawia::Game {
 			const std::shared_ptr<Entity::Entity>& agent,
 			const std::vector<std::shared_ptr<Entity::Entity>>& entities,
 			const std::vector<CombatEvent>& recent_events,
+			const MapPingManager& ping_manager,
 			float time_seconds,
 			std::uint64_t frame_id);
 		[[nodiscard]] AgentEntitySnapshot makeEntitySnapshot(const std::shared_ptr<Entity::Entity>& entity) const;
@@ -173,6 +180,7 @@ namespace Nawia::Game {
 			const CombatEvent& event,
 			std::uintptr_t agent_id,
 			Vector2 agent_position) const;
+		[[nodiscard]] bool isPingRelevantToAgent(const Entity::Entity& agent, const MapPing& ping) const;
 		void updateMemory(
 			AgentPerceptionSnapshot& snapshot,
 			const std::shared_ptr<Entity::Entity>& agent,

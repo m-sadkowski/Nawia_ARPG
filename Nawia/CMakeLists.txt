@@ -15,6 +15,7 @@ include_directories(
     src/core/game
     src/core/game/agent
     src/core/game/combat
+    src/core/game/ping
     src/core/game/telemetry
     src/core/game/save
     src/core/util
