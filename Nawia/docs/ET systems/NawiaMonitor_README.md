@@ -66,7 +66,11 @@ Przykladowy event:
 - licznik eventow,
 - licznik `DamageDealt`, `EntityKilled`, `AbilityCastStarted`,
 - tabela eventow,
-- tabela `Agent Perception` z aktualnie widzianymi i utraconymi encjami oraz pingami `Info`/`Threat`,
+- tabela `Agent Perception` z wyborem agenta,
+- szczegolowy podglad wybranego agenta: `Seen Entities`, `Lost Memory`,
+  `Combat`, `Pings` i `Abilities`,
+- widok `Combat` pokazujacy, kto ostatnio zadal agentowi obrazenia oraz czy
+  event jest `incoming`, `outgoing` czy tylko `nearby`,
 - surowy JSON zaznaczonego eventu.
 
 ## Miejsca rozbudowy
@@ -74,6 +78,7 @@ Przykladowy event:
 Monitor jest przygotowany pod kolejne panele:
 
 - Agent Perception,
+- Agent Command Interface,
 - map pings,
 - stan agentow,
 - decision tree / behavior tree,

@@ -12,6 +12,7 @@
 #include <MapPingManager.h>
 #include <Player.h>
 #include <QuestManager.h>
+#include <AgentCommandInterface.h>
 #include <AgentPerceptionSystem.h>
 #include <BossManager.h>
 #include <CombatEventBus.h>
@@ -92,6 +93,8 @@ namespace Nawia::Core {
 		Audio::AudioManager& getAudioManager() { return _audio_manager; }
 		Game::AgentPerceptionSystem& getAgentPerceptionSystem() { return _agent_perception_system; }
 		const Game::AgentPerceptionSystem& getAgentPerceptionSystem() const { return _agent_perception_system; }
+		Game::AgentCommandInterface& getAgentCommandInterface() { return _agent_command_interface; }
+		const Game::AgentCommandInterface& getAgentCommandInterface() const { return _agent_command_interface; }
 		Game::CombatEventBus& getCombatEventBus() { return _combat_event_bus; }
 		const Game::CombatEventBus& getCombatEventBus() const { return _combat_event_bus; }
 		Game::MapPingManager& getPingManager() { return _ping_manager; }
@@ -198,6 +201,7 @@ namespace Nawia::Core {
 		Item::Loottable _loottable;
 		Game::DialogueManager _dialogue_manager;
 		Game::QuestManager _quest_manager;
+		Game::AgentCommandInterface _agent_command_interface;
 		Game::AgentPerceptionSystem _agent_perception_system;
 		float _agent_perception_telemetry_timer = 0.0f;
 		Game::CombatEventBus _combat_event_bus;

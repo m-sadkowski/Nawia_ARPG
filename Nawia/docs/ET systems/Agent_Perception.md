@@ -131,7 +131,24 @@ Monitor ma osobna zakladke `Agent Perception`. Pokazuje:
 - stan interakcji agenta, jesli dany wiersz reprezentuje obiekt interaktywny,
 - gotowe ability.
 
-Po zaznaczeniu wiersza panel szczegolow pokazuje pelny JSON snapshotu.
+Dropdown `Agent` filtruje tabele do wszystkich agentow albo jednego
+konkretnego agenta. Klikniecie wiersza wybiera agenta do szczegolowego
+podgladu. To jest wybor punktu widzenia: snapshot pokazuje, co widzi i pamieta
+wskazana encja.
+
+Pod glowna tabela sa szczegolowe zakladki dla wybranego agenta:
+
+- `Seen Entities` - pelna lista aktualnie widzianych encji z typem, frakcja,
+  relacja, HP, dystansem, pozycja, flagami stanu i dostepnoscia interakcji,
+- `Lost Memory` - encje, ktore agent widzial wczesniej, z ostatnia znana
+  pozycja, czasem od utraty i powodem znikniecia,
+- `Combat` - istotne eventy walki z kierunkiem `incoming`, `outgoing` albo
+  `nearby`; naglowek pokazuje ostatnie obrazenia otrzymane przez agenta,
+- `Pings` - aktywne i zapamietane pingi `Info`/`Threat`,
+- `Abilities` - ability agenta, gotowosc, cooldown, zasieg i obrazenia.
+
+Prawy panel nadal pokazuje pelny JSON zaznaczonego eventu albo snapshotu, ale
+nie jest juz jedynym sposobem sprawdzania percepcji.
 
 Zakladka jest jedna, ale zawiera osobny wiersz dla kazdego aktywnego agenta.
 Na razie kandydatami na agentow sa `Player`, `Ally` i `Enemy`. NPC sa

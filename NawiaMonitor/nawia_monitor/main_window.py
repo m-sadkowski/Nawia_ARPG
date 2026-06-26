@@ -8,6 +8,7 @@ from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
 	QAbstractItemView,
 	QApplication,
+	QComboBox,
 	QFormLayout,
 	QFrame,
 	QGridLayout,
@@ -46,6 +47,8 @@ class MainWindow(QMainWindow):
 		self._perception_rows: dict[int, int] = {}
 		self._perception_snapshots: dict[int, dict[str, Any]] = {}
 		self._perception_last_seen: dict[int, float] = {}
+		self._selected_perception_agent_id = 0
+		self._focused_perception_agent_id = 0
 		self._client = TelemetryClient(parent=self)
 		self._client.event_received.connect(self._handle_telemetry_message)
 		self._client.connection_changed.connect(self._set_connected)
@@ -171,9 +174,21 @@ class MainWindow(QMainWindow):
 		panel.setObjectName("panel")
 		layout = QVBoxLayout(panel)
 
+		header = QHBoxLayout()
 		title = QLabel("Agent Perception")
 		title.setObjectName("panelTitle")
-		layout.addWidget(title)
+		self._perception_agent_combo = QComboBox()
+		self._perception_agent_combo.setMinimumWidth(260)
+		self._perception_agent_combo.currentIndexChanged.connect(self._on_perception_agent_filter_changed)
+		header.addWidget(title)
+		header.addStretch(1)
+		header.addWidget(QLabel("Agent"))
+		header.addWidget(self._perception_agent_combo)
+		layout.addLayout(header)
+
+		self._perception_focus_label = QLabel("No agent selected")
+		self._perception_focus_label.setObjectName("hintLabel")
+		layout.addWidget(self._perception_focus_label)
 
 		self._perception_table = QTableWidget(0, 17)
 		self._perception_table.setHorizontalHeaderLabels([
@@ -202,9 +217,100 @@ class MainWindow(QMainWindow):
 		self._perception_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 		self._perception_table.horizontalHeader().setSectionResizeMode(16, QHeaderView.ResizeMode.Stretch)
 		self._perception_table.itemSelectionChanged.connect(self._show_selected_perception)
-		layout.addWidget(self._perception_table, 1)
+
+		splitter = QSplitter(Qt.Orientation.Vertical, panel)
+		splitter.addWidget(self._perception_table)
+		splitter.addWidget(self._build_perception_detail_tabs())
+		splitter.setSizes([220, 420])
+		layout.addWidget(splitter, 1)
 
 		return panel
+
+	def _build_perception_detail_tabs(self) -> QWidget:
+		tabs = QTabWidget()
+
+		self._observed_entities_table = self._make_readonly_table([
+			"Name",
+			"Type",
+			"Faction",
+			"Relation",
+			"HP",
+			"Distance",
+			"Position",
+			"Flags",
+			"Interact",
+			"Target",
+		])
+		tabs.addTab(self._observed_entities_table, "Seen Entities")
+
+		self._lost_entities_table = self._make_readonly_table([
+			"Name",
+			"Type",
+			"Faction",
+			"Relation",
+			"Last Position",
+			"Ago",
+			"Reason",
+			"Was Target",
+			"Interact",
+		])
+		tabs.addTab(self._lost_entities_table, "Lost Memory")
+
+		combat_panel = QWidget()
+		combat_layout = QVBoxLayout(combat_panel)
+		combat_layout.setContentsMargins(0, 0, 0, 0)
+		self._incoming_damage_label = QLabel("Incoming damage: -")
+		self._incoming_damage_label.setObjectName("hintLabel")
+		combat_layout.addWidget(self._incoming_damage_label)
+		self._perception_combat_table = self._make_readonly_table([
+			"Time",
+			"Direction",
+			"Type",
+			"Source",
+			"Target",
+			"Amount",
+			"HP",
+			"Label",
+		])
+		combat_layout.addWidget(self._perception_combat_table, 1)
+		tabs.addTab(combat_panel, "Combat")
+
+		self._pings_table = self._make_readonly_table([
+			"Memory",
+			"Type",
+			"Source",
+			"Age",
+			"TTL",
+			"Position",
+			"Active",
+		])
+		tabs.addTab(self._pings_table, "Pings")
+
+		self._abilities_table = self._make_readonly_table([
+			"Slot",
+			"Name",
+			"Target",
+			"Ready",
+			"Can Cast",
+			"Cooldown",
+			"Range",
+			"Damage",
+		])
+		tabs.addTab(self._abilities_table, "Abilities")
+
+		return tabs
+
+	def _make_readonly_table(self, headers: list[str]) -> QTableWidget:
+		table = QTableWidget(0, len(headers))
+		table.setHorizontalHeaderLabels(headers)
+		table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+		table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+		table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+		table.verticalHeader().setVisible(False)
+		table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+		if headers:
+			table.horizontalHeader().setSectionResizeMode(len(headers) - 1, QHeaderView.ResizeMode.Stretch)
+		return table
 
 	def _build_details_panel(self) -> QWidget:
 		panel = QFrame()
@@ -246,6 +352,9 @@ class MainWindow(QMainWindow):
 			}
 			QLabel#errorLabel {
 				color: #e2b36d;
+			}
+			QLabel#hintLabel {
+				color: #a9b3c7;
 			}
 			QLineEdit, QSpinBox {
 				background: #0d0f14;
@@ -289,8 +398,12 @@ class MainWindow(QMainWindow):
 		self._perception_rows.clear()
 		self._perception_snapshots.clear()
 		self._perception_last_seen.clear()
+		self._selected_perception_agent_id = 0
+		self._focused_perception_agent_id = 0
 		self._table.setRowCount(0)
-		self._perception_table.setRowCount(0)
+		self._refresh_perception_agent_combo()
+		self._refresh_perception_table()
+		self._refresh_perception_details()
 		self._details.clear()
 		self._refresh_metrics()
 
@@ -343,14 +456,83 @@ class MainWindow(QMainWindow):
 		if runtime_id == 0:
 			return
 
-		row = self._perception_rows.get(runtime_id)
-		if row is None:
+		self._perception_snapshots[runtime_id] = snapshot
+		self._perception_last_seen[runtime_id] = monotonic()
+		self._refresh_perception_agent_combo()
+		self._refresh_perception_table()
+		self._refresh_perception_details()
+
+	def _refresh_perception_agent_combo(self) -> None:
+		if not hasattr(self, "_perception_agent_combo"):
+			return
+
+		current_id = self._selected_perception_agent_id
+		self._perception_agent_combo.blockSignals(True)
+		self._perception_agent_combo.clear()
+		self._perception_agent_combo.addItem("All agents", 0)
+		for runtime_id, snapshot in self._sorted_perception_snapshots():
+			self._perception_agent_combo.addItem(self._entity_label(snapshot.get("agent")), runtime_id)
+
+		index = self._perception_agent_combo.findData(current_id)
+		if index < 0:
+			current_id = 0
+			self._selected_perception_agent_id = 0
+			index = 0
+		self._perception_agent_combo.setCurrentIndex(index)
+		self._perception_agent_combo.blockSignals(False)
+
+	def _on_perception_agent_filter_changed(self, index: int) -> None:
+		if index < 0:
+			return
+
+		value = self._perception_agent_combo.itemData(index)
+		self._selected_perception_agent_id = int(value or 0)
+		if self._selected_perception_agent_id:
+			self._focused_perception_agent_id = self._selected_perception_agent_id
+		self._refresh_perception_table()
+		self._refresh_perception_details()
+
+	def _refresh_perception_table(self) -> None:
+		visible_snapshots = [
+			(runtime_id, snapshot)
+			for runtime_id, snapshot in self._sorted_perception_snapshots()
+			if not self._selected_perception_agent_id or runtime_id == self._selected_perception_agent_id
+		]
+		visible_ids = {runtime_id for runtime_id, _ in visible_snapshots}
+		if self._selected_perception_agent_id in visible_ids:
+			self._focused_perception_agent_id = self._selected_perception_agent_id
+		elif self._focused_perception_agent_id not in visible_ids:
+			self._focused_perception_agent_id = visible_snapshots[0][0] if visible_snapshots else 0
+
+		self._perception_rows.clear()
+		self._perception_table.blockSignals(True)
+		self._perception_table.setRowCount(0)
+		focused_row = -1
+		for runtime_id, snapshot in visible_snapshots:
 			row = self._perception_table.rowCount()
 			self._perception_table.insertRow(row)
 			self._perception_rows[runtime_id] = row
+			self._populate_perception_row(row, snapshot)
+			if self._focused_perception_agent_id == runtime_id:
+				focused_row = row
+		self._perception_table.blockSignals(False)
 
-		self._perception_snapshots[runtime_id] = snapshot
-		self._perception_last_seen[runtime_id] = monotonic()
+		if focused_row >= 0:
+			self._perception_table.selectRow(focused_row)
+		else:
+			self._perception_table.clearSelection()
+
+	def _sorted_perception_snapshots(self) -> list[tuple[int, dict[str, Any]]]:
+		return sorted(
+			self._perception_snapshots.items(),
+			key=lambda item: self._entity_label(item[1].get("agent")),
+		)
+
+	def _populate_perception_row(self, row: int, snapshot: dict[str, Any]) -> None:
+		agent = snapshot.get("agent")
+		if not isinstance(agent, dict):
+			return
+
 		ready_abilities = [
 			str(ability.get("name"))
 			for ability in snapshot.get("abilities", [])
@@ -392,6 +574,157 @@ class MainWindow(QMainWindow):
 			if column in (0, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15):
 				item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
+	def _refresh_perception_details(self) -> None:
+		if not hasattr(self, "_observed_entities_table"):
+			return
+
+		snapshot = self._perception_snapshots.get(self._focused_perception_agent_id)
+		if not snapshot:
+			self._perception_focus_label.setText("No agent selected")
+			self._incoming_damage_label.setText("Incoming damage: -")
+			self._set_table_rows(self._observed_entities_table, [])
+			self._set_table_rows(self._lost_entities_table, [])
+			self._set_table_rows(self._perception_combat_table, [])
+			self._set_table_rows(self._pings_table, [])
+			self._set_table_rows(self._abilities_table, [])
+			return
+
+		agent = snapshot.get("agent")
+		agent_id = self._entity_runtime_id(agent)
+		current_target = snapshot.get("current_target")
+		last_damage_source = snapshot.get("last_damage_source")
+		self._perception_focus_label.setText(
+			"Focus: "
+			f"{self._entity_label(agent)} | "
+			f"Target: {self._entity_label(current_target)} | "
+			f"Last damage source: {self._entity_label(last_damage_source)}"
+		)
+
+		observed_rows: list[list[Any]] = []
+		for observed in snapshot.get("observed_entities", []):
+			if not isinstance(observed, dict):
+				continue
+
+			entity = observed.get("entity")
+			observed_rows.append([
+				self._entity_name(entity),
+				self._entity_field(entity, "entity_type"),
+				self._entity_field(entity, "faction"),
+				observed.get("relation", "-"),
+				self._entity_hp(entity),
+				self._float_text(observed.get("distance")),
+				self._position_text(entity.get("position") if isinstance(entity, dict) else None),
+				self._entity_flags(entity),
+				self._interaction_text(entity),
+				"yes" if observed.get("is_current_target") else "",
+			])
+		self._set_table_rows(self._observed_entities_table, observed_rows, {5})
+
+		lost_rows: list[list[Any]] = []
+		for lost in snapshot.get("lost_entities", []):
+			if not isinstance(lost, dict):
+				continue
+
+			entity = lost.get("last_known_entity")
+			lost_rows.append([
+				self._entity_name(entity),
+				self._entity_field(entity, "entity_type"),
+				self._entity_field(entity, "faction"),
+				lost.get("relation", "-"),
+				self._position_text(lost.get("last_known_position")),
+				f"{self._float_text(lost.get('seconds_since_seen'))}s",
+				lost.get("disappearance_reason", "-"),
+				"yes" if lost.get("was_current_target") else "",
+				self._interaction_text(entity),
+			])
+		self._set_table_rows(self._lost_entities_table, lost_rows, {5})
+
+		combat_events = [
+			event for event in snapshot.get("recent_combat_events", [])
+			if isinstance(event, dict)
+		]
+		incoming_events = [
+			event for event in combat_events
+			if event.get("event_type") == "DamageDealt" and self._entity_runtime_id(event.get("target")) == agent_id
+		]
+		if incoming_events:
+			last_incoming = incoming_events[-1]
+			self._incoming_damage_label.setText(
+				"Incoming damage: "
+				f"{self._entity_label(last_incoming.get('source'))} hit for {last_incoming.get('amount', '-')} "
+				f"({last_incoming.get('source_label') or '-'}) "
+				f"HP {self._hp_text(last_incoming)}"
+			)
+		else:
+			self._incoming_damage_label.setText("Incoming damage: none in recent perception window")
+
+		combat_rows: list[list[Any]] = []
+		for event in reversed(combat_events):
+			combat_rows.append([
+				f"{float(event.get('time_seconds', 0.0)):.2f}",
+				self._event_direction(event, agent_id),
+				event.get("event_type", "-"),
+				self._entity_label(event.get("source")),
+				self._entity_label(event.get("target")),
+				event.get("amount", ""),
+				self._hp_text(event),
+				event.get("source_label", ""),
+			])
+		self._set_table_rows(self._perception_combat_table, combat_rows, {0, 5})
+
+		ping_rows: list[list[Any]] = []
+		for memory_label, key in (("Visible", "visible_pings"), ("Remembered", "remembered_pings")):
+			for ping in snapshot.get(key, []):
+				if not isinstance(ping, dict):
+					continue
+
+				age = float(ping.get("age_seconds", 0.0))
+				duration = float(ping.get("duration_seconds", 0.0))
+				ttl = max(0.0, duration - age)
+				ping_rows.append([
+					memory_label,
+					ping.get("ping_type", "-"),
+					self._entity_label(ping.get("source")),
+					f"{age:.2f}s",
+					f"{ttl:.2f}s",
+					self._position_text(ping.get("position")),
+					"yes" if ping.get("active") else "no",
+				])
+		self._set_table_rows(self._pings_table, ping_rows, {3, 4})
+
+		ability_rows: list[list[Any]] = []
+		for ability in snapshot.get("abilities", []):
+			if not isinstance(ability, dict):
+				continue
+
+			ability_rows.append([
+				ability.get("slot", ""),
+				ability.get("name", "-"),
+				ability.get("target_type", "-"),
+				"yes" if ability.get("ready") else "no",
+				"yes" if ability.get("can_cast") else "no",
+				self._cooldown_text(ability),
+				self._float_text(ability.get("cast_range")),
+				ability.get("damage", ""),
+			])
+		self._set_table_rows(self._abilities_table, ability_rows, {0, 5, 6, 7})
+
+	def _set_table_rows(
+		self,
+		table: QTableWidget,
+		rows: list[list[Any]],
+		right_aligned_columns: set[int] | None = None,
+	) -> None:
+		right_aligned_columns = right_aligned_columns or set()
+		table.setRowCount(0)
+		for row_index, values in enumerate(rows):
+			table.insertRow(row_index)
+			for column, value in enumerate(values):
+				item = QTableWidgetItem(str(value if value not in (None, "") else "-"))
+				if column in right_aligned_columns:
+					item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+				table.setItem(row_index, column, item)
+
 	def _remove_stale_perception_rows(self) -> None:
 		now = monotonic()
 		stale_ids = [
@@ -399,22 +732,33 @@ class MainWindow(QMainWindow):
 			for runtime_id, last_seen in self._perception_last_seen.items()
 			if now - last_seen > PERCEPTION_STALE_SECONDS
 		]
-		for runtime_id in stale_ids:
-			self._remove_perception_row(runtime_id)
-
-	def _remove_perception_row(self, runtime_id: int) -> None:
-		row = self._perception_rows.get(runtime_id)
-		if row is None:
+		if not stale_ids:
 			return
 
-		self._perception_table.removeRow(row)
+		for runtime_id in stale_ids:
+			self._perception_rows.pop(runtime_id, None)
+			self._perception_snapshots.pop(runtime_id, None)
+			self._perception_last_seen.pop(runtime_id, None)
+
+		if self._selected_perception_agent_id in stale_ids:
+			self._selected_perception_agent_id = 0
+		if self._focused_perception_agent_id in stale_ids:
+			self._focused_perception_agent_id = 0
+		self._refresh_perception_agent_combo()
+		self._refresh_perception_table()
+		self._refresh_perception_details()
+
+	def _remove_perception_row(self, runtime_id: int) -> None:
 		self._perception_rows.pop(runtime_id, None)
 		self._perception_snapshots.pop(runtime_id, None)
 		self._perception_last_seen.pop(runtime_id, None)
-
-		for other_id, other_row in list(self._perception_rows.items()):
-			if other_row > row:
-				self._perception_rows[other_id] = other_row - 1
+		if self._selected_perception_agent_id == runtime_id:
+			self._selected_perception_agent_id = 0
+		if self._focused_perception_agent_id == runtime_id:
+			self._focused_perception_agent_id = 0
+		self._refresh_perception_agent_combo()
+		self._refresh_perception_table()
+		self._refresh_perception_details()
 
 	def _refresh_metrics(self) -> None:
 		self._total_events_label.setText(str(len(self._events)))
@@ -442,6 +786,8 @@ class MainWindow(QMainWindow):
 			if stored_row == row:
 				snapshot = self._perception_snapshots.get(runtime_id)
 				if snapshot:
+					self._focused_perception_agent_id = runtime_id
+					self._refresh_perception_details()
 					self._details.setPlainText(json.dumps(snapshot, indent=2, ensure_ascii=False))
 				return
 
@@ -458,6 +804,16 @@ class MainWindow(QMainWindow):
 	def _error_label_text(self, text: str) -> None:
 		self._error_label.setText(text)
 
+	def _entity_runtime_id(self, value: Any) -> int:
+		if not isinstance(value, dict):
+			return 0
+		return int(value.get("runtime_id") or 0)
+
+	def _entity_field(self, value: Any, field: str) -> str:
+		if not isinstance(value, dict) or not value.get("valid"):
+			return "-"
+		return str(value.get(field) or "-")
+
 	def _entity_name(self, value: Any) -> str:
 		if not isinstance(value, dict) or not value.get("valid"):
 			return "-"
@@ -472,6 +828,32 @@ class MainWindow(QMainWindow):
 		faction = str(value.get("faction") or "?")
 		return f"{name} ({entity_type}/{faction})"
 
+	def _entity_hp(self, value: Any) -> str:
+		if not isinstance(value, dict) or not value.get("valid"):
+			return "-"
+		return f"{value.get('hp', '')}/{value.get('max_hp', '')}"
+
+	def _entity_flags(self, value: Any) -> str:
+		if not isinstance(value, dict) or not value.get("valid"):
+			return "-"
+
+		flags: list[str] = []
+		if not value.get("alive", True):
+			flags.append("dead")
+		if value.get("dying"):
+			flags.append("dying")
+		if value.get("dormant"):
+			flags.append("dormant")
+		if not value.get("visible", True):
+			flags.append("hidden")
+		if value.get("moving"):
+			flags.append("moving")
+		if value.get("rooted"):
+			flags.append(f"rooted {self._float_text(value.get('root_remaining'))}s")
+		if value.get("poisoned"):
+			flags.append(f"poisoned {self._float_text(value.get('poison_remaining'))}s")
+		return ", ".join(flags) if flags else "-"
+
 	def _interaction_text(self, value: Any) -> str:
 		if not isinstance(value, dict) or not value.get("interactable"):
 			return "-"
@@ -479,6 +861,38 @@ class MainWindow(QMainWindow):
 		state = str(value.get("interaction_state") or "Interactable")
 		available = "yes" if value.get("interaction_available") else "no"
 		return f"{state}/{available}"
+
+	def _event_direction(self, event: dict[str, Any], agent_id: int) -> str:
+		source_id = self._entity_runtime_id(event.get("source"))
+		target_id = self._entity_runtime_id(event.get("target"))
+		if target_id == agent_id and source_id == agent_id:
+			return "self"
+		if target_id == agent_id:
+			return "incoming"
+		if source_id == agent_id:
+			return "outgoing"
+		return "nearby"
+
+	def _position_text(self, value: Any) -> str:
+		if not isinstance(value, dict):
+			return "-"
+		x = self._float_text(value.get("x"))
+		y = self._float_text(value.get("y"))
+		z = value.get("z")
+		if z is None:
+			return f"{x}, {y}"
+		return f"{x}, {y}, {self._float_text(z)}"
+
+	def _float_text(self, value: Any) -> str:
+		try:
+			return f"{float(value):.2f}"
+		except (TypeError, ValueError):
+			return "-"
+
+	def _cooldown_text(self, ability: dict[str, Any]) -> str:
+		remaining = self._float_text(ability.get("cooldown_remaining"))
+		cooldown = self._float_text(ability.get("cooldown"))
+		return f"{remaining}/{cooldown}"
 
 	def _hp_text(self, event: dict[str, Any]) -> str:
 		if event.get("event_type") != "DamageDealt":

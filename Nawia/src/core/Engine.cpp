@@ -263,6 +263,7 @@ namespace Nawia::Core {
 		Entity::Entity::setSharedResourceManager(&_resource_manager);
 		_audio_manager.stopMusic();
 		_ping_manager.clear();
+		_agent_command_interface.clear();
 		_level_manager->changeLevel(_pending_level_name, this);
 
 		if (_has_pending_save) {
@@ -737,6 +738,7 @@ namespace Nawia::Core {
 		_ping_manager.update(delta_time);
 		_level_manager->update(this, delta_time);
 		if (isLevelBlockingControl()) {
+			_agent_command_interface.update(*this, *_entity_manager, delta_time);
 			_entity_manager->updateEntities(delta_time);
 			collectPendingSpawns();
 			updateAgentPerceptionTelemetry(delta_time);
@@ -744,6 +746,7 @@ namespace Nawia::Core {
 		}
 		_controller->update(delta_time);
 
+		_agent_command_interface.update(*this, *_entity_manager, delta_time);
 		_entity_manager->updateEntities(delta_time);
 		_entity_manager->handleEntitiesCollisions();
 		_quest_manager.update(this);
