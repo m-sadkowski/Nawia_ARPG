@@ -60,6 +60,17 @@ namespace Nawia::Game {
 		const int hp_after,
 		const std::string& source_label)
 	{
+		emitDamageDealt(Entity::Entity::makeDamageSourceContext(source, source_label), target, amount, hp_before, hp_after, source_label);
+	}
+
+	void CombatEventBus::emitDamageDealt(
+		const Entity::DamageSourceContext& source,
+		Entity::Entity* target,
+		const int amount,
+		const int hp_before,
+		const int hp_after,
+		const std::string& source_label)
+	{
 		if (!target)
 			return;
 
@@ -77,6 +88,14 @@ namespace Nawia::Game {
 
 	void CombatEventBus::emitEntityKilled(
 		Entity::Entity* killer,
+		Entity::Entity* victim,
+		const std::string& source_label)
+	{
+		emitEntityKilled(Entity::Entity::makeDamageSourceContext(killer, source_label), victim, source_label);
+	}
+
+	void CombatEventBus::emitEntityKilled(
+		const Entity::DamageSourceContext& killer,
 		Entity::Entity* victim,
 		const std::string& source_label)
 	{
@@ -142,13 +161,34 @@ namespace Nawia::Game {
 
 		ref.valid = true;
 		ref.entity = entity->weak_from_this();
-		ref.runtime_id = reinterpret_cast<std::uintptr_t>(entity);
+		ref.entity_id = entity->getEntityId();
 		ref.name = entity->getName();
 		ref.type = entity->getType();
 		ref.faction = entity->getFaction();
 		ref.position = entity->getCenter();
 		ref.hp = entity->getHP();
 		ref.max_hp = entity->getMaxHP();
+		return ref;
+	}
+
+	CombatEntityRef CombatEventBus::makeEntityRef(const Entity::DamageSourceContext& context) const {
+		CombatEntityRef ref;
+		if (!context.valid)
+			return ref;
+
+		ref.valid = true;
+		ref.entity = context.source;
+		ref.entity_id = context.source_id;
+		ref.name = context.source_name;
+		ref.type = context.source_type;
+		ref.faction = context.source_faction;
+		ref.position = context.source_position;
+
+		if (const auto live_source = context.source.lock()) {
+			ref.position = live_source->getCenter();
+			ref.hp = live_source->getHP();
+			ref.max_hp = live_source->getMaxHP();
+		}
 		return ref;
 	}
 

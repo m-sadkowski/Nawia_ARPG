@@ -26,6 +26,7 @@ EntityManager + CombatEventBus + MapPingManager -> AgentPerceptionSystem -> snap
 - `src/core/game/agent/AgentPerceptionSystem.cpp`
 - `src/core/Engine.cpp`
 - `src/core/game/telemetry/CombatTelemetryServer.cpp`
+- `docs/ET systems/Entity_Identity_and_Damage_Context.md`
 - `NawiaMonitor/nawia_monitor/main_window.py`
 
 ## Co zawiera snapshot
@@ -47,7 +48,7 @@ Snapshot zawiera:
 - liczniki pobliskich wrogow, sojusznikow, NPC, neutralnych i pociskow.
 
 Kazda encja w `observed_entities` ma typ, frakcje, relacje wobec obserwatora,
-pozycje, HP, flagi `dormant` i `visible`, oraz podstawowe metadata
+`entity_id`, pozycje, HP, flagi `dormant` i `visible`, oraz podstawowe metadata
 interakcji. Encje martwe, umierajace, dormant albo niewidoczne dla percepcji
 nie trafiaja do listy aktualnie widzianych.
 
@@ -66,7 +67,11 @@ sa zapamietywani jako neutralne encje obserwowalne; snapshot pokazuje, czy
 
 `lost_entities` przechowuje ostatnia znana pozycje, czas od ostatniego
 widzenia i powod znikniecia, np. `OutOfRange`, `Dormant` albo `NotVisible`.
-Encje potwierdzone jako martwe albo usuniete ze swiata sa usuwane z pamieci.
+Zwykla pamiec utraconych encji domyslnie trwa 60 sekund. Encje potwierdzone
+jako martwe, umierajace albo usuniete ze swiata sa trzymane tylko jako krotki
+terminalny slad diagnostyczny, domyslnie 4 sekundy, z powodem `Dead`, `Dying`
+albo `Removed`. Pamiec jest indeksowana po `entity_id`, wiec rozroznia
+konkretne instancje tego samego typu.
 
 Pingi z `MapPingManager` sa traktowane jako komunikacja druzyny, a nie jako
 wynik FOV/raycast. Snapshoty player/ally-side dostaja aktywne pingi w
@@ -90,14 +95,14 @@ systemow decyzyjnych agentow.
 
 ### `AgentPerceptionSystem::findSnapshot(...)`
 
-Pozwala pobrac snapshot konkretnej encji po runtime id albo referencji do
+Pozwala pobrac snapshot konkretnej encji po `EntityId` albo referencji do
 encji.
 
 ### `AgentPerceptionSystem::setSettings(...)`
 
 Pozwala zmienic promien percepcji, okno pamieci eventow i limity list.
-Ustawienia obejmuja tez czas pamieci `lost_entities`, oraz wlaczanie NPC,
-neutralnych obiektow i pociskow.
+Ustawienia obejmuja tez czas pamieci `lost_entities`, czas krotkiego sladu
+terminalnego oraz wlaczanie NPC, neutralnych obiektow i pociskow.
 
 ## Telemetria
 
@@ -109,6 +114,9 @@ neutralnych obiektow i pociskow.
 
 Wiadomosci sa throttlowane w `Engine` do ok. 4 razy na sekunde, zeby monitor
 nie dostawal pelnego snapshotu co klatke.
+
+Encje w JSON maja pole `entity_id`. `runtime_id` jest chwilowym aliasem tej
+samej wartosci dla kompatybilnosci.
 
 ## NawiaMonitor
 

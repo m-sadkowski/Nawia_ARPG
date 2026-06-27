@@ -71,6 +71,7 @@ namespace Nawia::Core {
         if (std::ranges::find(_active_entities, new_entity) != _active_entities.end())
             return;
 
+        assignEntityIdIfMissing(new_entity);
         _active_entities.push_back(std::move(new_entity));
     }
 
@@ -90,7 +91,15 @@ namespace Nawia::Core {
 
     void EntityManager::setPlayer(std::shared_ptr<Entity::Entity> player) {
         _player = std::move(player);
+        assignEntityIdIfMissing(_player);
         Entity::Entity::setAudioListener(_player);
+    }
+
+    void EntityManager::assignEntityIdIfMissing(const std::shared_ptr<Entity::Entity>& entity) {
+        if (!entity || entity->hasEntityId())
+            return;
+
+        entity->assignEntityId(_next_entity_id++);
     }
 
 	void EntityManager::clearNonPlayerEntities() {

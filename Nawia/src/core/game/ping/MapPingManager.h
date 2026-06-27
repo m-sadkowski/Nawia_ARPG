@@ -21,7 +21,7 @@ namespace Nawia::Game {
 	struct MapPingSource {
 		bool valid = false;
 		std::weak_ptr<Entity::Entity> entity;
-		std::uintptr_t runtime_id = 0;
+		Entity::EntityId entity_id = Entity::INVALID_ENTITY_ID;
 		std::string name;
 		Entity::EntityType type = Entity::EntityType::None;
 		Entity::Faction faction = Entity::Faction::None;
@@ -69,11 +69,11 @@ namespace Nawia::Game {
 		void cycleSelectedType(int direction);
 
 	private:
-		using PingMemoryKey = std::pair<std::uintptr_t, MapPingType>;
+		using PingMemoryKey = std::pair<Entity::EntityId, MapPingType>;
 
 		[[nodiscard]] MapPingSource makeSourceSnapshot(const std::shared_ptr<Entity::Entity>& source) const;
 		[[nodiscard]] MapPing withCurrentState(MapPing ping) const;
-		void removeActivePing(std::uintptr_t source_id, MapPingType type);
+		void removeActivePing(Entity::EntityId source_id, MapPingType type);
 		void trimActivePings();
 
 		Settings _settings;

@@ -23,6 +23,7 @@ Future agent logic -> AgentCommandInterface -> Entity/Ability/Interactable/Map
 - `src/core/game/agent/AgentCommandInterface.cpp`
 - `src/core/Engine.h`
 - `src/core/Engine.cpp`
+- `docs/ET systems/Entity_Identity_and_Damage_Context.md`
 
 ## Obslugiwane komendy
 
@@ -38,7 +39,7 @@ Future agent logic -> AgentCommandInterface -> Entity/Ability/Interactable/Map
 - `Interact(entity_id)` - podchodzi do obiektu interaktywnego i wykonuje
   `onInteract()` oraz `onInteractionCompleted()`.
 
-Komendy sa przypisane do runtime id encji. W danym momencie aktywna jest jedna
+Komendy sa przypisane do `EntityId` encji. W danym momencie aktywna jest jedna
 komenda na agenta; nowa komenda zastapi poprzednia, a poprzednia zostanie
 oznaczona jako `Cancelled / CommandReplaced`.
 
@@ -96,8 +97,12 @@ ustawia cel ruchu na aktualna pozycje.
 ### `submitAttack(...)`
 
 Ustawia target i utrzymuje podstawowy atak ze slotu `0`. Gdy target jest poza
-zasiegiem, system probuje podejsc po sciezce. Komenda konczy sie sukcesem, gdy
-target przestaje byc aktywny przez smierc lub sekwencje umierania.
+preferowanym dystansem ataku, system probuje podejsc po sciezce. Preferowany
+dystans jest domyslnie rowny okolo `2/3` `cast_range`, zeby agent nie
+zatrzymywal sie idealnie na krawedzi zasiegu i mial zapas przeciw uciekajacemu
+celowi. Sam `cast_range` nadal pozostaje prawdziwa walidacja ability. Komenda
+konczy sie sukcesem, gdy target przestaje byc aktywny przez smierc lub
+sekwencje umierania.
 
 ### `submitCastAbilityAtTarget(...)`
 

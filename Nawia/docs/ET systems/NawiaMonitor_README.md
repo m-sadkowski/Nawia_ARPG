@@ -50,8 +50,8 @@ Przykladowy event:
   "sequence_id": 42,
   "time_seconds": 12.5,
   "event_type": "DamageDealt",
-  "source": {"valid": true, "name": "Player", "entity_type": "Player"},
-  "target": {"valid": true, "name": "Spider", "entity_type": "Enemy"},
+  "source": {"valid": true, "entity_id": 1, "name": "Player", "entity_type": "Player"},
+  "target": {"valid": true, "entity_id": 42, "name": "Spider", "entity_type": "Enemy"},
   "source_label": "Sword Slash",
   "amount": 17,
   "hp_before": 40,
@@ -71,6 +71,8 @@ Przykladowy event:
   `Combat`, `Pings` i `Abilities`,
 - widok `Combat` pokazujacy, kto ostatnio zadal agentowi obrazenia oraz czy
   event jest `incoming`, `outgoing` czy tylko `nearby`,
+- etykiety encji z `entity_id`, np. `Spider#42`, zeby odroznic kilka instancji
+  tego samego typu,
 - surowy JSON zaznaczonego eventu.
 
 ## Miejsca rozbudowy

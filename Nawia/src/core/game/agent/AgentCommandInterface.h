@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Entity.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <map>
@@ -12,10 +14,6 @@
 namespace Nawia::Core {
 	class Engine;
 	class EntityManager;
-}
-
-namespace Nawia::Entity {
-	class Entity;
 }
 
 namespace Nawia::Game {
@@ -58,8 +56,8 @@ namespace Nawia::Game {
 
 	struct AgentCommandRequest {
 		AgentCommandType type = AgentCommandType::None;
-		std::uintptr_t agent_runtime_id = 0;
-		std::uintptr_t target_runtime_id = 0;
+		Entity::EntityId agent_entity_id = Entity::INVALID_ENTITY_ID;
+		Entity::EntityId target_entity_id = Entity::INVALID_ENTITY_ID;
 		int ability_slot = -1;
 		bool has_world_position = false;
 		Vector3 world_position = {0.0f, 0.0f, 0.0f};
@@ -96,6 +94,7 @@ namespace Nawia::Game {
 		struct Settings {
 			float default_move_acceptance_radius = 0.25f;
 			float attack_path_rebuild_interval = 0.35f;
+			float attack_preferred_range_fraction = 2.0f / 3.0f;
 			float interact_path_rebuild_interval = 0.35f;
 			size_t max_completed_history = 64;
 		};
@@ -104,32 +103,32 @@ namespace Nawia::Game {
 		void clear();
 
 		[[nodiscard]] AgentCommandState submit(const AgentCommandRequest& request);
-		[[nodiscard]] AgentCommandState submitMoveTo(std::uintptr_t agent_runtime_id, Vector3 position, float acceptance_radius = 0.25f);
+		[[nodiscard]] AgentCommandState submitMoveTo(Entity::EntityId agent_entity_id, Vector3 position, float acceptance_radius = 0.25f);
 		[[nodiscard]] AgentCommandState submitMoveToEntity(
-			std::uintptr_t agent_runtime_id,
-			std::uintptr_t target_runtime_id,
+			Entity::EntityId agent_entity_id,
+			Entity::EntityId target_entity_id,
 			float desired_range = 0.75f);
-		[[nodiscard]] AgentCommandState submitStop(std::uintptr_t agent_runtime_id);
-		[[nodiscard]] AgentCommandState submitAttack(std::uintptr_t agent_runtime_id, std::uintptr_t target_runtime_id);
+		[[nodiscard]] AgentCommandState submitStop(Entity::EntityId agent_entity_id);
+		[[nodiscard]] AgentCommandState submitAttack(Entity::EntityId agent_entity_id, Entity::EntityId target_entity_id);
 		[[nodiscard]] AgentCommandState submitCastAbilityAtTarget(
-			std::uintptr_t agent_runtime_id,
+			Entity::EntityId agent_entity_id,
 			int ability_slot,
-			std::uintptr_t target_runtime_id);
+			Entity::EntityId target_entity_id);
 		[[nodiscard]] AgentCommandState submitCastAbilityAtPosition(
-			std::uintptr_t agent_runtime_id,
+			Entity::EntityId agent_entity_id,
 			int ability_slot,
 			Vector3 position);
-		[[nodiscard]] AgentCommandState submitInteract(std::uintptr_t agent_runtime_id, std::uintptr_t target_runtime_id);
+		[[nodiscard]] AgentCommandState submitInteract(Entity::EntityId agent_entity_id, Entity::EntityId target_entity_id);
 
-		bool cancel(std::uintptr_t agent_runtime_id, AgentCommandFailureReason reason = AgentCommandFailureReason::Cancelled);
+		bool cancel(Entity::EntityId agent_entity_id, AgentCommandFailureReason reason = AgentCommandFailureReason::Cancelled);
 		void cancelAll(AgentCommandFailureReason reason = AgentCommandFailureReason::Cancelled);
 
 		[[nodiscard]] const Settings& getSettings() const { return _settings; }
 		void setSettings(const Settings& settings);
 
-		[[nodiscard]] const std::map<std::uintptr_t, AgentCommandState>& getActiveCommands() const { return _active_commands; }
+		[[nodiscard]] const std::map<Entity::EntityId, AgentCommandState>& getActiveCommands() const { return _active_commands; }
 		[[nodiscard]] const std::vector<AgentCommandState>& getCompletedCommands() const { return _completed_commands; }
-		[[nodiscard]] std::optional<AgentCommandState> getCommandForAgent(std::uintptr_t agent_runtime_id) const;
+		[[nodiscard]] std::optional<AgentCommandState> getCommandForAgent(Entity::EntityId agent_entity_id) const;
 
 	private:
 		void updateCommand(
@@ -162,9 +161,9 @@ namespace Nawia::Game {
 			const std::shared_ptr<Entity::Entity>& target,
 			float dt);
 
-		[[nodiscard]] std::shared_ptr<Entity::Entity> findEntityByRuntimeId(
+		[[nodiscard]] std::shared_ptr<Entity::Entity> findEntityById(
 			const Core::EntityManager& entity_manager,
-			std::uintptr_t runtime_id) const;
+			Entity::EntityId entity_id) const;
 		[[nodiscard]] bool isAgentAvailable(const std::shared_ptr<Entity::Entity>& agent) const;
 		[[nodiscard]] bool isTargetAvailable(const std::shared_ptr<Entity::Entity>& target) const;
 		[[nodiscard]] bool isControlLocked(const Entity::Entity& entity) const;
@@ -178,12 +177,11 @@ namespace Nawia::Game {
 		void complete(AgentCommandState& command, AgentCommandStatus status, AgentCommandFailureReason reason, std::string message = {});
 		void rememberCompleted(AgentCommandState command);
 		[[nodiscard]] static bool isTerminal(AgentCommandStatus status);
-		[[nodiscard]] static std::uintptr_t runtimeId(const Entity::Entity* entity);
 
 		Settings _settings;
 		std::uint64_t _next_command_id = 1;
 		float _time_seconds = 0.0f;
-		std::map<std::uintptr_t, AgentCommandState> _active_commands;
+		std::map<Entity::EntityId, AgentCommandState> _active_commands;
 		std::vector<AgentCommandState> _completed_commands;
 	};
 

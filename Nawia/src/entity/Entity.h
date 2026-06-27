@@ -6,6 +6,7 @@
 #include <json.hpp>
 #include <raylib.h>
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -15,6 +16,7 @@
 namespace Nawia::Entity {
 	class Ability;
 	class Collider;
+	class Entity;
 }
 
 namespace Nawia::Item {
@@ -34,6 +36,9 @@ namespace Nawia::Game {
 }
 
 namespace Nawia::Entity {
+
+	using EntityId = std::uint64_t;
+	inline constexpr EntityId INVALID_ENTITY_ID = 0;
 
 	/**
 	 * @enum EntityType
@@ -62,6 +67,17 @@ namespace Nawia::Entity {
 		Neutral, ///< Encje neutralne, zwykle poza walką.
 		Ally,    ///< Encje walczące po stronie gracza.
 		None     ///< Brak frakcji, np. obiekt bez udziału w walce.
+	};
+
+	struct DamageSourceContext {
+		bool valid = false;
+		std::weak_ptr<Entity> source;
+		EntityId source_id = INVALID_ENTITY_ID;
+		std::string source_name;
+		EntityType source_type = EntityType::None;
+		Faction source_faction = Faction::None;
+		Vector2 source_position = {0.0f, 0.0f};
+		std::string label;
 	};
 
 	struct AnimationBundle {
@@ -120,9 +136,17 @@ namespace Nawia::Entity {
 		void setX(float x) { _pos.x = x; }
 		void setY(float y) { _pos.y = y; }
 		void setAltitude(float altitude) { _altitude = altitude; }
+		void assignEntityId(EntityId entity_id);
+		[[nodiscard]] EntityId getEntityId() const { return _entity_id; }
+		[[nodiscard]] bool hasEntityId() const { return _entity_id != INVALID_ENTITY_ID; }
 		[[nodiscard]] Vector2 getCenter() const;
 		virtual void applyRoot(float duration);
 		void applyPoison(float duration, int damage_per_tick, float tick_interval = 1.0f);
+		void applyPoison(
+			float duration,
+			int damage_per_tick,
+			float tick_interval,
+			const DamageSourceContext& source_context);
 		void clearStatusEffects();
 		[[nodiscard]] bool isMovementRooted() const { return _root_timer > 0.0f; }
 		[[nodiscard]] bool isPoisoned() const { return _poison_timer > 0.0f; }
@@ -199,6 +223,7 @@ namespace Nawia::Entity {
 		 * @param dmg Liczba punktów obrażeń.
 		 */
 		virtual void takeDamage(int dmg);
+		void takeDamage(int dmg, const DamageSourceContext& source_context);
 
 		/**
 		 * @brief Natychmiast oznacza encję jako martwą.
@@ -388,11 +413,12 @@ namespace Nawia::Entity {
 		 * wydluzania jego cyklu zycia.
 		 */
 		void rememberDamageSource(Entity* source, std::string source_label = {}) {
-			_last_damage_source = source ? source->weak_from_this() : std::weak_ptr<Entity>{};
-			_last_damage_source_label = std::move(source_label);
+			_last_damage_source = makeDamageSourceContext(source, std::move(source_label));
 		}
 
-		[[nodiscard]] std::shared_ptr<Entity> getLastDamageSource() const { return _last_damage_source.lock(); }
+		[[nodiscard]] static DamageSourceContext makeDamageSourceContext(Entity* source, std::string source_label = {});
+		[[nodiscard]] const DamageSourceContext& getLastDamageSourceContext() const { return _last_damage_source; }
+		[[nodiscard]] std::shared_ptr<Entity> getLastDamageSource() const { return _last_damage_source.source.lock(); }
 		void setHealToFullOnKill(const bool value) { _heal_to_full_on_kill = value; }
 		[[nodiscard]] bool healsToFullOnKill() const { return _heal_to_full_on_kill; }
 
@@ -456,6 +482,7 @@ namespace Nawia::Entity {
 		Entity();
 
 		Vector2 _pos = {0.0f, 0.0f};
+		EntityId _entity_id = INVALID_ENTITY_ID;
 		float _altitude = 0.0f;
 		Vector2 _velocity = {0.0f, 0.0f};
 		float _scale = 1.0f;
@@ -533,11 +560,11 @@ namespace Nawia::Entity {
 		float _poison_tick_timer = 0.0f;
 		float _poison_tick_interval = 1.0f;
 		int _poison_damage_per_tick = 0;
+		DamageSourceContext _poison_damage_source;
 
 		// Śledzenie celu.
 		std::weak_ptr<Entity> _target;             ///< Aktualny cel AI/walki, nieposiadany.
-		std::weak_ptr<Entity> _last_damage_source; ///< Ostatni agresor uzywany przy wyborze celu.
-		std::string _last_damage_source_label;     ///< Nazwa ability lub ataku zwiazanego z ostatnim trafieniem.
+		DamageSourceContext _last_damage_source;   ///< Ostatni agresor uzywany przy wyborze celu.
 		float _path_recalc_timer = 0.0f;
 
 		Faction _faction = Faction::None;

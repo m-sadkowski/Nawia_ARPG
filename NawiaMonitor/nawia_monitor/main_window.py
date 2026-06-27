@@ -452,12 +452,12 @@ class MainWindow(QMainWindow):
 		if not isinstance(agent, dict):
 			return
 
-		runtime_id = int(agent.get("runtime_id") or 0)
-		if runtime_id == 0:
+		entity_id = self._entity_id(agent)
+		if entity_id == 0:
 			return
 
-		self._perception_snapshots[runtime_id] = snapshot
-		self._perception_last_seen[runtime_id] = monotonic()
+		self._perception_snapshots[entity_id] = snapshot
+		self._perception_last_seen[entity_id] = monotonic()
 		self._refresh_perception_agent_combo()
 		self._refresh_perception_table()
 		self._refresh_perception_details()
@@ -470,8 +470,8 @@ class MainWindow(QMainWindow):
 		self._perception_agent_combo.blockSignals(True)
 		self._perception_agent_combo.clear()
 		self._perception_agent_combo.addItem("All agents", 0)
-		for runtime_id, snapshot in self._sorted_perception_snapshots():
-			self._perception_agent_combo.addItem(self._entity_label(snapshot.get("agent")), runtime_id)
+		for entity_id, snapshot in self._sorted_perception_snapshots():
+			self._perception_agent_combo.addItem(self._entity_label(snapshot.get("agent")), entity_id)
 
 		index = self._perception_agent_combo.findData(current_id)
 		if index < 0:
@@ -494,11 +494,11 @@ class MainWindow(QMainWindow):
 
 	def _refresh_perception_table(self) -> None:
 		visible_snapshots = [
-			(runtime_id, snapshot)
-			for runtime_id, snapshot in self._sorted_perception_snapshots()
-			if not self._selected_perception_agent_id or runtime_id == self._selected_perception_agent_id
+			(entity_id, snapshot)
+			for entity_id, snapshot in self._sorted_perception_snapshots()
+			if not self._selected_perception_agent_id or entity_id == self._selected_perception_agent_id
 		]
-		visible_ids = {runtime_id for runtime_id, _ in visible_snapshots}
+		visible_ids = {entity_id for entity_id, _ in visible_snapshots}
 		if self._selected_perception_agent_id in visible_ids:
 			self._focused_perception_agent_id = self._selected_perception_agent_id
 		elif self._focused_perception_agent_id not in visible_ids:
@@ -508,12 +508,12 @@ class MainWindow(QMainWindow):
 		self._perception_table.blockSignals(True)
 		self._perception_table.setRowCount(0)
 		focused_row = -1
-		for runtime_id, snapshot in visible_snapshots:
+		for entity_id, snapshot in visible_snapshots:
 			row = self._perception_table.rowCount()
 			self._perception_table.insertRow(row)
-			self._perception_rows[runtime_id] = row
+			self._perception_rows[entity_id] = row
 			self._populate_perception_row(row, snapshot)
-			if self._focused_perception_agent_id == runtime_id:
+			if self._focused_perception_agent_id == entity_id:
 				focused_row = row
 		self._perception_table.blockSignals(False)
 
@@ -590,14 +590,15 @@ class MainWindow(QMainWindow):
 			return
 
 		agent = snapshot.get("agent")
-		agent_id = self._entity_runtime_id(agent)
+		agent_id = self._entity_id(agent)
 		current_target = snapshot.get("current_target")
 		last_damage_source = snapshot.get("last_damage_source")
 		self._perception_focus_label.setText(
 			"Focus: "
 			f"{self._entity_label(agent)} | "
 			f"Target: {self._entity_label(current_target)} | "
-			f"Last damage source: {self._entity_label(last_damage_source)}"
+			f"Last damage source: {self._entity_label(last_damage_source)} | "
+			f"Lost memory: {self._float_text(snapshot.get('lost_memory_seconds'))}s"
 		)
 
 		observed_rows: list[list[Any]] = []
@@ -645,7 +646,7 @@ class MainWindow(QMainWindow):
 		]
 		incoming_events = [
 			event for event in combat_events
-			if event.get("event_type") == "DamageDealt" and self._entity_runtime_id(event.get("target")) == agent_id
+			if event.get("event_type") == "DamageDealt" and self._entity_id(event.get("target")) == agent_id
 		]
 		if incoming_events:
 			last_incoming = incoming_events[-1]
@@ -728,17 +729,17 @@ class MainWindow(QMainWindow):
 	def _remove_stale_perception_rows(self) -> None:
 		now = monotonic()
 		stale_ids = [
-			runtime_id
-			for runtime_id, last_seen in self._perception_last_seen.items()
+			entity_id
+			for entity_id, last_seen in self._perception_last_seen.items()
 			if now - last_seen > PERCEPTION_STALE_SECONDS
 		]
 		if not stale_ids:
 			return
 
-		for runtime_id in stale_ids:
-			self._perception_rows.pop(runtime_id, None)
-			self._perception_snapshots.pop(runtime_id, None)
-			self._perception_last_seen.pop(runtime_id, None)
+		for entity_id in stale_ids:
+			self._perception_rows.pop(entity_id, None)
+			self._perception_snapshots.pop(entity_id, None)
+			self._perception_last_seen.pop(entity_id, None)
 
 		if self._selected_perception_agent_id in stale_ids:
 			self._selected_perception_agent_id = 0
@@ -748,13 +749,13 @@ class MainWindow(QMainWindow):
 		self._refresh_perception_table()
 		self._refresh_perception_details()
 
-	def _remove_perception_row(self, runtime_id: int) -> None:
-		self._perception_rows.pop(runtime_id, None)
-		self._perception_snapshots.pop(runtime_id, None)
-		self._perception_last_seen.pop(runtime_id, None)
-		if self._selected_perception_agent_id == runtime_id:
+	def _remove_perception_row(self, entity_id: int) -> None:
+		self._perception_rows.pop(entity_id, None)
+		self._perception_snapshots.pop(entity_id, None)
+		self._perception_last_seen.pop(entity_id, None)
+		if self._selected_perception_agent_id == entity_id:
 			self._selected_perception_agent_id = 0
-		if self._focused_perception_agent_id == runtime_id:
+		if self._focused_perception_agent_id == entity_id:
 			self._focused_perception_agent_id = 0
 		self._refresh_perception_agent_combo()
 		self._refresh_perception_table()
@@ -782,11 +783,11 @@ class MainWindow(QMainWindow):
 			return
 
 		row = rows[0].row()
-		for runtime_id, stored_row in self._perception_rows.items():
+		for entity_id, stored_row in self._perception_rows.items():
 			if stored_row == row:
-				snapshot = self._perception_snapshots.get(runtime_id)
+				snapshot = self._perception_snapshots.get(entity_id)
 				if snapshot:
-					self._focused_perception_agent_id = runtime_id
+					self._focused_perception_agent_id = entity_id
 					self._refresh_perception_details()
 					self._details.setPlainText(json.dumps(snapshot, indent=2, ensure_ascii=False))
 				return
@@ -804,10 +805,10 @@ class MainWindow(QMainWindow):
 	def _error_label_text(self, text: str) -> None:
 		self._error_label.setText(text)
 
-	def _entity_runtime_id(self, value: Any) -> int:
+	def _entity_id(self, value: Any) -> int:
 		if not isinstance(value, dict):
 			return 0
-		return int(value.get("runtime_id") or 0)
+		return int(value.get("entity_id") or value.get("runtime_id") or 0)
 
 	def _entity_field(self, value: Any, field: str) -> str:
 		if not isinstance(value, dict) or not value.get("valid"):
@@ -817,13 +818,15 @@ class MainWindow(QMainWindow):
 	def _entity_name(self, value: Any) -> str:
 		if not isinstance(value, dict) or not value.get("valid"):
 			return "-"
-		return str(value.get("name") or value.get("entity_type") or "-")
+		name = str(value.get("name") or value.get("entity_type") or "-")
+		entity_id = self._entity_id(value)
+		return f"{name}#{entity_id}" if entity_id else name
 
 	def _entity_label(self, value: Any) -> str:
 		if not isinstance(value, dict) or not value.get("valid"):
 			return "-"
 
-		name = str(value.get("name") or value.get("entity_type") or "-")
+		name = self._entity_name(value)
 		entity_type = str(value.get("entity_type") or "?")
 		faction = str(value.get("faction") or "?")
 		return f"{name} ({entity_type}/{faction})"
@@ -863,8 +866,8 @@ class MainWindow(QMainWindow):
 		return f"{state}/{available}"
 
 	def _event_direction(self, event: dict[str, Any], agent_id: int) -> str:
-		source_id = self._entity_runtime_id(event.get("source"))
-		target_id = self._entity_runtime_id(event.get("target"))
+		source_id = self._entity_id(event.get("source"))
+		target_id = self._entity_id(event.get("target"))
 		if target_id == agent_id and source_id == agent_id:
 			return "self"
 		if target_id == agent_id:

@@ -31,7 +31,7 @@ namespace Nawia::Game {
 	struct AgentEntitySnapshot {
 		bool valid = false;
 		std::weak_ptr<Entity::Entity> entity;
-		std::uintptr_t runtime_id = 0;
+		Entity::EntityId entity_id = Entity::INVALID_ENTITY_ID;
 		std::string name;
 		Entity::EntityType type = Entity::EntityType::None;
 		Entity::Faction faction = Entity::Faction::None;
@@ -94,6 +94,8 @@ namespace Nawia::Game {
 		float time_seconds = 0.0f;
 		float perception_radius = 0.0f;
 		float event_memory_seconds = 0.0f;
+		float lost_memory_seconds = 0.0f;
+		float terminal_lost_memory_seconds = 0.0f;
 		AgentEntitySnapshot self;
 		std::optional<AgentEntitySnapshot> current_target;
 		std::optional<AgentEntitySnapshot> last_damage_source;
@@ -125,7 +127,8 @@ namespace Nawia::Game {
 		struct Settings {
 			float perception_radius = 12.0f;
 			float event_memory_seconds = 3.0f;
-			float lost_memory_seconds = 6.0f;
+			float lost_memory_seconds = 60.0f;
+			float terminal_lost_memory_seconds = 4.0f;
 			size_t max_observed_entities = 32;
 			size_t max_lost_entities = 16;
 			size_t max_recent_events = 16;
@@ -148,7 +151,7 @@ namespace Nawia::Game {
 
 		[[nodiscard]] std::uint64_t getLastFrameId() const { return _last_frame_id; }
 		[[nodiscard]] const std::vector<AgentPerceptionSnapshot>& getSnapshots() const { return _snapshots; }
-		[[nodiscard]] const AgentPerceptionSnapshot* findSnapshot(std::uintptr_t runtime_id) const;
+		[[nodiscard]] const AgentPerceptionSnapshot* findSnapshot(Entity::EntityId entity_id) const;
 		[[nodiscard]] const AgentPerceptionSnapshot* findSnapshot(const Entity::Entity& entity) const;
 
 	private:
@@ -158,6 +161,9 @@ namespace Nawia::Game {
 			float last_seen_time_seconds = 0.0f;
 			std::uint64_t last_seen_frame_id = 0;
 			bool was_current_target = false;
+			bool terminal = false;
+			float terminal_time_seconds = 0.0f;
+			std::string terminal_reason;
 		};
 
 		[[nodiscard]] bool isAgentCandidate(const std::shared_ptr<Entity::Entity>& entity) const;
@@ -178,7 +184,7 @@ namespace Nawia::Game {
 			const Entity::Entity& observed) const;
 		[[nodiscard]] bool isEventRelevantToAgent(
 			const CombatEvent& event,
-			std::uintptr_t agent_id,
+			Entity::EntityId agent_id,
 			Vector2 agent_position) const;
 		[[nodiscard]] bool isPingRelevantToAgent(const Entity::Entity& agent, const MapPing& ping) const;
 		void updateMemory(
@@ -187,9 +193,9 @@ namespace Nawia::Game {
 			const std::vector<std::shared_ptr<Entity::Entity>>& entities,
 			float time_seconds,
 			std::uint64_t frame_id);
-		[[nodiscard]] std::shared_ptr<Entity::Entity> findEntityByRuntimeId(
+		[[nodiscard]] std::shared_ptr<Entity::Entity> findEntityById(
 			const std::vector<std::shared_ptr<Entity::Entity>>& entities,
-			std::uintptr_t runtime_id) const;
+			Entity::EntityId entity_id) const;
 		[[nodiscard]] std::string getDisappearanceReason(
 			const std::shared_ptr<Entity::Entity>& entity,
 			Vector2 agent_position) const;
@@ -198,7 +204,7 @@ namespace Nawia::Game {
 		std::uint64_t _next_frame_id = 1;
 		std::uint64_t _last_frame_id = 0;
 		std::vector<AgentPerceptionSnapshot> _snapshots;
-		std::map<std::uintptr_t, std::map<std::uintptr_t, AgentMemoryRecord>> _memory_by_agent;
+		std::map<Entity::EntityId, std::map<Entity::EntityId, AgentMemoryRecord>> _memory_by_agent;
 	};
 
 	[[nodiscard]] const char* toString(AgentRelation relation);

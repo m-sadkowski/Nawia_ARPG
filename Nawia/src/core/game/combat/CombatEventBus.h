@@ -37,7 +37,7 @@ namespace Nawia::Game {
 	struct CombatEntityRef {
 		bool valid = false;
 		std::weak_ptr<Entity::Entity> entity;
-		std::uintptr_t runtime_id = 0;
+		Entity::EntityId entity_id = Entity::INVALID_ENTITY_ID;
 		std::string name;
 		Entity::EntityType type = Entity::EntityType::None;
 		Entity::Faction faction = Entity::Faction::None;
@@ -102,9 +102,20 @@ namespace Nawia::Game {
 			int hp_before,
 			int hp_after,
 			const std::string& source_label);
+		void emitDamageDealt(
+			const Entity::DamageSourceContext& source,
+			Entity::Entity* target,
+			int amount,
+			int hp_before,
+			int hp_after,
+			const std::string& source_label);
 
 		void emitEntityKilled(
 			Entity::Entity* killer,
+			Entity::Entity* victim,
+			const std::string& source_label);
+		void emitEntityKilled(
+			const Entity::DamageSourceContext& killer,
 			Entity::Entity* victim,
 			const std::string& source_label);
 
@@ -118,6 +129,7 @@ namespace Nawia::Game {
 		void pushEvent(CombatEvent event);
 		[[nodiscard]] CombatEvent makeEvent(CombatEventType type) const;
 		[[nodiscard]] CombatEntityRef makeEntityRef(Entity::Entity* entity) const;
+		[[nodiscard]] CombatEntityRef makeEntityRef(const Entity::DamageSourceContext& context) const;
 		void trimStoredEvents();
 
 		float _time_seconds = 0.0f;

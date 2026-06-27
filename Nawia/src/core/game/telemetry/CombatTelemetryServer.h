@@ -66,10 +66,11 @@ namespace Nawia::Game {
 		void closeListenSocket();
 		void closeClientSockets();
 		void dropClientAt(size_t index);
-		[[nodiscard]] bool sendMessage(TelemetrySocketHandle client_socket, const std::string& message);
+		[[nodiscard]] bool sendMessage(TelemetrySocketHandle client_socket, std::string& message);
 
 		TelemetrySocketHandle _listen_socket = INVALID_TELEMETRY_SOCKET;
 		std::deque<TelemetrySocketHandle> _client_sockets;
+		std::deque<std::string> _client_pending_messages;
 #endif
 
 		Settings _settings;

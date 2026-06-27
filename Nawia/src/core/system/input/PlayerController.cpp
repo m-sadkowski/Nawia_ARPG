@@ -151,22 +151,23 @@ namespace Nawia::Core {
 			return false;
 		}
 
-		const float interaction_range_sq = _target_interactable->getInteractionRange();
+		const float interaction_range = std::max(0.0f, _target_interactable->getInteractionRange());
+		const float interaction_range_sq = interaction_range * interaction_range;
 		const float distance_sq = getHorizontalDistanceToBoxSq(*target_entity, _player->getCenter());
 
 		if (distance_sq > interaction_range_sq)
-			return moveToInteractionRange(target_entity, interaction_range_sq);
+			return moveToInteractionRange(target_entity, interaction_range);
 
 		return performInteraction();
 	}
 
 	bool PlayerController::moveToInteractionRange(
 		const std::shared_ptr<Entity::Entity>& target,
-		const float interaction_range_sq
+		const float interaction_range
 	) {
 		if (!_current_path.empty() || _player->isMoving()) {
 			updatePathMovement();
-		} else if (!moveTowardInteractable(target, interaction_range_sq)) {
+		} else if (!moveTowardInteractable(target, interaction_range)) {
 			_player->stop();
 			_target_interactable = nullptr;
 		}
@@ -451,11 +452,10 @@ namespace Nawia::Core {
 		}
 	}
 
-	bool PlayerController::moveTowardInteractable(const std::shared_ptr<Entity::Entity>& target, const float interaction_range_sq) {
+	bool PlayerController::moveTowardInteractable(const std::shared_ptr<Entity::Entity>& target, const float interaction_range) {
 		if (!target)
 			return false;
 
-		const float interaction_range = std::sqrt(std::max(0.0f, interaction_range_sq));
 		const float approach_radius = std::max(0.5f, interaction_range * 0.75f);
 		const Vector2 target_center = target->getCenter();
 		const Vector3 target_world = target->getWorldPos3D();

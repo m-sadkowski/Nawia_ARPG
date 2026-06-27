@@ -105,7 +105,8 @@ namespace Nawia::Game {
 		[[nodiscard]] nlohmann::json entityRefToJson(const CombatEntityRef& ref) {
 			return {
 				{"valid", ref.valid},
-				{"runtime_id", static_cast<std::uint64_t>(ref.runtime_id)},
+				{"entity_id", static_cast<std::uint64_t>(ref.entity_id)},
+				{"runtime_id", static_cast<std::uint64_t>(ref.entity_id)},
 				{"name", ref.name},
 				{"entity_type", toString(ref.type)},
 				{"faction", toString(ref.faction)},
@@ -118,7 +119,8 @@ namespace Nawia::Game {
 		[[nodiscard]] nlohmann::json agentEntityToJson(const AgentEntitySnapshot& snapshot) {
 			return {
 				{"valid", snapshot.valid},
-				{"runtime_id", static_cast<std::uint64_t>(snapshot.runtime_id)},
+				{"entity_id", static_cast<std::uint64_t>(snapshot.entity_id)},
+				{"runtime_id", static_cast<std::uint64_t>(snapshot.entity_id)},
 				{"name", snapshot.name},
 				{"entity_type", toString(snapshot.type)},
 				{"faction", toString(snapshot.faction)},
@@ -164,7 +166,8 @@ namespace Nawia::Game {
 		[[nodiscard]] nlohmann::json pingSourceToJson(const MapPingSource& source) {
 			return {
 				{"valid", source.valid},
-				{"runtime_id", static_cast<std::uint64_t>(source.runtime_id)},
+				{"entity_id", static_cast<std::uint64_t>(source.entity_id)},
+				{"runtime_id", static_cast<std::uint64_t>(source.entity_id)},
 				{"name", source.name},
 				{"entity_type", toString(source.type)},
 				{"faction", toString(source.faction)}
@@ -347,6 +350,8 @@ namespace Nawia::Game {
 			{"time_seconds", snapshot.time_seconds},
 			{"perception_radius", snapshot.perception_radius},
 			{"event_memory_seconds", snapshot.event_memory_seconds},
+			{"lost_memory_seconds", snapshot.lost_memory_seconds},
+			{"terminal_lost_memory_seconds", snapshot.terminal_lost_memory_seconds},
 			{"agent", agentEntityToJson(snapshot.self)},
 			{"current_target", snapshot.current_target ? agentEntityToJson(*snapshot.current_target) : nlohmann::json(nullptr)},
 			{"last_damage_source", snapshot.last_damage_source ? agentEntityToJson(*snapshot.last_damage_source) : nlohmann::json(nullptr)},
@@ -443,6 +448,7 @@ namespace Nawia::Game {
 			}
 
 			_client_sockets.push_back(toSocketHandle(client_socket));
+			_client_pending_messages.emplace_back();
 		}
 	}
 
@@ -457,13 +463,16 @@ namespace Nawia::Game {
 			_queued_messages.clear();
 		}
 
-		for (const auto& message : messages) {
-			for (size_t index = 0; index < _client_sockets.size();) {
-				if (sendMessage(_client_sockets[index], message))
-					++index;
-				else
-					dropClientAt(index);
-			}
+		for (auto& pending_message : _client_pending_messages) {
+			for (const auto& message : messages)
+				pending_message += message;
+		}
+
+		for (size_t index = 0; index < _client_sockets.size();) {
+			if (sendMessage(_client_sockets[index], _client_pending_messages[index]))
+				++index;
+			else
+				dropClientAt(index);
 		}
 	}
 
@@ -479,6 +488,7 @@ namespace Nawia::Game {
 		for (const TelemetrySocketHandle client_socket : _client_sockets)
 			closesocket(toNativeSocket(client_socket));
 		_client_sockets.clear();
+		_client_pending_messages.clear();
 	}
 
 	void CombatTelemetryServer::dropClientAt(const size_t index) {
@@ -487,19 +497,19 @@ namespace Nawia::Game {
 
 		closesocket(toNativeSocket(_client_sockets[index]));
 		_client_sockets.erase(_client_sockets.begin() + static_cast<std::ptrdiff_t>(index));
+		_client_pending_messages.erase(_client_pending_messages.begin() + static_cast<std::ptrdiff_t>(index));
 	}
 
-	bool CombatTelemetryServer::sendMessage(const TelemetrySocketHandle client_socket, const std::string& message) {
-		size_t sent_total = 0;
-		while (sent_total < message.size()) {
+	bool CombatTelemetryServer::sendMessage(const TelemetrySocketHandle client_socket, std::string& message) {
+		while (!message.empty()) {
 			const int chunk_size = static_cast<int>(std::min<size_t>(
-				message.size() - sent_total,
+				message.size(),
 				static_cast<size_t>(std::numeric_limits<int>::max())
 			));
-			const int sent = send(toNativeSocket(client_socket), message.data() + sent_total, chunk_size, 0);
+			const int sent = send(toNativeSocket(client_socket), message.data(), chunk_size, 0);
 
 			if (sent > 0) {
-				sent_total += static_cast<size_t>(sent);
+				message.erase(0, static_cast<size_t>(sent));
 				continue;
 			}
 

@@ -45,7 +45,7 @@ pingow przeciwnikow z komunikacja druzyny.
 
 ### `MapPingManager::placePing(...)`
 
-Tworzy nowy ping w pozycji swiata i zapamietuje snapshot zrodla: runtime id,
+Tworzy nowy ping w pozycji swiata i zapamietuje snapshot zrodla: `entity_id`,
 nazwe, typ encji i frakcje. Wariant bez jawnego typu uzywa aktualnie wybranego
 typu pingu. Zwraca pusty ping, jesli zrodlo nie moze pingowac.
 
@@ -103,7 +103,7 @@ Pingi trafiaja do `nawia.telemetry.agent_perception.v1` jako JSON:
       "duration_seconds": 5.0,
       "active": true,
       "position": {"x": 1.0, "y": 0.0, "z": 2.0},
-      "source": {"valid": true, "name": "Player", "entity_type": "Player", "faction": "Player"}
+      "source": {"valid": true, "entity_id": 1, "name": "Player", "entity_type": "Player", "faction": "Player"}
     }
   ],
   "remembered_pings": []
@@ -112,4 +112,5 @@ Pingi trafiaja do `nawia.telemetry.agent_perception.v1` jako JSON:
 
 `NawiaMonitor` pokazuje liczbe aktywnych pingow `Info`, liczbe aktywnych
 pingow `Threat` i liczbe zapamietanych pingow w zakladce `Agent Perception`.
-Pelne dane pingu sa widoczne w panelu JSON po zaznaczeniu wiersza agenta.
+Pelne dane pingu sa widoczne w zakladce `Pings` dla wybranego agenta oraz w
+panelu JSON po zaznaczeniu wiersza agenta.

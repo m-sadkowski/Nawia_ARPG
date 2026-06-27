@@ -6,8 +6,8 @@
 namespace Nawia::Game {
 
 	namespace {
-		[[nodiscard]] std::uintptr_t runtimeId(const Entity::Entity* entity) {
-			return reinterpret_cast<std::uintptr_t>(entity);
+		[[nodiscard]] Entity::EntityId entityId(const Entity::Entity* entity) {
+			return entity ? entity->getEntityId() : Entity::INVALID_ENTITY_ID;
 		}
 
 		[[nodiscard]] bool canCreatePing(const std::shared_ptr<Entity::Entity>& source) {
@@ -55,7 +55,7 @@ namespace Nawia::Game {
 		if (!ping.source.valid)
 			return {};
 
-		removeActivePing(ping.source.runtime_id, type);
+		removeActivePing(ping.source.entity_id, type);
 
 		ping.id = _next_ping_id++;
 		ping.created_time_seconds = _time_seconds;
@@ -65,7 +65,7 @@ namespace Nawia::Game {
 		ping.position = position;
 
 		_active_pings.push_back(ping);
-		_last_ping_by_source_and_type[{ping.source.runtime_id, ping.type}] = ping;
+		_last_ping_by_source_and_type[{ping.source.entity_id, ping.type}] = ping;
 		trimActivePings();
 		return ping;
 	}
@@ -135,7 +135,7 @@ namespace Nawia::Game {
 
 		snapshot.valid = true;
 		snapshot.entity = source;
-		snapshot.runtime_id = runtimeId(source.get());
+		snapshot.entity_id = entityId(source.get());
 		snapshot.name = source->getName();
 		snapshot.type = source->getType();
 		snapshot.faction = source->getFaction();
@@ -148,10 +148,10 @@ namespace Nawia::Game {
 		return ping;
 	}
 
-	void MapPingManager::removeActivePing(const std::uintptr_t source_id, const MapPingType type) {
+	void MapPingManager::removeActivePing(const Entity::EntityId source_id, const MapPingType type) {
 		_active_pings.erase(
 			std::remove_if(_active_pings.begin(), _active_pings.end(), [source_id, type](const MapPing& ping) {
-				return ping.source.runtime_id == source_id && ping.type == type;
+				return ping.source.entity_id == source_id && ping.type == type;
 			}),
 			_active_pings.end());
 	}

@@ -69,30 +69,30 @@ namespace Nawia::Game {
 		command.status = AgentCommandStatus::Queued;
 		command.started_time_seconds = _time_seconds;
 
-		if (request.agent_runtime_id == 0) {
-			complete(command, AgentCommandStatus::Failed, AgentCommandFailureReason::NoAgent, "Missing agent runtime id.");
+		if (request.agent_entity_id == Entity::INVALID_ENTITY_ID) {
+			complete(command, AgentCommandStatus::Failed, AgentCommandFailureReason::NoAgent, "Missing agent entity id.");
 			rememberCompleted(command);
 			return command;
 		}
 
-		if (auto existing = _active_commands.find(request.agent_runtime_id); existing != _active_commands.end()) {
+		if (auto existing = _active_commands.find(request.agent_entity_id); existing != _active_commands.end()) {
 			complete(existing->second, AgentCommandStatus::Cancelled, AgentCommandFailureReason::CommandReplaced, "Command replaced.");
 			rememberCompleted(existing->second);
 			_active_commands.erase(existing);
 		}
 
-		_active_commands[request.agent_runtime_id] = command;
+		_active_commands[request.agent_entity_id] = command;
 		return command;
 	}
 
 	AgentCommandState AgentCommandInterface::submitMoveTo(
-		const std::uintptr_t agent_runtime_id,
+		const Entity::EntityId agent_entity_id,
 		const Vector3 position,
 		const float acceptance_radius)
 	{
 		AgentCommandRequest request;
 		request.type = AgentCommandType::MoveTo;
-		request.agent_runtime_id = agent_runtime_id;
+		request.agent_entity_id = agent_entity_id;
 		request.has_world_position = true;
 		request.world_position = position;
 		request.acceptance_radius = acceptance_radius > 0.0f ? acceptance_radius : _settings.default_move_acceptance_radius;
@@ -100,59 +100,59 @@ namespace Nawia::Game {
 	}
 
 	AgentCommandState AgentCommandInterface::submitMoveToEntity(
-		const std::uintptr_t agent_runtime_id,
-		const std::uintptr_t target_runtime_id,
+		const Entity::EntityId agent_entity_id,
+		const Entity::EntityId target_entity_id,
 		const float desired_range)
 	{
 		AgentCommandRequest request;
 		request.type = AgentCommandType::MoveToEntity;
-		request.agent_runtime_id = agent_runtime_id;
-		request.target_runtime_id = target_runtime_id;
+		request.agent_entity_id = agent_entity_id;
+		request.target_entity_id = target_entity_id;
 		request.acceptance_radius = desired_range > 0.0f ? desired_range : _settings.default_move_acceptance_radius;
 		return submit(request);
 	}
 
-	AgentCommandState AgentCommandInterface::submitStop(const std::uintptr_t agent_runtime_id) {
+	AgentCommandState AgentCommandInterface::submitStop(const Entity::EntityId agent_entity_id) {
 		AgentCommandRequest request;
 		request.type = AgentCommandType::Stop;
-		request.agent_runtime_id = agent_runtime_id;
+		request.agent_entity_id = agent_entity_id;
 		return submit(request);
 	}
 
 	AgentCommandState AgentCommandInterface::submitAttack(
-		const std::uintptr_t agent_runtime_id,
-		const std::uintptr_t target_runtime_id)
+		const Entity::EntityId agent_entity_id,
+		const Entity::EntityId target_entity_id)
 	{
 		AgentCommandRequest request;
 		request.type = AgentCommandType::Attack;
-		request.agent_runtime_id = agent_runtime_id;
-		request.target_runtime_id = target_runtime_id;
+		request.agent_entity_id = agent_entity_id;
+		request.target_entity_id = target_entity_id;
 		request.ability_slot = 0;
 		request.acceptance_radius = _settings.default_move_acceptance_radius;
 		return submit(request);
 	}
 
 	AgentCommandState AgentCommandInterface::submitCastAbilityAtTarget(
-		const std::uintptr_t agent_runtime_id,
+		const Entity::EntityId agent_entity_id,
 		const int ability_slot,
-		const std::uintptr_t target_runtime_id)
+		const Entity::EntityId target_entity_id)
 	{
 		AgentCommandRequest request;
 		request.type = AgentCommandType::CastAbility;
-		request.agent_runtime_id = agent_runtime_id;
-		request.target_runtime_id = target_runtime_id;
+		request.agent_entity_id = agent_entity_id;
+		request.target_entity_id = target_entity_id;
 		request.ability_slot = ability_slot;
 		return submit(request);
 	}
 
 	AgentCommandState AgentCommandInterface::submitCastAbilityAtPosition(
-		const std::uintptr_t agent_runtime_id,
+		const Entity::EntityId agent_entity_id,
 		const int ability_slot,
 		const Vector3 position)
 	{
 		AgentCommandRequest request;
 		request.type = AgentCommandType::CastAbility;
-		request.agent_runtime_id = agent_runtime_id;
+		request.agent_entity_id = agent_entity_id;
 		request.ability_slot = ability_slot;
 		request.has_world_position = true;
 		request.world_position = position;
@@ -160,22 +160,22 @@ namespace Nawia::Game {
 	}
 
 	AgentCommandState AgentCommandInterface::submitInteract(
-		const std::uintptr_t agent_runtime_id,
-		const std::uintptr_t target_runtime_id)
+		const Entity::EntityId agent_entity_id,
+		const Entity::EntityId target_entity_id)
 	{
 		AgentCommandRequest request;
 		request.type = AgentCommandType::Interact;
-		request.agent_runtime_id = agent_runtime_id;
-		request.target_runtime_id = target_runtime_id;
+		request.agent_entity_id = agent_entity_id;
+		request.target_entity_id = target_entity_id;
 		request.acceptance_radius = _settings.default_move_acceptance_radius;
 		return submit(request);
 	}
 
 	bool AgentCommandInterface::cancel(
-		const std::uintptr_t agent_runtime_id,
+		const Entity::EntityId agent_entity_id,
 		const AgentCommandFailureReason reason)
 	{
-		const auto it = _active_commands.find(agent_runtime_id);
+		const auto it = _active_commands.find(agent_entity_id);
 		if (it == _active_commands.end())
 			return false;
 
@@ -201,8 +201,8 @@ namespace Nawia::Game {
 		_settings.max_completed_history = std::max<size_t>(1, _settings.max_completed_history);
 	}
 
-	std::optional<AgentCommandState> AgentCommandInterface::getCommandForAgent(const std::uintptr_t agent_runtime_id) const {
-		const auto it = _active_commands.find(agent_runtime_id);
+	std::optional<AgentCommandState> AgentCommandInterface::getCommandForAgent(const Entity::EntityId agent_entity_id) const {
+		const auto it = _active_commands.find(agent_entity_id);
 		if (it == _active_commands.end())
 			return std::nullopt;
 		return it->second;
@@ -217,7 +217,7 @@ namespace Nawia::Game {
 		if (command.status == AgentCommandStatus::Queued)
 			command.status = AgentCommandStatus::Running;
 
-		const auto agent = findEntityByRuntimeId(entity_manager, command.request.agent_runtime_id);
+		const auto agent = findEntityById(entity_manager, command.request.agent_entity_id);
 		if (!isAgentAvailable(agent)) {
 			complete(command, AgentCommandStatus::Failed, AgentCommandFailureReason::AgentUnavailable, "Agent is not available.");
 			return;
@@ -233,7 +233,7 @@ namespace Nawia::Game {
 				updateMoveTo(command, engine, agent);
 				break;
 			case AgentCommandType::MoveToEntity: {
-				const auto target = findEntityByRuntimeId(entity_manager, command.request.target_runtime_id);
+				const auto target = findEntityById(entity_manager, command.request.target_entity_id);
 				updateMoveToEntity(command, engine, agent, target, dt);
 				break;
 			}
@@ -242,17 +242,17 @@ namespace Nawia::Game {
 				complete(command, AgentCommandStatus::Succeeded, AgentCommandFailureReason::None, "Agent stopped.");
 				break;
 			case AgentCommandType::Attack: {
-				const auto target = findEntityByRuntimeId(entity_manager, command.request.target_runtime_id);
+				const auto target = findEntityById(entity_manager, command.request.target_entity_id);
 				updateAttack(command, engine, agent, target, dt);
 				break;
 			}
 			case AgentCommandType::CastAbility: {
-				const auto target = findEntityByRuntimeId(entity_manager, command.request.target_runtime_id);
+				const auto target = findEntityById(entity_manager, command.request.target_entity_id);
 				updateCastAbility(command, engine, agent, target);
 				break;
 			}
 			case AgentCommandType::Interact: {
-				const auto target = findEntityByRuntimeId(entity_manager, command.request.target_runtime_id);
+				const auto target = findEntityById(entity_manager, command.request.target_entity_id);
 				updateInteract(command, engine, agent, target, dt);
 				break;
 			}
@@ -365,11 +365,15 @@ namespace Nawia::Game {
 
 		const float distance = std::sqrt(distanceSquared(agent->getCenter(), target->getCenter()));
 		const float cast_range = std::max(0.0f, ability->getCastRange());
-		if (distance <= cast_range && ability->isReady()) {
+		const float preferred_range_fraction = std::clamp(_settings.attack_preferred_range_fraction, 0.05f, 1.0f);
+		const float preferred_attack_range = cast_range * preferred_range_fraction;
+		if (distance <= preferred_attack_range) {
 			stopEntity(agent);
 			agent->rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
-			if (auto effect = ability->cast(target->getCenter().x, target->getCenter().y))
-				engine.spawnEntity(effect);
+			if (ability->isReady()) {
+				if (auto effect = ability->cast(target->getCenter().x, target->getCenter().y))
+					engine.spawnEntity(effect);
+			}
 			return;
 		}
 
@@ -459,7 +463,8 @@ namespace Nawia::Game {
 			return;
 		}
 
-		const float interaction_range_sq = std::max(0.0f, interactable->getInteractionRange());
+		const float interaction_range = std::max(0.0f, interactable->getInteractionRange());
+		const float interaction_range_sq = interaction_range * interaction_range;
 		if (distanceToBoxSquared(*target, agent->getCenter()) <= interaction_range_sq) {
 			stopEntity(agent);
 			interactable->onInteract(*agent);
@@ -485,15 +490,15 @@ namespace Nawia::Game {
 		(void)updatePathMovement(command, agent);
 	}
 
-	std::shared_ptr<Entity::Entity> AgentCommandInterface::findEntityByRuntimeId(
+	std::shared_ptr<Entity::Entity> AgentCommandInterface::findEntityById(
 		const Core::EntityManager& entity_manager,
-		const std::uintptr_t runtime_id) const
+		const Entity::EntityId entity_id) const
 	{
-		if (runtime_id == 0)
+		if (entity_id == Entity::INVALID_ENTITY_ID)
 			return nullptr;
 
 		for (const auto& entity : entity_manager.getEntities()) {
-			if (runtimeId(entity.get()) == runtime_id)
+			if (entity && entity->getEntityId() == entity_id)
 				return entity;
 		}
 		return nullptr;
@@ -598,10 +603,6 @@ namespace Nawia::Game {
 		return status == AgentCommandStatus::Succeeded ||
 			   status == AgentCommandStatus::Failed ||
 			   status == AgentCommandStatus::Cancelled;
-	}
-
-	std::uintptr_t AgentCommandInterface::runtimeId(const Entity::Entity* entity) {
-		return reinterpret_cast<std::uintptr_t>(entity);
 	}
 
 	const char* toString(const AgentCommandType type) {

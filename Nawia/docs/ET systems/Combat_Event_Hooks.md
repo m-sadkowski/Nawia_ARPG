@@ -14,6 +14,7 @@ adaptacje i debugowanie zachowan agentow.
 - `src/core/game/combat/CombatEventBus.cpp`
 - `src/entity/Entity.h`
 - `src/entity/Entity.cpp`
+- `docs/ET systems/Entity_Identity_and_Damage_Context.md`
 - `src/entity/abilities/Ability.cpp`
 
 `Engine` posiada instancje `Game::CombatEventBus` i aktualizuje jej czas w
@@ -30,6 +31,7 @@ Zawiera:
 
 - `source` - kto zadal obrazenia, jesli znany,
 - `target` - kto otrzymal obrazenia,
+- `entity_id` w `source` i `target` - stabilne ID konkretnej instancji encji,
 - `source_label` - nazwa ability albo ataku, np. `Fireball`, `Devil Dash`,
 - `amount` - zadane obrazenia po modyfikatorach,
 - `hp_before` i `hp_after`,
@@ -95,6 +97,11 @@ target->takeDamage(damage);
 `Entity::takeDamage` odczytuje ostatnie zrodlo, emituje event i czysci tylko
 etykiete `source_label`. Sam weak pointer do agresora zostaje, bo obecny
 `EntityManager` uzywa go do wyboru celu po otrzymaniu obrazen.
+
+Dla obrazen opoznionych, np. trucizny, nalezy przekazac jawny
+`DamageSourceContext`. Wtedy kazdy tick statusu nadal wskazuje konkretna
+instancje zrodla, np. `Spider#42`, zamiast przypadkowo uzyc ostatniego
+agresora trafionego celu.
 
 ## Istniejacy kod kluczowy dla ET
 

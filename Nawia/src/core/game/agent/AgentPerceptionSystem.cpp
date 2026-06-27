@@ -11,8 +11,8 @@
 namespace Nawia::Game {
 
 	namespace {
-		[[nodiscard]] std::uintptr_t runtimeId(const Entity::Entity* entity) {
-			return reinterpret_cast<std::uintptr_t>(entity);
+		[[nodiscard]] Entity::EntityId entityId(const Entity::Entity* entity) {
+			return entity ? entity->getEntityId() : Entity::INVALID_ENTITY_ID;
 		}
 
 		[[nodiscard]] float distanceSquared(const Vector2 first, const Vector2 second) {
@@ -77,14 +77,14 @@ namespace Nawia::Game {
 		const std::vector<CombatEvent> recent_events = combat_event_bus.getRecentEvents(_settings.event_memory_seconds);
 		const std::uint64_t frame_id = _next_frame_id++;
 		_last_frame_id = frame_id;
-		std::set<std::uintptr_t> active_agent_ids;
+		std::set<Entity::EntityId> active_agent_ids;
 
 		for (const auto& entity : entities) {
 			if (!isAgentCandidate(entity))
 				continue;
 
 			auto snapshot = buildSnapshot(entity, entities, recent_events, ping_manager, combat_event_bus.getTimeSeconds(), frame_id);
-			active_agent_ids.insert(snapshot.self.runtime_id);
+			active_agent_ids.insert(snapshot.self.entity_id);
 			_snapshots.push_back(std::move(snapshot));
 		}
 
@@ -108,21 +108,22 @@ namespace Nawia::Game {
 		_settings.perception_radius = std::max(0.0f, _settings.perception_radius);
 		_settings.event_memory_seconds = std::max(0.0f, _settings.event_memory_seconds);
 		_settings.lost_memory_seconds = std::max(0.0f, _settings.lost_memory_seconds);
+		_settings.terminal_lost_memory_seconds = std::max(0.0f, _settings.terminal_lost_memory_seconds);
 		_settings.max_observed_entities = std::max<size_t>(1, _settings.max_observed_entities);
 		_settings.max_lost_entities = std::max<size_t>(1, _settings.max_lost_entities);
 		_settings.max_recent_events = std::max<size_t>(1, _settings.max_recent_events);
 	}
 
-	const AgentPerceptionSnapshot* AgentPerceptionSystem::findSnapshot(const std::uintptr_t runtime_id) const {
+	const AgentPerceptionSnapshot* AgentPerceptionSystem::findSnapshot(const Entity::EntityId entity_id) const {
 		for (const auto& snapshot : _snapshots) {
-			if (snapshot.self.runtime_id == runtime_id)
+			if (snapshot.self.entity_id == entity_id)
 				return &snapshot;
 		}
 		return nullptr;
 	}
 
 	const AgentPerceptionSnapshot* AgentPerceptionSystem::findSnapshot(const Entity::Entity& entity) const {
-		return findSnapshot(runtimeId(&entity));
+		return findSnapshot(entityId(&entity));
 	}
 
 	bool AgentPerceptionSystem::isAgentCandidate(const std::shared_ptr<Entity::Entity>& entity) const {
@@ -170,10 +171,12 @@ namespace Nawia::Game {
 		snapshot.time_seconds = time_seconds;
 		snapshot.perception_radius = _settings.perception_radius;
 		snapshot.event_memory_seconds = _settings.event_memory_seconds;
+		snapshot.lost_memory_seconds = _settings.lost_memory_seconds;
+		snapshot.terminal_lost_memory_seconds = _settings.terminal_lost_memory_seconds;
 		snapshot.self = makeEntitySnapshot(agent);
 
 		const auto current_target = agent->getTarget();
-		const std::uintptr_t current_target_id = runtimeId(current_target.get());
+		const Entity::EntityId current_target_id = entityId(current_target.get());
 		if (current_target && current_target->isPerceptionVisible())
 			snapshot.current_target = makeEntitySnapshot(current_target);
 
@@ -220,7 +223,7 @@ namespace Nawia::Game {
 					(entity_position.y - agent_position.y) / distance
 				};
 			}
-			observed.is_current_target = observed.entity.runtime_id == current_target_id;
+			observed.is_current_target = observed.entity.entity_id == current_target_id;
 
 			if (observed.relation == AgentRelation::Enemy)
 				++snapshot.nearby_enemy_count;
@@ -247,7 +250,7 @@ namespace Nawia::Game {
 		updateMemory(snapshot, agent, entities, time_seconds, frame_id);
 
 		for (const auto& event : recent_events) {
-			if (!isEventRelevantToAgent(event, snapshot.self.runtime_id, agent_position))
+			if (!isEventRelevantToAgent(event, snapshot.self.entity_id, agent_position))
 				continue;
 
 			if (snapshot.recent_combat_events.size() >= _settings.max_recent_events)
@@ -266,7 +269,7 @@ namespace Nawia::Game {
 
 		snapshot.valid = true;
 		snapshot.entity = entity;
-		snapshot.runtime_id = runtimeId(entity.get());
+		snapshot.entity_id = entityId(entity.get());
 		snapshot.name = entity->getName();
 		snapshot.type = entity->getType();
 		snapshot.faction = entity->getFaction();
@@ -353,10 +356,10 @@ namespace Nawia::Game {
 
 	bool AgentPerceptionSystem::isEventRelevantToAgent(
 		const CombatEvent& event,
-		const std::uintptr_t agent_id,
+		const Entity::EntityId agent_id,
 		const Vector2 agent_position) const
 	{
-		if (event.source.runtime_id == agent_id || event.target.runtime_id == agent_id)
+		if (event.source.entity_id == agent_id || event.target.entity_id == agent_id)
 			return true;
 
 		const float radius_sq = _settings.perception_radius * _settings.perception_radius;
@@ -387,20 +390,23 @@ namespace Nawia::Game {
 		if (!agent)
 			return;
 
-		const std::uintptr_t agent_id = runtimeId(agent.get());
+		const Entity::EntityId agent_id = entityId(agent.get());
 		auto& memory = _memory_by_agent[agent_id];
-		std::set<std::uintptr_t> currently_seen_ids;
+		std::set<Entity::EntityId> currently_seen_ids;
 
 		for (const auto& observed : snapshot.observed_entities) {
-			const std::uintptr_t entity_id = observed.entity.runtime_id;
-			currently_seen_ids.insert(entity_id);
+			const Entity::EntityId observed_entity_id = observed.entity.entity_id;
+			currently_seen_ids.insert(observed_entity_id);
 
-			auto& record = memory[entity_id];
+			auto& record = memory[observed_entity_id];
 			record.last_known_entity = observed.entity;
 			record.relation = observed.relation;
 			record.last_seen_time_seconds = time_seconds;
 			record.last_seen_frame_id = frame_id;
 			record.was_current_target = observed.is_current_target;
+			record.terminal = false;
+			record.terminal_time_seconds = 0.0f;
+			record.terminal_reason.clear();
 		}
 
 		const Vector2 agent_position = agent->getCenter();
@@ -410,13 +416,36 @@ namespace Nawia::Game {
 				continue;
 			}
 
-			const auto entity = findEntityByRuntimeId(entities, it->first);
+			const float seconds_since_seen = std::max(0.0f, time_seconds - it->second.last_seen_time_seconds);
+			const auto entity = findEntityById(entities, it->first);
 			if (!entity || entity->isDead() || entity->isDying()) {
-				it = memory.erase(it);
+				if (!it->second.terminal) {
+					it->second.terminal = true;
+					it->second.terminal_time_seconds = time_seconds;
+					it->second.terminal_reason = getDisappearanceReason(entity, agent_position);
+					if (entity)
+						it->second.last_known_entity = makeEntitySnapshot(entity);
+				}
+
+				const float seconds_since_terminal = std::max(0.0f, time_seconds - it->second.terminal_time_seconds);
+				if (seconds_since_terminal > _settings.terminal_lost_memory_seconds) {
+					it = memory.erase(it);
+					continue;
+				}
+
+				AgentLostEntity lost;
+				lost.last_known_entity = it->second.last_known_entity;
+				lost.relation = it->second.relation;
+				lost.last_known_position = it->second.last_known_entity.position;
+				lost.last_seen_time_seconds = it->second.last_seen_time_seconds;
+				lost.seconds_since_seen = seconds_since_seen;
+				lost.was_current_target = it->second.was_current_target;
+				lost.disappearance_reason = it->second.terminal_reason;
+				snapshot.lost_entities.push_back(std::move(lost));
+				++it;
 				continue;
 			}
 
-			const float seconds_since_seen = std::max(0.0f, time_seconds - it->second.last_seen_time_seconds);
 			if (seconds_since_seen > _settings.lost_memory_seconds) {
 				it = memory.erase(it);
 				continue;
@@ -443,12 +472,12 @@ namespace Nawia::Game {
 		snapshot.lost_entity_count = snapshot.lost_entities.size();
 	}
 
-	std::shared_ptr<Entity::Entity> AgentPerceptionSystem::findEntityByRuntimeId(
+	std::shared_ptr<Entity::Entity> AgentPerceptionSystem::findEntityById(
 		const std::vector<std::shared_ptr<Entity::Entity>>& entities,
-		const std::uintptr_t runtime_id) const
+		const Entity::EntityId entity_id) const
 	{
 		for (const auto& entity : entities) {
-			if (runtimeId(entity.get()) == runtime_id)
+			if (entityId(entity.get()) == entity_id)
 				return entity;
 		}
 		return nullptr;
@@ -460,6 +489,10 @@ namespace Nawia::Game {
 	{
 		if (!entity)
 			return "Removed";
+		if (entity->isDead())
+			return "Dead";
+		if (entity->isDying())
+			return "Dying";
 		if (entity->isDormant())
 			return "Dormant";
 		if (!entity->isPerceptionVisible())
