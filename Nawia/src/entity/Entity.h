@@ -428,6 +428,9 @@ namespace Nawia::Entity {
 		void rememberDamageSource(Entity* source, std::string source_label = {}) {
 			_last_damage_source = makeDamageSourceContext(source, std::move(source_label));
 		}
+		void rememberDamageSource(DamageSourceContext source_context) {
+			_last_damage_source = std::move(source_context);
+		}
 
 		[[nodiscard]] static DamageSourceContext makeDamageSourceContext(Entity* source, std::string source_label = {});
 		[[nodiscard]] const DamageSourceContext& getLastDamageSourceContext() const { return _last_damage_source; }

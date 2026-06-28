@@ -863,11 +863,17 @@ class MainWindow(QMainWindow):
 		if value.get("hazard"):
 			phase = str(value.get("hazard_phase") or "Hazard").lower()
 			radius = self._float_text(value.get("hazard_radius"))
+			if value.get("hazard_expanding_wave"):
+				current_radius = self._float_text(value.get("hazard_current_radius"))
+				radius = f"{current_radius}/{radius}"
 			damage = value.get("hazard_damage_per_tick", 0)
+			effect = " knockdown" if value.get("hazard_knock_down_player_on_hit") else ""
 			if phase == "warning":
-				flags.append(f"hazard warning {self._float_text(value.get('hazard_time_to_activate'))}s r{radius}")
+				kind = "wave warning" if value.get("hazard_expanding_wave") else "hazard warning"
+				flags.append(f"{kind} {self._float_text(value.get('hazard_time_to_activate'))}s r{radius}{effect}")
 			else:
-				flags.append(f"hazard {phase} {self._float_text(value.get('hazard_remaining'))}s r{radius} dmg {damage}")
+				kind = f"wave {phase}" if value.get("hazard_expanding_wave") else f"hazard {phase}"
+				flags.append(f"{kind} {self._float_text(value.get('hazard_remaining'))}s r{radius} dmg {damage}{effect}")
 		return ", ".join(flags) if flags else "-"
 
 	def _interaction_text(self, value: Any) -> str:

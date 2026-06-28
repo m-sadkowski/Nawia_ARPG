@@ -61,10 +61,13 @@ namespace Nawia::Game {
 		bool hazard = false;
 		std::string hazard_phase;
 		float hazard_radius = 0.0f;
+		float hazard_current_radius = 0.0f;
 		float hazard_time_to_activate = 0.0f;
 		float hazard_remaining = 0.0f;
 		int hazard_damage_per_tick = 0;
 		float hazard_tick_interval = 0.0f;
+		bool hazard_knock_down_player_on_hit = false;
+		bool hazard_expanding_wave = false;
 		Entity::EntityId hazard_source_entity_id = Entity::INVALID_ENTITY_ID;
 	};
 

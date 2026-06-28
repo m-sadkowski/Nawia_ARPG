@@ -72,17 +72,7 @@ namespace Nawia::Entity {
 		if (isDying())
 			return;
 
-		if (GetRandomValue(0, 99) < 50) {
-			startImmediateSummonRetaliation();
-			return;
-		}
-
-		_state = State::GettingHit;
-		_cast_projectile_spawned = false;
-		_retaliation_applied = false;
-		stopMoving();
-		setAnimationSpeed(1.0f);
-		playAnimation("get_hit", false, true, 0, true);
+		startImmediateSummonRetaliation();
 	}
 
 	void Witch::update(const float dt) {
@@ -208,8 +198,14 @@ namespace Nawia::Entity {
 
 		if (!isAnimationLocked()) {
 			_cast_cooldown_timer = CAST_COOLDOWN * 0.65f;
-			_state = State::Idle;
-			playIdle();
+			if (_reposition_after_retaliation) {
+				_reposition_after_retaliation = false;
+				_state = State::Repositioning;
+				playRun();
+			} else {
+				_state = State::Idle;
+				playIdle();
+			}
 		}
 	}
 
@@ -228,16 +224,23 @@ namespace Nawia::Entity {
 
 		if (!isAnimationLocked()) {
 			_cast_cooldown_timer = CAST_COOLDOWN * 0.75f;
-			_state = State::Idle;
-			playIdle();
+			if (_reposition_after_retaliation) {
+				_reposition_after_retaliation = false;
+				_state = State::Repositioning;
+				playRun();
+			} else {
+				_state = State::Idle;
+				playIdle();
+			}
 		}
 	}
 
 	void Witch::startBoltCast() {
 		_state = State::CastingBolt;
 		_cast_projectile_spawned = false;
+		_reposition_after_retaliation = false;
 		stopMoving();
-		setAnimationSpeed(1.0f);
+		setAnimationSpeed(BOLT_ANIMATION_SPEED);
 		playAnimation("bolt", false, true, 0, true);
 	}
 
@@ -274,8 +277,9 @@ namespace Nawia::Entity {
 	void Witch::startRetaliation() {
 		_state = State::Retaliating;
 		_retaliation_applied = false;
+		_reposition_after_retaliation = true;
 		stopMoving();
-		setAnimationSpeed(1.0f);
+		setAnimationSpeed(RETALIATION_ANIMATION_SPEED);
 		playAnimation("bolt", false, true, 0, true);
 	}
 
@@ -283,14 +287,16 @@ namespace Nawia::Entity {
 		_state = State::Summoning;
 		_retaliation_applied = false;
 		_cast_projectile_spawned = false;
+		_reposition_after_retaliation = true;
 		stopMoving();
 
 		if (const auto target = std::dynamic_pointer_cast<Player>(_target.lock())) {
 			target->rememberDamageSource(this, "Witch Retaliation");
+			pushRetaliationTarget(*target);
 			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * _damage_multiplier));
 		}
 
-		setAnimationSpeed(1.0f);
+		setAnimationSpeed(SUMMON_ANIMATION_SPEED);
 		playAnimation("summon", false, true, 0, true);
 	}
 
@@ -298,19 +304,58 @@ namespace Nawia::Entity {
 		const auto target = std::dynamic_pointer_cast<Player>(_target.lock());
 		if (target) {
 			target->rememberDamageSource(this, "Witch Retaliation");
+			pushRetaliationTarget(*target);
 			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * _damage_multiplier));
 		}
 
 		summonHelper();
 	}
 
+	void Witch::pushRetaliationTarget(Player& target) const {
+		const Vector2 witch_center = getCenter();
+		const Vector2 target_center = target.getCenter();
+		Vector2 away = Vector2Subtract(target_center, witch_center);
+		if (away.x * away.x + away.y * away.y <= 0.0001f)
+			away = {1.0f, 0.0f};
+		else
+			away = Vector2Normalize(away);
+
+		const float center_offset_x = target_center.x - target.getX();
+		const float center_offset_y = target_center.y - target.getY();
+		for (const float distance : {
+			RETALIATION_PUSH_DISTANCE,
+			RETALIATION_PUSH_DISTANCE * 0.65f,
+			RETALIATION_PUSH_DISTANCE * 0.35f
+		}) {
+			const Vector2 candidate_center = {
+				target_center.x + away.x * distance,
+				target_center.y + away.y * distance
+			};
+			if (_map && !_map->isWalkable(candidate_center.x, candidate_center.y))
+				continue;
+
+			target.setX(candidate_center.x - center_offset_x);
+			target.setY(candidate_center.y - center_offset_y);
+			target.stop();
+			return;
+		}
+	}
+
 	void Witch::summonHelper() {
 		auto target = _target.lock();
 		Vector2 spawn_pos = getCenter();
 		if (target) {
-			const Vector2 dir = Vector2Normalize(Vector2Subtract(getCenter(), target->getCenter()));
-			spawn_pos.x += dir.x * 2.0f;
-			spawn_pos.y += dir.y * 2.0f;
+			const Vector2 dir = Vector2Normalize(Vector2Subtract(target->getCenter(), getCenter()));
+			for (const float distance : {2.0f, 1.4f, 2.8f}) {
+				const Vector2 candidate = {
+					getCenter().x + dir.x * distance,
+					getCenter().y + dir.y * distance
+				};
+				if (!_map || _map->isWalkable(candidate.x, candidate.y)) {
+					spawn_pos = candidate;
+					break;
+				}
+			}
 		}
 
 		auto helper = std::shared_ptr<Entity>(WalkingDeadBuilder()

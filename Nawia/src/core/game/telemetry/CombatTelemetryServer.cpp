@@ -152,10 +152,13 @@ namespace Nawia::Game {
 				{"hazard", snapshot.hazard},
 				{"hazard_phase", snapshot.hazard_phase},
 				{"hazard_radius", snapshot.hazard_radius},
+				{"hazard_current_radius", snapshot.hazard_current_radius},
 				{"hazard_time_to_activate", snapshot.hazard_time_to_activate},
 				{"hazard_remaining", snapshot.hazard_remaining},
 				{"hazard_damage_per_tick", snapshot.hazard_damage_per_tick},
 				{"hazard_tick_interval", snapshot.hazard_tick_interval},
+				{"hazard_knock_down_player_on_hit", snapshot.hazard_knock_down_player_on_hit},
+				{"hazard_expanding_wave", snapshot.hazard_expanding_wave},
 				{"hazard_source_entity_id", static_cast<std::uint64_t>(snapshot.hazard_source_entity_id)}
 			};
 		}

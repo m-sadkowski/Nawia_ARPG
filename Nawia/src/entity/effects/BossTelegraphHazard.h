@@ -24,6 +24,10 @@ namespace Nawia::Entity {
 		int damage_per_tick = 10;
 		float tick_interval = 0.75f;
 		float root_seconds_on_hit = 0.0f;
+		bool knock_down_player_on_hit = false;
+		bool expanding_wave = false;
+		float wave_speed = 4.0f;
+		float wave_width = 0.85f;
 		DamageSourceContext source_context;
 		Color warning_color = {255, 90, 40, 255};
 		Color active_color = {220, 35, 20, 255};
@@ -59,6 +63,9 @@ namespace Nawia::Entity {
 		[[nodiscard]] float getRemainingActiveSeconds() const;
 		[[nodiscard]] int getDamagePerTick() const { return _damage_per_tick; }
 		[[nodiscard]] float getTickInterval() const { return _tick_interval; }
+		[[nodiscard]] bool knocksDownPlayerOnHit() const { return _knock_down_player_on_hit; }
+		[[nodiscard]] bool isExpandingWave() const { return _expanding_wave; }
+		[[nodiscard]] float getCurrentRadius() const;
 		[[nodiscard]] EntityId getSourceEntityId() const { return _source_context.source_id; }
 		[[nodiscard]] const std::string& getSourceLabel() const { return _source_context.label; }
 
@@ -69,6 +76,8 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool isTargetInside(const Entity& target) const;
 		[[nodiscard]] Color currentFillColor() const;
 		[[nodiscard]] Color currentEdgeColor() const;
+		void renderExpandingWave(Vector3 center) const;
+		[[nodiscard]] float getActiveWaveRadius() const;
 		[[nodiscard]] DamageSourceContext damageContext() const;
 
 		float _radius = 2.0f;
@@ -77,6 +86,10 @@ namespace Nawia::Entity {
 		int _damage_per_tick = 10;
 		float _tick_interval = 0.75f;
 		float _root_seconds_on_hit = 0.0f;
+		bool _knock_down_player_on_hit = false;
+		bool _expanding_wave = false;
+		float _wave_speed = 4.0f;
+		float _wave_width = 0.85f;
 		float _elapsed_seconds = 0.0f;
 		DamageSourceContext _source_context;
 		Color _warning_color = {255, 90, 40, 255};

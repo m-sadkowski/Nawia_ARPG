@@ -20,6 +20,17 @@ namespace Nawia::Core::System::Renderer {
 	};
 
 	/**
+	 * @struct GroundRingStyle
+	 * @brief Visual settings for smooth expanding rings, such as shockwaves.
+	 */
+	struct GroundRingStyle {
+		float inner_radius = 0.0f;
+		float outer_radius = 1.0f;
+		int slices = 128;
+		Color color = WHITE;
+	};
+
+	/**
 	 * @brief Draws a smooth filled ground disc without wireframe edges.
 	 *
 	 * Gameplay telegraphs and pings should use this instead of
@@ -27,5 +38,6 @@ namespace Nawia::Core::System::Renderer {
 	 * isometric camera.
 	 */
 	void drawSoftGroundDisc(Vector3 center, const GroundDiscStyle& style);
+	void drawSoftGroundRing(Vector3 center, const GroundRingStyle& style);
 
 } // namespace Nawia::Core::System::Renderer

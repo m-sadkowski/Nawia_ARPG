@@ -62,6 +62,10 @@ Najwazniejsze pola:
 - `damage_per_tick`
 - `tick_interval`
 - `root_seconds_on_hit`
+- `knock_down_player_on_hit`
+- `expanding_wave`
+- `wave_speed`
+- `wave_width`
 - `source_context`
 
 ## Wpiecie w bossy
@@ -70,8 +74,16 @@ Najwazniejsze pola:
 
 Bossowy `Devil` rozpoznawany jest po wysokim `max_hp` albo nazwie `Bies` /
 `Devil Lord`. Dash ma teraz cast telemetry `Devil Dash`. W czasie przygotowania
-spawnuje `Dash Impact` jako warning hazard na zablokowanej pozycji celu. Po
-dotarciu zostawia krotki `Scorched Ground`.
+spawnuje `Dash Impact` jako warning marker na zablokowanej pozycji celu. Ten
+marker nie zadaje obrazen. Dopiero po zakonczeniu ruchu dasha boss zostawia
+krotki, aktywny `Scorched Ground`.
+
+Bossowy wariant nie zawsze wybiera dash. Gdy cel jest w srednim dystansie,
+moze zamiast tego uzyc `Ground Slam`: szybki wizualny podskok na animacji
+`idle`, warning maksymalnego zasiegu pod bossem i aktywna fala uderzeniowa.
+Fala losuje promien z zakresu 4-7 jednostek, rozchodzi sie od Biesa z
+predkoscia bazowego ruchu gracza i powala dopiero wtedy, gdy ring przetnie
+pozycje gracza.
 
 ### Ropuch / Frog
 
@@ -88,10 +100,13 @@ Dodatkowe pola hazardu:
 - `hazard`
 - `hazard_phase`
 - `hazard_radius`
+- `hazard_current_radius`
 - `hazard_time_to_activate`
 - `hazard_remaining`
 - `hazard_damage_per_tick`
 - `hazard_tick_interval`
+- `hazard_knock_down_player_on_hit`
+- `hazard_expanding_wave`
 - `hazard_source_entity_id`
 
 Snapshot agenta zawiera tez `nearby_hazard_count`.

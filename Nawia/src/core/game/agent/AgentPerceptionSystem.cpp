@@ -315,10 +315,13 @@ namespace Nawia::Game {
 			snapshot.hazard = true;
 			snapshot.hazard_phase = hazard->getHazardPhaseName();
 			snapshot.hazard_radius = hazard->getRadius();
+			snapshot.hazard_current_radius = hazard->getCurrentRadius();
 			snapshot.hazard_time_to_activate = hazard->getTimeToActivate();
 			snapshot.hazard_remaining = hazard->getRemainingActiveSeconds();
 			snapshot.hazard_damage_per_tick = hazard->getDamagePerTick();
 			snapshot.hazard_tick_interval = hazard->getTickInterval();
+			snapshot.hazard_knock_down_player_on_hit = hazard->knocksDownPlayerOnHit();
+			snapshot.hazard_expanding_wave = hazard->isExpandingWave();
 			snapshot.hazard_source_entity_id = hazard->getSourceEntityId();
 		}
 		return snapshot;

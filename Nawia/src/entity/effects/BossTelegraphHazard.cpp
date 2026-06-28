@@ -1,5 +1,6 @@
 #include "BossTelegraphHazard.h"
 
+#include <Player.h>
 #include <WorldAreaIndicator.h>
 
 #include <raymath.h>
@@ -32,6 +33,10 @@ namespace Nawia::Entity {
 		  _damage_per_tick(std::max(0, config.damage_per_tick)),
 		  _tick_interval(std::max(0.05f, config.tick_interval)),
 		  _root_seconds_on_hit(std::max(0.0f, config.root_seconds_on_hit)),
+		  _knock_down_player_on_hit(config.knock_down_player_on_hit),
+		  _expanding_wave(config.expanding_wave),
+		  _wave_speed(std::max(0.1f, config.wave_speed)),
+		  _wave_width(std::max(0.1f, config.wave_width)),
 		  _source_context(std::move(config.source_context)),
 		  _warning_color(config.warning_color),
 		  _active_color(config.active_color) {
@@ -52,6 +57,11 @@ namespace Nawia::Entity {
 			return;
 
 		const Vector3 center = {getCenter().x, getAltitude() + 0.08f, getCenter().y};
+		if (_expanding_wave) {
+			renderExpandingWave(center);
+			return;
+		}
+
 		Renderer::GroundDiscStyle disc_style;
 		disc_style.radius = _radius;
 		disc_style.height = isActiveHazard() ? 0.18f : 0.11f;
@@ -121,6 +131,13 @@ namespace Nawia::Entity {
 		return std::max(0.0f, _warning_seconds + _active_seconds - _elapsed_seconds);
 	}
 
+	float BossTelegraphHazard::getCurrentRadius() const {
+		if (!_expanding_wave)
+			return _radius;
+
+		return std::clamp(getActiveWaveRadius(), 0.0f, _radius);
+	}
+
 	void BossTelegraphHazard::applyToTarget(const std::shared_ptr<Entity>& target) {
 		if (!isActiveHazard() || _damage_per_tick <= 0 || !canAffectTarget(target) || !isTargetInside(*target))
 			return;
@@ -130,7 +147,18 @@ namespace Nawia::Entity {
 		if (_elapsed_seconds + 0.0001f < next_allowed_tick)
 			return;
 
-		target->takeDamage(_damage_per_tick, damageContext());
+		const DamageSourceContext context = damageContext();
+		if (_knock_down_player_on_hit) {
+			if (auto* player = dynamic_cast<Player*>(target.get())) {
+				player->rememberDamageSource(context);
+				player->knockDown(_damage_per_tick);
+			} else {
+				target->takeDamage(_damage_per_tick, context);
+			}
+		} else {
+			target->takeDamage(_damage_per_tick, context);
+		}
+
 		if (_root_seconds_on_hit > 0.0f && !target->isDead() && !target->isDying())
 			target->applyRoot(_root_seconds_on_hit);
 
@@ -155,6 +183,15 @@ namespace Nawia::Entity {
 	}
 
 	bool BossTelegraphHazard::isTargetInside(const Entity& target) const {
+		if (_expanding_wave) {
+			const float distance = Vector2Distance(getCenter(), target.getCenter());
+			const float radius = getActiveWaveRadius();
+			const float half_width = _wave_width * 0.5f;
+			const float inner_radius = std::max(0.0f, radius - half_width);
+			const float outer_radius = radius + half_width;
+			return distance >= inner_radius && distance <= outer_radius && distance <= _radius;
+		}
+
 		return Vector2DistanceSqr(getCenter(), target.getCenter()) <= _radius * _radius;
 	}
 
@@ -178,6 +215,50 @@ namespace Nawia::Entity {
 			? 1.0f
 			: std::clamp(_elapsed_seconds / _warning_seconds, 0.0f, 1.0f);
 		return Fade(_warning_color, 0.30f + 0.24f * warning_fraction);
+	}
+
+	void BossTelegraphHazard::renderExpandingWave(const Vector3 center) const {
+		if (isWarning()) {
+			const float warning_fraction = _warning_seconds <= 0.0f
+				? 1.0f
+				: std::clamp(_elapsed_seconds / _warning_seconds, 0.0f, 1.0f);
+
+			Renderer::GroundDiscStyle warning_disc;
+			warning_disc.radius = _radius;
+			warning_disc.height = 0.06f;
+			warning_disc.core_color = {0, 0, 0, 0};
+			warning_disc.fill_color = Fade(_warning_color, 0.06f + 0.10f * warning_fraction);
+			Renderer::drawSoftGroundDisc(center, warning_disc);
+
+			Renderer::GroundRingStyle boundary;
+			boundary.inner_radius = std::max(0.0f, _radius - 0.18f);
+			boundary.outer_radius = _radius;
+			boundary.color = Fade(_warning_color, 0.30f + 0.28f * warning_fraction);
+			Renderer::drawSoftGroundRing({center.x, center.y + 0.08f, center.z}, boundary);
+			return;
+		}
+
+		const float radius = getActiveWaveRadius();
+		const float half_width = _wave_width * 0.5f;
+		const float inner_radius = std::max(0.0f, radius - half_width);
+		const float outer_radius = std::min(_radius, radius + half_width);
+		if (outer_radius <= 0.0f || inner_radius >= _radius)
+			return;
+
+		const float pulse = 0.82f + 0.18f * std::sin(_elapsed_seconds * 14.0f);
+		Renderer::GroundRingStyle wave;
+		wave.inner_radius = inner_radius;
+		wave.outer_radius = outer_radius;
+		wave.color = Fade(_active_color, 0.62f * pulse);
+		Renderer::drawSoftGroundRing({center.x, center.y + 0.10f, center.z}, wave);
+	}
+
+	float BossTelegraphHazard::getActiveWaveRadius() const {
+		if (!_expanding_wave)
+			return _radius;
+
+		const float active_elapsed = std::max(0.0f, _elapsed_seconds - _warning_seconds);
+		return active_elapsed * _wave_speed;
 	}
 
 	DamageSourceContext BossTelegraphHazard::damageContext() const {
