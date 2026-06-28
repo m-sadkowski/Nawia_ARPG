@@ -71,6 +71,8 @@ Przykladowy event:
   `Combat`, `Pings` i `Abilities`,
 - widok `Combat` pokazujacy, kto ostatnio zadal agentowi obrazenia oraz czy
   event jest `incoming`, `outgoing` czy tylko `nearby`,
+- boss casty i hazardy w `Agent Perception`: casty jako `casting ...` w
+  `Flags`, hazardy jako encje `Hazard` w `Seen Entities`,
 - etykiety encji z `entity_id`, np. `Spider#42`, zeby odroznic kilka instancji
   tego samego typu,
 - surowy JSON zaznaczonego eventu.

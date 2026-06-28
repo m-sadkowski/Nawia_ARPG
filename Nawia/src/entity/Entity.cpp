@@ -232,6 +232,18 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			_entity_id = entity_id;
 	}
 
+	void Entity::beginCastTelemetry(std::string cast_name, const float duration_seconds, const bool interruptible) {
+		_cast_state.active = !cast_name.empty();
+		_cast_state.name = std::move(cast_name);
+		_cast_state.duration_seconds = std::max(0.0f, duration_seconds);
+		_cast_state.remaining_seconds = _cast_state.duration_seconds;
+		_cast_state.interruptible = interruptible;
+	}
+
+	void Entity::clearCastTelemetry() {
+		_cast_state = {};
+	}
+
 	DamageSourceContext Entity::makeDamageSourceContext(Entity* source, std::string source_label) {
 		DamageSourceContext context;
 		if (!source)
@@ -546,6 +558,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	{
 		if (_dormant) return;
 
+		updateCastTelemetry(delta_time);
 		updateStatusEffects(delta_time);
 
 		if (_is_dying)
@@ -560,6 +573,15 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_pos.y += _velocity.y * delta_time;
 		
 		updateAnimation(delta_time);
+	}
+
+	void Entity::updateCastTelemetry(const float dt) {
+		if (!_cast_state.active)
+			return;
+
+		_cast_state.remaining_seconds = std::max(0.0f, _cast_state.remaining_seconds - std::max(0.0f, dt));
+		if (_cast_state.remaining_seconds <= 0.0f)
+			_cast_state.active = false;
 	}
 
 	void Entity::updateStatusEffects(const float dt)
@@ -798,6 +820,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			const bool killed_player_side = _type == EntityType::Player || _type == EntityType::Ally;
 			_hp = 1; // Utrzymujemy encję przy życiu do końca animacji śmierci.
 			_is_dying = true;
+			clearCastTelemetry();
 			playAnimation(_death_anim_name, false, true, 0, true);
 			setFaction(Faction::None);
 			onDeathStarted();
@@ -822,6 +845,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	{
 		const DamageSourceContext damage_source = _last_damage_source;
 		_hp = 0;
+		clearCastTelemetry();
 		if (!_combat_death_event_emitted && g_combat_event_bus) {
 			g_combat_event_bus->emitEntityKilled(damage_source, this, damage_source.label);
 			_combat_death_event_emitted = true;

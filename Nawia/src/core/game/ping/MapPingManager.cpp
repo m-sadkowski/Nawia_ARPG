@@ -1,9 +1,13 @@
 #include "MapPingManager.h"
 
+#include <WorldAreaIndicator.h>
+
 #include <algorithm>
 #include <cmath>
 
 namespace Nawia::Game {
+
+	namespace Renderer = Nawia::Core::System::Renderer;
 
 	namespace {
 		[[nodiscard]] Entity::EntityId entityId(const Entity::Entity* entity) {
@@ -78,20 +82,28 @@ namespace Nawia::Game {
 			const float pulse = 0.07f * std::sin((ping.age_seconds + 0.1f) * 8.0f);
 			const float radius = 0.45f + pulse;
 			const Color base = getPingColor(ping.type);
-			const Vector3 ground = {ping.position.x, ping.position.y + 0.05f, ping.position.z};
+			const Vector3 ground = {ping.position.x, ping.position.y + 0.08f, ping.position.z};
 			const Vector3 top = {ping.position.x, ping.position.y + 1.25f, ping.position.z};
 
-			DrawCylinder(ground, radius, radius, 0.035f, 36, Fade(base, 0.20f * alpha));
-			DrawCylinderWires(ground, radius, radius, 0.08f, 36, Fade(base, 0.95f * alpha));
+			Renderer::GroundDiscStyle disc_style;
+			disc_style.radius = radius;
+			disc_style.height = 0.11f;
+			disc_style.core_radius_fraction = 0.64f;
+			disc_style.core_height_fraction = 0.42f;
+			disc_style.fill_color = Fade(base, 0.24f * alpha);
+			disc_style.core_color = Fade(base, 0.46f * alpha);
+			Renderer::drawSoftGroundDisc(ground, disc_style);
+
 			DrawLine3D(ground, top, Fade(base, 0.85f * alpha));
 			DrawSphere(top, 0.10f, Fade(base, 0.95f * alpha));
 
 			if (ping.type == MapPingType::Threat) {
 				const float cross_radius = radius * 0.78f;
-				const Vector3 left = {ground.x - cross_radius, ground.y + 0.03f, ground.z - cross_radius};
-				const Vector3 right = {ground.x + cross_radius, ground.y + 0.03f, ground.z + cross_radius};
-				const Vector3 front = {ground.x - cross_radius, ground.y + 0.03f, ground.z + cross_radius};
-				const Vector3 back = {ground.x + cross_radius, ground.y + 0.03f, ground.z - cross_radius};
+				const float cross_y = ground.y + 0.14f;
+				const Vector3 left = {ground.x - cross_radius, cross_y, ground.z - cross_radius};
+				const Vector3 right = {ground.x + cross_radius, cross_y, ground.z + cross_radius};
+				const Vector3 front = {ground.x - cross_radius, cross_y, ground.z + cross_radius};
+				const Vector3 back = {ground.x + cross_radius, cross_y, ground.z - cross_radius};
 				DrawLine3D(left, right, Fade(base, 0.90f * alpha));
 				DrawLine3D(front, back, Fade(base, 0.90f * alpha));
 			}

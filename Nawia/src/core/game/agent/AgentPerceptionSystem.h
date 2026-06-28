@@ -53,6 +53,19 @@ namespace Nawia::Game {
 		bool poisoned = false;
 		float root_remaining = 0.0f;
 		float poison_remaining = 0.0f;
+		bool casting = false;
+		std::string cast_name;
+		float cast_duration = 0.0f;
+		float cast_remaining = 0.0f;
+		bool cast_interruptible = false;
+		bool hazard = false;
+		std::string hazard_phase;
+		float hazard_radius = 0.0f;
+		float hazard_time_to_activate = 0.0f;
+		float hazard_remaining = 0.0f;
+		int hazard_damage_per_tick = 0;
+		float hazard_tick_interval = 0.0f;
+		Entity::EntityId hazard_source_entity_id = Entity::INVALID_ENTITY_ID;
 	};
 
 	struct AgentObservedEntity {
@@ -110,6 +123,7 @@ namespace Nawia::Game {
 		size_t nearby_neutral_count = 0;
 		size_t nearby_npc_count = 0;
 		size_t nearby_projectile_count = 0;
+		size_t nearby_hazard_count = 0;
 		size_t lost_entity_count = 0;
 	};
 

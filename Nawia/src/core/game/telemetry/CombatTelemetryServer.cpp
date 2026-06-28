@@ -46,6 +46,8 @@ namespace Nawia::Game {
 					return "NPCStatic";
 				case Entity::EntityType::Projectile:
 					return "Projectile";
+				case Entity::EntityType::Hazard:
+					return "Hazard";
 				case Entity::EntityType::Trigger:
 					return "Trigger";
 				case Entity::EntityType::Chest:
@@ -141,7 +143,20 @@ namespace Nawia::Game {
 				{"rooted", snapshot.rooted},
 				{"poisoned", snapshot.poisoned},
 				{"root_remaining", snapshot.root_remaining},
-				{"poison_remaining", snapshot.poison_remaining}
+				{"poison_remaining", snapshot.poison_remaining},
+				{"casting", snapshot.casting},
+				{"cast_name", snapshot.cast_name},
+				{"cast_duration", snapshot.cast_duration},
+				{"cast_remaining", snapshot.cast_remaining},
+				{"cast_interruptible", snapshot.cast_interruptible},
+				{"hazard", snapshot.hazard},
+				{"hazard_phase", snapshot.hazard_phase},
+				{"hazard_radius", snapshot.hazard_radius},
+				{"hazard_time_to_activate", snapshot.hazard_time_to_activate},
+				{"hazard_remaining", snapshot.hazard_remaining},
+				{"hazard_damage_per_tick", snapshot.hazard_damage_per_tick},
+				{"hazard_tick_interval", snapshot.hazard_tick_interval},
+				{"hazard_source_entity_id", static_cast<std::uint64_t>(snapshot.hazard_source_entity_id)}
 			};
 		}
 
@@ -366,6 +381,7 @@ namespace Nawia::Game {
 			{"nearby_neutral_count", snapshot.nearby_neutral_count},
 			{"nearby_npc_count", snapshot.nearby_npc_count},
 			{"nearby_projectile_count", snapshot.nearby_projectile_count},
+			{"nearby_hazard_count", snapshot.nearby_hazard_count},
 			{"lost_entity_count", snapshot.lost_entity_count}
 		};
 

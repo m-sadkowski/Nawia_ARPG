@@ -26,6 +26,7 @@ EntityManager + CombatEventBus + MapPingManager -> AgentPerceptionSystem -> snap
 - `src/core/game/agent/AgentPerceptionSystem.cpp`
 - `src/core/Engine.cpp`
 - `src/core/game/telemetry/CombatTelemetryServer.cpp`
+- `docs/ET systems/Boss_Raid_Mechanics.md`
 - `docs/ET systems/Entity_Identity_and_Damage_Context.md`
 - `NawiaMonitor/nawia_monitor/main_window.py`
 
@@ -51,6 +52,19 @@ Kazda encja w `observed_entities` ma typ, frakcje, relacje wobec obserwatora,
 `entity_id`, pozycje, HP, flagi `dormant` i `visible`, oraz podstawowe metadata
 interakcji. Encje martwe, umierajace, dormant albo niewidoczne dla percepcji
 nie trafiaja do listy aktualnie widzianych.
+
+Encje moga tez publikowac cast metadata:
+
+- `casting`
+- `cast_name`
+- `cast_duration`
+- `cast_remaining`
+- `cast_interruptible`
+
+Hazardy bossow sa obserwowane jako `entity_type = Hazard`. Ich snapshot zawiera
+faze `Warning` albo `Active`, promien, czas do aktywacji, pozostaly czas
+aktywny i tick damage. Dzieki temu agent moze rozrozniac obszar, ktory dopiero
+bedzie niebezpieczny, od obszaru, ktory juz zadaje obrazenia.
 
 Metadata interakcji:
 

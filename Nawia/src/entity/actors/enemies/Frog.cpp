@@ -1,5 +1,6 @@
 #include "Frog.h"
 
+#include <BossTelegraphHazard.h>
 #include <Map.h>
 #include <SoundIds.h>
 #include <VillageHeadNpc.h>
@@ -9,6 +10,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <utility>
 
 namespace Nawia::Entity {
 
@@ -32,6 +34,10 @@ namespace Nawia::Entity {
 		constexpr int TONGUE_DAMAGE = 8;
 		constexpr float SIDEHOP_DURATION = 0.48f;
 		constexpr float SIDEHOP_DISTANCE = 4.25f;
+		constexpr float TOXIC_POOL_WINDUP_TIME = 0.72f;
+		constexpr float TOXIC_POOL_RADIUS = 2.65f;
+		constexpr float TOXIC_POOL_DURATION = 5.2f;
+		constexpr int TOXIC_POOL_DAMAGE = 7;
 
 		Vector3 offsetByLateral(const Vector3& point, const Vector3& lateral, const float amount) {
 			return {
@@ -147,6 +153,8 @@ namespace Nawia::Entity {
 			_tongue_cooldown_timer -= dt;
 		if (_sidehop_cooldown_timer > 0.0f)
 			_sidehop_cooldown_timer -= dt;
+		if (_toxic_pool_cooldown_timer > 0.0f)
+			_toxic_pool_cooldown_timer -= dt;
 
 		tryStartSpecialMove();
 		if (_special_state != SpecialState::None) {
@@ -246,6 +254,9 @@ namespace Nawia::Entity {
 			case SpecialState::SideHop:
 				updateSideHop(dt);
 				break;
+			case SpecialState::ToxicSpitWindup:
+				updateToxicSpitWindup(dt);
+				break;
 			case SpecialState::None:
 				break;
 		}
@@ -327,11 +338,30 @@ namespace Nawia::Entity {
 			finishSpecialMove();
 	}
 
+	void Frog::updateToxicSpitWindup(const float dt) {
+		Entity::update(dt);
+		stopMoving();
+		rotateTowardsCenter(_toxic_pool_target_snapshot.x, _toxic_pool_target_snapshot.y);
+
+		_special_timer -= dt;
+		if (_special_timer <= 0.0f)
+			finishSpecialMove();
+	}
+
 	void Frog::tryStartSpecialMove() {
 		if (!hasValidTarget() || isAnimationLocked() || _state == State::GettingHit)
 			return;
 
 		const float distance = getDistanceToTarget();
+		if (isBossVariant() &&
+			_toxic_pool_cooldown_timer <= 0.0f &&
+			distance >= 3.0f &&
+			distance <= 15.0f &&
+			GetRandomValue(0, 99) < 58) {
+			startToxicPool();
+			return;
+		}
+
 		if (_tongue_cooldown_timer <= 0.0f &&
 			distance >= TONGUE_MIN_RANGE &&
 			distance <= TONGUE_MAX_RANGE &&
@@ -364,12 +394,14 @@ namespace Nawia::Entity {
 		stopMoving();
 		clearNavigationPath();
 		rotateTowardsCenter(_tongue_target_snapshot.x, _tongue_target_snapshot.y);
+		beginCastTelemetry("Tongue Strike", TONGUE_WINDUP_TIME, true);
 		setAnimationSpeed(0.72f);
 		playAnimation("attack", false, true, 0, true);
 		playSoundEffect(Audio::SoundId::FrogSound, 0.78f, true, 1.08f);
 	}
 
 	void Frog::releaseTongueStrike() {
+		clearCastTelemetry();
 		const auto target = getTarget();
 		if (target && isTargetInTongueLane(*target)) {
 			target->rememberDamageSource(this, "Tongue Strike");
@@ -418,10 +450,57 @@ namespace Nawia::Entity {
 		playAnimation("walk");
 	}
 
+	void Frog::startToxicPool() {
+		const auto target = getTarget();
+		if (!target)
+			return;
+
+		_toxic_pool_target_snapshot = target->getCenter();
+		float toxic_pool_altitude = getAltitude();
+		if (_map && _map->getNavMesh().isReady()) {
+			const Vector3 snapped = _map->getNavMesh().getClosestWalkablePosition({
+				_toxic_pool_target_snapshot.x,
+				toxic_pool_altitude,
+				_toxic_pool_target_snapshot.y
+			});
+			_toxic_pool_target_snapshot = {snapped.x, snapped.z};
+			toxic_pool_altitude = snapped.y;
+		}
+		_special_state = SpecialState::ToxicSpitWindup;
+		_special_timer = TOXIC_POOL_WINDUP_TIME;
+		_toxic_pool_cooldown_timer = randomRange(5.2f, 7.4f);
+		_tongue_cooldown_timer = std::max(_tongue_cooldown_timer, 0.9f);
+		_sidehop_cooldown_timer = std::max(_sidehop_cooldown_timer, 0.8f);
+		_state = State::Chasing;
+		stopMoving();
+		clearNavigationPath();
+		rotateTowardsCenter(_toxic_pool_target_snapshot.x, _toxic_pool_target_snapshot.y);
+		beginCastTelemetry("Toxic Pool", TOXIC_POOL_WINDUP_TIME, true);
+		setAnimationSpeed(0.68f);
+		playAnimation("attack", false, true, 0, true);
+		playSoundEffect(Audio::SoundId::FrogSound, 0.78f, true, 0.82f);
+
+		BossTelegraphHazardConfig config;
+		config.name = getName() + " Toxic Pool";
+		config.position = _toxic_pool_target_snapshot;
+		config.altitude = toxic_pool_altitude;
+		config.radius = TOXIC_POOL_RADIUS;
+		config.warning_seconds = TOXIC_POOL_WINDUP_TIME;
+		config.active_seconds = TOXIC_POOL_DURATION;
+		config.damage_per_tick = static_cast<int>(TOXIC_POOL_DAMAGE * _damage_multiplier);
+		config.tick_interval = 0.85f;
+		config.root_seconds_on_hit = 0.18f;
+		config.source_context = Entity::makeDamageSourceContext(this, config.name);
+		config.warning_color = {120, 220, 60, 255};
+		config.active_color = {65, 180, 50, 255};
+		addPendingSpawn(std::make_shared<BossTelegraphHazard>(std::move(config)));
+	}
+
 	void Frog::finishSpecialMove() {
 		_special_state = SpecialState::None;
 		_special_timer = 0.0f;
 		_tongue_victim.reset();
+		clearCastTelemetry();
 		clearNavigationPath();
 		_attack_cooldown_timer = std::max(_attack_cooldown_timer, 0.45f);
 		_state = hasValidTarget() ? State::Chasing : State::Idle;
@@ -433,6 +512,10 @@ namespace Nawia::Entity {
 	void Frog::stopMoving() {
 		setVelocity(0.0f, 0.0f);
 		_is_moving = false;
+	}
+
+	bool Frog::isBossVariant() const {
+		return getMaxHP() >= 200;
 	}
 
 	bool Frog::isTargetInTongueLane(const Entity& target) const {

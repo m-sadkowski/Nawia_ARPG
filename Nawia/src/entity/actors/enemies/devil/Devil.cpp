@@ -1,5 +1,6 @@
 #include "Devil.h"
 
+#include <BossTelegraphHazard.h>
 #include <Collider.h>
 #include <Map.h>
 #include <MathUtils.h>
@@ -7,6 +8,9 @@
 #include <SoundIds.h>
 
 #include <raymath.h>
+
+#include <memory>
+#include <utility>
 
 namespace Nawia::Entity {
 
@@ -146,6 +150,8 @@ namespace Nawia::Entity {
 			_dash_target_pos = target_pos;
 			_state = State::PreparingDash;
 			_dash_prepare_timer = DASH_PREPARE_TIME;
+			beginCastTelemetry("Devil Dash", DASH_PREPARE_TIME, false);
+			spawnDashImpactHazard();
 			setVelocity(0, 0);
 			_is_moving = false;
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
@@ -185,6 +191,7 @@ namespace Nawia::Entity {
 		{
 
 			_state = State::Dashing;
+			clearCastTelemetry();
 			_dash_hit_target = false;
 			playSoundEffect(Audio::SoundId::DevilDash, 0.9f);
 			setAnimationSpeed(DEVIL_DASH_ANIMATION_SPEED);
@@ -219,6 +226,7 @@ namespace Nawia::Entity {
 
 		if (dist_to_dash_target <= DASH_ARRIVE_THRESHOLD)
 		{
+			spawnScorchedGroundHazard();
 			_dash_cooldown_timer = DASH_COOLDOWN;
 
 
@@ -291,6 +299,49 @@ namespace Nawia::Entity {
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 			playAnimation("walk");
 		}
+	}
+
+	bool Devil::isBossVariant() const {
+		return getMaxHP() >= 180 || getName() == "Bies" || getName() == "Devil Lord";
+	}
+
+	void Devil::spawnDashImpactHazard() {
+		if (!isBossVariant())
+			return;
+
+		BossTelegraphHazardConfig config;
+		config.name = getName() + " Dash Impact";
+		config.position = _dash_target_pos;
+		config.altitude = getAltitude();
+		config.radius = DASH_IMPACT_HAZARD_RADIUS;
+		config.warning_seconds = DASH_PREPARE_TIME;
+		config.active_seconds = 0.75f;
+		config.damage_per_tick = static_cast<int>(18.0f * _damage_multiplier);
+		config.tick_interval = 0.45f;
+		config.root_seconds_on_hit = 0.12f;
+		config.source_context = Entity::makeDamageSourceContext(this, config.name);
+		config.warning_color = {255, 100, 20, 255};
+		config.active_color = {230, 40, 20, 255};
+		addPendingSpawn(std::make_shared<BossTelegraphHazard>(std::move(config)));
+	}
+
+	void Devil::spawnScorchedGroundHazard() {
+		if (!isBossVariant())
+			return;
+
+		BossTelegraphHazardConfig config;
+		config.name = getName() + " Scorched Ground";
+		config.position = getCenter();
+		config.altitude = getAltitude();
+		config.radius = SCORCHED_GROUND_RADIUS;
+		config.warning_seconds = 0.0f;
+		config.active_seconds = SCORCHED_GROUND_DURATION;
+		config.damage_per_tick = static_cast<int>(6.0f * _damage_multiplier);
+		config.tick_interval = 0.75f;
+		config.source_context = Entity::makeDamageSourceContext(this, config.name);
+		config.warning_color = {255, 130, 30, 255};
+		config.active_color = {190, 45, 18, 255};
+		addPendingSpawn(std::make_shared<BossTelegraphHazard>(std::move(config)));
 	}
 
 	void Devil::onDeathStarted()

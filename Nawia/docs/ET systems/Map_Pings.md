@@ -20,6 +20,8 @@ focus target, miejsce do zebrania sie, unikanie hazardu albo priorytet ruchu.
 
 - `src/core/game/ping/MapPingManager.h`
 - `src/core/game/ping/MapPingManager.cpp`
+- `src/core/system/renderer/WorldAreaIndicator.h`
+- `src/core/system/renderer/WorldAreaIndicator.cpp`
 - `src/core/system/input/PlayerController.cpp`
 - `src/core/game/agent/AgentPerceptionSystem.cpp`
 - `src/core/game/telemetry/CombatTelemetryServer.cpp`
@@ -78,6 +80,8 @@ scroll.
 ### `MapPingManager::render(...)`
 
 Rysuje prosty marker 3D nad miejscem pingu. Marker zanika wraz z wiekiem pingu.
+Podstawa pingu korzysta z `drawSoftGroundDisc(...)`, czyli gladkiego,
+wypelnionego dysku bez kanciastego `DrawCylinderWires()`.
 
 ## Agent Perception
 

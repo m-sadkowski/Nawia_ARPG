@@ -58,6 +58,9 @@ namespace Nawia::Entity {
 		static constexpr int DASH_DAMAGE = 35;               // Obrażenia przy trafieniu doskokiem.
 		static constexpr float DASH_HIT_RANGE = 3.5f;        // Zasięg sprawdzania trafienia podczas doskoku.
 		static constexpr float DASH_STUN_DURATION = 0.7f;    // Czas odzyskiwania kontroli po doskoku.
+		static constexpr float DASH_IMPACT_HAZARD_RADIUS = 2.35f;
+		static constexpr float SCORCHED_GROUND_RADIUS = 1.65f;
+		static constexpr float SCORCHED_GROUND_DURATION = 3.2f;
 
 		float _attack_cooldown_timer = 0.0f;
 		float _dash_cooldown_timer = 0.0f;
@@ -73,6 +76,9 @@ namespace Nawia::Entity {
 		void handleDashingState(float dt);
 		void handleRecoveringState(float dt);
 		void handleAttackingState(float dt);
+		[[nodiscard]] bool isBossVariant() const;
+		void spawnDashImpactHazard();
+		void spawnScorchedGroundHazard();
 		void onDeathStarted() override;
 	};
 

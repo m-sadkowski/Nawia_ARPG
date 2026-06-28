@@ -63,6 +63,7 @@ namespace Nawia::Core {
 		void updateHoverState(float screen_x, float screen_y, const Camera3D& camera);
 
 		void processAbilityCollisions() const;
+		void processHazardEffects() const;
 		void processTriggerCollisions() const;
 		void processPhysicalCollisions() const;
 

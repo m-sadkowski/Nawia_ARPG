@@ -190,7 +190,7 @@ class MainWindow(QMainWindow):
 		self._perception_focus_label.setObjectName("hintLabel")
 		layout.addWidget(self._perception_focus_label)
 
-		self._perception_table = QTableWidget(0, 17)
+		self._perception_table = QTableWidget(0, 18)
 		self._perception_table.setHorizontalHeaderLabels([
 			"Frame",
 			"Time",
@@ -207,6 +207,7 @@ class MainWindow(QMainWindow):
 			"Enemies",
 			"Allies",
 			"NPCs",
+			"Hazards",
 			"Events",
 			"Ready Abilities",
 		])
@@ -215,7 +216,7 @@ class MainWindow(QMainWindow):
 		self._perception_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
 		self._perception_table.verticalHeader().setVisible(False)
 		self._perception_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-		self._perception_table.horizontalHeader().setSectionResizeMode(16, QHeaderView.ResizeMode.Stretch)
+		self._perception_table.horizontalHeader().setSectionResizeMode(17, QHeaderView.ResizeMode.Stretch)
 		self._perception_table.itemSelectionChanged.connect(self._show_selected_perception)
 
 		splitter = QSplitter(Qt.Orientation.Vertical, panel)
@@ -561,6 +562,7 @@ class MainWindow(QMainWindow):
 			snapshot.get("nearby_enemy_count", 0),
 			snapshot.get("nearby_ally_count", 0),
 			snapshot.get("nearby_npc_count", 0),
+			snapshot.get("nearby_hazard_count", 0),
 			len(snapshot.get("recent_combat_events", [])),
 			", ".join(ready_abilities) if ready_abilities else "-",
 		]
@@ -571,7 +573,7 @@ class MainWindow(QMainWindow):
 				item = QTableWidgetItem()
 				self._perception_table.setItem(row, column, item)
 			item.setText(str(value))
-			if column in (0, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15):
+			if column in (0, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16):
 				item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
 	def _refresh_perception_details(self) -> None:
@@ -855,6 +857,17 @@ class MainWindow(QMainWindow):
 			flags.append(f"rooted {self._float_text(value.get('root_remaining'))}s")
 		if value.get("poisoned"):
 			flags.append(f"poisoned {self._float_text(value.get('poison_remaining'))}s")
+		if value.get("casting"):
+			cast_name = str(value.get("cast_name") or "cast")
+			flags.append(f"casting {cast_name} {self._float_text(value.get('cast_remaining'))}s")
+		if value.get("hazard"):
+			phase = str(value.get("hazard_phase") or "Hazard").lower()
+			radius = self._float_text(value.get("hazard_radius"))
+			damage = value.get("hazard_damage_per_tick", 0)
+			if phase == "warning":
+				flags.append(f"hazard warning {self._float_text(value.get('hazard_time_to_activate'))}s r{radius}")
+			else:
+				flags.append(f"hazard {phase} {self._float_text(value.get('hazard_remaining'))}s r{radius} dmg {damage}")
 		return ", ".join(flags) if flags else "-"
 
 	def _interaction_text(self, value: Any) -> str:

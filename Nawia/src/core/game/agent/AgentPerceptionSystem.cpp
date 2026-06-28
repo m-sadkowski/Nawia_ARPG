@@ -1,5 +1,6 @@
 #include "AgentPerceptionSystem.h"
 
+#include <BossTelegraphHazard.h>
 #include <Chest.h>
 #include <EntityManager.h>
 #include <Interactable.h>
@@ -50,6 +51,10 @@ namespace Nawia::Game {
 
 		[[nodiscard]] bool isProjectileType(const Entity::EntityType type) {
 			return type == Entity::EntityType::Projectile;
+		}
+
+		[[nodiscard]] bool isHazardType(const Entity::EntityType type) {
+			return type == Entity::EntityType::Hazard;
 		}
 
 		[[nodiscard]] bool isNpcType(const Entity::EntityType type) {
@@ -150,6 +155,8 @@ namespace Nawia::Game {
 			return true;
 		if (_settings.include_projectiles && isProjectileType(type))
 			return true;
+		if (isHazardType(type))
+			return true;
 		if (_settings.include_npcs && isNpcType(type))
 			return true;
 		if (_settings.include_neutral_entities && isNeutralWorldObjectType(type))
@@ -238,6 +245,9 @@ namespace Nawia::Game {
 			if (observed.entity.type == Entity::EntityType::Projectile)
 				++snapshot.nearby_projectile_count;
 
+			if (observed.entity.type == Entity::EntityType::Hazard)
+				++snapshot.nearby_hazard_count;
+
 			snapshot.observed_entities.push_back(std::move(observed));
 		}
 
@@ -293,6 +303,24 @@ namespace Nawia::Game {
 		snapshot.poisoned = entity->isPoisoned();
 		snapshot.root_remaining = entity->getRootRemaining();
 		snapshot.poison_remaining = entity->getPoisonRemaining();
+
+		const Entity::EntityCastState& cast = entity->getCastState();
+		snapshot.casting = cast.active;
+		snapshot.cast_name = cast.name;
+		snapshot.cast_duration = cast.duration_seconds;
+		snapshot.cast_remaining = cast.remaining_seconds;
+		snapshot.cast_interruptible = cast.interruptible;
+
+		if (const auto* hazard = dynamic_cast<const Entity::BossTelegraphHazard*>(entity.get())) {
+			snapshot.hazard = true;
+			snapshot.hazard_phase = hazard->getHazardPhaseName();
+			snapshot.hazard_radius = hazard->getRadius();
+			snapshot.hazard_time_to_activate = hazard->getTimeToActivate();
+			snapshot.hazard_remaining = hazard->getRemainingActiveSeconds();
+			snapshot.hazard_damage_per_tick = hazard->getDamagePerTick();
+			snapshot.hazard_tick_interval = hazard->getTickInterval();
+			snapshot.hazard_source_entity_id = hazard->getSourceEntityId();
+		}
 		return snapshot;
 	}
 
@@ -331,6 +359,8 @@ namespace Nawia::Game {
 		const Entity::EntityType observed_type = observed.getType();
 		if (observed_type == Entity::EntityType::Projectile)
 			return AgentRelation::Unknown;
+		if (observed_type == Entity::EntityType::Hazard && observed.getFaction() == Entity::Faction::Enemy)
+			return isPlayerSide(observer.getFaction()) ? AgentRelation::Enemy : AgentRelation::Ally;
 		if (isNpcType(observed_type) || isNeutralWorldObjectType(observed_type))
 			return AgentRelation::Neutral;
 
