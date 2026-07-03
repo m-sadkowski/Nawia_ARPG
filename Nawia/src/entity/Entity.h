@@ -208,6 +208,8 @@ namespace Nawia::Entity {
 		[[nodiscard]] Vector2 getVelocity() const { return _velocity; }
 		void setScale(float scale) { _scale = scale; }
 		[[nodiscard]] float getScale() const { return _scale; }
+		void setModelTint(Color tint) { _model_tint = tint; }
+		[[nodiscard]] Color getModelTint() const { return _model_tint; }
 		void setHovered(bool hovered) { _hovered = hovered; }
 		void setAudioManager(Audio::AudioManager* audio_manager) { _audio_manager = audio_manager; }
 		void hideMeshIndex(int mesh_index);
@@ -541,6 +543,7 @@ namespace Nawia::Entity {
 		float _anim_fps = 60.0f;
 		float _rotation = 0.0f;
 		float _model_facing_offset = 90.0f; ///< Offset modelu względem kierunku matematycznego.
+		Color _model_tint = WHITE;
 		bool _model_loaded = false;
 		bool _owns_model = false;
 		bool _cloned_model = false; ///< Model pochodzi z cloneModel — nie zwalniaj tekstur.

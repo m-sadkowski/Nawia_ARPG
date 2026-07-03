@@ -14,6 +14,7 @@
 #include <Level.h>
 #include <LevelManager.h>
 #include <Map.h>
+#include <NawiaArenaLevel.h>
 #include <PlayerAbilityFactory.h>
 #include <SoundIds.h>
 
@@ -73,6 +74,7 @@ namespace Nawia::Core {
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
 		_level_manager->registerLevel(std::make_shared<World::FirstLevel>());
+		_level_manager->registerLevel(std::make_shared<World::NawiaArenaLevel>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
 
 		_loading_kind = LoadingKind::Startup;

@@ -1,0 +1,17 @@
+{
+    "entities": [
+        {
+            "boss_id": "siewca_rozdarcia",
+            "category": "boss_triggers",
+            "height": 10.0,
+            "location": "Przedsionek Nawii",
+            "name": "Siewca Chaosu Trigger",
+            "type": "boss_trigger",
+            "width": 10.0,
+            "x": 4.974282264709473,
+            "y": 0.18451881408691406
+        }
+    ],
+    "location": "Przedsionek Nawii",
+    "schema_version": 1
+}

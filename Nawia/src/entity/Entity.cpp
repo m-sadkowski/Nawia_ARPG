@@ -764,7 +764,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				}
 			};
 
-			draw_model(WHITE);
+			draw_model(_model_tint);
 			if (_equipment) {
 				_equipment->draw(pos3d, visual_rotation, _rotation, _scale);
 			}

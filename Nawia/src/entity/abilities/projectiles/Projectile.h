@@ -52,6 +52,8 @@ namespace Nawia::Entity {
 		float _speed = 0.0f;
 		float _vel_x = 0.0f;
 		float _vel_y = 0.0f;
+		float _previous_x = 0.0f;
+		float _previous_y = 0.0f;
 		float _start_x = 0.0f;
 		float _start_y = 0.0f;
 		float _travel_distance = 0.0f;

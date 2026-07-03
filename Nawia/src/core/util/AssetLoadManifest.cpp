@@ -160,10 +160,12 @@ namespace Nawia::Core {
 			"assets/models/actors/bandit/bandit_throw.glb",
 			"assets/models/actors/bandit/bandit_death.glb",
 			"assets/models/actors/walking_dead/walking_dead.glb",
+			"assets/models/actors/walking_dead/walking_dead_2.glb",
 			"assets/models/actors/frog/frog.glb",
 			"assets/models/actors/worm/worm.glb",
 			"assets/models/actors/spider/spider.glb",
 			"assets/models/cobweb.glb",
+			"assets/models/teleport.glb",
 			"assets/models/actors/mini_mushroom/mini_mushroom.glb",
 			"assets/models/actors/mini_mushroom/mini_mushroom_infected.glb",
 			"assets/models/actors/mushroom/mushroom_raylib_fixed.glb",
@@ -175,6 +177,7 @@ namespace Nawia::Core {
 			"assets/models/actors/devil/devil_run.glb",
 			"assets/models/actors/devil/devil_attack.glb",
 			"assets/models/actors/devil/devil_dead.glb",
+			"assets/models/actors/dragon/dragon.glb",
 			"assets/models/actors/player/player_idle.glb",
 			"assets/models/actors/player/player_walk.glb",
 			"assets/models/actors/player/player_auto_attack.glb",
@@ -213,6 +216,24 @@ namespace Nawia::Core {
 			addAnimation("assets/models/actors/devil/devil_run.glb");
 			addAnimation("assets/models/actors/devil/devil_attack.glb");
 			addAnimation("assets/models/actors/devil/devil_dead.glb");
+			return;
+		}
+
+		if (entity_type == "rift_binder" || entity_type == "dragon") {
+			addModel("assets/models/actors/dragon/dragon.glb");
+			addAnimation("assets/models/actors/dragon/dragon.glb");
+			appendEntityTypeAssets("walking_dead", entity_data);
+			addModel("assets/models/actors/walking_dead/walking_dead_2.glb");
+			addModel("assets/models/fireball.glb");
+			addModel("assets/models/totem.glb");
+			const std::string helper_model = resolveModelPath(
+				readStringAlias(entity_data, {"helper_model", "helper_model_path"}));
+			if (!helper_model.empty())
+				addModel(helper_model);
+			const std::string stone_projectile_model = resolveModelPath(
+				readStringAlias(entity_data, {"stone_projectile_model", "stone_projectile_model_path"}));
+			if (!stone_projectile_model.empty())
+				addModel(stone_projectile_model);
 			return;
 		}
 
@@ -365,6 +386,10 @@ namespace Nawia::Core {
 				appendEntityTypeAssets("witch", entity_data);
 			} else if (boss_id == "ropuch") {
 				appendEntityTypeAssets("frog", entity_data);
+			} else if (boss_id == "siewca_rozdarcia" || boss_id == "siewca_chaosu" ||
+					   boss_id == "rift_binder" || boss_id == "dragon" ||
+					   boss_id.find("rift") != std::string::npos || boss_id.find("chaos") != std::string::npos) {
+				appendEntityTypeAssets("dragon", entity_data);
 			}
 		}
 

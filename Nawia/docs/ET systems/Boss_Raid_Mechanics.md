@@ -19,6 +19,9 @@ koniec castu, rozpoznaj aktywna strefe zagrozenia.
 - `src/core/game/agent/AgentPerceptionSystem.h`
 - `src/core/game/agent/AgentPerceptionSystem.cpp`
 - `src/entity/actors/enemies/devil/Devil.cpp`
+- `src/entity/actors/enemies/RiftBinder.cpp`
+- `src/entity/actors/enemies/RiftTotem.cpp`
+- `src/entity/effects/FireRainHazard.cpp`
 - `src/entity/actors/enemies/Frog.cpp`
 
 ## Cast metadata
@@ -91,6 +94,47 @@ Bossowy `Frog` rozpoznawany jest po `max_hp >= 200`. Istniejacy jezyk dostal
 cast telemetry `Tongue Strike`. Ropuch dostal tez nowa mechanike `Toxic Pool`:
 castowany telegraph pod celem, ktory po chwili zmienia sie w aktywna
 trujaco-lepka kaluze.
+
+### Siewca Chaosu / Dragon
+
+`RiftBinder` pozostaje techniczna nazwa implementacji, ale boss w danych gry
+wystepuje jako `Dragon` i uzywa modelu `assets/models/actors/dragon/dragon.glb`.
+Widoczna nazwa walki to `Siewca Chaosu`. Boss ma cztery stage'e totemowe:
+na start spawnuje 3 totemy, potem przy progach HP 75/50/25% spawnuje kolejno
+4, 5 i 7 totemow.
+Dopoki stage'owe totemy zyja, boss ignoruje obrazenia, wiec gracze i agenci
+musza przejsc na cele pomocnicze zanim moga dalej bic bossa.
+
+`RiftTotem` jest encja typu Enemy, wiec da sie go targetowac i niszczyc zwyklymi
+atakami. Kazdy totem renderuje model `assets/models/totem.glb`. Kazdy totem
+moze przywolac jednego pomocnika `Sluga Totemu`. Model pomocnika jest
+konfigurowalny w JSON bossa polami `helper_model` / `helper_model_path` oraz
+`helper_scale`; domyslnie uzywany jest
+`assets/models/actors/walking_dead/walking_dead_2.glb`, ale animacje zostaja z
+bazowego Walking Dead.
+
+W czasie oslony totemowej boss nie stoi bezczynnie: castuje `Stone Volley`,
+losowo teleportuje sie przez `Dragon Blink` i odpala `Fire Rain`. `Fire Rain`
+jest aktywny tylko dopoki zyje przynajmniej jeden totem. Cooldown maleje wraz z
+kolejnymi stage'ami i zbijaniem totemow w aktualnym stage'u: 10.0-8.5s,
+8.0-6.5s, 6.5-5.5s, 5.5-4.0s. `Stone Volley`
+po zakonczeniu castu tworzy trzy mniejsze encje `Projectile`, czyli zachowuje
+sie podobnie do fireballa. Aktualnie uzywa `assets/models/fireball.glb` z
+szarym tintem, zeby nie dokladac osobnego placeholdera modelu. Model i skala
+pocisku sa konfigurowalne polami `stone_projectile_model` /
+`stone_projectile_model_path` oraz `stone_projectile_scale`. `FireRainHazard` dziedziczy z
+`BossTelegraphHazard`, wiec jest widoczny dla percepcji jak zwykly hazard, ale
+renderuje tez spadajace ogniste pociski nad obszarem.
+
+Mapowanie animacji smoka: `Death` dla smierci, `Fast_Flying` dla ruchu,
+`Flying_Idle` dla postoju, `HitReact` po realnym otrzymaniu obrazen,
+`Headbutt` dla `Fire Rain`, `Punch` dla `Stone Volley` i `No` przed
+teleportacja `Dragon Blink`.
+
+Ten boss jest przydatny przed praca inzynierska, bo daje agentom kilka klas
+decyzji naraz: target switching na totemy, priorytetyzacje addow, unikanie
+obszarow, reakcje na teleport bossa i rozpoznawanie, kiedy boss jest odporny na
+obrazenia.
 
 ## Telemetria i percepcja
 
