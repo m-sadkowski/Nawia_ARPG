@@ -1,5 +1,6 @@
 #pragma once
 
+#include <AgentCommandInterface.h>
 #include <AgentPerceptionSystem.h>
 #include <CombatEventBus.h>
 
@@ -7,9 +8,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <map>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
 namespace Nawia::Game {
 
@@ -47,6 +50,9 @@ namespace Nawia::Game {
 
 		void publish(const CombatEvent& event);
 		void publishAgentPerception(const AgentPerceptionSnapshot& snapshot);
+		void publishAgentCommands(
+			const std::map<Entity::EntityId, AgentCommandState>& active_commands,
+			const std::vector<AgentCommandState>& completed_commands);
 
 		[[nodiscard]] bool isRunning() const { return _running.load(); }
 		[[nodiscard]] std::uint16_t getPort() const { return _settings.port; }
@@ -55,6 +61,9 @@ namespace Nawia::Game {
 	private:
 		[[nodiscard]] std::string serializeEvent(const CombatEvent& event) const;
 		[[nodiscard]] std::string serializeAgentPerception(const AgentPerceptionSnapshot& snapshot) const;
+		[[nodiscard]] std::string serializeAgentCommands(
+			const std::map<Entity::EntityId, AgentCommandState>& active_commands,
+			const std::vector<AgentCommandState>& completed_commands) const;
 		void setLastError(std::string error);
 		void queueMessage(std::string payload);
 

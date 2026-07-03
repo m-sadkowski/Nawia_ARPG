@@ -21,6 +21,8 @@ Future agent logic -> AgentCommandInterface -> Entity/Ability/Interactable/Map
 
 - `src/core/game/agent/AgentCommandInterface.h`
 - `src/core/game/agent/AgentCommandInterface.cpp`
+- `src/core/game/telemetry/CombatTelemetryServer.cpp`
+- `NawiaMonitor/nawia_monitor/main_window.py`
 - `src/core/Engine.h`
 - `src/core/Engine.cpp`
 - `docs/ET systems/Entity_Identity_and_Damage_Context.md`
@@ -126,6 +128,29 @@ osobno `MoveToEntity` i dopiero potem `Interact`.
 Jest wolane przez `Engine` po update poziomu i przed update encji. Dzieki temu
 komenda moze ustawic ruch lub ability jeszcze przed fizycznym krokiem encji w
 tej samej klatce.
+
+## Telemetria
+
+`CombatTelemetryServer` publikuje stan komend jako osobny schemat:
+
+```json
+{"schema": "nawia.telemetry.agent_command.v1"}
+```
+
+Payload zawiera:
+
+- `active_commands` - aktualnie wykonywane komendy po agencie,
+- `completed_commands` - krotka historia zakonczonych komend,
+- `command_id`, `agent_entity_id`, `type`, `status`, `failure_reason`,
+  `age_seconds`, `message`,
+- `request` z oryginalnymi parametrami: target, slot ability, pozycja i
+  promien akceptacji,
+- diagnostyke sciezki: `path_index`, `path_length`, `path_rebuild_timer`.
+
+NawiaMonitor ma zakladke `Agent Commands`, ktora pokazuje aktywne i zakonczone
+komendy oraz pozwala podejrzec surowy JSON wybranej komendy. To jest pierwsze
+narzedzie do analizy, czy przyszly agent podejmuje sensowne decyzje i czy
+warstwa wykonawcza poprawnie je realizuje.
 
 ## Granice systemu
 

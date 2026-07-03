@@ -80,6 +80,15 @@ namespace Nawia::Game {
 		_snapshots.clear();
 		const auto& entities = entity_manager.getEntities();
 		const std::vector<CombatEvent> recent_events = combat_event_bus.getRecentEvents(_settings.event_memory_seconds);
+		const std::vector<MapPing> remembered_pings = ping_manager.getRememberedPings();
+		EntityLookup entity_lookup;
+		entity_lookup.reserve(entities.size());
+		for (const auto& entity : entities) {
+			const Entity::EntityId id = entityId(entity.get());
+			if (id != Entity::INVALID_ENTITY_ID)
+				entity_lookup[id] = entity;
+		}
+
 		const std::uint64_t frame_id = _next_frame_id++;
 		_last_frame_id = frame_id;
 		std::set<Entity::EntityId> active_agent_ids;
@@ -88,7 +97,15 @@ namespace Nawia::Game {
 			if (!isAgentCandidate(entity))
 				continue;
 
-			auto snapshot = buildSnapshot(entity, entities, recent_events, ping_manager, combat_event_bus.getTimeSeconds(), frame_id);
+			auto snapshot = buildSnapshot(
+				entity,
+				entities,
+				entity_lookup,
+				recent_events,
+				remembered_pings,
+				ping_manager,
+				combat_event_bus.getTimeSeconds(),
+				frame_id);
 			active_agent_ids.insert(snapshot.self.entity_id);
 			_snapshots.push_back(std::move(snapshot));
 		}
@@ -168,7 +185,9 @@ namespace Nawia::Game {
 	AgentPerceptionSnapshot AgentPerceptionSystem::buildSnapshot(
 		const std::shared_ptr<Entity::Entity>& agent,
 		const std::vector<std::shared_ptr<Entity::Entity>>& entities,
+		const EntityLookup& entity_lookup,
 		const std::vector<CombatEvent>& recent_events,
+		const std::vector<MapPing>& remembered_pings,
 		const MapPingManager& ping_manager,
 		const float time_seconds,
 		const std::uint64_t frame_id)
@@ -202,13 +221,14 @@ namespace Nawia::Game {
 				snapshot.visible_pings.push_back(ping);
 		}
 
-		for (const auto& ping : ping_manager.getRememberedPings()) {
+		for (const auto& ping : remembered_pings) {
 			if (isPingRelevantToAgent(*agent, ping))
 				snapshot.remembered_pings.push_back(ping);
 		}
 
 		const Vector2 agent_position = agent->getCenter();
 		const float radius_sq = _settings.perception_radius * _settings.perception_radius;
+		std::vector<AgentObservedEntity> all_observed_entities;
 
 		for (const auto& entity : entities) {
 			if (entity == agent || !isPerceivableEntity(entity))
@@ -248,16 +268,17 @@ namespace Nawia::Game {
 			if (observed.entity.type == Entity::EntityType::Hazard)
 				++snapshot.nearby_hazard_count;
 
-			snapshot.observed_entities.push_back(std::move(observed));
+			all_observed_entities.push_back(std::move(observed));
 		}
 
-		std::sort(snapshot.observed_entities.begin(), snapshot.observed_entities.end(), [](const auto& left, const auto& right) {
+		std::sort(all_observed_entities.begin(), all_observed_entities.end(), [](const auto& left, const auto& right) {
 			return left.distance < right.distance;
 		});
+		snapshot.observed_entities = all_observed_entities;
 		if (snapshot.observed_entities.size() > _settings.max_observed_entities)
 			snapshot.observed_entities.resize(_settings.max_observed_entities);
 
-		updateMemory(snapshot, agent, entities, time_seconds, frame_id);
+		updateMemory(snapshot, all_observed_entities, agent, entity_lookup, time_seconds, frame_id);
 
 		for (const auto& event : recent_events) {
 			if (!isEventRelevantToAgent(event, snapshot.self.entity_id, agent_position))
@@ -415,8 +436,9 @@ namespace Nawia::Game {
 
 	void AgentPerceptionSystem::updateMemory(
 		AgentPerceptionSnapshot& snapshot,
+		const std::vector<AgentObservedEntity>& all_observed_entities,
 		const std::shared_ptr<Entity::Entity>& agent,
-		const std::vector<std::shared_ptr<Entity::Entity>>& entities,
+		const EntityLookup& entity_lookup,
 		const float time_seconds,
 		const std::uint64_t frame_id)
 	{
@@ -427,7 +449,7 @@ namespace Nawia::Game {
 		auto& memory = _memory_by_agent[agent_id];
 		std::set<Entity::EntityId> currently_seen_ids;
 
-		for (const auto& observed : snapshot.observed_entities) {
+		for (const auto& observed : all_observed_entities) {
 			const Entity::EntityId observed_entity_id = observed.entity.entity_id;
 			currently_seen_ids.insert(observed_entity_id);
 
@@ -450,7 +472,7 @@ namespace Nawia::Game {
 			}
 
 			const float seconds_since_seen = std::max(0.0f, time_seconds - it->second.last_seen_time_seconds);
-			const auto entity = findEntityById(entities, it->first);
+			const auto entity = findEntityById(entity_lookup, it->first);
 			if (!entity || entity->isDead() || entity->isDying()) {
 				if (!it->second.terminal) {
 					it->second.terminal = true;
@@ -506,14 +528,11 @@ namespace Nawia::Game {
 	}
 
 	std::shared_ptr<Entity::Entity> AgentPerceptionSystem::findEntityById(
-		const std::vector<std::shared_ptr<Entity::Entity>>& entities,
+		const EntityLookup& entity_lookup,
 		const Entity::EntityId entity_id) const
 	{
-		for (const auto& entity : entities) {
-			if (entityId(entity.get()) == entity_id)
-				return entity;
-		}
-		return nullptr;
+		const auto it = entity_lookup.find(entity_id);
+		return it != entity_lookup.end() ? it->second : nullptr;
 	}
 
 	std::string AgentPerceptionSystem::getDisappearanceReason(

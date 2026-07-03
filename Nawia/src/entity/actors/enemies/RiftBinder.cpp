@@ -16,6 +16,7 @@
 #include <cmath>
 #include <memory>
 #include <utility>
+#include <vector>
 
 namespace Nawia::Entity {
 
@@ -56,6 +57,17 @@ namespace Nawia::Entity {
 				return 0;
 
 			return static_cast<int>(std::ceil(static_cast<float>(max_hp) * STAGE_THRESHOLDS[stage_index]));
+		}
+
+		bool isFarEnoughFrom(
+			const std::vector<Vector2>& positions,
+			const Vector2 candidate,
+			const float min_distance)
+		{
+			const float min_distance_sq = min_distance * min_distance;
+			return std::ranges::all_of(positions, [candidate, min_distance_sq](const Vector2 existing) {
+				return Vector2DistanceSqr(existing, candidate) >= min_distance_sq;
+			});
 		}
 	}
 
@@ -493,15 +505,42 @@ namespace Nawia::Entity {
 		const Vector2 target_pos = targetCenterOrSelf();
 		const Vector2 forward = safeNormalize(Vector2Subtract(target_pos, center), {1.0f, 0.0f});
 		const float base_angle = std::atan2(forward.y, forward.x) + randomFloat(-0.25f, 0.25f);
+		const float angle_step = 2.0f * PI / static_cast<float>(count);
+		std::vector<Vector2> spawned_positions;
 
 		for (int i = 0; i < count; ++i) {
-			const float angle = base_angle + (static_cast<float>(i) * 2.0f * PI / static_cast<float>(count));
-			const float radius = TOTEM_RING_RADIUS + randomFloat(-0.65f, 0.65f);
-			const Vector2 preferred = {
-				center.x + std::cos(angle) * radius,
-				center.y + std::sin(angle) * radius
-			};
-			const Vector2 spawn_pos = findWalkableNearby(preferred, center);
+			Vector2 spawn_pos = findWalkableNearby(center, center);
+			bool found_position = false;
+
+			for (int attempt = 0; attempt < TOTEM_POSITION_ATTEMPTS; ++attempt) {
+				const float angle = base_angle + static_cast<float>(i) * angle_step +
+					randomFloat(-angle_step * 0.32f, angle_step * 0.32f);
+				const float radius = TOTEM_RING_RADIUS +
+					randomFloat(-TOTEM_RING_RADIUS_JITTER, TOTEM_RING_RADIUS_JITTER);
+				const Vector2 direction = {std::cos(angle), std::sin(angle)};
+				const Vector2 tangent = {-direction.y, direction.x};
+				const float side_offset = randomFloat(-TOTEM_TANGENTIAL_JITTER, TOTEM_TANGENTIAL_JITTER);
+				const Vector2 preferred = {
+					center.x + direction.x * radius + tangent.x * side_offset,
+					center.y + direction.y * radius + tangent.y * side_offset
+				};
+				const Vector2 candidate = findWalkableNearby(preferred, center);
+
+				if (!isReachableWalkable(center, candidate))
+					continue;
+
+				const bool can_overlap = attempt >= TOTEM_POSITION_ATTEMPTS / 2;
+				if (can_overlap || isFarEnoughFrom(spawned_positions, candidate, TOTEM_MIN_SEPARATION)) {
+					spawn_pos = candidate;
+					found_position = true;
+					break;
+				}
+			}
+
+			if (!found_position)
+				spawn_pos = findWalkableNearby(center, center);
+
+			spawned_positions.push_back(spawn_pos);
 			auto totem = std::make_shared<RiftTotem>(
 				spawn_pos.x,
 				spawn_pos.y,
@@ -700,28 +739,51 @@ namespace Nawia::Entity {
 		if (!_map)
 			return preferred;
 
-		if (_map->isWalkable(preferred.x, preferred.y))
+		if (isReachableWalkable(fallback, preferred))
 			return preferred;
 
-		for (const float radius : {0.7f, 1.4f, 2.2f, 3.0f}) {
-			for (int i = 0; i < 10; ++i) {
-				const float angle = (static_cast<float>(i) / 10.0f) * 2.0f * PI;
+		for (const float radius : {0.7f, 1.4f, 2.2f, 3.0f, 4.0f}) {
+			const float angle_offset = randomFloat(0.0f, 360.0f) * DEG2RAD;
+			for (int i = 0; i < 12; ++i) {
+				const float angle = angle_offset + (static_cast<float>(i) / 12.0f) * 2.0f * PI;
 				const Vector2 candidate = {
 					preferred.x + std::cos(angle) * radius,
 					preferred.y + std::sin(angle) * radius
 				};
 
-				if (_map->isWalkable(candidate.x, candidate.y))
+				if (isReachableWalkable(fallback, candidate))
 					return candidate;
 			}
 		}
 
 		if (_map->getNavMesh().isReady()) {
 			const Vector3 snapped = _map->getNavMesh().getClosestWalkablePosition({preferred.x, getAltitude(), preferred.y});
-			return {snapped.x, snapped.z};
+			const Vector2 snapped_position = {snapped.x, snapped.z};
+			if (isReachableWalkable(fallback, snapped_position))
+				return snapped_position;
 		}
 
+		if (isReachableWalkable(fallback, fallback))
+			return fallback;
+
 		return fallback;
+	}
+
+	bool RiftBinder::isReachableWalkable(const Vector2 from, const Vector2 position) const
+	{
+		if (!_map)
+			return true;
+
+		if (!_map->isWalkable(position.x, position.y))
+			return false;
+
+		if (!_map->getNavMesh().isReady())
+			return true;
+
+		const auto path = _map->findPath(
+			{from.x, getAltitude(), from.y},
+			{position.x, getAltitude(), position.y});
+		return !path.empty();
 	}
 
 	Vector2 RiftBinder::findTeleportDestination() const
@@ -731,7 +793,7 @@ namespace Nawia::Entity {
 
 		for (int i = 0; i < 18; ++i) {
 			const float angle = randomFloat(0.0f, 360.0f) * DEG2RAD;
-			const float radius = randomFloat(5.0f, 10.5f);
+			const float radius = randomFloat(BLINK_MIN_RADIUS, BLINK_MAX_RADIUS);
 			const Vector2 candidate = {
 				center.x + std::cos(angle) * radius,
 				center.y + std::sin(angle) * radius

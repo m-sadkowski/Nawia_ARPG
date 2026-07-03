@@ -9,7 +9,7 @@ wyswietla telemetrie.
 Aktualny przeplyw:
 
 ```text
-CombatEventBus -> CombatTelemetryServer -> TCP 127.0.0.1:19777 -> NawiaMonitor
+CombatEventBus + AgentPerceptionSystem + AgentCommandInterface -> CombatTelemetryServer -> TCP 127.0.0.1:19777 -> NawiaMonitor
 ```
 
 ## Pliki
@@ -41,6 +41,11 @@ probuje laczyc sie ponownie z `127.0.0.1:19777`.
 ## Protokol
 
 Transport uzywa NDJSON: jeden event to jedna linia JSON zakonczona `\n`.
+Aktualnie gra publikuje trzy schematy:
+
+- `nawia.telemetry.combat.v1`,
+- `nawia.telemetry.agent_perception.v1`,
+- `nawia.telemetry.agent_command.v1`.
 
 Przykladowy event:
 
@@ -69,6 +74,7 @@ Przykladowy event:
 - tabela `Agent Perception` z wyborem agenta,
 - szczegolowy podglad wybranego agenta: `Seen Entities`, `Lost Memory`,
   `Combat`, `Pings` i `Abilities`,
+- tabela `Agent Commands` z aktywnymi i zakonczonymi komendami agentow,
 - widok `Combat` pokazujacy, kto ostatnio zadal agentowi obrazenia oraz czy
   event jest `incoming`, `outgoing` czy tylko `nearby`,
 - boss casty i hazardy w `Agent Perception`: casty jako `casting ...` w

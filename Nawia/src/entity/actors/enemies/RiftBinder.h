@@ -82,6 +82,7 @@ namespace Nawia::Entity {
 		void onDeathStarted() override;
 
 		[[nodiscard]] Vector2 findWalkableNearby(Vector2 preferred, Vector2 fallback) const;
+		[[nodiscard]] bool isReachableWalkable(Vector2 from, Vector2 position) const;
 		[[nodiscard]] Vector2 findTeleportDestination() const;
 		[[nodiscard]] Vector2 targetCenterOrSelf() const;
 		[[nodiscard]] int livingTotemCount();
@@ -132,7 +133,11 @@ namespace Nawia::Entity {
 		static constexpr float STONE_COOLDOWN = 2.80f;
 		static constexpr float BLINK_COOLDOWN = 16.0f;
 
-		static constexpr float TOTEM_RING_RADIUS = 5.6f;
+		static constexpr float TOTEM_RING_RADIUS = 7.15f;
+		static constexpr float TOTEM_RING_RADIUS_JITTER = 0.95f;
+		static constexpr float TOTEM_TANGENTIAL_JITTER = 0.65f;
+		static constexpr float TOTEM_MIN_SEPARATION = 2.15f;
+		static constexpr int TOTEM_POSITION_ATTEMPTS = 8;
 		static constexpr int STONE_PROJECTILE_COUNT = 3;
 		static constexpr float STONE_PROJECTILE_SPEED = 8.6f;
 		static constexpr float STONE_PROJECTILE_HIT_RADIUS = 0.42f;
@@ -141,6 +146,8 @@ namespace Nawia::Entity {
 		static constexpr float STONE_PROJECTILE_SPAWN_FORWARD = 0.78f;
 		static constexpr float STONE_PROJECTILE_SPAWN_SIDE = 0.32f;
 		static constexpr float BLINK_FLARE_RADIUS = 0.95f;
+		static constexpr float BLINK_MIN_RADIUS = 4.4f;
+		static constexpr float BLINK_MAX_RADIUS = 7.0f;
 		static constexpr int STONE_DAMAGE = 13;
 		static constexpr float FIRE_RAIN_RADIUS = 4.1f;
 		static constexpr float FIRE_RAIN_ACTIVE_SECONDS = 3.6f;

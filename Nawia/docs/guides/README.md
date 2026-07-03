@@ -25,4 +25,4 @@ Ten katalog zawiera praktyczne przewodniki po aktualnej architekturze projektu.
 
 ## Dokument przekrojowy
 
-Szerszy opis runtime leveli i lokacji jest w `../level_system.md`.
+Szerszy opis runtime leveli i lokacji jest w `Level_System_Guide.md`.

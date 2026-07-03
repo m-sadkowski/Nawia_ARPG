@@ -786,6 +786,9 @@ namespace Nawia::Core {
 		_agent_perception_telemetry_timer = k_agent_perception_telemetry_interval;
 		for (const auto& snapshot : _agent_perception_system.getSnapshots())
 			_combat_telemetry_server.publishAgentPerception(snapshot);
+		_combat_telemetry_server.publishAgentCommands(
+			_agent_command_interface.getActiveCommands(),
+			_agent_command_interface.getCompletedCommands());
 	}
 
 	void Engine::loadGameplaySounds() {

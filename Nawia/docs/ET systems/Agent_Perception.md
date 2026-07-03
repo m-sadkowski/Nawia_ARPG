@@ -37,7 +37,8 @@ Domyslnie snapshoty sa budowane dla encji typu `Player`, `Ally` i `Enemy`.
 
 Snapshot zawiera:
 
-- `self` - stan obserwujacej encji,
+- `self` - stan obserwujacej encji w C++,
+- `agent` - ten sam stan obserwujacej encji w JSON telemetryki,
 - `current_target` - aktualny target encji, jesli istnieje,
 - `last_damage_source` - ostatni agresor zapamietany przez encje,
 - `observed_entities` - aktualnie widziane encje w promieniu percepcji,
@@ -78,6 +79,11 @@ Skrzynki sa zapamietywane jako neutralne obiekty. Ich snapshot zawiera stan
 otwarcia/zamkniecia, blokade i informacje, czy interakcja jest dostepna. NPC
 sa zapamietywani jako neutralne encje obserwowalne; snapshot pokazuje, czy
 `canInteract()` aktualnie pozwala rozpoczac interakcje.
+
+`observed_entities` w telemetryce moze byc przyciete limitem monitora, ale
+pamiec `lost_entities` jest aktualizowana z pelnego zestawu encji widzianych
+w promieniu percepcji. Dzieki temu agent nie "gubi" encji tylko dlatego, ze
+nie zmiescila sie w eksportowanej tabeli najblizszych obserwacji.
 
 `lost_entities` przechowuje ostatnia znana pozycje, czas od ostatniego
 widzenia i powod znikniecia, np. `OutOfRange`, `Dormant` albo `NotVisible`.
@@ -189,3 +195,11 @@ Ten system nie decyduje:
 
 Te elementy naleza do kolejnych warstw: Agent Command Interface, walidacji,
 threat table, GOAP albo innego algorytmu decyzyjnego.
+
+## Uwagi wydajnosciowe
+
+Percepcja jest liczona jako infrastruktura debugowo-decyzyjna, a nie jako
+system renderingu. Aktualnie buduje snapshoty dla aktywnych kandydatow na
+agentow i uzywa indeksu `entity_id -> entity` w ramach pojedynczego update'u.
+Przy wiekszej liczbie agentow kolejnym krokiem bedzie ograniczenie czestotliwosci
+symulacyjnej percepcji i/lub spatial query zamiast pelnego skanowania encji.
