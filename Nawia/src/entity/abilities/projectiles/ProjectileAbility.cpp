@@ -35,7 +35,7 @@ namespace Nawia::Entity {
 		  _resource_manager(resource_manager) {}
 
 	AbilitySpawn ProjectileAbility::cast(const float target_x, const float target_y) {
-		if (!beginCast())
+		if (!beginCast(target_x, target_y))
 			return nullptr;
 
 		const Vector2 spawn_position = getSpawnPosition();

@@ -19,6 +19,35 @@ namespace Nawia::Entity {
 	namespace {
 		constexpr float MIN_DIRECTION_LENGTH = 0.001f;
 		constexpr float DEFAULT_HIT_RADIUS = 1.5f;
+		constexpr float MIN_ACTOR_FOOTPRINT_RADIUS = 0.55f;
+
+		float distancePointSegmentSqr(const Vector2 point, const Vector2 segment_start, const Vector2 segment_end)
+		{
+			const Vector2 segment = Vector2Subtract(segment_end, segment_start);
+			const float segment_length_sqr = Vector2LengthSqr(segment);
+			if (segment_length_sqr <= MIN_DIRECTION_LENGTH * MIN_DIRECTION_LENGTH)
+				return Vector2DistanceSqr(point, segment_start);
+
+			const Vector2 to_point = Vector2Subtract(point, segment_start);
+			const float t = std::clamp(Vector2DotProduct(to_point, segment) / segment_length_sqr, 0.0f, 1.0f);
+			const Vector2 closest = {
+				segment_start.x + segment.x * t,
+				segment_start.y + segment.y * t
+			};
+			return Vector2DistanceSqr(point, closest);
+		}
+
+		bool isActorTarget(const EntityType type)
+		{
+			return type == EntityType::Player || type == EntityType::Ally || type == EntityType::Enemy;
+		}
+
+		float footprintRadiusFromBoundingBox(const BoundingBox& box)
+		{
+			const float half_width = std::max(0.0f, (box.max.x - box.min.x) * 0.5f);
+			const float half_depth = std::max(0.0f, (box.max.z - box.min.z) * 0.5f);
+			return std::max({half_width, half_depth, MIN_ACTOR_FOOTPRINT_RADIUS});
+		}
 	}
 
 	Projectile::Projectile(const std::string& name,
@@ -44,6 +73,8 @@ namespace Nawia::Entity {
 		}
 		_target_height = target_height;
 		_flight_height = _start_height;
+		_previous_x = x;
+		_previous_y = y;
 
 		configureMovement(target_x, target_y, facing_offset);
 		setAltitude(_caster ? _caster->getAltitude() : 0.0f);
@@ -83,6 +114,8 @@ namespace Nawia::Entity {
 	void Projectile::update(const float dt) {
 		AbilityEffect::update(dt);
 
+		_previous_x = _pos.x;
+		_previous_y = _pos.y;
 		_pos.x += _vel_x * dt;
 		_pos.y += _vel_y * dt;
 
@@ -119,7 +152,18 @@ namespace Nawia::Entity {
 			{projectile_position.x + hit_radius, projectile_position.y + hit_radius, projectile_position.z + hit_radius}
 		};
 
-		return CheckCollisionBoxes(projectile_box, target->getBoundingBox());
+		const BoundingBox target_box = target->getBoundingBox();
+		if (CheckCollisionBoxes(projectile_box, target_box))
+			return true;
+
+		if (!isActorTarget(target->getType()))
+			return false;
+
+		const Vector2 segment_start = {_previous_x, _previous_y};
+		const Vector2 segment_end = {_pos.x, _pos.y};
+		const float target_radius = footprintRadiusFromBoundingBox(target_box);
+		const float effective_radius = hit_radius + target_radius;
+		return distancePointSegmentSqr(target->getCenter(), segment_start, segment_end) <= effective_radius * effective_radius;
 	}
 
 	void Projectile::onCollision(const std::shared_ptr<Entity>& target) {
@@ -131,7 +175,7 @@ namespace Nawia::Entity {
 		if (const auto player = dynamic_cast<Player*>(_caster))
 			final_damage += player->getStats().power;
 
-		target->rememberDamageSource(_caster);
+		target->rememberDamageSource(_caster, getName());
 		target->takeDamage(final_damage);
 		addHit(target);
 

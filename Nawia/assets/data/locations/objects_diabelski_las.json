@@ -21,13 +21,13 @@
             "y": -6.161960601806641
         },
         {
-            "category": "spawners",
-            "count": 3,
+            "boss_id": "siewca_rozdarcia",
+            "category": "boss_triggers",
+            "height": 12.0,
             "location": "Diabelski Las",
-            "name": "Walking Dead",
-            "spawn_radius": 5.0,
-            "trigger_radius": 5.0,
-            "type": "walking_dead",
+            "name": "Siewca Chaosu Trigger",
+            "type": "boss_trigger",
+            "width": 12.0,
             "x": 11.646427154541016,
             "y": 12.921245574951172
         },

@@ -6,6 +6,8 @@
 
 namespace Nawia::Entity {
 
+	class Player;
+
 	/**
 	 * @brief Czarownica trzymajaca dystans, strzelajaca pociskami i wzywajaca pomagiery.
 	 */
@@ -41,6 +43,7 @@ namespace Nawia::Entity {
 		void startRetaliation();
 		void startImmediateSummonRetaliation();
 		void applyRetaliation();
+		void pushRetaliationTarget(Player& target) const;
 		void summonHelper();
 		void moveAwayFromTarget(float dt);
 		void chaseToCastRange(float dt);
@@ -54,6 +57,7 @@ namespace Nawia::Entity {
 		float _cast_cooldown_timer = 0.5f;
 		bool _cast_projectile_spawned = false;
 		bool _retaliation_applied = false;
+		bool _reposition_after_retaliation = false;
 		float _path_recalc_timer = 0.0f;
 
 		static constexpr float MODEL_SCALE = 1.55f;
@@ -63,7 +67,11 @@ namespace Nawia::Entity {
 		static constexpr float PREFERRED_DISTANCE = 8.5f;
 		static constexpr float MOVE_SPEED = 3.4f;
 		static constexpr float CAST_COOLDOWN = 2.4f;
-		static constexpr float CAST_FRAME_RATIO = 0.42f;
+		static constexpr float CAST_FRAME_RATIO = 0.34f;
+		static constexpr float BOLT_ANIMATION_SPEED = 1.45f;
+		static constexpr float RETALIATION_ANIMATION_SPEED = 1.75f;
+		static constexpr float SUMMON_ANIMATION_SPEED = 1.6f;
+		static constexpr float RETALIATION_PUSH_DISTANCE = 1.15f;
 		static constexpr int BOLT_DAMAGE = 18;
 		static constexpr int RETALIATION_DAMAGE = 8;
 	};

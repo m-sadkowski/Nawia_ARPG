@@ -37,7 +37,8 @@ namespace Nawia::Entity {
 			TongueWindup,
 			TonguePull,
 			TongueRecover,
-			SideHop
+			SideHop,
+			ToxicSpitWindup
 		};
 
 		void updateSpecialState(float dt);
@@ -45,12 +46,15 @@ namespace Nawia::Entity {
 		void updateTonguePull(float dt);
 		void updateTongueRecover(float dt);
 		void updateSideHop(float dt);
+		void updateToxicSpitWindup(float dt);
 		void tryStartSpecialMove();
 		void startTongueStrike();
 		void releaseTongueStrike();
 		void startSideHop();
+		void startToxicPool();
 		void finishSpecialMove();
 		void stopMoving();
+		[[nodiscard]] bool isBossVariant() const;
 		[[nodiscard]] bool isTargetInTongueLane(const Entity& target) const;
 		[[nodiscard]] Vector2 getTongueAimDirection() const;
 		[[nodiscard]] float randomRange(float min, float max) const;
@@ -62,7 +66,9 @@ namespace Nawia::Entity {
 		float _special_timer = 0.0f;
 		float _tongue_cooldown_timer = 1.6f;
 		float _sidehop_cooldown_timer = 1.1f;
+		float _toxic_pool_cooldown_timer = 2.4f;
 		Vector2 _tongue_target_snapshot = {0.0f, 0.0f};
+		Vector2 _toxic_pool_target_snapshot = {0.0f, 0.0f};
 		Vector2 _sidehop_target = {0.0f, 0.0f};
 		std::weak_ptr<Entity> _tongue_victim;
 	};

@@ -5,6 +5,7 @@
 #include <Map.h>
 
 #include <AbilityEffect.h>
+#include <BossTelegraphHazard.h>
 #include <Collider.h>
 #include <Entity.h>
 #include <InteractiveTrigger.h>
@@ -41,6 +42,7 @@ namespace Nawia::Core {
 
             const Entity::EntityType type = entity->getType();
             return type != Entity::EntityType::Projectile &&
+                   type != Entity::EntityType::Hazard &&
                    type != Entity::EntityType::Chest &&
                    type != Entity::EntityType::Trigger &&
                    type != Entity::EntityType::NPCStatic &&
@@ -71,6 +73,7 @@ namespace Nawia::Core {
         if (std::ranges::find(_active_entities, new_entity) != _active_entities.end())
             return;
 
+        assignEntityIdIfMissing(new_entity);
         _active_entities.push_back(std::move(new_entity));
     }
 
@@ -90,7 +93,15 @@ namespace Nawia::Core {
 
     void EntityManager::setPlayer(std::shared_ptr<Entity::Entity> player) {
         _player = std::move(player);
+        assignEntityIdIfMissing(_player);
         Entity::Entity::setAudioListener(_player);
+    }
+
+    void EntityManager::assignEntityIdIfMissing(const std::shared_ptr<Entity::Entity>& entity) {
+        if (!entity || entity->hasEntityId())
+            return;
+
+        entity->assignEntityId(_next_entity_id++);
     }
 
 	void EntityManager::clearNonPlayerEntities() {
@@ -260,6 +271,7 @@ namespace Nawia::Core {
 
     void EntityManager::handleEntitiesCollisions() const {
         processAbilityCollisions();
+        processHazardEffects();
         processTriggerCollisions();
         processPhysicalCollisions();
     }
@@ -288,6 +300,31 @@ namespace Nawia::Core {
                 if (ability->checkCollision(entity2)) {
                     ability->onCollision(entity2);
                 }
+            }
+        }
+    }
+
+    void EntityManager::processHazardEffects() const
+    {
+        std::vector<std::shared_ptr<Entity::Entity>> targets;
+        targets.reserve(_active_entities.size());
+        for (const auto& entity : _active_entities) {
+            if (!entity || entity->isDormant() || entity->isDead() || entity->isDying())
+                continue;
+
+            const Entity::EntityType type = entity->getType();
+            if (type == Entity::EntityType::Player || type == Entity::EntityType::Ally || type == Entity::EntityType::Enemy)
+                targets.push_back(entity);
+        }
+
+        for (const auto& entity : _active_entities) {
+            auto* hazard = dynamic_cast<Entity::BossTelegraphHazard*>(entity.get());
+            if (!hazard || hazard->isDormant() || hazard->isDead() || !hazard->isActiveHazard())
+                continue;
+
+            for (const auto& target : targets) {
+                if (target != entity)
+                    hazard->applyToTarget(target);
             }
         }
     }

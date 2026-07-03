@@ -83,6 +83,10 @@ namespace Nawia::Game {
         float scale = 1.0f;
         std::string music_path;
         float music_volume = 0.85f;
+        std::string helper_model_path;
+        float helper_model_scale = 1.5f;
+        std::string stone_projectile_model_path;
+        float stone_projectile_model_scale = 0.3f;
 
         std::vector<BossPhase> phases;
         BossReward reward;

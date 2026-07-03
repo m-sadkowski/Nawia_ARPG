@@ -1,5 +1,6 @@
 #include "Devil.h"
 
+#include <BossTelegraphHazard.h>
 #include <Collider.h>
 #include <Map.h>
 #include <MathUtils.h>
@@ -7,6 +8,11 @@
 #include <SoundIds.h>
 
 #include <raymath.h>
+
+#include <algorithm>
+#include <cmath>
+#include <memory>
+#include <utility>
 
 namespace Nawia::Entity {
 
@@ -72,6 +78,9 @@ namespace Nawia::Entity {
 		case State::Dashing:
 			handleDashingState(dt);
 			break;
+		case State::JumpingShockwave:
+			handleJumpingShockwaveState(dt);
+			break;
 		case State::Recovering:
 			handleRecoveringState(dt);
 			break;
@@ -130,11 +139,7 @@ namespace Nawia::Entity {
 		// Sprawdzenie, czy cel jest w zasięgu ataku.
 		if (dist <= ATTACK_RANGE && _attack_cooldown_timer <= 0.0f)
 		{
-			_state = State::Attacking;
-			setAnimationSpeed(DEVIL_ATTACK_ANIMATION_SPEED);
-			playAnimation("attack", false, true);
-			setVelocity(0, 0);
-			_is_moving = false;
+			startAttack();
 			return;
 		}
 
@@ -143,13 +148,13 @@ namespace Nawia::Entity {
 		// Logika doskoku: cel w zasięgu, czas odnowienia gotowy i trasa nie jest zablokowana.
 		if (dist <= DASH_TRIGGER_RANGE && dist > ATTACK_RANGE && _dash_cooldown_timer <= 0.0f)
 		{
-			_dash_target_pos = target_pos;
-			_state = State::PreparingDash;
-			_dash_prepare_timer = DASH_PREPARE_TIME;
-			setVelocity(0, 0);
-			_is_moving = false;
-			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
-			playAnimation("idle");
+			if (isBossVariant() &&
+				dist <= SHOCKWAVE_TRIGGER_RANGE &&
+				GetRandomValue(0, 99) < SHOCKWAVE_CHANCE_PERCENT) {
+				startShockwaveJump();
+			} else {
+				startDash(target_pos);
+			}
 			return;
 		}
 
@@ -185,6 +190,7 @@ namespace Nawia::Entity {
 		{
 
 			_state = State::Dashing;
+			clearCastTelemetry();
 			_dash_hit_target = false;
 			playSoundEffect(Audio::SoundId::DevilDash, 0.9f);
 			setAnimationSpeed(DEVIL_DASH_ANIMATION_SPEED);
@@ -205,7 +211,7 @@ namespace Nawia::Entity {
 				if (dist_to_player <= DASH_HIT_RANGE)
 				{
 					// Gracza próbujemy powalić, pozostałym celom zadajemy zwykłe obrażenia.
-					target->rememberDamageSource(this);
+					target->rememberDamageSource(this, "Devil Dash");
 					if (target->getType() == EntityType::Player)
 						dynamic_cast<Player*>(target.get())->knockDown(static_cast<int>(DASH_DAMAGE * _damage_multiplier));
 					else
@@ -219,11 +225,12 @@ namespace Nawia::Entity {
 
 		if (dist_to_dash_target <= DASH_ARRIVE_THRESHOLD)
 		{
+			spawnScorchedGroundHazard();
 			_dash_cooldown_timer = DASH_COOLDOWN;
 
 
 			_state = State::Recovering;
-			_stun_timer = DASH_STUN_DURATION;
+			_stun_timer = dashRecoveryDuration();
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 			playAnimation("idle");
 			return;
@@ -244,9 +251,10 @@ namespace Nawia::Entity {
 		if (_map && !_map->isWalkable(next_center_x, next_center_y))
 		{
 			// Doskok uderzył w ścianę lub niewalkowalny fragment mapy.
+			spawnScorchedGroundHazard();
 			_dash_cooldown_timer = DASH_COOLDOWN;
 			_state = State::Recovering;
-			_stun_timer = DASH_STUN_DURATION;
+			_stun_timer = dashRecoveryDuration();
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 			playAnimation("idle");
 			return;
@@ -256,17 +264,41 @@ namespace Nawia::Entity {
 		_pos.y = next_y;
 	}
 
+	void Devil::handleJumpingShockwaveState(const float dt)
+	{
+		Entity::update(dt);
+		setVelocity(0, 0);
+		_is_moving = false;
+
+		if (const auto target = _target.lock())
+			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+
+		_shockwave_timer += dt;
+		const float progress = std::clamp(_shockwave_timer / SHOCKWAVE_WINDUP_TIME, 0.0f, 1.0f);
+		_visual_jump_height = std::sin(progress * 3.14159265f) * SHOCKWAVE_JUMP_HEIGHT;
+
+		if (!_shockwave_impact_played && _shockwave_timer >= SHOCKWAVE_WINDUP_TIME) {
+			_shockwave_impact_played = true;
+			_visual_jump_height = 0.0f;
+			clearCastTelemetry();
+			playSoundEffect(Audio::SoundId::DevilPunch, 0.95f, true, 0.72f);
+		}
+
+		if (_shockwave_timer >= SHOCKWAVE_WINDUP_TIME) {
+			_state = State::Recovering;
+			_stun_timer = BOSS_SHOCKWAVE_RECOVERY_DURATION;
+			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
+			playAnimation("idle");
+		}
+	}
+
 	void Devil::handleRecoveringState(const float dt)
 	{
 		Entity::update(dt);
 		_stun_timer -= dt;
 
 		if (_stun_timer <= 0.0f)
-		{
-			_state = State::Chasing;
-			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
-			playAnimation("walk");
-		}
+			finishRecovery();
 	}
 
 	void Devil::handleAttackingState(const float dt)
@@ -279,7 +311,7 @@ namespace Nawia::Entity {
 			{
 				if (getDistanceToTarget() <= ATTACK_RANGE * 1.5f)
 				{
-					target->rememberDamageSource(this);
+					target->rememberDamageSource(this, "Devil Punch");
 					target->takeDamage(static_cast<int>(ATTACK_DAMAGE * _damage_multiplier));
 					playSoundEffect(Audio::SoundId::DevilPunch, 0.85f);
 
@@ -293,8 +325,141 @@ namespace Nawia::Entity {
 		}
 	}
 
+	void Devil::startAttack()
+	{
+		_state = State::Attacking;
+		setAnimationSpeed(DEVIL_ATTACK_ANIMATION_SPEED);
+		playAnimation("attack", false, true);
+		setVelocity(0, 0);
+		_is_moving = false;
+	}
+
+	void Devil::startDash(const Vector2& target_pos)
+	{
+		_dash_target_pos = target_pos;
+		_state = State::PreparingDash;
+		_dash_prepare_timer = DASH_PREPARE_TIME;
+		beginCastTelemetry("Devil Dash", DASH_PREPARE_TIME, false);
+		spawnDashImpactHazard();
+		setVelocity(0, 0);
+		_is_moving = false;
+		setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
+		playAnimation("idle");
+	}
+
+	void Devil::startShockwaveJump()
+	{
+		_state = State::JumpingShockwave;
+		_shockwave_timer = 0.0f;
+		_shockwave_radius = static_cast<float>(GetRandomValue(
+			static_cast<int>(SHOCKWAVE_MIN_RADIUS * 100.0f),
+			static_cast<int>(SHOCKWAVE_MAX_RADIUS * 100.0f))) / 100.0f;
+		_visual_jump_height = 0.0f;
+		_shockwave_impact_played = false;
+		_dash_cooldown_timer = DASH_COOLDOWN;
+		_attack_cooldown_timer = std::max(_attack_cooldown_timer, 0.45f);
+		beginCastTelemetry("Ground Slam", SHOCKWAVE_WINDUP_TIME, false);
+		spawnShockwaveHazard();
+		setVelocity(0, 0);
+		_is_moving = false;
+		setAnimationSpeed(DEVIL_SHOCKWAVE_IDLE_ANIMATION_SPEED);
+		playAnimation("idle", true, false, 0, true);
+	}
+
+	void Devil::finishRecovery()
+	{
+		_visual_jump_height = 0.0f;
+		if (const auto target = _target.lock()) {
+			const float distance = getDistanceToTarget();
+			if (!target->isDead() && distance <= ATTACK_RANGE * 1.5f && _attack_cooldown_timer <= 0.0f) {
+				startAttack();
+				return;
+			}
+		}
+
+		_state = State::Chasing;
+		setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
+		playAnimation("walk");
+	}
+
+	float Devil::dashRecoveryDuration() const
+	{
+		return isBossVariant() ? BOSS_DASH_RECOVERY_DURATION : DASH_STUN_DURATION;
+	}
+
+	Vector3 Devil::getWorldPos3D() const
+	{
+		return {_pos.x, _altitude + _visual_jump_height, _pos.y};
+	}
+
+	bool Devil::isBossVariant() const {
+		return getMaxHP() >= 180 || getName() == "Bies" || getName() == "Devil Lord";
+	}
+
+	void Devil::spawnDashImpactHazard() {
+		if (!isBossVariant())
+			return;
+
+		BossTelegraphHazardConfig config;
+		config.name = getName() + " Dash Impact";
+		config.position = _dash_target_pos;
+		config.altitude = getAltitude();
+		config.radius = DASH_IMPACT_HAZARD_RADIUS;
+		config.warning_seconds = DASH_PREPARE_TIME;
+		config.active_seconds = 0.05f;
+		config.damage_per_tick = 0;
+		config.tick_interval = 0.45f;
+		config.source_context = Entity::makeDamageSourceContext(this, config.name);
+		config.warning_color = {255, 100, 20, 255};
+		config.active_color = {230, 40, 20, 255};
+		addPendingSpawn(std::make_shared<BossTelegraphHazard>(std::move(config)));
+	}
+
+	void Devil::spawnScorchedGroundHazard() {
+		if (!isBossVariant())
+			return;
+
+		BossTelegraphHazardConfig config;
+		config.name = getName() + " Scorched Ground";
+		config.position = getCenter();
+		config.altitude = getAltitude();
+		config.radius = SCORCHED_GROUND_RADIUS;
+		config.warning_seconds = 0.0f;
+		config.active_seconds = SCORCHED_GROUND_DURATION;
+		config.damage_per_tick = static_cast<int>(6.0f * _damage_multiplier);
+		config.tick_interval = 0.75f;
+		config.source_context = Entity::makeDamageSourceContext(this, config.name);
+		config.warning_color = {255, 130, 30, 255};
+		config.active_color = {190, 45, 18, 255};
+		addPendingSpawn(std::make_shared<BossTelegraphHazard>(std::move(config)));
+	}
+
+	void Devil::spawnShockwaveHazard() {
+		if (!isBossVariant())
+			return;
+
+		BossTelegraphHazardConfig config;
+		config.name = getName() + " Ground Slam";
+		config.position = getCenter();
+		config.altitude = getAltitude();
+		config.radius = _shockwave_radius;
+		config.warning_seconds = SHOCKWAVE_WINDUP_TIME;
+		config.active_seconds = (_shockwave_radius + SHOCKWAVE_WIDTH) / SHOCKWAVE_SPEED;
+		config.damage_per_tick = static_cast<int>(SHOCKWAVE_DAMAGE * _damage_multiplier);
+		config.tick_interval = 8.0f;
+		config.knock_down_player_on_hit = true;
+		config.expanding_wave = true;
+		config.wave_speed = SHOCKWAVE_SPEED;
+		config.wave_width = SHOCKWAVE_WIDTH;
+		config.source_context = Entity::makeDamageSourceContext(this, config.name);
+		config.warning_color = {255, 190, 55, 255};
+		config.active_color = {245, 95, 25, 255};
+		addPendingSpawn(std::make_shared<BossTelegraphHazard>(std::move(config)));
+	}
+
 	void Devil::onDeathStarted()
 	{
+		_visual_jump_height = 0.0f;
 		playSoundEffect(Audio::SoundId::DevilDeath, 0.95f);
 	}
 } // namespace Nawia::Entity

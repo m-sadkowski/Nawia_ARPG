@@ -220,6 +220,62 @@
                     }
                 ]
             }
+        },
+        {
+            "id": "siewca_rozdarcia",
+            "name": "Siewca Chaosu",
+            "enemy_type": "Dragon",
+            "max_hp": 420,
+            "scale": 0.8,
+            "helper_model": "assets/models/actors/walking_dead/walking_dead_2.glb",
+            "helper_scale": 1.5,
+            "stone_projectile_model": "assets/models/fireball.glb",
+            "stone_projectile_scale": 0.3,
+            "music_path": "assets/audio/music/soundsbyamelia-slavic-war-dance-drums-stomps-amp-war-pipes-422949.mp3",
+            "music_volume": 0.78,
+            "phases": [
+                {
+                    "hp_threshold": 1.0,
+                    "name": "Trzy Totemy",
+                    "speed_multiplier": 1.0,
+                    "damage_multiplier": 1.0,
+                    "notification": "Siewca chroni sie totemami!",
+                    "screen_flash": false
+                },
+                {
+                    "hp_threshold": 0.75,
+                    "name": "Cztery Totemy",
+                    "speed_multiplier": 1.04,
+                    "damage_multiplier": 1.08,
+                    "notification": "Siewca wzmacnia rytual!",
+                    "screen_flash": true,
+                    "flash_color": [255, 100, 35, 160]
+                },
+                {
+                    "hp_threshold": 0.5,
+                    "name": "Piec Totemow",
+                    "speed_multiplier": 1.08,
+                    "damage_multiplier": 1.16,
+                    "notification": "Rytual Siewcy przyspiesza!",
+                    "screen_flash": true,
+                    "flash_color": [255, 70, 25, 180]
+                },
+                {
+                    "hp_threshold": 0.25,
+                    "name": "Siedem Totemow",
+                    "speed_multiplier": 1.12,
+                    "damage_multiplier": 1.25,
+                    "notification": "Siewca rzuca wszystko na szale!",
+                    "screen_flash": true,
+                    "flash_color": [255, 30, 20, 210]
+                }
+            ],
+            "rewards": {
+                "gold": 0,
+                "exp": 0,
+                "items": []
+            },
+            "on_player_death": "end_fight"
         }
     ]
 }

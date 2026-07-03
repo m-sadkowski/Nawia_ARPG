@@ -13,6 +13,10 @@ include_directories(
     src/audio
     src/core
     src/core/game
+    src/core/game/agent
+    src/core/game/combat
+    src/core/game/ping
+    src/core/game/telemetry
     src/core/game/save
     src/core/util
     src/core/system
@@ -95,6 +99,10 @@ add_executable(Nawia ${SOURCES})
 
 # Link libraries
 target_link_libraries(Nawia PRIVATE raylib tinyxml2 Recast Detour)
+
+if(WIN32)
+    target_link_libraries(Nawia PRIVATE ws2_32)
+endif()
 
 # Copy assets next to Nawia.exe.
 add_custom_command(TARGET Nawia POST_BUILD

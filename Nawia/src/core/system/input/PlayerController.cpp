@@ -72,6 +72,11 @@ namespace Nawia::Core {
 			return;
 		}
 
+		if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
+			_engine->getPingManager().placePing(_player, mouse_world_pos);
+			return;
+		}
+
 		if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 			return;
 
@@ -146,22 +151,23 @@ namespace Nawia::Core {
 			return false;
 		}
 
-		const float interaction_range_sq = _target_interactable->getInteractionRange();
+		const float interaction_range = std::max(0.0f, _target_interactable->getInteractionRange());
+		const float interaction_range_sq = interaction_range * interaction_range;
 		const float distance_sq = getHorizontalDistanceToBoxSq(*target_entity, _player->getCenter());
 
 		if (distance_sq > interaction_range_sq)
-			return moveToInteractionRange(target_entity, interaction_range_sq);
+			return moveToInteractionRange(target_entity, interaction_range);
 
 		return performInteraction();
 	}
 
 	bool PlayerController::moveToInteractionRange(
 		const std::shared_ptr<Entity::Entity>& target,
-		const float interaction_range_sq
+		const float interaction_range
 	) {
 		if (!_current_path.empty() || _player->isMoving()) {
 			updatePathMovement();
-		} else if (!moveTowardInteractable(target, interaction_range_sq)) {
+		} else if (!moveTowardInteractable(target, interaction_range)) {
 			_player->stop();
 			_target_interactable = nullptr;
 		}
@@ -196,6 +202,11 @@ namespace Nawia::Core {
 	}
 
 	void PlayerController::handleMouseInput(Vector3 mouse_world_pos, const float screen_x, const float screen_y) {
+		if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
+			_engine->getPingManager().placePing(_player, mouse_world_pos);
+			return;
+		}
+
 		if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) return;
 
 		if (const auto entity = _engine->getEntityAt(screen_x, screen_y)) {
@@ -441,11 +452,10 @@ namespace Nawia::Core {
 		}
 	}
 
-	bool PlayerController::moveTowardInteractable(const std::shared_ptr<Entity::Entity>& target, const float interaction_range_sq) {
+	bool PlayerController::moveTowardInteractable(const std::shared_ptr<Entity::Entity>& target, const float interaction_range) {
 		if (!target)
 			return false;
 
-		const float interaction_range = std::sqrt(std::max(0.0f, interaction_range_sq));
 		const float approach_radius = std::max(0.5f, interaction_range * 0.75f);
 		const Vector2 target_center = target->getCenter();
 		const Vector3 target_world = target->getWorldPos3D();

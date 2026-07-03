@@ -14,6 +14,7 @@
 #include <Level.h>
 #include <LevelManager.h>
 #include <Map.h>
+#include <NawiaArenaLevel.h>
 #include <PlayerAbilityFactory.h>
 #include <SoundIds.h>
 
@@ -35,6 +36,7 @@ namespace Nawia::Core {
 		constexpr float k_hover_update_interval = 0.05f;
 		constexpr float k_hover_mouse_move_threshold_sq = 1.0f;
 		constexpr float k_camera_zoom_return_speed = 1.7f;
+		constexpr float k_agent_perception_telemetry_interval = 0.25f;
 
 	}
 
@@ -48,6 +50,15 @@ namespace Nawia::Core {
 		_lighting_system.initialize();
 		_lighting_system.addLight(System::Renderer::LightingSystem::LIGHT_DIRECTIONAL, {-50.0f, 50.0f, -50.0f}, {0.0f, 0.0f, 0.0f}, WHITE);
 		_lighting_system.addLight(System::Renderer::LightingSystem::LIGHT_POINT, {0.0f, 5.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, ORANGE);
+		Entity::Entity::setCombatEventBus(&_combat_event_bus);
+		if (_combat_telemetry_server.start()) {
+			_combat_telemetry_subscription_id = _combat_event_bus.subscribe([this](const Game::CombatEvent& event) {
+				_combat_telemetry_server.publish(event);
+			});
+		}
+		else {
+			Core::Logger::debugLog("Combat telemetry disabled: " + _combat_telemetry_server.getLastError());
+		}
 
 		if (_settings.load())
 			SetWindowSize(_settings.resolution.width, _settings.resolution.height);
@@ -63,6 +74,7 @@ namespace Nawia::Core {
 		_level_manager = std::make_unique<World::LevelManager>();
 		_level_manager->registerLevel(std::make_shared<World::DemoLevel>());
 		_level_manager->registerLevel(std::make_shared<World::FirstLevel>());
+		_level_manager->registerLevel(std::make_shared<World::NawiaArenaLevel>());
 		_level_manager->registerLevel(std::make_shared<World::DevLevel>());
 
 		_loading_kind = LoadingKind::Startup;
@@ -84,7 +96,13 @@ namespace Nawia::Core {
 		if (_level_manager && _level_manager->getCurrentLevel())
 			_level_manager->getCurrentLevel()->onExit(this);
 
+		if (_combat_telemetry_subscription_id != 0) {
+			_combat_event_bus.unsubscribe(_combat_telemetry_subscription_id);
+			_combat_telemetry_subscription_id = 0;
+		}
+		_combat_telemetry_server.stop();
 		_ui_handler.reset();
+		Entity::Entity::setCombatEventBus(nullptr);
 		_controller.reset();
 		_level_manager.reset();
 		_entity_manager.reset();
@@ -246,6 +264,8 @@ namespace Nawia::Core {
 
 		Entity::Entity::setSharedResourceManager(&_resource_manager);
 		_audio_manager.stopMusic();
+		_ping_manager.clear();
+		_agent_command_interface.clear();
 		_level_manager->changeLevel(_pending_level_name, this);
 
 		if (_has_pending_save) {
@@ -596,6 +616,7 @@ namespace Nawia::Core {
 		Vector3 mouse_world_pos = {fallback.x, cursor_plane_height, fallback.y};
 		const bool needs_precise_ground_hit =
 			IsMouseButtonPressed(MOUSE_BUTTON_LEFT) ||
+			IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE) ||
 			IsKeyPressed(KEY_Q) ||
 			IsKeyPressed(KEY_W) ||
 			IsKeyPressed(KEY_E) ||
@@ -633,6 +654,17 @@ namespace Nawia::Core {
 		if (dev_level && dev_level->isTyping())
 			return;
 
+		if (!_ui_handler->isInputBlocked()) {
+			if (IsKeyPressed(KEY_TWO))
+				_ping_manager.selectType(Game::MapPingType::Info);
+			if (IsKeyPressed(KEY_THREE))
+				_ping_manager.selectType(Game::MapPingType::Threat);
+
+			const float mouse_wheel_move = GetMouseWheelMove();
+			if (mouse_wheel_move != 0.0f)
+				_ping_manager.cycleSelectedType(mouse_wheel_move > 0.0f ? 1 : -1);
+		}
+
 		if (!isLevelInteractionOnly() && !_ui_handler->isInputBlocked() && IsKeyPressed(KEY_ONE) && _player)
 			(void)_player->startConsumeFood();
 
@@ -646,6 +678,7 @@ namespace Nawia::Core {
 
 	void Engine::update(const float delta_time) {
 		_audio_manager.update();
+		_combat_event_bus.update(delta_time);
 
 		if (_game_state == GameState::Loading) {
 			processLoading();
@@ -704,19 +737,24 @@ namespace Nawia::Core {
 		_camera.follow(_player.get(), _current_camera_target_height_multiplier);
 		_lighting_system.update(_camera.get());
 		if (_ui_handler) _ui_handler->update(delta_time);
+		_ping_manager.update(delta_time);
 		_level_manager->update(this, delta_time);
 		if (isLevelBlockingControl()) {
+			_agent_command_interface.update(*this, *_entity_manager, delta_time);
 			_entity_manager->updateEntities(delta_time);
 			collectPendingSpawns();
+			updateAgentPerceptionTelemetry(delta_time);
 			return;
 		}
 		_controller->update(delta_time);
 
+		_agent_command_interface.update(*this, *_entity_manager, delta_time);
 		_entity_manager->updateEntities(delta_time);
 		_entity_manager->handleEntitiesCollisions();
 		_quest_manager.update(this);
 		_boss_manager.update(this, delta_time);
 		collectPendingSpawns();
+		updateAgentPerceptionTelemetry(delta_time);
 	}
 
 	void Engine::collectPendingSpawns() {
@@ -731,6 +769,23 @@ namespace Nawia::Core {
 
 		for (const auto& spawn : new_spawns)
 			spawnEntity(spawn);
+	}
+
+	void Engine::updateAgentPerceptionTelemetry(const float delta_time) {
+		if (!_entity_manager)
+			return;
+
+		_agent_perception_system.update(*_entity_manager, _combat_event_bus, _ping_manager);
+		if (!_combat_telemetry_server.isRunning())
+			return;
+
+		_agent_perception_telemetry_timer -= delta_time;
+		if (_agent_perception_telemetry_timer > 0.0f)
+			return;
+
+		_agent_perception_telemetry_timer = k_agent_perception_telemetry_interval;
+		for (const auto& snapshot : _agent_perception_system.getSnapshots())
+			_combat_telemetry_server.publishAgentPerception(snapshot);
 	}
 
 	void Engine::loadGameplaySounds() {
@@ -809,6 +864,7 @@ namespace Nawia::Core {
 		_lighting_system.applyToModel(getCurrentMap()->getModel());
 
 		getCurrentMap()->render(_camera.get());
+		_ping_manager.render(_camera.get());
 		_entity_manager->renderEntities(_camera.get());
 
 		EndMode3D();
@@ -829,7 +885,11 @@ namespace Nawia::Core {
 			return;
 		}
 
-		if (_ui_handler) _ui_handler->render(_camera, &_boss_manager);
+		if (_ui_handler) {
+			_ui_handler->render(_camera, &_boss_manager);
+			if (!_show_pause_menu)
+				renderPingSelector();
+		}
 
 		if (_show_pause_menu && _ui_handler) {
 			const auto* current_level = _level_manager ? _level_manager->getCurrentLevel() : nullptr;
@@ -837,6 +897,26 @@ namespace Nawia::Core {
 		}
 
 		_level_manager->renderUI(const_cast<Engine*>(this));
+	}
+
+	void Engine::renderPingSelector() const {
+		const float frame_width = GlobalScaling::scaled(520.0f);
+		const float frame_height = GlobalScaling::scaled(111.0f);
+		const float frame_x = (static_cast<float>(GetScreenWidth()) - frame_width) * 0.5f;
+		const float frame_y = static_cast<float>(GetScreenHeight()) - GlobalScaling::scaled(126.0f);
+		const float icon_size = frame_height * 0.55f;
+		const float food_center_x = frame_x + frame_width * 0.5f;
+		const float food_y = frame_y + frame_height * 0.53f - icon_size * 0.5f;
+		const float radius = GlobalScaling::scaled(6.0f);
+		const Vector2 center = {
+			food_center_x,
+			food_y - GlobalScaling::scaled(34.0f)
+		};
+		const Color color = Game::getPingColor(_ping_manager.getSelectedType());
+
+		DrawCircleV(center, radius + GlobalScaling::scaled(3.0f), Fade(BLACK, 0.72f));
+		DrawCircleV(center, radius + GlobalScaling::scaled(1.5f), Fade(WHITE, 0.18f));
+		DrawCircleV(center, radius, color);
 	}
 
 	void Engine::renderGameplayVignetteOverlay() const {

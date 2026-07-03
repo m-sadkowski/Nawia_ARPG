@@ -6,6 +6,7 @@
 #include <json.hpp>
 #include <raylib.h>
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -15,6 +16,7 @@
 namespace Nawia::Entity {
 	class Ability;
 	class Collider;
+	class Entity;
 }
 
 namespace Nawia::Item {
@@ -29,7 +31,14 @@ namespace Nawia::Core {
 	class ResourceManager;
 }
 
+namespace Nawia::Game {
+	class CombatEventBus;
+}
+
 namespace Nawia::Entity {
+
+	using EntityId = std::uint64_t;
+	inline constexpr EntityId INVALID_ENTITY_ID = 0;
 
 	/**
 	 * @enum EntityType
@@ -42,6 +51,7 @@ namespace Nawia::Entity {
 		Ally,
 		NPCActor,
 		NPCStatic,
+		Hazard,
 		Projectile, ///< Efekt umiejętności działający jak encja.
 		Trigger,    ///< Obszar aktywujący logikę, np. checkpoint.
 		Chest,      ///< Interaktywny pojemnik z ekwipunkiem.
@@ -58,6 +68,25 @@ namespace Nawia::Entity {
 		Neutral, ///< Encje neutralne, zwykle poza walką.
 		Ally,    ///< Encje walczące po stronie gracza.
 		None     ///< Brak frakcji, np. obiekt bez udziału w walce.
+	};
+
+	struct DamageSourceContext {
+		bool valid = false;
+		std::weak_ptr<Entity> source;
+		EntityId source_id = INVALID_ENTITY_ID;
+		std::string source_name;
+		EntityType source_type = EntityType::None;
+		Faction source_faction = Faction::None;
+		Vector2 source_position = {0.0f, 0.0f};
+		std::string label;
+	};
+
+	struct EntityCastState {
+		bool active = false;
+		std::string name;
+		float duration_seconds = 0.0f;
+		float remaining_seconds = 0.0f;
+		bool interruptible = false;
 	};
 
 	struct AnimationBundle {
@@ -116,9 +145,21 @@ namespace Nawia::Entity {
 		void setX(float x) { _pos.x = x; }
 		void setY(float y) { _pos.y = y; }
 		void setAltitude(float altitude) { _altitude = altitude; }
+		void assignEntityId(EntityId entity_id);
+		[[nodiscard]] EntityId getEntityId() const { return _entity_id; }
+		[[nodiscard]] bool hasEntityId() const { return _entity_id != INVALID_ENTITY_ID; }
+		void beginCastTelemetry(std::string cast_name, float duration_seconds, bool interruptible);
+		void clearCastTelemetry();
+		[[nodiscard]] const EntityCastState& getCastState() const { return _cast_state; }
+		[[nodiscard]] bool isCasting() const { return _cast_state.active; }
 		[[nodiscard]] Vector2 getCenter() const;
 		virtual void applyRoot(float duration);
 		void applyPoison(float duration, int damage_per_tick, float tick_interval = 1.0f);
+		void applyPoison(
+			float duration,
+			int damage_per_tick,
+			float tick_interval,
+			const DamageSourceContext& source_context);
 		void clearStatusEffects();
 		[[nodiscard]] bool isMovementRooted() const { return _root_timer > 0.0f; }
 		[[nodiscard]] bool isPoisoned() const { return _poison_timer > 0.0f; }
@@ -159,13 +200,16 @@ namespace Nawia::Entity {
 		 * @brief Zwraca najbliższe trafienie promienia w siatkę modelu.
 		 */
 		[[nodiscard]] RayCollision getRayMeshCollision(const Ray& ray) const;
-		[[nodiscard]] bool isVisibleInCamera(const Camera3D& camera, float screen_margin = 96.0f) const;
+		[[nodiscard]] virtual bool isVisibleInCamera(const Camera3D& camera, float screen_margin = 96.0f) const;
+		[[nodiscard]] virtual bool isPerceptionVisible() const { return !_dormant && !isDead() && !isDying(); }
 
 		// Transformacja i ruch.
 		void setVelocity(float x, float y) { _velocity.x = x; _velocity.y = y; }
 		[[nodiscard]] Vector2 getVelocity() const { return _velocity; }
 		void setScale(float scale) { _scale = scale; }
 		[[nodiscard]] float getScale() const { return _scale; }
+		void setModelTint(Color tint) { _model_tint = tint; }
+		[[nodiscard]] Color getModelTint() const { return _model_tint; }
 		void setHovered(bool hovered) { _hovered = hovered; }
 		void setAudioManager(Audio::AudioManager* audio_manager) { _audio_manager = audio_manager; }
 		void hideMeshIndex(int mesh_index);
@@ -194,6 +238,7 @@ namespace Nawia::Entity {
 		 * @param dmg Liczba punktów obrażeń.
 		 */
 		virtual void takeDamage(int dmg);
+		void takeDamage(int dmg, const DamageSourceContext& source_context);
 
 		/**
 		 * @brief Natychmiast oznacza encję jako martwą.
@@ -251,6 +296,8 @@ namespace Nawia::Entity {
 		static void setSharedResourceManager(Core::ResourceManager* manager);
 
 		[[nodiscard]] static Core::ResourceManager* getSharedResourceManager();
+		static void setCombatEventBus(Game::CombatEventBus* event_bus);
+		[[nodiscard]] static Game::CombatEventBus* getCombatEventBus();
 		static void setAudioListener(const std::shared_ptr<Entity>& listener);
 
 		/**
@@ -380,11 +427,16 @@ namespace Nawia::Entity {
 		 * Trzymamy weak_ptr, zeby AI moglo preferowac ostatniego agresora bez
 		 * wydluzania jego cyklu zycia.
 		 */
-		void rememberDamageSource(Entity* source) {
-			_last_damage_source = source ? source->weak_from_this() : std::weak_ptr<Entity>{};
+		void rememberDamageSource(Entity* source, std::string source_label = {}) {
+			_last_damage_source = makeDamageSourceContext(source, std::move(source_label));
+		}
+		void rememberDamageSource(DamageSourceContext source_context) {
+			_last_damage_source = std::move(source_context);
 		}
 
-		[[nodiscard]] std::shared_ptr<Entity> getLastDamageSource() const { return _last_damage_source.lock(); }
+		[[nodiscard]] static DamageSourceContext makeDamageSourceContext(Entity* source, std::string source_label = {});
+		[[nodiscard]] const DamageSourceContext& getLastDamageSourceContext() const { return _last_damage_source; }
+		[[nodiscard]] std::shared_ptr<Entity> getLastDamageSource() const { return _last_damage_source.source.lock(); }
 		void setHealToFullOnKill(const bool value) { _heal_to_full_on_kill = value; }
 		[[nodiscard]] bool healsToFullOnKill() const { return _heal_to_full_on_kill; }
 
@@ -448,6 +500,7 @@ namespace Nawia::Entity {
 		Entity();
 
 		Vector2 _pos = {0.0f, 0.0f};
+		EntityId _entity_id = INVALID_ENTITY_ID;
 		float _altitude = 0.0f;
 		Vector2 _velocity = {0.0f, 0.0f};
 		float _scale = 1.0f;
@@ -490,6 +543,7 @@ namespace Nawia::Entity {
 		float _anim_fps = 60.0f;
 		float _rotation = 0.0f;
 		float _model_facing_offset = 90.0f; ///< Offset modelu względem kierunku matematycznego.
+		Color _model_tint = WHITE;
 		bool _model_loaded = false;
 		bool _owns_model = false;
 		bool _cloned_model = false; ///< Model pochodzi z cloneModel — nie zwalniaj tekstur.
@@ -506,6 +560,7 @@ namespace Nawia::Entity {
 		bool _hovered = false;
 		bool _dormant = false;
 		bool _heal_to_full_on_kill = false;
+		bool _combat_death_event_emitted = false;
 		std::vector<int> _hidden_mesh_indices;
 
 		bool _is_dying = false;
@@ -524,10 +579,12 @@ namespace Nawia::Entity {
 		float _poison_tick_timer = 0.0f;
 		float _poison_tick_interval = 1.0f;
 		int _poison_damage_per_tick = 0;
+		DamageSourceContext _poison_damage_source;
+		EntityCastState _cast_state;
 
 		// Śledzenie celu.
 		std::weak_ptr<Entity> _target;             ///< Aktualny cel AI/walki, nieposiadany.
-		std::weak_ptr<Entity> _last_damage_source; ///< Ostatni agresor uzywany przy wyborze celu.
+		DamageSourceContext _last_damage_source;   ///< Ostatni agresor uzywany przy wyborze celu.
 		float _path_recalc_timer = 0.0f;
 
 		Faction _faction = Faction::None;
@@ -535,6 +592,7 @@ namespace Nawia::Entity {
 
 		void updateAnimation(float dt);
 		void updateStatusEffects(float dt);
+		void updateCastTelemetry(float dt);
 		void updateMovementSound(const std::string& path, bool should_play, float volume = 0.55f, float pitch = 1.0f);
 		[[nodiscard]] float getSpatialAudioVolumeMultiplier() const;
 		void unloadModelData();

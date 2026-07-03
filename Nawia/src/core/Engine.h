@@ -9,9 +9,14 @@
 #include <LevelManager.h>
 #include <LightingSystem.h>
 #include <Loottable.h>
+#include <MapPingManager.h>
 #include <Player.h>
 #include <QuestManager.h>
+#include <AgentCommandInterface.h>
+#include <AgentPerceptionSystem.h>
 #include <BossManager.h>
+#include <CombatEventBus.h>
+#include <CombatTelemetryServer.h>
 #include <ResourceManager.h>
 #include <SaveGameManager.h>
 #include <Settings.h>
@@ -86,6 +91,14 @@ namespace Nawia::Core {
 		System::Renderer::LightingSystem& getLightingSystem() { return _lighting_system; }
 		Game::QuestManager& getQuestManager() { return _quest_manager; }
 		Audio::AudioManager& getAudioManager() { return _audio_manager; }
+		Game::AgentPerceptionSystem& getAgentPerceptionSystem() { return _agent_perception_system; }
+		const Game::AgentPerceptionSystem& getAgentPerceptionSystem() const { return _agent_perception_system; }
+		Game::AgentCommandInterface& getAgentCommandInterface() { return _agent_command_interface; }
+		const Game::AgentCommandInterface& getAgentCommandInterface() const { return _agent_command_interface; }
+		Game::CombatEventBus& getCombatEventBus() { return _combat_event_bus; }
+		const Game::CombatEventBus& getCombatEventBus() const { return _combat_event_bus; }
+		Game::MapPingManager& getPingManager() { return _ping_manager; }
+		const Game::MapPingManager& getPingManager() const { return _ping_manager; }
 		Game::BossManager& getBossManager() { return _boss_manager; }
 		const Game::BossManager& getBossManager() const { return _boss_manager; }
 		Game::SaveGameManager& getSaveGameManager() { return _save_game_manager; }
@@ -118,12 +131,14 @@ namespace Nawia::Core {
 		void handlePlayingInput();
 		void renderWorld() const;
 		void renderGameplay() const;
+		void renderPingSelector() const;
 		void renderGameplayVignetteOverlay() const;
 		[[nodiscard]] bool isLevelInteractionOnly() const;
 		[[nodiscard]] bool isLevelBlockingControl() const;
 		[[nodiscard]] float getLevelCameraZoomMultiplier() const;
 		[[nodiscard]] float getLevelCameraTargetHeightMultiplier() const;
 		void collectPendingSpawns();
+		void updateAgentPerceptionTelemetry(float delta_time);
 		void loadGameplaySounds();
 		void applySettings(const Settings& new_settings);
 		void createFreshPlayer();
@@ -186,6 +201,13 @@ namespace Nawia::Core {
 		Item::Loottable _loottable;
 		Game::DialogueManager _dialogue_manager;
 		Game::QuestManager _quest_manager;
+		Game::AgentCommandInterface _agent_command_interface;
+		Game::AgentPerceptionSystem _agent_perception_system;
+		float _agent_perception_telemetry_timer = 0.0f;
+		Game::CombatEventBus _combat_event_bus;
+		Game::CombatEventBus::SubscriptionId _combat_telemetry_subscription_id = 0;
+		Game::CombatTelemetryServer _combat_telemetry_server;
+		Game::MapPingManager _ping_manager;
 		Game::BossManager _boss_manager;
 		Game::SaveGameManager _save_game_manager;
 		mutable UI::CustomCursor _custom_cursor; ///< Customowy kursor gry w stylu slowianskim.

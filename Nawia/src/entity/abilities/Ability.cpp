@@ -1,5 +1,8 @@
 #include "Ability.h"
 
+#include <CombatEventBus.h>
+#include <Entity.h>
+
 #include <algorithm>
 #include <utility>
 
@@ -37,8 +40,24 @@ namespace Nawia::Entity {
 	}
 
 	bool Ability::beginCast() {
+		return beginCast(0.0f, 0.0f, false);
+	}
+
+	bool Ability::beginCast(const float target_x, const float target_y) {
+		return beginCast(target_x, target_y, true);
+	}
+
+	bool Ability::beginCast(const float target_x, const float target_y, const bool has_target_position) {
 		if (!canCast())
 			return false;
+
+		if (auto* event_bus = Entity::getCombatEventBus()) {
+			event_bus->emitAbilityCastStarted(
+				_caster,
+				_name,
+				{target_x, target_y},
+				has_target_position);
+		}
 
 		startCooldown();
 		return true;

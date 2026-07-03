@@ -22,6 +22,7 @@
 #include <MiniMushroomInfected.h>
 #include <MiniMushroomProp.h>
 #include <MushroomNpc.h>
+#include <RiftBinder.h>
 #include <SzeptuchaNpc.h>
 #include <spider/Spider.h>
 #include <StaticObject.h>
@@ -104,6 +105,7 @@ namespace Nawia::World {
 		Core::Map* map)
 	{
 		if (type == "devil")         return createDevil(data, engine, map);
+		if (type == "rift_binder" || type == "dragon") return createRiftBinder(data, engine, map);
 		if (type == "witch")         return createWitch(data, engine, map);
 		if (type == "bandit")        return createBandit(data, engine, map);
 		if (type == "walking_dead")  return createWalkingDead(data, engine, map);
@@ -148,6 +150,36 @@ namespace Nawia::World {
 			.build();
 
 		return devil;
+	}
+
+	std::shared_ptr<Entity::Entity> EntityFactory::createRiftBinder(
+		const json& data, Core::Engine* engine, Core::Map* map)
+	{
+		const float x = data.value("x", 0.0f);
+		const float y = data.value("y", 0.0f);
+		const int hp = data.value("hp", 420);
+		const std::string name = data.value("name", "Siewca Chaosu");
+		const std::string helper_model = resolveModelPath(
+			readStringAlias(data, {"helper_model", "helper_model_path"}));
+		const float helper_scale = data.value("helper_scale", 1.5f);
+		const std::string stone_projectile_model = resolveModelPath(
+			readStringAlias(data, {"stone_projectile_model", "stone_projectile_model_path"}));
+		const float stone_projectile_scale = data.value(
+			"stone_projectile_scale",
+			data.value("stone_projectile_model_scale", 0.3f));
+
+		auto boss = Entity::RiftBinderBuilder()
+			.setName(name)
+			.setPosition({x, y})
+			.setMap(map)
+			.setMaxHp(hp)
+			.setTarget(engine ? engine->getPlayer() : nullptr)
+			.setAudioManager(engine ? &engine->getAudioManager() : nullptr)
+			.build();
+
+		boss->setHelperModelOverride(helper_model, helper_scale);
+		boss->setStoneProjectileModel(stone_projectile_model, stone_projectile_scale);
+		return boss;
 	}
 
 	std::shared_ptr<Entity::Entity> EntityFactory::createWitch(

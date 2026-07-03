@@ -251,6 +251,8 @@ namespace Nawia::World {
 
 		bool isEnemyType(const std::string& type) {
 			return type == "devil" ||
+				   type == "rift_binder" ||
+				   type == "dragon" ||
 				   type == "witch" ||
 				   type == "bandit" ||
 				   type == "walking_dead" ||
@@ -2184,7 +2186,12 @@ namespace Nawia::World {
 			_temp_name = "Straszny pajak";
 			_current_mode = EditorMode::SpawnerDetails;
 		}
-		if (drawButton(font, "WSTECZ", start_x, start_y + 430, 300, 40, GRAY)) {
+		if (drawButton(font, "Siewca Chaosu", start_x, start_y + 400, 300, 40, BLUE)) {
+			_temp_entity_type = "dragon";
+			_temp_name = "Siewca Chaosu";
+			_current_mode = EditorMode::SpawnerDetails;
+		}
+		if (drawButton(font, "WSTECZ", start_x, start_y + 480, 300, 40, GRAY)) {
 			_current_mode = EditorMode::None;
 		}
 	}

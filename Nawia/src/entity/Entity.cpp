@@ -1,6 +1,7 @@
 #include "Entity.h"
 #include <Ability.h>
 #include <AudioManager.h>
+#include <CombatEventBus.h>
 #include <Collider.h>
 #include <ResourceManager.h>
 
@@ -19,6 +20,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <utility>
 
 namespace {
 	constexpr const char* ABILITIES_PATH = "assets/data/abilities.json";
@@ -108,6 +110,7 @@ namespace Nawia::Entity {
 
 namespace {
 	Core::ResourceManager* g_shared_resource_manager = nullptr;
+	Game::CombatEventBus* g_combat_event_bus = nullptr;
 	std::map<std::string, std::shared_ptr<const AnimationBundle>> g_animation_cache;
 	std::weak_ptr<Entity> g_audio_listener;
 
@@ -214,6 +217,47 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	Core::ResourceManager* Entity::getSharedResourceManager() {
 		return g_shared_resource_manager;
+	}
+
+	void Entity::setCombatEventBus(Game::CombatEventBus* event_bus) {
+		g_combat_event_bus = event_bus;
+	}
+
+	Game::CombatEventBus* Entity::getCombatEventBus() {
+		return g_combat_event_bus;
+	}
+
+	void Entity::assignEntityId(const EntityId entity_id) {
+		if (_entity_id == INVALID_ENTITY_ID && entity_id != INVALID_ENTITY_ID)
+			_entity_id = entity_id;
+	}
+
+	void Entity::beginCastTelemetry(std::string cast_name, const float duration_seconds, const bool interruptible) {
+		_cast_state.active = !cast_name.empty();
+		_cast_state.name = std::move(cast_name);
+		_cast_state.duration_seconds = std::max(0.0f, duration_seconds);
+		_cast_state.remaining_seconds = _cast_state.duration_seconds;
+		_cast_state.interruptible = interruptible;
+	}
+
+	void Entity::clearCastTelemetry() {
+		_cast_state = {};
+	}
+
+	DamageSourceContext Entity::makeDamageSourceContext(Entity* source, std::string source_label) {
+		DamageSourceContext context;
+		if (!source)
+			return context;
+
+		context.valid = true;
+		context.source = source->weak_from_this();
+		context.source_id = source->getEntityId();
+		context.source_name = source->getName();
+		context.source_type = source->getType();
+		context.source_faction = source->getFaction();
+		context.source_position = source->getCenter();
+		context.label = std::move(source_label);
+		return context;
 	}
 
 	void Entity::setAudioListener(const std::shared_ptr<Entity>& listener) {
@@ -514,6 +558,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	{
 		if (_dormant) return;
 
+		updateCastTelemetry(delta_time);
 		updateStatusEffects(delta_time);
 
 		if (_is_dying)
@@ -528,6 +573,15 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_pos.y += _velocity.y * delta_time;
 		
 		updateAnimation(delta_time);
+	}
+
+	void Entity::updateCastTelemetry(const float dt) {
+		if (!_cast_state.active)
+			return;
+
+		_cast_state.remaining_seconds = std::max(0.0f, _cast_state.remaining_seconds - std::max(0.0f, dt));
+		if (_cast_state.remaining_seconds <= 0.0f)
+			_cast_state.active = false;
 	}
 
 	void Entity::updateStatusEffects(const float dt)
@@ -554,7 +608,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			   poison_timer_before_update > 0.0f &&
 			   !isDead() &&
 			   !isDying()) {
-			takeDamage(_poison_damage_per_tick);
+			takeDamage(_poison_damage_per_tick, _poison_damage_source);
 			_poison_tick_timer += std::max(0.05f, _poison_tick_interval);
 			++ticks_applied;
 		}
@@ -569,6 +623,15 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	void Entity::applyPoison(const float duration, const int damage_per_tick, const float tick_interval)
 	{
+		applyPoison(duration, damage_per_tick, tick_interval, _last_damage_source);
+	}
+
+	void Entity::applyPoison(
+		const float duration,
+		const int damage_per_tick,
+		const float tick_interval,
+		const DamageSourceContext& source_context)
+	{
 		if (duration <= 0.0f || damage_per_tick <= 0)
 			return;
 
@@ -576,6 +639,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_poison_tick_interval = std::max(0.05f, tick_interval);
 		_poison_tick_timer = std::min(_poison_tick_timer > 0.0f ? _poison_tick_timer : _poison_tick_interval, _poison_tick_interval);
 		_poison_damage_per_tick = std::max(_poison_damage_per_tick, damage_per_tick);
+		_poison_damage_source = source_context;
 	}
 
 	void Entity::clearStatusEffects()
@@ -585,6 +649,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_poison_tick_timer = 0.0f;
 		_poison_tick_interval = 1.0f;
 		_poison_damage_per_tick = 0;
+		_poison_damage_source = {};
 	}
 
 	void Entity::updateAnimation(const float dt)
@@ -699,7 +764,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				}
 			};
 
-			draw_model(WHITE);
+			draw_model(_model_tint);
 			if (_equipment) {
 				_equipment->draw(pos3d, visual_rotation, _rotation, _scale);
 			}
@@ -725,33 +790,67 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		}
 	}
 
+	void Entity::takeDamage(const int dmg, const DamageSourceContext& source_context)
+	{
+		_last_damage_source = source_context;
+		takeDamage(dmg);
+	}
+
 	void Entity::takeDamage(const int dmg) 
 	{
 		if (_is_dying) return;
 
 		Core::Logger::debugLog("Entity " + getName() + " otrzymuje obrażenia: " + std::to_string(dmg) + ". Obecne HP: " + std::to_string(_hp));
+		const int hp_before = _hp;
+		const int hp_after = std::clamp(_hp - dmg, 0, _max_hp);
+		const DamageSourceContext damage_source = _last_damage_source;
+
+		if (g_combat_event_bus && dmg > 0) {
+			g_combat_event_bus->emitDamageDealt(
+				damage_source,
+				this,
+				dmg,
+				hp_before,
+				hp_after,
+				damage_source.label);
+		}
+
 		if (_hp - dmg <= 0) 
 		{
 			const bool killed_player_side = _type == EntityType::Player || _type == EntityType::Ally;
-			const auto killer = _last_damage_source.lock();
 			_hp = 1; // Utrzymujemy encję przy życiu do końca animacji śmierci.
 			_is_dying = true;
+			clearCastTelemetry();
 			playAnimation(_death_anim_name, false, true, 0, true);
 			setFaction(Faction::None);
 			onDeathStarted();
-			if (killed_player_side && killer && killer->healsToFullOnKill() && !killer->isDead() && !killer->isDying())
-				killer->setHP(killer->getMaxHP());
+			if (!_combat_death_event_emitted && g_combat_event_bus) {
+				g_combat_event_bus->emitEntityKilled(damage_source, this, damage_source.label);
+				_combat_death_event_emitted = true;
+			}
+			const auto live_damage_source = damage_source.source.lock();
+			if (killed_player_side && live_damage_source && live_damage_source->healsToFullOnKill() && !live_damage_source->isDead() && !live_damage_source->isDying())
+				live_damage_source->setHP(live_damage_source->getMaxHP());
 			Core::Logger::debugLog("Entity " + getName() + " rozpoczęła sekwencję śmierci.");
 		}
 		else
 		{
 			_hp -= dmg;
 		}
+
+		_last_damage_source.label.clear();
 	}
 
 	void Entity::die()
 	{
+		const DamageSourceContext damage_source = _last_damage_source;
 		_hp = 0;
+		clearCastTelemetry();
+		if (!_combat_death_event_emitted && g_combat_event_bus) {
+			g_combat_event_bus->emitEntityKilled(damage_source, this, damage_source.label);
+			_combat_death_event_emitted = true;
+		}
+		_last_damage_source.label.clear();
 		Core::Logger::debugLog("Entity " + getName() + " została zabita.");
 	}
 
@@ -759,12 +858,15 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	{
 		_max_hp = max_hp;
 		_hp = max_hp;
+		_combat_death_event_emitted = false;
 	}
 
 	void Entity::setHP(const int hp)
 	{
 		_hp = std::clamp(hp, 0, _max_hp);
 		_is_dying = false;
+		if (_hp > 0)
+			_combat_death_event_emitted = false;
 		if (_hp > 0 && _type != EntityType::Projectile)
 			setFaction(_faction);
 	}

@@ -59,7 +59,7 @@ namespace Nawia::Core {
 		void processPendingAction();
 		void processAutoAttack();
 		bool processInteraction();
-		bool moveToInteractionRange(const std::shared_ptr<Entity::Entity>& target, float interaction_range_sq);
+		bool moveToInteractionRange(const std::shared_ptr<Entity::Entity>& target, float interaction_range);
 		bool performInteraction();
 		void updateRotation() const;
 
@@ -71,7 +71,7 @@ namespace Nawia::Core {
 		void processPendingAbility() const;
 		void updateCombatMovement(float dist_sq, float attack_range);
 		void updatePathMovement();
-		bool moveTowardInteractable(const std::shared_ptr<Entity::Entity>& target, float interaction_range_sq);
+		bool moveTowardInteractable(const std::shared_ptr<Entity::Entity>& target, float interaction_range);
 		bool buildPathToWorldPosition(Vector3 desired_world_position);
 		void trimCurrentPathStart();
 		void moveAlongCurrentPath();

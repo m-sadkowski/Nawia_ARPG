@@ -2,6 +2,7 @@
 
 #include <raylib.h>
 
+#include <cstdint>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -51,6 +52,7 @@ namespace Nawia::Core {
 		void clearNonPlayerEntities();
 
 	private:
+		void assignEntityIdIfMissing(const std::shared_ptr<Entity::Entity>& entity);
 		void updateEntities(float delta_time);
 		void renderEntities(const Camera3D& camera) const;
 		void handleEntitiesCollisions() const;
@@ -61,6 +63,7 @@ namespace Nawia::Core {
 		void updateHoverState(float screen_x, float screen_y, const Camera3D& camera);
 
 		void processAbilityCollisions() const;
+		void processHazardEffects() const;
 		void processTriggerCollisions() const;
 		void processPhysicalCollisions() const;
 
@@ -69,6 +72,7 @@ namespace Nawia::Core {
 		[[nodiscard]] std::shared_ptr<Entity::Entity> findClosestCombatTarget(const std::shared_ptr<Entity::Entity>& seeker) const;
 
 		Engine* _engine = nullptr;
+		std::uint64_t _next_entity_id = 1;
 		std::vector<std::shared_ptr<Entity::Entity>> _active_entities;
 		std::shared_ptr<Entity::Entity> _player;
 		std::weak_ptr<Entity::Entity> _hovered_entity;

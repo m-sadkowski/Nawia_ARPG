@@ -11,6 +11,7 @@
 #include <Map.h>
 #include <Player.h>
 #include <QuestManager.h>
+#include <RiftBinder.h>
 #include <UIHandler.h>
 #include <WalkingDead.h>
 #include <witch/Witch.h>
@@ -147,6 +148,36 @@ namespace Nawia::Game {
             return data;
         }
 
+        std::string resolveOptionalModelPath(std::string model_path) {
+            std::ranges::replace(model_path, '\\', '/');
+            if (model_path.empty() || model_path.rfind("assets/", 0) == 0)
+                return model_path;
+
+            if (model_path.find('/') != std::string::npos)
+                return model_path;
+
+            return "assets/models/" + model_path;
+        }
+
+        void applyRiftBinderConfig(
+            const std::shared_ptr<Entity::Entity>& entity,
+            const BossData& boss_data
+        ) {
+            const auto rift_binder = std::dynamic_pointer_cast<Entity::RiftBinder>(entity);
+            if (!rift_binder)
+                return;
+
+            rift_binder->setHelperModelOverride(boss_data.helper_model_path, boss_data.helper_model_scale);
+            rift_binder->setStoneProjectileModel(
+                boss_data.stone_projectile_model_path,
+                boss_data.stone_projectile_model_scale);
+        }
+
+        void applyConfiguredScale(const std::shared_ptr<Entity::Entity>& entity, const float scale) {
+            if (entity && scale > 0.0f)
+                entity->setScale(scale);
+        }
+
         DialogueTree buildDialogueFromNpcConfig(const std::string& dialogue_key) {
             DialogueTree tree;
             static const nlohmann::json config = loadJsonDocument("assets/data/npc_dialogues.json");
@@ -260,6 +291,13 @@ namespace Nawia::Game {
             boss.scale = bj.value("scale", 1.0f);
             boss.music_path = bj.value("music_path", "");
             boss.music_volume = bj.value("music_volume", 0.85f);
+            boss.helper_model_path = resolveOptionalModelPath(bj.value("helper_model", bj.value("helper_model_path", "")));
+            boss.helper_model_scale = bj.value("helper_scale", 1.5f);
+            boss.stone_projectile_model_path = resolveOptionalModelPath(
+                bj.value("stone_projectile_model", bj.value("stone_projectile_model_path", "")));
+            boss.stone_projectile_model_scale = bj.value(
+                "stone_projectile_scale",
+                bj.value("stone_projectile_model_scale", 0.3f));
             boss.on_player_death = bj.value("on_player_death", "end_fight");
             boss.intro_dialogue = parseBossIntroDialogue(bj);
             boss.victory_dialogue_key = bj.value("victory_dialogue_key", "");
@@ -476,6 +514,11 @@ namespace Nawia::Game {
                 .setName(name).setMap(map).setEngine(engine).setMaxHp(max_hp)
                 .setTarget(player).setAudioManager(&engine->getAudioManager())
                 .build());
+        } else if (type == "RiftBinder" || type == "rift_binder" || type == "Dragon" || type == "dragon") {
+            entity = std::shared_ptr<Entity::Entity>(Entity::RiftBinderBuilder()
+                .setName(name).setMap(map).setMaxHp(max_hp)
+                .setTarget(player).setAudioManager(&engine->getAudioManager())
+                .build());
         }
 
         return entity;
@@ -496,7 +539,8 @@ namespace Nawia::Game {
         entity->setType(Entity::EntityType::NPCStatic);
         entity->setFaction(Entity::Faction::None);
         entity->setTarget(nullptr);
-        entity->setScale(boss_data.scale);
+        applyConfiguredScale(entity, boss_data.scale);
+        applyRiftBinderConfig(entity, boss_data);
         return entity;
     }
 
@@ -549,6 +593,7 @@ namespace Nawia::Game {
         if (!_boss_pool.contains(boss.id)) {
             auto boss_entity = buildEnemyEntity(boss.enemy_type, boss.name, boss.max_hp, engine);
             if (boss_entity) {
+                applyRiftBinderConfig(boss_entity, boss);
                 boss_entity->setDormant(true);
                 _boss_pool[boss.id] = boss_entity;
                 preloaded_anything = true;
@@ -633,7 +678,7 @@ namespace Nawia::Game {
         auto enemy = std::dynamic_pointer_cast<Entity::EnemyInterface>(boss_entity);
         if (!enemy) return false;
 
-        enemy->setScale(_active_boss_data->scale);
+        applyConfiguredScale(enemy, _active_boss_data->scale);
         enemy->setCollider(std::make_unique<Entity::RectangleCollider>(
             enemy.get(),
             _active_boss_data->enemy_type == "Frog" ? 2.0f : 1.2f,
@@ -642,6 +687,7 @@ namespace Nawia::Game {
             0.0f));
         enemy->setMap(engine->getCurrentMap());
         enemy->setHealToFullOnKill(true);
+        applyRiftBinderConfig(enemy, *_active_boss_data);
         _active_boss_entity = enemy;
         engine->getEntityManager().addEntity(_active_boss_entity);
         return true;
@@ -659,7 +705,7 @@ namespace Nawia::Game {
             return false;
         }
 
-        enemy->setScale(_active_boss_data->scale);
+        applyConfiguredScale(enemy, _active_boss_data->scale);
         enemy->setCollider(std::make_unique<Entity::RectangleCollider>(
             enemy.get(),
             _active_boss_data->enemy_type == "Frog" ? 2.0f : 1.2f,
@@ -667,6 +713,7 @@ namespace Nawia::Game {
             0.0f,
             0.0f));
         enemy->setHealToFullOnKill(true);
+        applyRiftBinderConfig(enemy, *_active_boss_data);
         _active_boss_entity = enemy;
         placeEntityAtBossSpawn(_active_boss_entity, engine);
         engine->getEntityManager().addEntity(_active_boss_entity);

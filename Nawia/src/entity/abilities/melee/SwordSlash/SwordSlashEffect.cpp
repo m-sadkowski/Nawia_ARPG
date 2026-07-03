@@ -61,7 +61,7 @@ namespace Nawia::Entity {
 		if (const auto player = dynamic_cast<Player*>(_caster))
 			final_damage += player->getStats().damage;
 
-		enemy->rememberDamageSource(_caster);
+		enemy->rememberDamageSource(_caster, getName());
 		enemy->takeDamage(final_damage);
 		addHit(enemy);
 		Core::Logger::debugLog(

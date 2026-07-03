@@ -22,6 +22,7 @@ namespace Nawia::Entity {
 		void takeDamage(int dmg) override;
 		/** @brief Aktualizuje tryb przeciwnika, zamrozonej skorupy albo oczyszczonego propa. */
 		void update(float dt) override;
+		[[nodiscard]] bool isPerceptionVisible() const override;
 		/** @brief Wywolywane przez powiazanego robala po smierci; rozpoczyna oczyszczenie. */
 		void purifyAfterWormDeath();
 		[[nodiscard]] bool isPurified() const { return _purified; }
