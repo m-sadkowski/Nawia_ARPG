@@ -146,9 +146,12 @@ namespace Nawia::Entity {
 		// Pozycja i współrzędne.
 		[[nodiscard]] float getX() const { return _pos.x; }
 		[[nodiscard]] float getY() const { return _pos.y; }
+		[[nodiscard]] Vector2 getPosition() const { return _pos; }
 		[[nodiscard]] float getAltitude() const { return _altitude; }
 		void setX(float x) { _pos.x = x; }
 		void setY(float y) { _pos.y = y; }
+		void setPosition(Vector2 position) { _pos = position; }
+		void translatePosition(float dx, float dy) { _pos.x += dx; _pos.y += dy; }
 		void setAltitude(float altitude) { _altitude = altitude; }
 		void assignEntityId(EntityId entity_id);
 		[[nodiscard]] EntityId getEntityId() const { return _entity_id; }
@@ -213,10 +216,12 @@ namespace Nawia::Entity {
 		[[nodiscard]] Vector2 getVelocity() const { return _velocity; }
 		void setScale(float scale) { _scale = scale; }
 		[[nodiscard]] float getScale() const { return _scale; }
+		[[nodiscard]] const std::shared_ptr<Texture2D>& getTexture() const { return _texture; }
 		void setModelTint(Color tint);
 		[[nodiscard]] Color getModelTint() const;
 		void setHovered(bool hovered);
 		void setAudioManager(Audio::AudioManager* audio_manager) { _audio_manager = audio_manager; }
+		[[nodiscard]] Audio::AudioManager* getAudioManager() const { return _audio_manager; }
 		void hideMeshIndex(int mesh_index);
 
 		/**
@@ -284,6 +289,8 @@ namespace Nawia::Entity {
 		 * @brief Podpina wspolny, nieposiadany model z cache dla nieanimowanych encji.
 		 */
 		void useSharedModel(const Model& model);
+		bool alignLoadedModelToGround();
+		void renderLoadedModel(Color tint = WHITE) const;
 
 		/**
 		 * @brief Skaluje zaladowany model do docelowej wysokosci, centrujac go na osi X/Z i opierajac o ziemie.
@@ -341,6 +348,10 @@ namespace Nawia::Entity {
 		void setAnimationSpeed(float multiplier) { _anim_speed_multiplier = multiplier; }
 		[[nodiscard]] float getAnimationSpeed() const { return _anim_speed_multiplier; }
 		[[nodiscard]] int getAnimationFrameCount(const std::string& name) const;
+		[[nodiscard]] bool hasAnimationReachedFrame(float frame) const;
+		void holdAnimationFrame(const std::string& animation_name, int frame);
+		void playAnimationReverseOnce(const std::string& animation_name, bool lock_movement = true);
+		bool advanceAnimationTowardFrame(float dt, int target_frame, bool lock_when_reached = true);
 		void applyCurrentAnimationFrame();
 		[[nodiscard]] bool isAnimationLocked() const { return _anim_locked; }
 		static constexpr float ANIMATION_DURATION_SCALE = 1.5f;
@@ -509,6 +520,7 @@ namespace Nawia::Entity {
 		template <typename T> friend class EntityBuilder;
 		Entity();
 
+	private:
 		Vector2 _pos = {0.0f, 0.0f};
 		EntityId _entity_id = INVALID_ENTITY_ID;
 		float _altitude = 0.0f;
@@ -537,7 +549,7 @@ namespace Nawia::Entity {
 		void playSoundEffect(const std::string& id, float volume = 1.0f, bool restart_if_playing = true, float pitch = 1.0f) const;
 		void stopSoundEffect(const std::string& id) const;
 
-	protected:
+	private:
 		// Dane modelu i animacji.
 		Model _model = {};
 		std::vector<AnimationClipRef> _animations;
@@ -592,6 +604,7 @@ namespace Nawia::Entity {
 		std::unique_ptr<EntityStatusController> _status_controller;
 		std::unique_ptr<EntityVisualState> _visual_state;
 
+	protected:
 		void updateAnimation(float dt);
 		void updateStatusEffects(float dt);
 		void updateCastTelemetry(float dt);

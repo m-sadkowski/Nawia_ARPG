@@ -19,7 +19,7 @@ namespace Nawia::Entity {
         if (_activated || other.getFaction() != Faction::Player)
             return;
 
-        std::cout << "Checkpoint '" << _name << "' aktywowany przez " << other.getName() << "!" << std::endl;
+        std::cout << "Checkpoint '" << getName() << "' aktywowany przez " << other.getName() << "!" << std::endl;
         _activated = true;
 
         auto* player = dynamic_cast<Player*>(&other);

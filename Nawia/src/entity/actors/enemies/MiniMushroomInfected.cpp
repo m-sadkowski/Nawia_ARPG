@@ -78,7 +78,7 @@ namespace Nawia::Entity {
 			.setPosition(getCenter())
 			.setMap(_map)
 			.setMaxHp(35)
-			.setAudioManager(_audio_manager)
+			.setAudioManager(getAudioManager())
 			.setLinkedMushroom(std::dynamic_pointer_cast<MiniMushroomInfected>(shared_from_this()))
 			.build());
 		worm->setAltitude(getAltitude());
@@ -108,9 +108,7 @@ namespace Nawia::Entity {
 		setAnimationSpeed(1.0f);
 		loadMiniMushroomAnimations();
 
-		const int frame_count = getAnimationFrameCount("death");
-		playAnimation("death", false, true, std::max(0, frame_count - 1), true);
-		_anim_direction = -1.0f;
+		playAnimationReverseOnce("death");
 	}
 
 	nlohmann::json MiniMushroomInfected::serializeState() const {
@@ -164,9 +162,7 @@ namespace Nawia::Entity {
 			loadMiniMushroomAnimations();
 			setMovementSpeed(2.55f);
 			if (_purifying) {
-				const int frame_count = getAnimationFrameCount("death");
-				playAnimation("death", false, true, std::max(0, frame_count - 1), true);
-				_anim_direction = -1.0f;
+				playAnimationReverseOnce("death");
 			} else if (_has_prop_destination) {
 				moveTo(_prop_destination.x, _prop_destination.y);
 				if (getAnimationFrameCount("walk") > 0)

@@ -199,7 +199,7 @@ namespace Nawia::Entity {
 
 	Vector3 RiftBinder::getWorldPos3D() const
 	{
-		return {_pos.x, _altitude + DRAGON_VISUAL_HEIGHT_OFFSET, _pos.y};
+		return {getX(), getAltitude() + DRAGON_VISUAL_HEIGHT_OFFSET, getY()};
 	}
 
 	bool RiftBinder::isVisibleInCamera(const Camera3D& camera, const float screen_margin) const
@@ -277,7 +277,7 @@ namespace Nawia::Entity {
 		Entity::update(dt);
 		stopMoving();
 
-		if (const auto target = _target.lock())
+		if (const auto target = getTarget())
 			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
 
 		_cast_timer -= dt;
@@ -302,12 +302,12 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		if (const auto target = _target.lock())
+		if (const auto target = getTarget())
 			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
 
 		const int frame_count = getAnimationFrameCount("attack");
 		const float damage_frame = static_cast<float>(frame_count) * MELEE_DAMAGE_FRAME_RATIO;
-		if (!_melee_damage_applied && frame_count > 0 && _anim_frame_counter >= damage_frame)
+		if (!_melee_damage_applied && frame_count > 0 && hasAnimationReachedFrame(damage_frame))
 			applyMeleeDamage();
 
 		if (!isAnimationLocked()) {
@@ -485,7 +485,7 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		const int count = TOTEMS_BY_STAGE[static_cast<size_t>(stage_index)];
 		const Vector2 center = getCenter();
 		const Vector2 target_pos = targetCenterOrSelf();
@@ -535,7 +535,7 @@ namespace Nawia::Entity {
 				target,
 				stage_index);
 			totem->setAltitude(getAltitude());
-			totem->setAudioManager(_audio_manager);
+			totem->setAudioManager(getAudioManager());
 			_totems.push_back(totem);
 			addPendingSpawn(totem);
 		}
@@ -543,7 +543,7 @@ namespace Nawia::Entity {
 
 	void RiftBinder::spawnStoneVolley()
 	{
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		const Vector2 boss_pos = getCenter();
 		const Vector2 target_pos = targetCenterOrSelf();
 		const float target_height = target ? target->getAltitude() + 0.75f : getAltitude() + 0.75f;
@@ -551,7 +551,7 @@ namespace Nawia::Entity {
 		const Vector2 right = {-forward.y, forward.x};
 
 		AbilityStats stats;
-		stats.damage = static_cast<int>(std::round(static_cast<float>(STONE_DAMAGE) * _damage_multiplier));
+		stats.damage = static_cast<int>(std::round(static_cast<float>(STONE_DAMAGE) * getDamageMultiplier()));
 		stats.duration = STONE_PROJECTILE_DURATION;
 		stats.projectile_speed = STONE_PROJECTILE_SPEED;
 		stats.hitbox_radius = STONE_PROJECTILE_HIT_RADIUS;
@@ -632,10 +632,10 @@ namespace Nawia::Entity {
 
 	void RiftBinder::applyMeleeDamage()
 	{
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (target && !target->isDead() && !target->isDying() && getDistanceToTarget() <= MELEE_RANGE * 1.55f) {
 			target->takeDamage(
-				static_cast<int>(static_cast<float>(MELEE_DAMAGE) * _damage_multiplier),
+				static_cast<int>(static_cast<float>(MELEE_DAMAGE) * getDamageMultiplier()),
 				Entity::makeDamageSourceContext(this, "Dragon Claw"));
 			target->applyRoot(MELEE_ROOT_SECONDS);
 			playSoundEffect(Audio::SoundId::DevilPunch, 0.72f, true, 0.9f);
@@ -646,18 +646,18 @@ namespace Nawia::Entity {
 
 	void RiftBinder::moveAwayFromTarget(const float dt)
 	{
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target)
 			return;
 
 		const Vector2 away = safeNormalize(Vector2Subtract(getCenter(), target->getCenter()), {1.0f, 0.0f});
 		const Vector2 next = {
-			getX() + away.x * MOVE_SPEED * _speed_multiplier * 1.15f * dt,
-			getY() + away.y * MOVE_SPEED * _speed_multiplier * 1.15f * dt
+			getX() + away.x * MOVE_SPEED * getSpeedMultiplier() * 1.15f * dt,
+			getY() + away.y * MOVE_SPEED * getSpeedMultiplier() * 1.15f * dt
 		};
 
 		if (!_map || _map->isWalkable(next.x, next.y)) {
-			_pos = next;
+			setPosition(next);
 			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
 			playWalk();
 			return;
@@ -669,7 +669,7 @@ namespace Nawia::Entity {
 
 	void RiftBinder::chaseToPreferredRange(const float dt)
 	{
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target)
 			return;
 
@@ -792,7 +792,7 @@ namespace Nawia::Entity {
 
 	Vector2 RiftBinder::targetCenterOrSelf() const
 	{
-		if (const auto target = _target.lock())
+		if (const auto target = getTarget())
 			return target->getCenter();
 
 		return getCenter();

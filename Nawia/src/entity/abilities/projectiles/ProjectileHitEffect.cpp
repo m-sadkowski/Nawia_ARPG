@@ -6,9 +6,9 @@ namespace Nawia::Entity {
 		: AbilityEffect("ProjectileHit", x, y, tex, AbilityStats()) {
 		_stats.duration = _total_frames * _frame_duration;
 
-		if (_texture) {
-			_frame_width = _texture->width / _total_frames;
-			_frame_height = _texture->height;
+		if (const auto& texture = getTexture()) {
+			_frame_width = texture->width / _total_frames;
+			_frame_height = texture->height;
 		}
 	}
 

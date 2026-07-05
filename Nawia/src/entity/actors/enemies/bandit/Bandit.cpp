@@ -88,7 +88,7 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		if (auto target = _target.lock())
+		if (auto target = getTarget())
 		{
 			const float dist = getDistanceToTarget();
 			if (dist <= VISION_RANGE)
@@ -103,7 +103,7 @@ namespace Nawia::Entity {
 		Entity::update(dt);  // Bazowa aktualizacja animacji.
 		updateAbilities(dt);
 
-		auto target = _target.lock();
+		auto target = getTarget();
 		if (!target || target->isDead()) {
 			_state = State::Idle;
 			playAnimation("idle");
@@ -218,7 +218,7 @@ namespace Nawia::Entity {
 		updateAbilities(dt);
 
 		// Podczas animacji rzutu bandyta dalej obraca się w stronę celu.
-		if (auto target = _target.lock())
+		if (auto target = getTarget())
 		{
 			rotateTowards(target->getX(), target->getY());
 		}
@@ -226,11 +226,11 @@ namespace Nawia::Entity {
 		// Nóż rzucamy tylko raz, w konkretnej fazie animacji.
 		const int throw_frame_count = getAnimationFrameCount("throw");
 		const float throw_frame = static_cast<float>(throw_frame_count) * THROW_SPAWN_FRAME_RATIO;
-		if (!_knife_thrown_this_cast && throw_frame_count > 0 && _anim_frame_counter >= throw_frame)
+		if (!_knife_thrown_this_cast && throw_frame_count > 0 && hasAnimationReachedFrame(throw_frame))
 		{
 			if (const auto knife = getAbility(0))
 			{
-				if (const auto target = _target.lock())
+				if (const auto target = getTarget())
 				{
 					const float tx = target->getCenter().x;
 					const float ty = target->getCenter().y;
@@ -262,7 +262,7 @@ namespace Nawia::Entity {
 			return true;
 
 		const auto knife = getAbility(0);
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!knife || !target || target->isDead())
 			return false;
 

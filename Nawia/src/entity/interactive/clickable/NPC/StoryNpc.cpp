@@ -72,7 +72,7 @@ namespace Nawia::Entity {
 		: InteractiveClickable(name, x, y, nullptr, 1)
 	{
 		_engine = engine;
-		_type = EntityType::NPCStatic;
+		setType(EntityType::NPCStatic);
 		setFaction(Faction::None);
 	}
 

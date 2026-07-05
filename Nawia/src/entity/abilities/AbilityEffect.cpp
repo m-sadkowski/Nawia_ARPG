@@ -13,7 +13,7 @@ namespace Nawia::Entity {
 								 const AbilityStats& stats)
 		: Entity(name, x, y, tex, 1),
 		  _stats(stats) {
-		_type = EntityType::Projectile;
+		setType(EntityType::Projectile);
 	}
 
 	void AbilityEffect::update(const float dt) {

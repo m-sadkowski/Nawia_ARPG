@@ -35,7 +35,7 @@ namespace Nawia::Entity {
 		: StoryNpc(name, x, y, engine)
 	{
 		_follow_checkpoint_name = follow_checkpoint_name;
-		_type = EntityType::NPCActor;
+		setType(EntityType::NPCActor);
 		_home_position = getCenter();
 		setMovementSpeed(3.2f);
 

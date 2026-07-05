@@ -53,7 +53,7 @@ namespace Nawia::Entity {
 		ForestGroupVisual(const std::string& name, const float x, const float y)
 			: Entity(name, x, y, nullptr, 1)
 		{
-			_type = EntityType::NPCStatic;
+			setType(EntityType::NPCStatic);
 			setFaction(Faction::None);
 		}
 
@@ -70,26 +70,11 @@ namespace Nawia::Entity {
 		}
 
 		void holdAnimationFrame(const std::string& animation_name, const int frame) {
-			setAnimationSpeed(0.0f);
-			playAnimation(animation_name, true, false, frame, true);
-			applyCurrentAnimationFrame();
+			Entity::holdAnimationFrame(animation_name, frame);
 		}
 
 		void playAnimationReverseOnce(const std::string& animation_name) {
-			const int frame_count = getAnimationFrameCount(animation_name);
-			if (frame_count <= 0)
-				return;
-
-			setAnimationSpeed(1.0f);
-			playAnimation(animation_name, false, true, frame_count - 1, true);
-			_anim_direction = -1.0f;
-			_anim_looping = false;
-			_anim_locked = true;
-			_anim_ping_pong = false;
-			_anim_reverse_phase = false;
-			_last_applied_anim_index = -1;
-			_last_applied_anim_frame = -1;
-			applyCurrentAnimationFrame();
+			Entity::playAnimationReverseOnce(animation_name);
 		}
 	};
 
@@ -101,7 +86,7 @@ namespace Nawia::Entity {
 		const nlohmann::json& data)
 		: StoryNpc(name, x, y, engine)
 	{
-		_type = EntityType::NPCActor;
+		setType(EntityType::NPCActor);
 		configureFromJson(data);
 
 		loadGroupModelAndAnimations(*this, FEMALE_CARRIER_MODEL);

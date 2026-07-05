@@ -137,6 +137,15 @@ namespace Nawia::Core {
 		[[nodiscard]] bool isLevelBlockingControl() const;
 		[[nodiscard]] float getLevelCameraZoomMultiplier() const;
 		[[nodiscard]] float getLevelCameraTargetHeightMultiplier() const;
+		void updateAlwaysOnSystems(float delta_time);
+		[[nodiscard]] bool handleLoadingUpdate();
+		[[nodiscard]] bool handlePendingMainMenuReturn();
+		[[nodiscard]] bool updateMenuLikeState(float delta_time);
+		[[nodiscard]] bool ensureGameplayReady();
+		void updateGameplayCamera(float delta_time);
+		void updateGameplayPresentation(float delta_time);
+		void updateControlBlockedGameplay(float delta_time);
+		void updateActiveGameplay(float delta_time);
 		void collectPendingSpawns();
 		void updateAgentPerceptionTelemetry(float delta_time);
 		void loadGameplaySounds();

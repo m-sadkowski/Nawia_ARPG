@@ -26,7 +26,7 @@ namespace Nawia::Entity {
 		GroupVisual(const std::string& name, const float x, const float y)
 			: Entity(name, x, y, nullptr, 1)
 		{
-			_type = EntityType::NPCStatic;
+			setType(EntityType::NPCStatic);
 			setFaction(Faction::None);
 		}
 
@@ -43,7 +43,7 @@ namespace Nawia::Entity {
 		const nlohmann::json& data)
 		: StoryNpc(name, x, y, engine)
 	{
-		_type = EntityType::NPCActor;
+		setType(EntityType::NPCActor);
 		configureFromJson(data);
 
 		loadModelAndAnimations(*this, FEMALE_SURVIVOR_MODEL);

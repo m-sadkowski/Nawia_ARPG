@@ -147,17 +147,17 @@ namespace Nawia::Entity {
 	void SimpleMeleeEnemy::handleAttackingState(const float dt) {
 		Entity::update(dt);
 
-		if (const auto target = _target.lock())
+		if (const auto target = getTarget())
 			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
 
 		// Obrazenia sa podpiete pod klatke animacji, zeby prosty enemy mial czytelny timing ataku.
 		const int attack_frame_count = getAnimationFrameCount(_attack_animation);
 		const float damage_frame = static_cast<float>(attack_frame_count) * _attack_damage_frame_ratio;
-		if (!_attack_damage_applied && attack_frame_count > 0 && _anim_frame_counter >= damage_frame) {
-			if (const auto target = _target.lock()) {
+		if (!_attack_damage_applied && attack_frame_count > 0 && hasAnimationReachedFrame(damage_frame)) {
+			if (const auto target = getTarget()) {
 				if (getDistanceToTarget() <= _attack_range * 1.6f) {
 					target->rememberDamageSource(this, "Melee Attack");
-					target->takeDamage(static_cast<int>(_attack_damage * _damage_multiplier));
+					target->takeDamage(static_cast<int>(_attack_damage * getDamageMultiplier()));
 					_attack_damage_applied = true;
 					onAttackDamageApplied(*target);
 				}

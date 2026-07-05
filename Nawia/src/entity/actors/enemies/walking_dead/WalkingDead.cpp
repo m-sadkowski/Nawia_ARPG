@@ -97,7 +97,7 @@ namespace Nawia::Entity {
 		Entity::update(dt);
 
 		// Próba wykrycia celu.
-		if (auto target = _target.lock())
+		if (auto target = getTarget())
 		{
 			const float dist = getDistanceToTarget();
 			if (dist <= VISION_RANGE)
@@ -112,7 +112,7 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);  // Bazowa aktualizacja animacji.
 
-		auto target = _target.lock();
+		auto target = getTarget();
 		if (!target || target->isDead())
 		{
 			_state = State::Screaming;
@@ -172,8 +172,7 @@ namespace Nawia::Entity {
 			
 			rotateTowards(target->getX(), target->getY());
 			
-			_pos.x += dir.x * current_speed * dt;
-			_pos.y += dir.y * current_speed * dt;
+			translatePosition(dir.x * current_speed * dt, dir.y * current_speed * dt);
 		}
 		else
 		{
@@ -194,14 +193,14 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		if (const auto target = _target.lock())
+		if (const auto target = getTarget())
 			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
 
 		const int attack_frame_count = getAnimationFrameCount("attack");
 		const float damage_frame = static_cast<float>(attack_frame_count) * ATTACK_DAMAGE_FRAME_RATIO;
-		if (!_attack_damage_applied && attack_frame_count > 0 && _anim_frame_counter >= damage_frame)
+		if (!_attack_damage_applied && attack_frame_count > 0 && hasAnimationReachedFrame(damage_frame))
 		{
-			if (const auto target = _target.lock())
+			if (const auto target = getTarget())
 			{
 				if (getDistanceToTarget() <= ATTACK_RANGE * 1.7f)
 				{
@@ -215,7 +214,7 @@ namespace Nawia::Entity {
 		if (!isAnimationLocked())
 		{
 			// Po zakończeniu animacji ataku zadajemy obrażenia.
-			if (const auto target = _target.lock())
+			if (const auto target = getTarget())
 			{
 				if (!_attack_damage_applied && getDistanceToTarget() <= ATTACK_RANGE * 1.7f)
 				{

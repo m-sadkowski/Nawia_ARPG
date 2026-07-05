@@ -63,11 +63,11 @@ namespace Nawia::Entity {
 	}
 
 	Player::Player() {
-		_name = "Player";
+		setName("Player");
 		setMaxHp(200);
-		_scale = 1.5f;
-		_type = EntityType::Player;
-		_faction = Faction::Player;
+		setScale(1.5f);
+		setType(EntityType::Player);
+		setFaction(Faction::Player);
 		_active_visual_model_path = PLAYER_HEAD_MODEL;
 		loadModel(_active_visual_model_path);
 		loadAnimationBundle("assets/models/animations/anims.glb");
@@ -374,7 +374,7 @@ namespace Nawia::Entity {
 			return;
 
 		replaceModel(target_model);
-		if (_model_loaded)
+		if (hasModelLoaded())
 			_active_visual_model_path = target_model;
 	}
 
@@ -500,8 +500,8 @@ namespace Nawia::Entity {
 	{
 		const int safe_hp = isDead() ? std::max(1, getMaxHP() / 2) : std::clamp(getHP(), 1, getMaxHP());
 		return {
-			{"position", vector2ToJson({_pos.x, _pos.y})},
-			{"altitude", _altitude},
+			{"position", vector2ToJson(getPosition())},
+			{"altitude", getAltitude()},
 			{"hp", safe_hp},
 			{"max_hp", getMaxHP()},
 			{"respawn_point", vector2ToJson(_respawn_point)}
@@ -513,10 +513,10 @@ namespace Nawia::Entity {
 		if (!data.is_object())
 			return;
 
-		const Vector2 position = vector2FromJson(data.value("position", nlohmann::json::object()), {_pos.x, _pos.y});
+		const Vector2 position = vector2FromJson(data.value("position", nlohmann::json::object()), getPosition());
 		setX(position.x);
 		setY(position.y);
-		_altitude = data.value("altitude", _altitude);
+		setAltitude(data.value("altitude", getAltitude()));
 		_respawn_point = vector2FromJson(data.value("respawn_point", nlohmann::json::object()), _respawn_point);
 
 		setHP(data.value("hp", getHP()));

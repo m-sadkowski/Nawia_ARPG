@@ -9,7 +9,7 @@ namespace Nawia::Entity {
 	MiniMushroomProp::MiniMushroomProp()
 		: Entity("Gzibek", 0.0f, 0.0f, nullptr, 1)
 	{
-		_type = EntityType::NPCStatic;
+		setType(EntityType::NPCStatic);
 		setFaction(Faction::None);
 		setScale(0.3f);
 		loadModel(MODEL_PATH);

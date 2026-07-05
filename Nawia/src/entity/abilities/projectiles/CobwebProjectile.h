@@ -24,7 +24,7 @@ namespace Nawia::Entity {
 		void render(const Camera3D& camera) override;
 		[[nodiscard]] bool checkCollision(const std::shared_ptr<Entity>& target) const override;
 		void onCollision(const std::shared_ptr<Entity>& target) override;
-		[[nodiscard]] Vector3 getWorldPos3D() const override { return {_pos.x, _flight_height, _pos.y}; }
+		[[nodiscard]] Vector3 getWorldPos3D() const override { return {getX(), _flight_height, getY()}; }
 
 	private:
 		void configureMovement(float target_x, float target_y);

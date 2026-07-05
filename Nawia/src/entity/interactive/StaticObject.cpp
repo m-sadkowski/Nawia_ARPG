@@ -4,7 +4,7 @@
 namespace Nawia::Entity {
 
 	StaticObject::StaticObject() {
-		_type = EntityType::NPCStatic; 
+		setType(EntityType::NPCStatic);
 		setFaction(Faction::Neutral);
 	}
 

@@ -405,7 +405,7 @@ namespace Nawia::Entity {
 		const auto target = getTarget();
 		if (target && isTargetInTongueLane(*target)) {
 			target->rememberDamageSource(this, "Tongue Strike");
-			target->takeDamage(static_cast<int>(TONGUE_DAMAGE * _damage_multiplier));
+			target->takeDamage(static_cast<int>(TONGUE_DAMAGE * getDamageMultiplier()));
 			target->applyRoot(TONGUE_PULL_TIME + 0.18f);
 			_tongue_victim = target;
 			playSoundEffect(Audio::SoundId::DevilDashHit, 0.72f, true, 1.25f);
@@ -487,7 +487,7 @@ namespace Nawia::Entity {
 		config.radius = TOXIC_POOL_RADIUS;
 		config.warning_seconds = TOXIC_POOL_WINDUP_TIME;
 		config.active_seconds = TOXIC_POOL_DURATION;
-		config.damage_per_tick = static_cast<int>(TOXIC_POOL_DAMAGE * _damage_multiplier);
+		config.damage_per_tick = static_cast<int>(TOXIC_POOL_DAMAGE * getDamageMultiplier());
 		config.tick_interval = 0.85f;
 		config.root_seconds_on_hit = 0.18f;
 		config.source_context = Entity::makeDamageSourceContext(this, config.name);
@@ -566,7 +566,7 @@ namespace Nawia::Entity {
 		// Wczesny boss Frog jest przejsciem do sceny z Soltysem, wiec NPC pojawia sie w miejscu smierci.
 		auto village_head = std::make_shared<VillageHeadNpc>("Soltys", getX(), getY(), _engine);
 		village_head->setAltitude(getAltitude());
-		village_head->setAudioManager(_audio_manager);
+		village_head->setAudioManager(getAudioManager());
 		addPendingSpawn(village_head);
 	}
 

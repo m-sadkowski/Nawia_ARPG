@@ -15,12 +15,12 @@ namespace Nawia::Entity {
 	protected:
 		template <typename T> friend class EnemyBuilder;
 		EnemyInterface() {
-			_type = EntityType::Enemy;
+			setType(EntityType::Enemy);
 		}
 
 		EnemyInterface(const std::string& name, float x, float y, const std::shared_ptr<Texture2D>& texture, int max_hp, Core::Map* map)
 			: ActorInterface(name, x, y, texture, max_hp, map) {
-			_type = EntityType::Enemy;
+			setType(EntityType::Enemy);
 		}
 	};
 

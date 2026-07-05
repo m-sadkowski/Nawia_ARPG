@@ -22,7 +22,7 @@ namespace Nawia::Entity {
 	Chest::Chest(const std::string& name, const float x, const float y, const std::shared_ptr<Texture2D>& texture)
 		: InteractiveClickable(name, x, y, texture, 1) // Skrzynia ma techniczne 1 HP.
 	{
-		_type = EntityType::Chest;
+		setType(EntityType::Chest);
 		setFaction(Faction::None);
 		setScale(1.0f);
 		setRotation(-90.0f);

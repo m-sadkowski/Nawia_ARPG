@@ -43,7 +43,7 @@ namespace Nawia::Entity {
 		void onCollision(const std::shared_ptr<Entity>& target) override;
 
 		/** @brief Zwraca pozycje 3D na aktualnej wysokosci lotu. */
-		[[nodiscard]] Vector3 getWorldPos3D() const override { return {_pos.x, _flight_height, _pos.y}; }
+		[[nodiscard]] Vector3 getWorldPos3D() const override { return {getX(), _flight_height, getY()}; }
 
 	private:
 		/** @brief Ustawia kierunek lotu i rotacje modelu. */

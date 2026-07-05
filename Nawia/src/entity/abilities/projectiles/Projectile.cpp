@@ -114,14 +114,13 @@ namespace Nawia::Entity {
 	void Projectile::update(const float dt) {
 		AbilityEffect::update(dt);
 
-		_previous_x = _pos.x;
-		_previous_y = _pos.y;
-		_pos.x += _vel_x * dt;
-		_pos.y += _vel_y * dt;
+		_previous_x = getX();
+		_previous_y = getY();
+		translatePosition(_vel_x * dt, _vel_y * dt);
 
 		if (_travel_distance > MIN_DIRECTION_LENGTH) {
-			const float traveled_x = _pos.x - _start_x;
-			const float traveled_y = _pos.y - _start_y;
+			const float traveled_x = getX() - _start_x;
+			const float traveled_y = getY() - _start_y;
 			const float traveled_distance = std::sqrt(traveled_x * traveled_x + traveled_y * traveled_y);
 			const float progress = std::clamp(traveled_distance / _travel_distance, 0.0f, 1.0f);
 			_flight_height = _start_height + (_target_height - _start_height) * progress;
@@ -160,7 +159,7 @@ namespace Nawia::Entity {
 			return false;
 
 		const Vector2 segment_start = {_previous_x, _previous_y};
-		const Vector2 segment_end = {_pos.x, _pos.y};
+		const Vector2 segment_end = getPosition();
 		const float target_radius = footprintRadiusFromBoundingBox(target_box);
 		const float effective_radius = hit_radius + target_radius;
 		return distancePointSegmentSqr(target->getCenter(), segment_start, segment_end) <= effective_radius * effective_radius;
@@ -179,11 +178,11 @@ namespace Nawia::Entity {
 		target->takeDamage(final_damage);
 		addHit(target);
 
-		if (_name == "Fireball")
+		if (getName() == "Fireball")
 			playSoundEffect(Audio::SoundId::FireballHit, 0.9f);
 
 		if (_hit_texture)
-			addPendingSpawn(std::make_shared<ProjectileHitEffect>(_pos.x, _pos.y, _hit_texture));
+			addPendingSpawn(std::make_shared<ProjectileHitEffect>(getX(), getY(), _hit_texture));
 
 		die();
 		Core::Logger::debugLog("Projectile trafil " + target->getName() + " za " + std::to_string(final_damage) + " obrazen.");

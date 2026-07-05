@@ -260,6 +260,32 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_local_model_bounding_box_valid = true;
 	}
 
+	bool Entity::alignLoadedModelToGround()
+	{
+		if (!_model_loaded)
+			return false;
+
+		const BoundingBox bounds = _local_model_bounding_box_valid
+			? _local_model_bounding_box
+			: GetModelBoundingBox(_model);
+		_model.transform = MatrixMultiply(MatrixTranslate(0.0f, -bounds.min.y, 0.0f), _model.transform);
+		return true;
+	}
+
+	void Entity::renderLoadedModel(const Color tint) const
+	{
+		if (!_model_loaded)
+			return;
+
+		DrawModelEx(
+			_model,
+			getWorldPos3D(),
+			{0.0f, 1.0f, 0.0f},
+			getRotation(),
+			{getScale(), getScale(), getScale()},
+			tint);
+	}
+
 	bool Entity::fitLoadedModelToHeight(const float target_height, const bool center_xz, const bool align_to_ground)
 	{
 		if (!_model_loaded || target_height <= 0.0f)
@@ -418,6 +444,51 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 		const ModelAnimation* animation = resolveAnimation(_animations[index]);
 		return animation ? animation->frameCount : 0;
+	}
+
+	bool Entity::hasAnimationReachedFrame(const float frame) const
+	{
+		return _anim_frame_counter >= frame;
+	}
+
+	void Entity::holdAnimationFrame(const std::string& animation_name, const int frame)
+	{
+		setAnimationSpeed(0.0f);
+		playAnimation(animation_name, true, false, frame, true);
+		applyCurrentAnimationFrame();
+	}
+
+	void Entity::playAnimationReverseOnce(const std::string& animation_name, const bool lock_movement)
+	{
+		const int frame_count = getAnimationFrameCount(animation_name);
+		if (frame_count <= 0)
+			return;
+
+		setAnimationSpeed(1.0f);
+		playAnimation(animation_name, false, lock_movement, frame_count - 1, true);
+		_anim_direction = -1.0f;
+		_anim_looping = false;
+		_anim_locked = lock_movement;
+		_anim_ping_pong = false;
+		_anim_reverse_phase = false;
+		_last_applied_anim_index = -1;
+		_last_applied_anim_frame = -1;
+		applyCurrentAnimationFrame();
+	}
+
+	bool Entity::advanceAnimationTowardFrame(const float dt, const int target_frame, const bool lock_when_reached)
+	{
+		const float final_frame = static_cast<float>(std::max(0, target_frame));
+		_anim_frame_counter += dt * _anim_fps * getAnimationSpeed() / ANIMATION_DURATION_SCALE;
+		if (_anim_frame_counter >= final_frame) {
+			_anim_frame_counter = final_frame;
+			_anim_locked = lock_when_reached;
+			applyCurrentAnimationFrame();
+			return true;
+		}
+
+		applyCurrentAnimationFrame();
+		return false;
 	}
 
 	void Entity::applyCurrentAnimationFrame()

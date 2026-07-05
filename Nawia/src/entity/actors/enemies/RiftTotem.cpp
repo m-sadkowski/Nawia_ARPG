@@ -36,10 +36,7 @@ namespace Nawia::Entity {
 		setTarget(target);
 		setCollider(std::make_unique<CircleCollider>(this, 0.68f));
 		loadModel(TOTEM_MODEL);
-		if (_model_loaded) {
-			const BoundingBox bounds = _local_model_bounding_box_valid ? _local_model_bounding_box : GetModelBoundingBox(_model);
-			_model.transform = MatrixMultiply(MatrixTranslate(0.0f, -bounds.min.y, 0.0f), _model.transform);
-		}
+		alignLoadedModelToGround();
 		setScale(TOTEM_MODEL_SCALE);
 	}
 
@@ -86,7 +83,7 @@ namespace Nawia::Entity {
 
 	void RiftTotem::spawnHelper()
 	{
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target || target->isDead() || target->isDying())
 			return;
 
@@ -98,7 +95,7 @@ namespace Nawia::Entity {
 			.setMap(_map)
 			.setMaxHp(HELPER_BASE_HP + _stage_index * HELPER_HP_PER_STAGE)
 			.setTarget(target)
-			.setAudioManager(_audio_manager)
+			.setAudioManager(getAudioManager())
 			.build();
 
 		helper->replaceModel(HELPER_MODEL);

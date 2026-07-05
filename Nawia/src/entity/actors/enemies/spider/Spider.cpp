@@ -148,7 +148,7 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		const float distance = getDistanceToTarget();
 		if (distance > VISION_RANGE * 1.7f) {
 			_state = State::Idle;
@@ -192,16 +192,16 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (target)
 			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
 
 		const int frame_count = getAnimationFrameCount("melee");
 		const float damage_frame = static_cast<float>(frame_count) * MELEE_DAMAGE_FRAME_RATIO;
-		if (!_melee_damage_applied && frame_count > 0 && _anim_frame_counter >= damage_frame) {
+		if (!_melee_damage_applied && frame_count > 0 && hasAnimationReachedFrame(damage_frame)) {
 			if (target && !target->isDead() && !target->isDying() && getDistanceToTarget() <= MELEE_RANGE * 1.8f) {
 				target->takeDamage(
-					static_cast<int>(MELEE_DAMAGE * _damage_multiplier),
+					static_cast<int>(MELEE_DAMAGE * getDamageMultiplier()),
 					Entity::makeDamageSourceContext(this, "Spider Bite"));
 				target->applyPoison(
 					POISON_DURATION,
@@ -224,12 +224,12 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		if (const auto target = _target.lock())
+		if (const auto target = getTarget())
 			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
 
 		const int frame_count = getAnimationFrameCount("web");
 		const float fire_frame = static_cast<float>(frame_count) * WEB_FIRE_FRAME_RATIO;
-		if (!_web_fired && frame_count > 0 && _anim_frame_counter >= fire_frame) {
+		if (!_web_fired && frame_count > 0 && hasAnimationReachedFrame(fire_frame)) {
 			fireWeb();
 			_web_fired = true;
 		}
@@ -276,7 +276,7 @@ namespace Nawia::Entity {
 
 	void Spider::fireWeb()
 	{
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target || target->isDead() || target->isDying())
 			return;
 

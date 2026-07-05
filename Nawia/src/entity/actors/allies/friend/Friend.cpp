@@ -53,7 +53,7 @@ namespace Nawia::Entity {
 		Entity::update(dt);
 		updateAbilities(dt);
 
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target || target->isDead() || target->isDying())
 		{
 			stopPathMovement();

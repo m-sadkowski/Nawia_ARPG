@@ -77,7 +77,7 @@ namespace Nawia::Entity {
 		const nlohmann::json& data)
 		: StoryNpc(name, x, y, engine)
 	{
-		_type = EntityType::NPCActor;
+		setType(EntityType::NPCActor);
 		_npc_class_name = data.value("npc_class", "story_human");
 		_can_talk = data.value("can_talk", true);
 		_disable_interaction_after_talk = data.value("disable_interaction_after_talk", false);
@@ -223,7 +223,7 @@ namespace Nawia::Entity {
 		const float bob = _use_baba_yaga_idle_visual
 			? std::sin(_idle_visual_time * BABA_YAGA_IDLE_BOB_SPEED) * BABA_YAGA_IDLE_BOB_AMPLITUDE
 			: 0.0f;
-		return {_pos.x, _altitude + bob, _pos.y};
+		return {getX(), getAltitude() + bob, getY()};
 	}
 
 	void GenericStoryNpc::handleQuestTalkCompleted(Core::Engine& engine) {

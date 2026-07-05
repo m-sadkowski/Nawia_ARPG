@@ -13,7 +13,7 @@ namespace Nawia::Entity {
 		: Entity(name, x, y, nullptr, 1),
 		  _radius(std::max(0.1f, radius))
 	{
-		_type = EntityType::NPCStatic;
+		setType(EntityType::NPCStatic);
 		setFaction(Faction::None);
 	}
 
