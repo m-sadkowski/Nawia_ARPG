@@ -58,7 +58,7 @@ namespace Nawia::Entity {
 		}
 
 		bool isMovingToTarget() const {
-			return _is_moving;
+			return isMoving();
 		}
 
 		void updateMoveToTarget(const float delta_time) {
@@ -374,7 +374,7 @@ namespace Nawia::Entity {
 		}
 
 		updatePathMovement(delta_time);
-		if (_is_moving) {
+		if (isMoving()) {
 			playWalkBack(*this);
 			if (_male_carrier)
 				playWalk(*_male_carrier);
@@ -410,7 +410,7 @@ namespace Nawia::Entity {
 	}
 
 	void ForestLostGroupNpc::updatePathMovement(const float delta_time) {
-		if (!_is_moving && !_current_path.empty()) {
+		if (!isMoving() && !_current_path.empty()) {
 			_current_path.erase(_current_path.begin());
 
 			if (!_current_path.empty())
@@ -427,7 +427,7 @@ namespace Nawia::Entity {
 
 	void ForestLostGroupNpc::stopPathMovement() {
 		_current_path.clear();
-		_is_moving = false;
+		stopMovement();
 		setVelocity(0.0f, 0.0f);
 	}
 
@@ -573,7 +573,7 @@ namespace Nawia::Entity {
 	}
 
 	void ForestLostGroupNpc::updateDispersal(const float delta_time) {
-		if (_is_moving) {
+		if (isMoving()) {
 			updateMovement(delta_time);
 			playWalk(*this);
 		} else {
@@ -598,7 +598,7 @@ namespace Nawia::Entity {
 			}
 		}
 
-		if (!_is_moving
+		if (!isMoving()
 			&& (!_male_carrier || !_male_carrier->isMovingToTarget())
 			&& (!_milena_sister || !_milena_sister->isMovingToTarget())) {
 			finishArrival();

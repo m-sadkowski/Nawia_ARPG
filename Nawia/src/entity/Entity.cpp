@@ -749,6 +749,14 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_combat_death_event_emitted = false;
 	}
 
+	void Entity::setMaxHpPreservingCurrentHp(const int max_hp)
+	{
+		_max_hp = max_hp;
+		_hp = std::clamp(_hp, 0, _max_hp);
+		if (_hp > 0)
+			_combat_death_event_emitted = false;
+	}
+
 	void Entity::setHP(const int hp)
 	{
 		_hp = std::clamp(hp, 0, _max_hp);
@@ -757,6 +765,12 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			_combat_death_event_emitted = false;
 		if (_hp > 0 && _type != EntityType::Projectile)
 			setFaction(_faction);
+	}
+
+	void Entity::setDeathAnimationName(std::string animation_name)
+	{
+		if (!animation_name.empty())
+			_death_anim_name = std::move(animation_name);
 	}
 
 	nlohmann::json Entity::serializeState() const
@@ -1055,6 +1069,38 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_is_moving = hasMovementTarget(_pos, {_target_x, _target_y});
 	}
 
+	void Entity::stopMovement()
+	{
+		_velocity = {0.0f, 0.0f};
+		_is_moving = false;
+	}
+
+	void Entity::setMovementTarget(const float x, const float y)
+	{
+		_target_x = x;
+		_target_y = y;
+	}
+
+	void Entity::tickPathRecalcTimer(const float dt)
+	{
+		_path_recalc_timer -= dt;
+	}
+
+	bool Entity::isPathRecalcDue() const
+	{
+		return _path_recalc_timer <= 0.0f;
+	}
+
+	void Entity::resetPathRecalcTimer(const float interval)
+	{
+		_path_recalc_timer = interval;
+	}
+
+	void Entity::clearPathRecalcTimer()
+	{
+		_path_recalc_timer = 0.0f;
+	}
+
 	void Entity::updateMovement(const float dt)
 	{
 		if (isMovementRooted()) {
@@ -1093,13 +1139,13 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	{
 		if (!hasValidTarget()) return;
 		
-		_path_recalc_timer -= dt;
+		tickPathRecalcTimer(dt);
 		
-		if (_path_recalc_timer <= 0.0f || !_is_moving)
+		if (isPathRecalcDue() || !isMoving())
 		{
 			const Vector2 target_pos = getTargetPosition();
 			moveTo(target_pos.x, target_pos.y);
-			_path_recalc_timer = path_recalc_interval;
+			resetPathRecalcTimer(path_recalc_interval);
 		}
 		
 		updateMovement(dt);

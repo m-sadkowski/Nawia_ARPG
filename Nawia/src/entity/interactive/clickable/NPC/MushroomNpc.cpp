@@ -96,9 +96,9 @@ namespace Nawia::Entity {
 		}
 
 		updateCompanionTravel(delta_time);
-		updateMovementSound(Audio::SoundPath::GzibWalk, _is_moving, 0.42f, 1.12f);
+		updateMovementSound(Audio::SoundPath::GzibWalk, isMoving(), 0.42f, 1.12f);
 
-		if (_is_moving) {
+		if (isMoving()) {
 			playWalkAnimation();
 		} else {
 			rotateToPlayerOnInterval(delta_time);
@@ -217,7 +217,7 @@ namespace Nawia::Entity {
 		}
 
 		updatePathMovement(delta_time);
-		if (_is_moving)
+		if (isMoving())
 			playWalkAnimation();
 	}
 
@@ -290,7 +290,7 @@ namespace Nawia::Entity {
 	}
 
 	void MushroomNpc::updatePathMovement(const float delta_time) {
-		if (!_is_moving && !_current_path.empty()) {
+		if (!isMoving() && !_current_path.empty()) {
 			_current_path.erase(_current_path.begin());
 
 			if (!_current_path.empty())
@@ -302,7 +302,7 @@ namespace Nawia::Entity {
 
 	void MushroomNpc::stopPathMovement() {
 		_current_path.clear();
-		_is_moving = false;
+		stopMovement();
 		setVelocity(0.0f, 0.0f);
 	}
 

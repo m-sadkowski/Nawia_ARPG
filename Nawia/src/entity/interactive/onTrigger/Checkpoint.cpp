@@ -43,8 +43,8 @@ namespace Nawia::Entity {
 
     void Checkpoint::render(const Camera3D& camera) {
 		// Checkpoint jest niewidoczny dla gracza, widoczny tylko w trybie diagnostycznym.
-        if (DebugColliders && _collider) {
-            auto* rect_collider = dynamic_cast<RectangleCollider*>(_collider.get());
+        if (DebugColliders) {
+            auto* rect_collider = dynamic_cast<RectangleCollider*>(getCollider());
             if (rect_collider) {
 		// Rysujemy diagnostyczne pudełko 3D w pozycji kolidera.
                 Vector2 center = rect_collider->getPosition();

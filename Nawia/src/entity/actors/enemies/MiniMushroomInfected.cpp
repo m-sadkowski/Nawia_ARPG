@@ -39,7 +39,7 @@ namespace Nawia::Entity {
 		setType(EntityType::NPCStatic);
 		setFaction(Faction::None);
 		setVelocity(0.0f, 0.0f);
-		_is_moving = false;
+		stopMovement();
 		setAnimationSpeed(1.0f);
 		playAnimation("death", false, true, 0, true);
 		spawnLinkedWorm();
@@ -49,7 +49,7 @@ namespace Nawia::Entity {
 		if (!_corruption_released) {
 			const State previous_state = _state;
 			SimpleMeleeEnemy::update(dt);
-			updateMovementSound(Audio::SoundPath::MiniMushroomWalk, _state == State::Chasing && _is_moving, 0.34f, 1.35f);
+			updateMovementSound(Audio::SoundPath::MiniMushroomWalk, _state == State::Chasing && isMoving(), 0.34f, 1.35f);
 			if (previous_state != State::Attacking && _state == State::Attacking)
 				playSoundEffect(Audio::SoundId::MiniMushroomAttack, 0.72f);
 			return;
@@ -178,7 +178,7 @@ namespace Nawia::Entity {
 			setType(EntityType::NPCStatic);
 			setFaction(Faction::None);
 			setVelocity(0.0f, 0.0f);
-			_is_moving = false;
+			stopMovement();
 			if (_corpse_frozen)
 				freezeOnDeathFrame();
 			else
@@ -253,8 +253,8 @@ namespace Nawia::Entity {
 
 		if (_has_prop_destination) {
 			updateMovement(dt);
-			updateMovementSound(Audio::SoundPath::MiniMushroomWalk, _is_moving, 0.34f, 1.45f);
-			if (_is_moving) {
+			updateMovementSound(Audio::SoundPath::MiniMushroomWalk, isMoving(), 0.34f, 1.45f);
+			if (isMoving()) {
 				if (getAnimationFrameCount("walk") > 0)
 					playAnimation("walk");
 				return;

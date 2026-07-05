@@ -108,7 +108,7 @@ namespace Nawia::Entity {
 			_state = State::Idle;
 			playAnimation("idle");
 			setVelocity(0, 0);
-			_is_moving = false;
+			stopMovement();
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
 		}
@@ -119,7 +119,7 @@ namespace Nawia::Entity {
 			_state = State::Idle;
 			playAnimation("idle");
 			setVelocity(0, 0);
-			_is_moving = false;
+			stopMovement();
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
 		}
@@ -134,7 +134,7 @@ namespace Nawia::Entity {
 				playAnimation("throw", false, true);
 				rotateTowards(target->getX(), target->getY());
 				setVelocity(0, 0);
-				_is_moving = false;
+				stopMovement();
 				updateMovementSound(Audio::SoundPath::Footsteps, false);
 				return;
 			}
@@ -148,9 +148,9 @@ namespace Nawia::Entity {
 		// Cel jest za blisko, więc bandyta wycofuje się z użyciem wyznaczania ścieżki.
 		if (dist < MIN_DISTANCE) 
 		{
-			_path_recalc_timer -= dt;
+			tickPathRecalcTimer(dt);
 			
-			if (_path_recalc_timer <= 0.0f || !_is_moving || !_is_retreating) 
+			if (isPathRecalcDue() || !isMoving() || !_is_retreating)
 			{
 				// Punkt odwrotu leży kilka jednostek od celu w przeciwnym kierunku.
 				const Vector2 away_dir = Vector2Normalize(Vector2Subtract(my_pos, target_pos));
@@ -175,36 +175,36 @@ namespace Nawia::Entity {
 				}
 				
 				moveTo(retreat_point.x, retreat_point.y);
-				_path_recalc_timer = PATH_RECALC_INTERVAL;
+				resetPathRecalcTimer(PATH_RECALC_INTERVAL);
 				_is_retreating = true;
 			}
 			
 			playAnimation("walk");
 			updateMovement(dt);
-			updateMovementSound(Audio::SoundPath::Footsteps, _is_moving, 0.42f, 1.08f);
+			updateMovementSound(Audio::SoundPath::Footsteps, isMoving(), 0.42f, 1.08f);
 			rotateTowards(target->getX(), target->getY());  // Podczas odwrotu nadal patrzymy na cel.
 		}
 		// Cel jest za daleko, więc bandyta podchodzi.
 		else if (dist > ATTACK_RANGE) 
 		{
-			_path_recalc_timer -= dt;
+			tickPathRecalcTimer(dt);
 			
-			if (_path_recalc_timer <= 0.0f || !_is_moving || _is_retreating) 
+			if (isPathRecalcDue() || !isMoving() || _is_retreating)
 			{
 				moveTo(target_pos.x, target_pos.y);
-				_path_recalc_timer = PATH_RECALC_INTERVAL;
+				resetPathRecalcTimer(PATH_RECALC_INTERVAL);
 				_is_retreating = false;
 			}
 			
 			playAnimation("walk");
 			updateMovement(dt);
-			updateMovementSound(Audio::SoundPath::Footsteps, _is_moving, 0.42f, 1.08f);
+			updateMovementSound(Audio::SoundPath::Footsteps, isMoving(), 0.42f, 1.08f);
 		}
 		// Dystans jest dobry, więc bandyta stoi i celuje.
 		else 
 		{
 			playAnimation("idle");
-			_is_moving = false;
+			stopMovement();
 			_is_retreating = false;
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 		}

@@ -64,8 +64,7 @@ namespace Nawia::Entity {
 
 	Player::Player() {
 		_name = "Player";
-		_max_hp = 200;
-		_hp = _max_hp;
+		setMaxHp(200);
 		_scale = 1.5f;
 		_type = EntityType::Player;
 		_faction = Faction::Player;
@@ -75,18 +74,18 @@ namespace Nawia::Entity {
 		loadAnimationBundle("assets/models/animations/anims2.glb");
 		playAnimation("Idle_Loop");
 		setAnimationSpeed(1.0f);
-		_death_anim_name = "Death01";
+		setDeathAnimationName("Death01");
 
 		_backpack = std::make_unique<Item::Backpack>(INIT_BACKPACK_SIZE);
 
-		_base_stats.max_hp = _max_hp;
+		_base_stats.max_hp = getMaxHP();
 		_base_stats.damage = 10;
 		_base_stats.attack_speed = 1.0f;
 		_base_stats.movement_speed = 4.0f;
 		_base_stats.defense = 0;
 
 		_current_stats = _base_stats;
-		_movement_speed = _current_stats.movement_speed;
+		setMovementSpeed(_current_stats.movement_speed);
 	}
 
 	void Player::attachEngine(Core::Engine* engine) {
@@ -108,10 +107,8 @@ namespace Nawia::Entity {
 
 		if (isMovementRooted())
 		{
-			_target_x = x;
-			_target_y = y;
-			_velocity = {0.0f, 0.0f};
-			_is_moving = false;
+			setMovementTarget(x, y);
+			stopMovement();
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			if (!isAnimationLocked())
 			{
@@ -123,7 +120,7 @@ namespace Nawia::Entity {
 
 		Entity::moveTo(x, y);
 
-		if (_is_moving) 
+		if (isMoving())
 		{
 			if (!isAnimationLocked())
 			{
@@ -175,7 +172,7 @@ namespace Nawia::Entity {
 
 	void Player::stop()
 	{
-		_is_moving = false;
+		stopMovement();
 		_path.clear();
 		updateMovementSound(Audio::SoundPath::Footsteps, false);
 		if (!isAnimationLocked())
@@ -256,7 +253,7 @@ namespace Nawia::Entity {
 
 	void Player::updateMovement(const float delta_time)
 	{
-		if (!_is_moving || _is_knocked_down || isMovementRooted())
+		if (!isMoving() || _is_knocked_down || isMovementRooted())
 		{
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
@@ -269,9 +266,9 @@ namespace Nawia::Entity {
 		}
 
 		Entity::updateMovement(delta_time);
-		updateMovementSound(Audio::SoundPath::Footsteps, _is_moving && !isAnimationLocked(), 0.48f);
+		updateMovementSound(Audio::SoundPath::Footsteps, isMoving() && !isAnimationLocked(), 0.48f);
 
-		if (!_is_moving && !isAnimationLocked()) 
+		if (!isMoving() && !isAnimationLocked())
 		{
 			playAnimation("Idle_Loop");
 		}
@@ -313,18 +310,18 @@ namespace Nawia::Entity {
 	}
 
 	bool Player::consumeFood() {
-		if (_food_count <= 0 || isDying() || _hp >= _max_hp)
+		if (_food_count <= 0 || isDying() || getHP() >= getMaxHP())
 			return false;
 
 		_food_count--;
-		setHP(std::min(_max_hp, _hp + 25));
+		setHP(std::min(getMaxHP(), getHP() + 25));
 		if (_engine)
 			_engine->getUIHandler().showNotification("Zjedzono zapasy: +25 HP", 2.0f);
 		return true;
 	}
 
 	bool Player::startConsumeFood() {
-		if (_is_consuming_food || isControlLocked() || _food_count <= 0 || isDying() || _hp >= _max_hp || isAnimationLocked())
+		if (_is_consuming_food || isControlLocked() || _food_count <= 0 || isDying() || getHP() >= getMaxHP() || isAnimationLocked())
 			return false;
 
 		stop();
@@ -391,9 +388,8 @@ namespace Nawia::Entity {
 				_current_stats += item->getStats();
 		}
 
-		_max_hp = _current_stats.max_hp;
-		_hp = std::min(_hp, _max_hp);
-		_movement_speed = _current_stats.movement_speed;
+		setMaxHpPreservingCurrentHp(_current_stats.max_hp);
+		setMovementSpeed(_current_stats.movement_speed);
 	}
 
 	void Player::setBaseStats(const Stats& stats)
@@ -502,12 +498,12 @@ namespace Nawia::Entity {
 
 	nlohmann::json Player::serializeLocationView() const
 	{
-		const int safe_hp = isDead() ? std::max(1, _max_hp / 2) : std::clamp(_hp, 1, _max_hp);
+		const int safe_hp = isDead() ? std::max(1, getMaxHP() / 2) : std::clamp(getHP(), 1, getMaxHP());
 		return {
 			{"position", vector2ToJson({_pos.x, _pos.y})},
 			{"altitude", _altitude},
 			{"hp", safe_hp},
-			{"max_hp", _max_hp},
+			{"max_hp", getMaxHP()},
 			{"respawn_point", vector2ToJson(_respawn_point)}
 		};
 	}
@@ -523,7 +519,7 @@ namespace Nawia::Entity {
 		_altitude = data.value("altitude", _altitude);
 		_respawn_point = vector2FromJson(data.value("respawn_point", nlohmann::json::object()), _respawn_point);
 
-		setHP(data.value("hp", _hp));
+		setHP(data.value("hp", getHP()));
 		stop();
 	}
 
@@ -581,17 +577,14 @@ namespace Nawia::Entity {
 	void Player::respawn()
 	{
 		clearStatusEffects();
-		_hp = std::max(1, _max_hp / 2);
-		_is_dying = false;
-		_combat_death_event_emitted = false;
+		setHP(std::max(1, getMaxHP() / 2));
 		_is_knocked_down = false;
 		_knockdown_phase = KnockdownPhase::None;
 		_control_lock_timer = 0.0f;
-		_is_moving = false;
+		stopMovement();
 		setX(_respawn_point.x);
 		setY(_respawn_point.y);
-		_target_x = _respawn_point.x;
-		_target_y = _respawn_point.y;
+		setMovementTarget(_respawn_point.x, _respawn_point.y);
 		_path.clear();
 		setFaction(Faction::Player);
 		setAnimationSpeed(DEFAULT_ANIMATION_SPEED);

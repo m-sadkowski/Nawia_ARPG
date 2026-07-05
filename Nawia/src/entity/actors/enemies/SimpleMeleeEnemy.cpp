@@ -57,7 +57,7 @@ namespace Nawia::Entity {
 		_state = State::GettingHit;
 		clearNavigationPath();
 		setVelocity(0.0f, 0.0f);
-		_is_moving = false;
+		stopMovement();
 		setAnimationSpeed(1.0f);
 		playAnimation(_hit_animation, false, true, 0, true);
 	}
@@ -107,7 +107,7 @@ namespace Nawia::Entity {
 			_state = State::Idle;
 			clearNavigationPath();
 			setVelocity(0.0f, 0.0f);
-			_is_moving = false;
+			stopMovement();
 			setAnimationSpeed(1.0f);
 			playAnimation(_idle_animation);
 			return;
@@ -118,7 +118,7 @@ namespace Nawia::Entity {
 			_state = State::Idle;
 			clearNavigationPath();
 			setVelocity(0.0f, 0.0f);
-			_is_moving = false;
+			stopMovement();
 			setAnimationSpeed(1.0f);
 			playAnimation(_idle_animation);
 			return;
@@ -130,7 +130,7 @@ namespace Nawia::Entity {
 			_attack_damage_applied = false;
 			clearNavigationPath();
 			setVelocity(0.0f, 0.0f);
-			_is_moving = false;
+			stopMovement();
 			setAnimationSpeed(_attack_animation_speed);
 			playAnimation(_attack_animation, false, true, 0, true);
 			return;
@@ -138,7 +138,7 @@ namespace Nawia::Entity {
 
 		moveTowardPositionWithNav(target_pos, dt);
 
-		if (_is_moving) {
+		if (isMoving()) {
 			setAnimationSpeed(1.0f);
 			playAnimation(_walk_animation);
 		}
@@ -189,19 +189,19 @@ namespace Nawia::Entity {
 			clearNavigationPath();
 			moveTo(target_pos.x, target_pos.y);
 			updateMovement(dt);
-			return _is_moving;
+			return isMoving();
 		}
 
-		_path_recalc_timer -= dt;
+		tickPathRecalcTimer(dt);
 		const bool target_changed = !_has_current_nav_target ||
 			Vector2DistanceSqr(_current_nav_target, target_pos) > NAV_PATH_TARGET_CHANGE_DISTANCE_SQ;
 
 		// Trasy nie liczymy co klatke; aktualizacja zalezy od czasu albo realnej zmiany celu.
-		if (_path_recalc_timer <= 0.0f || target_changed) {
+		if (isPathRecalcDue() || target_changed) {
 			_current_nav_path = _map->findPath(getWorldPos3D(), {target_pos.x, getAltitude(), target_pos.y});
 			_current_nav_target = target_pos;
 			_has_current_nav_target = true;
-			_path_recalc_timer = repath_interval;
+			resetPathRecalcTimer(repath_interval);
 		}
 
 		const Vector2 current_pos = getCenter();
@@ -212,13 +212,13 @@ namespace Nawia::Entity {
 
 		if (_current_nav_path.empty()) {
 			setVelocity(0.0f, 0.0f);
-			_is_moving = false;
+			stopMovement();
 			return false;
 		}
 
 		moveTo(_current_nav_path.front().x, _current_nav_path.front().y);
 		updateMovement(dt);
-		return _is_moving;
+		return isMoving();
 	}
 
 	bool SimpleMeleeEnemy::canReachPositionWithNav(const Vector2 target_pos) const {
@@ -231,7 +231,7 @@ namespace Nawia::Entity {
 	void SimpleMeleeEnemy::clearNavigationPath() {
 		_current_nav_path.clear();
 		_has_current_nav_target = false;
-		_path_recalc_timer = 0.0f;
+		clearPathRecalcTimer();
 	}
 
 } // namespace Nawia::Entity

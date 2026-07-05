@@ -425,8 +425,8 @@ namespace Nawia::Entity {
 	}
 
 	void StoryTrigger::render(const Camera3D& camera) {
-		if (DebugColliders && _collider) {
-			auto* rect_collider = dynamic_cast<RectangleCollider*>(_collider.get());
+		if (DebugColliders) {
+			auto* rect_collider = dynamic_cast<RectangleCollider*>(getCollider());
 			if (!rect_collider)
 				return;
 

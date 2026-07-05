@@ -15,7 +15,7 @@ namespace Nawia::Entity {
 		setScale(0.015f);
 		setMovementSpeed(SPEED);
 		setFaction(Faction::Ally);
-		_death_anim_name = "knocked";
+		setDeathAnimationName("knocked");
 
 		loadModel("assets/models/actors/player/player_idle.glb");
 		addAnimation("walk", "assets/models/actors/player/player_walk.glb");
@@ -91,17 +91,17 @@ namespace Nawia::Entity {
 			}
 		}
 
-		_path_recalc_timer -= dt;
-		if (_path_recalc_timer <= 0.0f || (_current_path.empty() && !_is_moving))
+		tickPathRecalcTimer(dt);
+		if (isPathRecalcDue() || (_current_path.empty() && !isMoving()))
 		{
 			rebuildPathToTarget(*target);
-			_path_recalc_timer = PATH_RECALC_INTERVAL;
+			resetPathRecalcTimer(PATH_RECALC_INTERVAL);
 		}
 
 		updatePathMovement(dt);
-		updateMovementSound(Audio::SoundPath::Footsteps, _is_moving && !isAnimationLocked(), 0.42f, 1.04f);
+		updateMovementSound(Audio::SoundPath::Footsteps, isMoving() && !isAnimationLocked(), 0.42f, 1.04f);
 
-		if (_is_moving)
+		if (isMoving())
 			playAnimation("walk");
 		else
 			playAnimation("default");
@@ -110,7 +110,7 @@ namespace Nawia::Entity {
 	void Friend::stopPathMovement()
 	{
 		_current_path.clear();
-		_is_moving = false;
+		stopMovement();
 		setVelocity(0.0f, 0.0f);
 	}
 
@@ -147,7 +147,7 @@ namespace Nawia::Entity {
 
 	void Friend::updatePathMovement(const float dt)
 	{
-		if (!_is_moving && !_current_path.empty())
+		if (!isMoving() && !_current_path.empty())
 		{
 			_current_path.erase(_current_path.begin());
 

@@ -34,8 +34,8 @@ namespace Nawia::Entity {
 		if (!DebugColliders)
 			return;
 
-		if (_collider) {
-			_collider->render(camera);
+		if (Collider* collider = getCollider()) {
+			collider->render(camera);
 			return;
 		}
 

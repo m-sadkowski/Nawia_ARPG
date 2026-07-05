@@ -129,7 +129,7 @@ namespace Nawia::Entity {
 
 		updatePathMovement(delta_time);
 
-		if (_is_moving) {
+		if (isMoving()) {
 			if (getAnimationFrameCount("Walk") > 0)
 				playAnimation("Walk");
 			else if (getAnimationFrameCount("walk") > 0)
@@ -166,7 +166,7 @@ namespace Nawia::Entity {
 	}
 
 	void VillageHeadNpc::updatePathMovement(const float delta_time) {
-		if (!_is_moving && !_current_path.empty()) {
+		if (!isMoving() && !_current_path.empty()) {
 			_current_path.erase(_current_path.begin());
 
 			if (!_current_path.empty())
@@ -178,7 +178,7 @@ namespace Nawia::Entity {
 
 	void VillageHeadNpc::stopPathMovement() {
 		_current_path.clear();
-		_is_moving = false;
+		stopMovement();
 		setVelocity(0.0f, 0.0f);
 	}
 

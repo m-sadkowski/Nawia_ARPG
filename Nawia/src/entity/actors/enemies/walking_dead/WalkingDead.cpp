@@ -119,7 +119,7 @@ namespace Nawia::Entity {
 			playSoundEffect(Audio::SoundId::ZombieScream, 0.85f);
 			playAnimation("scream", false, true);
 			setVelocity(0, 0);
-			_is_moving = false;
+			stopMovement();
 			return;
 		}
 
@@ -132,7 +132,7 @@ namespace Nawia::Entity {
 			playSoundEffect(Audio::SoundId::ZombieScream, 0.85f);
 			playAnimation("scream", false, true);
 			setVelocity(0, 0);
-			_is_moving = false;
+			stopMovement();
 			return;
 		}
 
@@ -144,7 +144,7 @@ namespace Nawia::Entity {
 			setAnimationSpeed(ATTACK_ANIMATION_SPEED);
 			playAnimation("attack", false, true);
 			setVelocity(0, 0);
-			_is_moving = false;
+			stopMovement();
 			return;
 		}
 
@@ -166,7 +166,7 @@ namespace Nawia::Entity {
 		// Z bliska używamy prostego ruchu bez przeliczania ścieżki.
 		if (dist <= DIRECT_MOVE_DISTANCE)
 		{
-			_is_moving = false;  // Zatrzymujemy ruch po wyznaczonej ścieżce.
+			stopMovement();  // Zatrzymujemy ruch po wyznaczonej ścieżce.
 			const Vector2 my_pos = getCenter();
 			const Vector2 dir = Vector2Normalize(Vector2Subtract(target_pos, my_pos));
 			
@@ -178,12 +178,12 @@ namespace Nawia::Entity {
 		else
 		{
 			// Dalej od celu wracamy do wyznaczania ścieżki.
-			_path_recalc_timer -= dt;
+			tickPathRecalcTimer(dt);
 			
-			if (_path_recalc_timer <= 0.0f || !_is_moving)
+			if (isPathRecalcDue() || !isMoving())
 			{
 				moveTo(target_pos.x, target_pos.y);
-				_path_recalc_timer = DEFAULT_PATH_RECALC_INTERVAL;
+				resetPathRecalcTimer(DEFAULT_PATH_RECALC_INTERVAL);
 			}
 			
 			updateMovement(dt);

@@ -397,8 +397,8 @@ namespace Nawia::Entity {
 		if (!target)
 			return;
 
-		_path_recalc_timer -= dt;
-		if (_path_recalc_timer <= 0.0f || !_is_moving) {
+		tickPathRecalcTimer(dt);
+		if (isPathRecalcDue() || !isMoving()) {
 			const Vector2 my_pos = getCenter();
 			const Vector2 target_pos = target->getCenter();
 			const Vector2 toward = Vector2Normalize(Vector2Subtract(target_pos, my_pos));
@@ -407,17 +407,17 @@ namespace Nawia::Entity {
 				target_pos.y - toward.y * PREFERRED_DISTANCE
 			};
 			moveTo(desired.x, desired.y);
-			_path_recalc_timer = DEFAULT_PATH_RECALC_INTERVAL;
+			resetPathRecalcTimer(DEFAULT_PATH_RECALC_INTERVAL);
 		}
 
 		updateMovement(dt);
-		if (_is_moving)
+		if (isMoving())
 			playRun();
 	}
 
 	void Witch::stopMoving() {
 		setVelocity(0.0f, 0.0f);
-		_is_moving = false;
+		stopMovement();
 	}
 
 	void Witch::updateDeathFreeze(const float dt) {
@@ -432,7 +432,7 @@ namespace Nawia::Entity {
 		if (_anim_frame_counter >= final_frame) {
 			_anim_frame_counter = final_frame;
 			_anim_locked = true;
-			_hp = 0;
+			setHP(0);
 		}
 
 		applyCurrentAnimationFrame();

@@ -77,8 +77,8 @@ namespace Nawia::Entity {
                 WHITE);
         }
 
-		if (DebugColliders && _collider) {
-            auto* rect_collider = dynamic_cast<RectangleCollider*>(_collider.get());
+		if (DebugColliders) {
+            auto* rect_collider = dynamic_cast<RectangleCollider*>(getCollider());
             if (rect_collider) {
                 Vector2 center = rect_collider->getPosition();
                 float w = rect_collider->getWidth();

@@ -228,6 +228,12 @@ namespace Nawia::Entity {
 		 * @brief Przesuwa encję w stronę punktu ustawionego przez `moveTo`.
 		 */
 		virtual void updateMovement(float dt);
+		void stopMovement();
+		void setMovementTarget(float x, float y);
+		void tickPathRecalcTimer(float dt);
+		[[nodiscard]] bool isPathRecalcDue() const;
+		void resetPathRecalcTimer(float interval);
+		void clearPathRecalcTimer();
 
 		void setMovementSpeed(float speed) { _movement_speed = speed; }
 		[[nodiscard]] float getMovementSpeed() const { return _movement_speed; }
@@ -258,6 +264,8 @@ namespace Nawia::Entity {
 		[[nodiscard]] int getHP() const { return _hp; }
 		[[nodiscard]] int getMaxHP() const { return _max_hp; }
 		void setHP(int hp);
+		void setMaxHpPreservingCurrentHp(int max_hp);
+		void setDeathAnimationName(std::string animation_name);
 		[[nodiscard]] const std::string& getName() const { return _name; }
 		void setName(const std::string& name) { _name = name; }
 

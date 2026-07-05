@@ -111,7 +111,7 @@ namespace Nawia::Entity {
 
 	void RiftBinder::update(const float dt)
 	{
-		updateMovementSound(Audio::SoundPath::DevilStep, _is_moving && !isDying() && !isDormant(), 0.38f, 0.75f);
+		updateMovementSound(Audio::SoundPath::DevilStep, isMoving() && !isDying() && !isDormant(), 0.38f, 0.75f);
 
 		if (isDying()) {
 			Entity::update(dt);
@@ -673,8 +673,8 @@ namespace Nawia::Entity {
 		if (!target)
 			return;
 
-		_path_recalc_timer -= dt;
-		if (_path_recalc_timer <= 0.0f || !_is_moving) {
+		tickPathRecalcTimer(dt);
+		if (isPathRecalcDue() || !isMoving()) {
 			const Vector2 target_pos = target->getCenter();
 			const Vector2 from_target = safeNormalize(Vector2Subtract(getCenter(), target_pos), {-1.0f, 0.0f});
 			const Vector2 preferred = {
@@ -683,11 +683,11 @@ namespace Nawia::Entity {
 			};
 			const Vector2 walkable = findWalkableNearby(preferred, target_pos);
 			moveTo(walkable.x, walkable.y);
-			_path_recalc_timer = DEFAULT_PATH_RECALC_INTERVAL;
+			resetPathRecalcTimer(DEFAULT_PATH_RECALC_INTERVAL);
 		}
 
 		updateMovement(dt);
-		if (_is_moving)
+		if (isMoving())
 			playWalk();
 		else
 			playIdle();
@@ -696,7 +696,7 @@ namespace Nawia::Entity {
 	void RiftBinder::stopMoving()
 	{
 		setVelocity(0.0f, 0.0f);
-		_is_moving = false;
+		stopMovement();
 	}
 
 	void RiftBinder::playIdle()

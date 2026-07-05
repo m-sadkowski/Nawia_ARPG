@@ -135,11 +135,11 @@ namespace Nawia::Entity {
 				moveTowardPositionWithNav({retreat_position.x, retreat_position.z}, dt);
 			} else {
 				clearNavigationPath();
-				_is_moving = false;
+				stopMovement();
 			}
 
-			updateMovementSound(Audio::SoundPath::DevilStep, _is_moving && !isDormant(), 0.32f, 1.25f);
-			if (_retreat_timer <= 0.0f || !_is_moving) {
+			updateMovementSound(Audio::SoundPath::DevilStep, isMoving() && !isDormant(), 0.32f, 1.25f);
+			if (_retreat_timer <= 0.0f || !isMoving()) {
 				_retreat_timer = 0.0f;
 				clearNavigationPath();
 				_attack_cooldown_timer = std::max(_attack_cooldown_timer, 1.0f);
@@ -169,7 +169,7 @@ namespace Nawia::Entity {
 
 		const State previous_state = _state;
 		SimpleMeleeEnemy::update(dt);
-		updateMovementSound(Audio::SoundPath::DevilStep, _is_moving && !isDying() && !isDormant(), 0.30f, 1.25f);
+		updateMovementSound(Audio::SoundPath::DevilStep, isMoving() && !isDying() && !isDormant(), 0.30f, 1.25f);
 
 		if (previous_state == State::Idle && _state == State::Chasing)
 			playSoundEffect(Audio::SoundId::FrogSound, 0.72f, true, 0.95f);
@@ -325,7 +325,7 @@ namespace Nawia::Entity {
 		_special_timer -= dt;
 		setSpeedMultiplier(1.9f);
 		moveTowardPositionWithNav(_sidehop_target, dt, 0.18f);
-		if (_is_moving) {
+		if (isMoving()) {
 			setAnimationSpeed(1.25f);
 			playAnimation("walk");
 		}
@@ -333,8 +333,8 @@ namespace Nawia::Entity {
 		if (const auto target = getTarget())
 			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
 
-		updateMovementSound(Audio::SoundPath::DevilStep, _is_moving && !isDormant(), 0.28f, 1.45f);
-		if (_special_timer <= 0.0f || !_is_moving)
+		updateMovementSound(Audio::SoundPath::DevilStep, isMoving() && !isDormant(), 0.28f, 1.45f);
+		if (_special_timer <= 0.0f || !isMoving())
 			finishSpecialMove();
 	}
 
@@ -511,7 +511,7 @@ namespace Nawia::Entity {
 
 	void Frog::stopMoving() {
 		setVelocity(0.0f, 0.0f);
-		_is_moving = false;
+		stopMovement();
 	}
 
 	bool Frog::isBossVariant() const {

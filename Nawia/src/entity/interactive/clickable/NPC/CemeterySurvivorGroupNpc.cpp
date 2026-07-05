@@ -30,7 +30,7 @@ namespace Nawia::Entity {
 			setFaction(Faction::None);
 		}
 
-		bool isMovingToTarget() const { return _is_moving; }
+		bool isMovingToTarget() const { return isMoving(); }
 		void updateMoveToTarget(const float delta_time) { updateMovement(delta_time); }
 		void updateVisualAnimation(const float delta_time) { updateAnimation(delta_time); }
 	};
@@ -217,7 +217,7 @@ namespace Nawia::Entity {
 		}
 
 		updatePathMovement(delta_time);
-		if (_is_moving)
+		if (isMoving())
 			playWalk(*this);
 
 		if (_male_survivor) {
@@ -255,7 +255,7 @@ namespace Nawia::Entity {
 	}
 
 	void CemeterySurvivorGroupNpc::updatePathMovement(const float delta_time) {
-		if (!_is_moving && !_current_path.empty()) {
+		if (!isMoving() && !_current_path.empty()) {
 			_current_path.erase(_current_path.begin());
 			if (!_current_path.empty())
 				moveTo(_current_path.front().x, _current_path.front().y);
@@ -283,7 +283,7 @@ namespace Nawia::Entity {
 	}
 
 	void CemeterySurvivorGroupNpc::updateDispersal(const float delta_time) {
-		if (_is_moving) {
+		if (isMoving()) {
 			updateMovement(delta_time);
 			playWalk(*this);
 		} else {
@@ -299,7 +299,7 @@ namespace Nawia::Entity {
 			}
 		}
 
-		if (!_is_moving && (!_male_survivor || !_male_survivor->isMovingToTarget()))
+		if (!isMoving() && (!_male_survivor || !_male_survivor->isMovingToTarget()))
 			finishArrival();
 	}
 
@@ -321,7 +321,7 @@ namespace Nawia::Entity {
 
 	void CemeterySurvivorGroupNpc::stopPathMovement() {
 		_current_path.clear();
-		_is_moving = false;
+		stopMovement();
 		setVelocity(0.0f, 0.0f);
 	}
 

@@ -48,7 +48,7 @@ namespace Nawia::Entity {
 
 	void Devil::update(const float dt)
 	{
-		updateMovementSound(Audio::SoundPath::DevilStep, _is_moving && !isDying() && !isDormant(), 0.45f);
+		updateMovementSound(Audio::SoundPath::DevilStep, isMoving() && !isDying() && !isDormant(), 0.45f);
 
 
 		if (isDying())
@@ -118,7 +118,7 @@ namespace Nawia::Entity {
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 			playAnimation("idle");
 			setVelocity(0, 0);
-			_is_moving = false;
+			stopMovement();
 			return;
 		}
 
@@ -131,7 +131,7 @@ namespace Nawia::Entity {
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 			playAnimation("idle");
 			setVelocity(0, 0);
-			_is_moving = false;
+			stopMovement();
 			return;
 		}
 
@@ -159,17 +159,17 @@ namespace Nawia::Entity {
 		}
 
 		// Zwykły pościg z okresowym odświeżaniem celu ruchu.
-		_path_recalc_timer -= dt;
+		tickPathRecalcTimer(dt);
 
-		if (_path_recalc_timer <= 0.0f || !_is_moving)
+		if (isPathRecalcDue() || !isMoving())
 		{
 			moveTo(target->getX(), target->getY());
-			_path_recalc_timer = DEFAULT_PATH_RECALC_INTERVAL;
+			resetPathRecalcTimer(DEFAULT_PATH_RECALC_INTERVAL);
 		}
 
 		updateMovement(dt);
 
-		if (_is_moving)
+		if (isMoving())
 		{
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 			playAnimation("walk");
@@ -268,7 +268,7 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 		setVelocity(0, 0);
-		_is_moving = false;
+		stopMovement();
 
 		if (const auto target = _target.lock())
 			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
@@ -331,7 +331,7 @@ namespace Nawia::Entity {
 		setAnimationSpeed(DEVIL_ATTACK_ANIMATION_SPEED);
 		playAnimation("attack", false, true);
 		setVelocity(0, 0);
-		_is_moving = false;
+		stopMovement();
 	}
 
 	void Devil::startDash(const Vector2& target_pos)
@@ -342,7 +342,7 @@ namespace Nawia::Entity {
 		beginCastTelemetry("Devil Dash", DASH_PREPARE_TIME, false);
 		spawnDashImpactHazard();
 		setVelocity(0, 0);
-		_is_moving = false;
+		stopMovement();
 		setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 		playAnimation("idle");
 	}
@@ -361,7 +361,7 @@ namespace Nawia::Entity {
 		beginCastTelemetry("Ground Slam", SHOCKWAVE_WINDUP_TIME, false);
 		spawnShockwaveHazard();
 		setVelocity(0, 0);
-		_is_moving = false;
+		stopMovement();
 		setAnimationSpeed(DEVIL_SHOCKWAVE_IDLE_ANIMATION_SPEED);
 		playAnimation("idle", true, false, 0, true);
 	}

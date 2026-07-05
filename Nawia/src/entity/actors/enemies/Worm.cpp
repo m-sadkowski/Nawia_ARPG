@@ -27,7 +27,7 @@ namespace Nawia::Entity {
 
 	void Worm::update(const float dt) {
 		SimpleMeleeEnemy::update(dt);
-		updateMovementSound(Audio::SoundPath::WormMovement, _state == State::Chasing && _is_moving, 0.34f, 1.0f);
+		updateMovementSound(Audio::SoundPath::WormMovement, _state == State::Chasing && isMoving(), 0.34f, 1.0f);
 	}
 
 	void Worm::onDeathStarted() {
