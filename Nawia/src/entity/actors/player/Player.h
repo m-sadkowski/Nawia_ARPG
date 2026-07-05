@@ -178,6 +178,8 @@ namespace Nawia::Entity {
 		friend class PlayerBuilder;
 		Player();
 		void onDeathStarted() override;
+		void updateAttachedModelAnimation(const ModelAnimation& animation, int frame) override;
+		void drawAttachedModel(Vector3 pos3d, float visual_rotation) const override;
 		void attachEngine(Core::Engine* engine);
 		void updateWeaponVisualModel();
 		void updatePrimaryAttackAbility();
@@ -206,6 +208,8 @@ namespace Nawia::Entity {
 
 		Stats _base_stats;
 		Stats _current_stats;
+
+		std::unique_ptr<Item::Equipment> _equipment;
 
 		int _gold = 0;
 		int _food_count = 0;

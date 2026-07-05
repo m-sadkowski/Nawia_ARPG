@@ -519,8 +519,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			return;
 
 		UpdateModelAnimation(_model, *current_animation, animation_frame);
-		if (_equipment)
-			_equipment->updateAnimations(*current_animation, animation_frame);
+		updateAttachedModelAnimation(*current_animation, animation_frame);
 
 		_last_applied_anim_index = _current_anim_index;
 		_last_applied_anim_frame = animation_frame;
@@ -724,9 +723,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 			};
 
 			draw_model(_visual_state->modelTint());
-			if (_equipment) {
-				_equipment->draw(pos3d, visual_rotation, _rotation, _scale);
-			}
+			drawAttachedModel(pos3d, visual_rotation);
 
 			if (_visual_state->hovered() && _type != EntityType::Player)
 			{

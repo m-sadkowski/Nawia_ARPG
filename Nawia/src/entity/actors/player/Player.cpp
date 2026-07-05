@@ -97,6 +97,18 @@ namespace Nawia::Entity {
 		recalculateStats();
 	}
 
+	void Player::updateAttachedModelAnimation(const ModelAnimation& animation, const int frame)
+	{
+		if (_equipment)
+			_equipment->updateAnimations(animation, frame);
+	}
+
+	void Player::drawAttachedModel(const Vector3 pos3d, const float visual_rotation) const
+	{
+		if (_equipment)
+			_equipment->draw(pos3d, visual_rotation, getRotation(), getScale());
+	}
+
 	void Player::moveTo(const float x, const float y)
 	{
 		if (isControlLocked())

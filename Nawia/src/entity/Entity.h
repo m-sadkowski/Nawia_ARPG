@@ -1,7 +1,6 @@
 #pragma once
 
 #include <AbilityStats.h>
-#include <Equipment.h>
 
 #include <json.hpp>
 #include <raylib.h>
@@ -611,8 +610,8 @@ namespace Nawia::Entity {
 		void updateMovementSound(const std::string& path, bool should_play, float volume = 0.55f, float pitch = 1.0f);
 		void unloadModelData();
 		virtual void onDeathStarted() {}
-
-		std::unique_ptr<Item::Equipment> _equipment;
+		virtual void updateAttachedModelAnimation(const ModelAnimation& animation, int frame) {}
+		virtual void drawAttachedModel(Vector3 pos3d, float visual_rotation) const {}
 	};
 
 	/**

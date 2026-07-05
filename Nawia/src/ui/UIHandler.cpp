@@ -689,37 +689,6 @@ namespace Nawia::UI
         return buttons[static_cast<size_t>(clicked_index)].action;
     }
 
-    void UIHandler::openSaveSlotMenu(const std::vector<Game::SaveSlotInfo>& slots, const SaveSlotMenu::Mode mode)
-    {
-        _save_slot_menu = std::make_unique<SaveSlotMenu>(slots, mode);
-    }
-
-    void UIHandler::closeSaveSlotMenu()
-    {
-        _save_slot_menu.reset();
-    }
-
-    SaveSlotMenu::Mode UIHandler::getSaveSlotMenuMode() const
-    {
-        return _save_slot_menu ? _save_slot_menu->getMode() : SaveSlotMenu::Mode::Load;
-    }
-
-    void UIHandler::renderSaveSlotMenu() const
-    {
-        if (!_save_slot_menu)
-            return;
-
-        _save_slot_menu->render(*this);
-    }
-
-    int UIHandler::handleSaveSlotInput()
-    {
-        if (!_save_slot_menu)
-            return 0;
-
-        return _save_slot_menu->handleInput();
-    }
-
     void UIHandler::renderGameOverScreen() const
     {
         drawSharedMenuBackground();
@@ -892,75 +861,90 @@ namespace Nawia::UI
         if (IsKeyPressed(KEY_P) && !_current_container) toggleQuestUI();
         if (_is_quest_ui_open) _quest_ui->handleInput();
         
-        if (_is_inventory_open)
+        if (_is_inventory_open && handleInventoryPanelInput())
+            return;
+    }
+
+    bool UIHandler::handleInventoryPanelInput()
+    {
+        const int backpack_slot = _inventory_ui->handleInput();
+        if (backpack_slot != -1)
         {
-            const int backpack_slot = _inventory_ui->handleInput();
-            if (backpack_slot != -1)
-            {
-                _player->equipItemFromBackpack(backpack_slot);
-                return;
-            }
-            
-            const auto equipment_slot = _inventory_ui->getClickedEquipmentSlot();
-            if (equipment_slot != Item::EquipmentSlot::None) _player->unequipItem(equipment_slot);
-            
-            if (_current_container)
-            {
-                auto* container_inventory = _current_container->getInventory();
-                if (!container_inventory)
-                {
-                    closeContainer();
-                    return;
-                }
-
-                const int container_slot = _chest_ui->handleInput();
-                if (container_slot != -1)
-                {
-                    const auto item = container_inventory->getItem(container_slot);
-                    if (item && item->getId() == BABA_YAGA_BOOK_ITEM_ID)
-                    {
-                        if (_player->unlockFireballAbility())
-                            showNotification("Ksiega Baby Jagi rozsypala sie w popiol.", 3.0f);
-                        else
-                            showNotification("Znasz juz sekret tej ksiegi.", 2.5f);
-
-                        container_inventory->removeItem(container_slot);
-                        if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
-                        if (container_inventory->getRemainingCapacity() == container_inventory->getCapacity())
-                        {
-                            showNotification("Ta skrzynia jest pusta", 3.0f);
-                            closeContainer();
-                        }
-                        return;
-                    }
-
-                    if (item && item->isFood())
-                    {
-                        _player->addFood(1);
-                        container_inventory->removeItem(container_slot);
-                        if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
-                        showNotification("Dodano jedzenie: " + item->getName(), 2.5f);
-                        if (container_inventory->getRemainingCapacity() == container_inventory->getCapacity())
-                        {
-                            showNotification("Ta skrzynia jest pusta", 3.0f);
-                            closeContainer();
-                        }
-                        return;
-                    }
-
-                    if (item && _player->getBackpack().addItem(item))
-                    {
-                        container_inventory->removeItem(container_slot);
-                        if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
-                        if (container_inventory->getRemainingCapacity() == container_inventory->getCapacity())
-                        {
-                            showNotification("Ta skrzynia jest pusta", 3.0f);
-                            closeContainer();
-                        }
-                    }
-                }
-            }
+            _player->equipItemFromBackpack(backpack_slot);
+            return true;
         }
+
+        const auto equipment_slot = _inventory_ui->getClickedEquipmentSlot();
+        if (equipment_slot != Item::EquipmentSlot::None)
+            _player->unequipItem(equipment_slot);
+
+        return handleContainerPanelInput();
+    }
+
+    bool UIHandler::handleContainerPanelInput()
+    {
+        if (!_current_container)
+            return false;
+
+        auto* container_inventory = _current_container->getInventory();
+        if (!container_inventory)
+        {
+            closeContainer();
+            return true;
+        }
+
+        const int container_slot = _chest_ui->handleInput();
+        if (container_slot == -1)
+            return false;
+
+        return pickUpContainerItem(*container_inventory, container_slot);
+    }
+
+    bool UIHandler::pickUpContainerItem(Item::Backpack& container_inventory, const int container_slot)
+    {
+        const auto item = container_inventory.getItem(container_slot);
+        if (!item)
+            return false;
+
+        if (item->getId() == BABA_YAGA_BOOK_ITEM_ID)
+        {
+            if (_player->unlockFireballAbility())
+                showNotification("Ksiega Baby Jagi rozsypala sie w popiol.", 3.0f);
+            else
+                showNotification("Znasz juz sekret tej ksiegi.", 2.5f);
+
+            container_inventory.removeItem(container_slot);
+            if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
+            closeContainerIfEmpty(container_inventory);
+            return true;
+        }
+
+        if (item->isFood())
+        {
+            _player->addFood(1);
+            container_inventory.removeItem(container_slot);
+            if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
+            showNotification("Dodano jedzenie: " + item->getName(), 2.5f);
+            closeContainerIfEmpty(container_inventory);
+            return true;
+        }
+
+        if (!_player->getBackpack().addItem(item))
+            return false;
+
+        container_inventory.removeItem(container_slot);
+        if (_quest_manager) _quest_manager->notifyItemCollected(item->getId());
+        closeContainerIfEmpty(container_inventory);
+        return true;
+    }
+
+    void UIHandler::closeContainerIfEmpty(Item::Backpack& container_inventory)
+    {
+        if (container_inventory.getRemainingCapacity() != container_inventory.getCapacity())
+            return;
+
+        showNotification("Ta skrzynia jest pusta", 3.0f);
+        closeContainer();
     }
 
     void UIHandler::drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text, const std::shared_ptr<Texture2D>& frame_texture) const
@@ -1312,150 +1296,6 @@ namespace Nawia::UI
         const float line_width = Core::GlobalScaling::scaled(200.0f) * alpha;
         DrawLineEx({ screen_width / 2.0f - line_width, banner_y }, { screen_width / 2.0f + line_width, banner_y }, 1.0f, withAlpha(COLOR_ACCENT, alpha * 0.5f));
         DrawLineEx({ screen_width / 2.0f - line_width, banner_y + banner_height }, { screen_width / 2.0f + line_width, banner_y + banner_height }, 1.0f, withAlpha(COLOR_ACCENT, alpha * 0.5f));
-    }
-
-    void UIHandler::renderSettingsMenu() const
-    {
-        if (!_settings_menu)
-            return;
-
-        drawSharedMenuBackground();
-        _settings_menu->render(*this);
-    }
-
-    MenuAction UIHandler::handleSettingsInput()
-    {
-        if (!_settings_menu)
-            return MenuAction::None;
-
-        if (_settings_menu->handleInput())
-        {
-            _settings_menu.reset();
-            return MenuAction::Play;
-        }
-
-        return MenuAction::None;
-    }
-
-    void UIHandler::openSettings(const Core::Settings& settings)
-    {
-        _settings_menu = std::make_unique<SettingsMenu>(settings);
-    }
-
-    bool UIHandler::wereSettingsApplied() const
-    {
-        return _settings_menu && _settings_menu->wasApplied();
-    }
-
-    const Core::Settings& UIHandler::getAppliedSettings() const
-    {
-        return _settings_menu->getSettings();
-    }
-
-    void UIHandler::closeSettingsMenu()
-    {
-        _settings_menu.reset();
-    }
-
-    void UIHandler::renderLevelSelectMenu() const
-    {
-        if (!_level_select_menu)
-            return;
-
-        drawSharedMenuBackground();
-        _level_select_menu->render(*this);
-    }
-
-    void UIHandler::openLevelSelect(const std::vector<World::LevelInfo>& levels)
-    {
-        _level_select_menu = std::make_unique<LevelSelectMenu>(levels);
-    }
-
-    void UIHandler::closeLevelSelect()
-    {
-        _level_select_menu.reset();
-    }
-
-    std::string UIHandler::handleLevelSelectInput()
-    {
-        if (IsKeyPressed(KEY_ESCAPE))
-            return "BACK";
-
-        if (_level_select_menu)
-            return _level_select_menu->handleInput();
-
-        return "";
-    }
-
-    void UIHandler::openContainer(Entity::InteractiveClickable* container)
-    {
-        _current_container = container;
-        _is_inventory_open = true;
-        _is_quest_ui_open = false;
-    }
-
-    void UIHandler::closeContainer()
-    {
-        _current_container = nullptr;
-    }
-
-    bool UIHandler::isInputBlocked() const
-    {
-        return _dialogueUI.isOpen() || _current_container || isMouseOverUI();
-    }
-
-    bool UIHandler::isMouseOverUI() const
-    {
-        const Vector2 mouse_pos = GetMousePosition();
-
-        if (_is_inventory_open)
-        {
-            const float inv_x = Core::GlobalScaling::scaled(50.0f);
-            const float inv_y = Core::GlobalScaling::scaled(50.0f);
-            const float inv_width = Core::GlobalScaling::scaled(InventoryUI::INV_WIDTH);
-            const float inv_height = Core::GlobalScaling::scaled(InventoryUI::INV_HEIGHT);
-            const Rectangle rect = { inv_x, inv_y, inv_width, inv_height };
-            if (CheckCollisionPointRec(mouse_pos, rect))
-                return true;
-        }
-
-        if (_is_quest_ui_open)
-        {
-            const float menu_width = Core::GlobalScaling::scaled(QuestUI::MENU_WIDTH);
-            const float menu_height = Core::GlobalScaling::scaled(QuestUI::MENU_HEIGHT);
-            const float screen_width = static_cast<float>(GetScreenWidth());
-            const float start_x = screen_width - menu_width - Core::GlobalScaling::scaled(50.0f);
-            const float start_y = Core::GlobalScaling::scaled(50.0f);
-            const Rectangle rect = { start_x, start_y, menu_width, menu_height + Core::GlobalScaling::scaled(50.0f) };
-            if (CheckCollisionPointRec(mouse_pos, rect))
-                return true;
-        }
-
-        return false;
-    }
-
-    bool UIHandler::closeOpenWindows()
-    {
-        bool closed_anything = false;
-        
-        if (_is_inventory_open) {
-            _is_inventory_open = false;
-            closed_anything = true;
-        }
-        if (_is_quest_ui_open) {
-            _is_quest_ui_open = false;
-            closed_anything = true;
-        }
-        if (_current_container) {
-            closeContainer();
-            closed_anything = true;
-        }
-        if (_dialogueUI.isOpen()) {
-            closeDialogue();
-            closed_anything = true;
-        }
-        
-        return closed_anything;
     }
 
 } // namespace Nawia::UI
