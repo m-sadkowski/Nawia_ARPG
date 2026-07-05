@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Backpack.h>
+#include <EntityBuilder.h>
 #include <Entity.h>
 #include <Equipment.h>
 #include <Stats.h>

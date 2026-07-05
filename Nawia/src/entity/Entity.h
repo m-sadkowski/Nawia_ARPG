@@ -1,11 +1,11 @@
 #pragma once
 
 #include <AbilityStats.h>
+#include <EntityTypes.h>
 
 #include <json.hpp>
 #include <raylib.h>
 
-#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -21,6 +21,8 @@ namespace Nawia::Entity {
 	class EntityPendingSpawnQueue;
 	class EntityStatusController;
 	class EntityVisualState;
+	template <typename Derived>
+	class EntityBuilder;
 }
 
 namespace Nawia::Item {
@@ -41,67 +43,6 @@ namespace Nawia::Game {
 
 namespace Nawia::Entity {
 
-	using EntityId = std::uint64_t;
-	inline constexpr EntityId INVALID_ENTITY_ID = 0;
-
-	/**
-	 * @enum EntityType
-	 * @brief Określa główną kategorię encji w świecie gry.
-	 */
-	enum class EntityType {
-		None,
-		Player,
-		Enemy,
-		Ally,
-		NPCActor,
-		NPCStatic,
-		Hazard,
-		Projectile, ///< Efekt umiejętności działający jak encja.
-		Trigger,    ///< Obszar aktywujący logikę, np. checkpoint.
-		Chest,      ///< Interaktywny pojemnik z ekwipunkiem.
-		Item
-	};
-
-	/**
-	 * @enum Faction
-	 * @brief Określa relacje sojusz/wrogość używane w walce i AI.
-	 */
-	enum class Faction {
-		Player,  ///< Encje kontrolowane przez gracza.
-		Enemy,   ///< Encje wrogie wobec gracza i sojuszników.
-		Neutral, ///< Encje neutralne, zwykle poza walką.
-		Ally,    ///< Encje walczące po stronie gracza.
-		None     ///< Brak frakcji, np. obiekt bez udziału w walce.
-	};
-
-	struct DamageSourceContext {
-		bool valid = false;
-		std::weak_ptr<Entity> source;
-		EntityId source_id = INVALID_ENTITY_ID;
-		std::string source_name;
-		EntityType source_type = EntityType::None;
-		Faction source_faction = Faction::None;
-		Vector2 source_position = {0.0f, 0.0f};
-		std::string label;
-	};
-
-	struct EntityCastState {
-		bool active = false;
-		std::string name;
-		float duration_seconds = 0.0f;
-		float remaining_seconds = 0.0f;
-		bool interruptible = false;
-	};
-
-	struct AnimationBundle {
-		std::vector<ModelAnimation> clips;
-		~AnimationBundle();
-	};
-
-	struct AnimationClipRef {
-		std::shared_ptr<const AnimationBundle> bundle;
-		int clip_index = 0;
-	};
 
 	/**
 	 * @class Entity
@@ -612,78 +553,6 @@ namespace Nawia::Entity {
 		virtual void onDeathStarted() {}
 		virtual void updateAttachedModelAnimation(const ModelAnimation& animation, int frame) {}
 		virtual void drawAttachedModel(Vector3 pos3d, float visual_rotation) const {}
-	};
-
-	/**
-	 * @class EntityBuilder
-	 * @brief Bazowy builder ustawiający wspólne pola encji przed oddaniem obiektu.
-	 */
-	template <typename Derived>
-	class EntityBuilder {
-	public:
-		EntityBuilder() = default;
-
-		/** @brief Ustawia nazwę encji. */
-		Derived& setName(const std::string& name) {
-			_entity->_name = name;
-			return self();
-		}
-
-		/** @brief Ustawia awaryjną teksturę używaną przez encję. */
-		Derived& setTexture(const std::shared_ptr<Texture>& texture) {
-			_entity->_texture = texture;
-			return self();
-		}
-
-		/** @brief Ustawia bazową prędkość ruchu. */
-		Derived& setMovementSpeed(float speed) {
-			_entity->_movement_speed = speed;
-			return self();
-		}
-
-		/** @brief Ustawia rotację encji w stopniach. */
-		Derived& setRotation(float rotation) {
-			_entity->_rotation = rotation;
-			return self();
-		}
-
-		/** @brief Podpina manager audio do encji. */
-		Derived& setAudioManager(Audio::AudioManager* audio_manager) {
-			_entity->_audio_manager = audio_manager;
-			return self();
-		}
-
-		/** @brief Ustawia pozycję logiczną encji. */
-		Derived& setPosition(Vector2 pos) {
-			_entity->_pos = pos;
-			return self();
-		}
-
-		/** @brief Ustawia współrzędną X encji. */
-		Derived& setX(float x) {
-			_entity->_pos.x = x;
-			return self();
-		}
-
-		/** @brief Ustawia współrzędną Y encji. */
-		Derived& setY(float y) {
-			_entity->_pos.y = y;
-			return self();
-		}
-
-		/** @brief Ustawia maksymalne HP i wyrównuje do niego obecne HP. */
-		Derived& setMaxHp(int max_hp) {
-			_entity->_max_hp = max_hp;
-			_entity->_hp = max_hp;
-			return self();
-		}
-
-	protected:
-		Entity* _entity = nullptr;
-
-		Derived& self() {
-			return static_cast<Derived&>(*this);
-		}
 	};
 
 } // namespace Nawia::Entity
