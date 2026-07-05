@@ -1,182 +1,63 @@
 #include "Entity.h"
+
+#include <EntityAbilityController.h>
+#include <EntityAbilityConfig.h>
+#include <EntityAnimationSupport.h>
+#include <EntityAudioController.h>
+#include <EntityMovementSupport.h>
+#include <EntityPendingSpawnQueue.h>
+#include <EntityStatusController.h>
+#include <EntityTargetingSupport.h>
+#include <EntityVisualState.h>
 #include <Ability.h>
 #include <AudioManager.h>
 #include <CombatEventBus.h>
 #include <Collider.h>
 #include <ResourceManager.h>
-
 #include <Logger.h>
 #include <MathUtils.h>
 
 #include <json.hpp>
 #include <raymath.h>
-
 #include <cmath>
 #include <algorithm>
 #include <cstdint>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
 #include <limits>
-#include <map>
 #include <memory>
 #include <utility>
-
-namespace {
-	constexpr const char* ABILITIES_PATH = "assets/data/abilities.json";
-
-	void* cloneRawBuffer(const void* src, const size_t size_bytes) {
-		if (!src || size_bytes == 0)
-			return nullptr;
-
-		void* dst = std::malloc(size_bytes);
-		if (dst)
-			std::memcpy(dst, src, size_bytes);
-		return dst;
-	}
-
-	void ensureMeshAnimationBuffers(Model& model) {
-		if (model.meshCount <= 0 || model.boneCount <= 0)
-			return;
-
-		for (int mesh_index = 0; mesh_index < model.meshCount; ++mesh_index) {
-			Mesh& mesh = model.meshes[mesh_index];
-			const auto vertex_count = static_cast<size_t>(mesh.vertexCount);
-			if (vertex_count == 0)
-				continue;
-
-			if (!mesh.animVertices && mesh.vertices)
-				mesh.animVertices = static_cast<float*>(cloneRawBuffer(mesh.vertices, vertex_count * 3 * sizeof(float)));
-
-			if (!mesh.animNormals && mesh.normals)
-				mesh.animNormals = static_cast<float*>(cloneRawBuffer(mesh.normals, vertex_count * 3 * sizeof(float)));
-
-			if (!mesh.boneIds)
-				mesh.boneIds = static_cast<unsigned char*>(std::calloc(vertex_count * 4, sizeof(unsigned char)));
-
-			if (!mesh.boneWeights) {
-				mesh.boneWeights = static_cast<float*>(std::calloc(vertex_count * 4, sizeof(float)));
-				if (mesh.boneWeights) {
-					for (size_t vertex_index = 0; vertex_index < vertex_count; ++vertex_index)
-						mesh.boneWeights[vertex_index * 4] = 1.0f;
-				}
-			}
-
-			if (mesh.boneCount <= 0)
-				mesh.boneCount = model.boneCount;
-
-			if (!mesh.boneMatrices && mesh.boneCount > 0) {
-				mesh.boneMatrices = static_cast<Matrix*>(std::calloc(static_cast<size_t>(mesh.boneCount), sizeof(Matrix)));
-				if (mesh.boneMatrices) {
-					for (int bone_index = 0; bone_index < mesh.boneCount; ++bone_index)
-						mesh.boneMatrices[bone_index] = MatrixIdentity();
-				}
-			}
-		}
-	}
-
-	nlohmann::json loadAbilitiesData()
-	{
-		std::ifstream file(ABILITIES_PATH);
-		if (!file.is_open())
-		{
-			Nawia::Core::Logger::errorLog(std::string("Entity - nie można otworzyć pliku: ") + ABILITIES_PATH);
-			return {};
-		}
-
-		nlohmann::json data;
-		try
-		{
-			file >> data;
-		}
-		catch (const nlohmann::json::parse_error&)
-		{
-			Nawia::Core::Logger::errorLog(std::string("Entity - nie można sparsować JSON: ") + ABILITIES_PATH);
-			return {};
-		}
-
-		return data;
-	}
-
-	template <typename T>
-	void assignStatIfPresent(const nlohmann::json& json_stats, const char* key, T& destination)
-	{
-		if (const auto stat_it = json_stats.find(key); stat_it != json_stats.end())
-			destination = stat_it->get<T>();
-	}
-}
 
 namespace Nawia::Entity {
 
 namespace {
 	Core::ResourceManager* g_shared_resource_manager = nullptr;
 	Game::CombatEventBus* g_combat_event_bus = nullptr;
-	std::map<std::string, std::shared_ptr<const AnimationBundle>> g_animation_cache;
-	std::weak_ptr<Entity> g_audio_listener;
-
-	constexpr float FULL_VOLUME_DISTANCE = 5.0f;
-	constexpr float MEDIUM_VOLUME_DISTANCE = 10.0f;
-	constexpr float LOW_VOLUME_DISTANCE = 15.0f;
-
-	std::shared_ptr<const AnimationBundle> getCachedAnimationBundle(const std::string& path)
-	{
-		const auto cached_animation = g_animation_cache.find(path);
-		if (cached_animation != g_animation_cache.end())
-			return cached_animation->second;
-
-		int count = 0;
-		ModelAnimation* anims = LoadModelAnimations(path.c_str(), &count);
-
-		auto bundle = std::make_shared<AnimationBundle>();
-		if (count > 0 && anims != nullptr)
-		{
-			bundle->clips.reserve(count);
-			for (int i = 0; i < count; i++)
-				bundle->clips.push_back(anims[i]);
-		}
-
-		if (anims != nullptr)
-			MemFree(anims);
-
-		g_animation_cache[path] = bundle;
-		return bundle;
-	}
-
-	const ModelAnimation* resolveAnimation(const AnimationClipRef& animation)
-	{
-		if (!animation.bundle)
-			return nullptr;
-
-		if (animation.clip_index < 0 || static_cast<size_t>(animation.clip_index) >= animation.bundle->clips.size())
-			return nullptr;
-
-		return &animation.bundle->clips[animation.clip_index];
-	}
-
 }
-
-	AnimationBundle::~AnimationBundle()
-	{
-		for (const auto& anim : clips)
-			UnloadModelAnimation(anim);
-	}
 
 bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render hitboxow jest drogi.
 	
 	Entity::Entity() 
 		: _pos{0.0f, 0.0f}, _velocity{0.0f, 0.0f}, _scale(1.0f), 
-		  _hp(1), _max_hp(1), _type(EntityType::None), _faction(Faction::None) {}
+		  _hp(1), _max_hp(1), _type(EntityType::None), _faction(Faction::None),
+		  _ability_controller(std::make_unique<EntityAbilityController>()),
+		  _audio_controller(std::make_unique<EntityAudioController>()),
+		  _pending_spawn_queue(std::make_unique<EntityPendingSpawnQueue>()),
+		  _status_controller(std::make_unique<EntityStatusController>()),
+		  _visual_state(std::make_unique<EntityVisualState>()) {}
 
 	Entity::Entity(const std::string& name, const float start_x, const float start_y, const std::shared_ptr<Texture2D>& texture, const int max_hp)
 		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
 		  _current_anim_index(0), _anim_frame_counter(0.0f), _rotation(0.0f), _model_loaded(false),
 		  _velocity{0.0f, 0.0f}, _scale(1.0f), _faction(Faction::None), _pos{start_x, start_y},
-		  _anim_looping(true), _anim_locked(false), _hovered(false) {}
+		  _anim_looping(true), _anim_locked(false),
+		  _ability_controller(std::make_unique<EntityAbilityController>()),
+		  _audio_controller(std::make_unique<EntityAudioController>()),
+		  _pending_spawn_queue(std::make_unique<EntityPendingSpawnQueue>()),
+		  _status_controller(std::make_unique<EntityStatusController>()),
+		  _visual_state(std::make_unique<EntityVisualState>()) {}
 
 	Entity::~Entity()
 	{
-		if (!_movement_sound_id.empty())
-			stopSoundEffect(_movement_sound_id);
+		_audio_controller->stopMovementSound(_audio_manager);
 
 		unloadModelData();
 	}
@@ -233,15 +114,19 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	}
 
 	void Entity::beginCastTelemetry(std::string cast_name, const float duration_seconds, const bool interruptible) {
-		_cast_state.active = !cast_name.empty();
-		_cast_state.name = std::move(cast_name);
-		_cast_state.duration_seconds = std::max(0.0f, duration_seconds);
-		_cast_state.remaining_seconds = _cast_state.duration_seconds;
-		_cast_state.interruptible = interruptible;
+		_status_controller->beginCast(std::move(cast_name), duration_seconds, interruptible);
 	}
 
 	void Entity::clearCastTelemetry() {
-		_cast_state = {};
+		_status_controller->clearCast();
+	}
+
+	const EntityCastState& Entity::getCastState() const {
+		return _status_controller->castState();
+	}
+
+	bool Entity::isCasting() const {
+		return _status_controller->isCasting();
 	}
 
 	DamageSourceContext Entity::makeDamageSourceContext(Entity* source, std::string source_label) {
@@ -261,15 +146,31 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	}
 
 	void Entity::setAudioListener(const std::shared_ptr<Entity>& listener) {
-		g_audio_listener = listener;
+		EntityAudioController::setListener(listener);
 	}
 
 	void Entity::hideMeshIndex(const int mesh_index) {
-		if (mesh_index < 0)
-			return;
+		_visual_state->hideMeshIndex(mesh_index);
+	}
 
-		if (std::find(_hidden_mesh_indices.begin(), _hidden_mesh_indices.end(), mesh_index) == _hidden_mesh_indices.end())
-			_hidden_mesh_indices.push_back(mesh_index);
+	void Entity::setModelTint(const Color tint) {
+		_visual_state->setModelTint(tint);
+	}
+
+	Color Entity::getModelTint() const {
+		return _visual_state->modelTint();
+	}
+
+	void Entity::setHovered(const bool hovered) {
+		_visual_state->setHovered(hovered);
+	}
+
+	void Entity::setModelFacingOffset(const float deg) {
+		_visual_state->setModelFacingOffset(deg);
+	}
+
+	float Entity::getModelFacingOffset() const {
+		return _visual_state->modelFacingOffset();
 	}
 
 	void Entity::loadModel(const std::string& path, const bool rotate_model)
@@ -451,7 +352,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	void Entity::preloadAnimationData(const std::string& path)
 	{
 		if (!path.empty())
-			getCachedAnimationBundle(path);
+			(void)getCachedAnimationBundle(path);
 	}
 
 	void Entity::playAnimation(const std::string& name, const bool loop, const bool lock_movement, const int start_frame, const bool force)
@@ -576,47 +477,26 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	}
 
 	void Entity::updateCastTelemetry(const float dt) {
-		if (!_cast_state.active)
-			return;
-
-		_cast_state.remaining_seconds = std::max(0.0f, _cast_state.remaining_seconds - std::max(0.0f, dt));
-		if (_cast_state.remaining_seconds <= 0.0f)
-			_cast_state.active = false;
+		_status_controller->updateCast(dt);
 	}
 
 	void Entity::updateStatusEffects(const float dt)
 	{
-		if (_root_timer > 0.0f) {
-			_root_timer = std::max(0.0f, _root_timer - dt);
-			if (_root_timer > 0.0f) {
-				_velocity = {0.0f, 0.0f};
-				_is_moving = false;
-			}
+		if (_status_controller->updateRoot(dt)) {
+			_velocity = {0.0f, 0.0f};
+			_is_moving = false;
 		}
 
-		if (_poison_timer <= 0.0f || _poison_damage_per_tick <= 0 || isDead() || isDying())
-			return;
-
-		const float poison_timer_before_update = _poison_timer;
-		_poison_timer = std::max(0.0f, _poison_timer - dt);
-		_poison_tick_timer -= dt;
-		const int max_ticks_this_update = static_cast<int>(std::ceil(
-			poison_timer_before_update / std::max(0.05f, _poison_tick_interval)));
-		int ticks_applied = 0;
-		while (_poison_tick_timer <= 0.0f &&
-			   ticks_applied < max_ticks_this_update &&
-			   poison_timer_before_update > 0.0f &&
-			   !isDead() &&
-			   !isDying()) {
-			takeDamage(_poison_damage_per_tick, _poison_damage_source);
-			_poison_tick_timer += std::max(0.05f, _poison_tick_interval);
-			++ticks_applied;
+		for (const auto& tick : _status_controller->updatePoison(dt, !isDead() && !isDying())) {
+			if (isDead() || isDying())
+				break;
+			takeDamage(tick.damage, tick.source);
 		}
 	}
 
 	void Entity::applyRoot(const float duration)
 	{
-		_root_timer = std::max(_root_timer, duration);
+		_status_controller->applyRoot(duration);
 		_velocity = {0.0f, 0.0f};
 		_is_moving = false;
 	}
@@ -632,24 +512,32 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		const float tick_interval,
 		const DamageSourceContext& source_context)
 	{
-		if (duration <= 0.0f || damage_per_tick <= 0)
-			return;
-
-		_poison_timer = std::max(_poison_timer, duration);
-		_poison_tick_interval = std::max(0.05f, tick_interval);
-		_poison_tick_timer = std::min(_poison_tick_timer > 0.0f ? _poison_tick_timer : _poison_tick_interval, _poison_tick_interval);
-		_poison_damage_per_tick = std::max(_poison_damage_per_tick, damage_per_tick);
-		_poison_damage_source = source_context;
+		_status_controller->applyPoison(duration, damage_per_tick, tick_interval, source_context);
 	}
 
 	void Entity::clearStatusEffects()
 	{
-		_root_timer = 0.0f;
-		_poison_timer = 0.0f;
-		_poison_tick_timer = 0.0f;
-		_poison_tick_interval = 1.0f;
-		_poison_damage_per_tick = 0;
-		_poison_damage_source = {};
+		_status_controller->clearStatusEffects();
+	}
+
+	bool Entity::isMovementRooted() const
+	{
+		return _status_controller->isMovementRooted();
+	}
+
+	bool Entity::isPoisoned() const
+	{
+		return _status_controller->isPoisoned();
+	}
+
+	float Entity::getRootRemaining() const
+	{
+		return _status_controller->rootRemaining();
+	}
+
+	float Entity::getPoisonRemaining() const
+	{
+		return _status_controller->poisonRemaining();
 	}
 
 	void Entity::updateAnimation(const float dt)
@@ -733,9 +621,9 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		if (_model_loaded)
 		{
 			const Vector3 pos3d = getWorldPos3D();
-			const float visual_rotation = _rotation + _model_facing_offset;
+			const float visual_rotation = _rotation + _visual_state->modelFacingOffset();
 			auto draw_model = [this, pos3d, visual_rotation](const Color tint) {
-				if (_hidden_mesh_indices.empty()) {
+				if (!_visual_state->hasHiddenMeshes()) {
 					DrawModelEx(_model, pos3d, { 0.0f, 1.0f, 0.0f }, visual_rotation, { _scale, _scale, _scale }, tint);
 					return;
 				}
@@ -747,7 +635,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				model.transform = MatrixMultiply(model.transform, MatrixMultiply(MatrixMultiply(mat_scale, mat_rotation), mat_translation));
 
 				for (int mesh_index = 0; mesh_index < model.meshCount; ++mesh_index) {
-					if (std::find(_hidden_mesh_indices.begin(), _hidden_mesh_indices.end(), mesh_index) != _hidden_mesh_indices.end())
+					if (_visual_state->isMeshHidden(mesh_index))
 						continue;
 
 					const int material_index = model.meshMaterial ? model.meshMaterial[mesh_index] : 0;
@@ -764,12 +652,12 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 				}
 			};
 
-			draw_model(_model_tint);
+			draw_model(_visual_state->modelTint());
 			if (_equipment) {
 				_equipment->draw(pos3d, visual_rotation, _rotation, _scale);
 			}
 
-			if (_hovered && _type != EntityType::Player)
+			if (_visual_state->hovered() && _type != EntityType::Player)
 			{
 				// Drugi przebieg renderu daje subtelne przyciemnienie przy hoverze.
 				draw_model(Fade(BLACK, 0.2f));
@@ -934,7 +822,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 	{
 		const Vector3 pos3d = getWorldPos3D();
 		const Matrix mat_translate = MatrixTranslate(pos3d.x, pos3d.y, pos3d.z);
-		const float visual_rotation = (_rotation + _model_facing_offset) * DEG2RAD;
+		const float visual_rotation = (_rotation + _visual_state->modelFacingOffset()) * DEG2RAD;
 		const Matrix mat_rotate = MatrixRotate({ 0.0f, 1.0f, 0.0f }, visual_rotation);
 		const Matrix mat_scale = MatrixScale(_scale, _scale, _scale);
 		return MatrixMultiply(
@@ -1080,71 +968,47 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	AbilityStats Entity::getAbilityStatsFromJson(const std::string& name)
 	{
-		static const nlohmann::json data = loadAbilitiesData();
-
-		if (data.contains("abilities"))
-		{
-			for (const auto& ability : data["abilities"])
-			{
-				if (ability.value("name", "") == name)
-				{
-					AbilityStats stats;
-					if (const auto stats_it = ability.find("stats"); stats_it != ability.end() && stats_it->is_object())
-					{
-						const auto& json_stats = *stats_it;
-						assignStatIfPresent(json_stats, "damage", stats.damage);
-						assignStatIfPresent(json_stats, "cooldown", stats.cooldown);
-						assignStatIfPresent(json_stats, "cast_range", stats.cast_range);
-						assignStatIfPresent(json_stats, "projectile_speed", stats.projectile_speed);
-						assignStatIfPresent(json_stats, "duration", stats.duration);
-						assignStatIfPresent(json_stats, "hitbox_radius", stats.hitbox_radius);
-					}
-					return stats;
-				}
-			}
-		}
-		
-		Core::Logger::errorLog("Entity - nie znaleziono umiejętności: " + name);
-		return {};
+		return getAbilityStatsFromConfig(name);
 	}
 
 	void Entity::addAbility(const std::shared_ptr<Ability>& ability) 
 	{
-		if (!ability) return;
-
-		ability->setCaster(this);
-		_abilities.push_back(ability);
+		_ability_controller->addAbility(*this, ability);
 	}
 
 	void Entity::setAbility(const int index, const std::shared_ptr<Ability>& ability)
 	{
-		if (index < 0 || !ability)
-			return;
-
-		ability->setCaster(this);
-		const auto ability_index = static_cast<size_t>(index);
-		if (_abilities.size() <= ability_index)
-			_abilities.resize(ability_index + 1);
-
-		_abilities[ability_index] = ability;
+		_ability_controller->setAbility(*this, index, ability);
 	}
 
 	std::shared_ptr<Ability> Entity::getAbility(const int index)
 	{
-		if (index < 0)
-			return nullptr;
+		return _ability_controller->getAbility(index);
+	}
 
-		const auto ability_index = static_cast<size_t>(index);
-		if (ability_index < _abilities.size())
-			return _abilities[ability_index];
-
-		return nullptr;
+	const std::vector<std::shared_ptr<Ability>>& Entity::getAbilities() const
+	{
+		return _ability_controller->getAbilities();
 	}
 
 	void Entity::updateAbilities(const float dt) const 
 	{
-		for (const auto& ability : _abilities)
-			ability->update(dt);
+		_ability_controller->updateAbilities(dt);
+	}
+
+	void Entity::addPendingSpawn(std::shared_ptr<Entity> entity)
+	{
+		_pending_spawn_queue->add(std::move(entity));
+	}
+
+	const std::vector<std::shared_ptr<Entity>>& Entity::getPendingSpawns() const
+	{
+		return _pending_spawn_queue->pending();
+	}
+
+	void Entity::clearPendingSpawns()
+	{
+		_pending_spawn_queue->clear();
 	}
 
 	void Entity::setCollider(std::unique_ptr<Collider> collider)
@@ -1188,10 +1052,7 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 		_target_x = x;
 		_target_y = y;
 
-		const float dx = _target_x - getX();
-		const float dy = _target_y - getY();
-		
-		_is_moving = dx * dx + dy * dy > 0.001f;
+		_is_moving = hasMovementTarget(_pos, {_target_x, _target_y});
 	}
 
 	void Entity::updateMovement(const float dt)
@@ -1204,60 +1065,28 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 		if (!_is_moving) return;
 
-		const float dx = _target_x - getX();
-		const float dy = _target_y - getY();
-		const float distance = std::sqrt(dx * dx + dy * dy);
-
-		if (distance <= 0.001f)
-		{
-			_pos.x = _target_x;
-			_pos.y = _target_y;
-			_is_moving = false;
-			return;
-		}
-
-		if (distance > 0.001f)
+		const float move_dist = _movement_speed * _speed_multiplier * dt;
+		const MovementAdvanceResult movement = advanceMovementTowards(_pos, {_target_x, _target_y}, move_dist);
+		if (movement.should_face_target)
 			rotateTowards(_target_x, _target_y);
 
-		const float speed = _movement_speed * _speed_multiplier;
-		const float move_dist = speed * dt;
-
-		if (move_dist >= distance) 
-		{
-			_pos.x = _target_x;
-			_pos.y = _target_y;
-			_is_moving = false;
-		} 
-		else 
-		{
-			_pos.x += (dx / distance) * move_dist;
-			_pos.y += (dy / distance) * move_dist;
-		}
+		_pos = movement.position;
+		_is_moving = movement.moving;
 	}
 
 	float Entity::getDistanceToTarget() const
 	{
-		const auto target = _target.lock();
-		if (!target) return std::numeric_limits<float>::max();
-		
-		const Vector2 my_pos = getCenter();
-		const Vector2 target_pos = target->getCenter();
-		
-		return Vector2Distance(my_pos, target_pos);
+		return TargetingSupport::distanceToTarget(*this, _target);
 	}
 
 	Vector2 Entity::getTargetPosition() const
 	{
-		const auto target = _target.lock();
-		if (!target) return _pos;
-		
-		return target->getCenter();
+		return TargetingSupport::targetPositionOrSelf(*this, _target);
 	}
 
 	bool Entity::hasValidTarget() const
 	{
-		const auto target = _target.lock();
-		return target && !target->isDead();
+		return TargetingSupport::hasLiveTarget(_target);
 	}
 
 	void Entity::chaseTarget(const float dt, const float path_recalc_interval)
@@ -1278,53 +1107,17 @@ bool Entity::DebugColliders = false; // Wlaczac tylko diagnostycznie, bo render 
 
 	void Entity::playSoundEffect(const std::string& id, const float volume, const bool restart_if_playing, const float pitch) const
 	{
-		if (!_audio_manager)
-			return;
-
-		const float spatial_volume = getSpatialAudioVolumeMultiplier();
-		if (spatial_volume <= 0.0f)
-			return;
-
-		_audio_manager->playSound(id, Audio::SoundOptions{volume * spatial_volume, pitch, restart_if_playing});
+		_audio_controller->playSoundEffect(*this, _audio_manager, id, volume, restart_if_playing, pitch);
 	}
 
 	void Entity::stopSoundEffect(const std::string& id) const
 	{
-		if (!_audio_manager)
-			return;
-
-		_audio_manager->stopSound(id);
+		_audio_controller->stopSoundEffect(_audio_manager, id);
 	}
 
 	void Entity::updateMovementSound(const std::string& path, const bool should_play, const float volume, const float pitch)
 	{
-		if (!_audio_manager)
-			return;
-
-		if (_movement_sound_id.empty())
-			_movement_sound_id = "movement:" + std::to_string(reinterpret_cast<std::uintptr_t>(this));
-
-		const float spatial_volume = getSpatialAudioVolumeMultiplier();
-		if (should_play && spatial_volume > 0.0f)
-			_audio_manager->playSoundFile(_movement_sound_id, path, Audio::SoundOptions{volume * spatial_volume, pitch, false});
-		else
-			_audio_manager->stopSound(_movement_sound_id);
-	}
-
-	float Entity::getSpatialAudioVolumeMultiplier() const
-	{
-		const auto listener = g_audio_listener.lock();
-		if (!listener || listener.get() == this)
-			return 1.0f;
-
-		const float distance = Vector2Distance(getCenter(), listener->getCenter());
-		if (distance <= FULL_VOLUME_DISTANCE)
-			return 1.0f;
-		if (distance <= MEDIUM_VOLUME_DISTANCE)
-			return 2.0f / 3.0f;
-		if (distance <= LOW_VOLUME_DISTANCE)
-			return 1.0f / 3.0f;
-		return 0.0f;
+		_audio_controller->updateMovementSound(*this, _audio_manager, path, should_play, volume, pitch);
 	}
 
 } // namespace Nawia::Entity

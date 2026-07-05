@@ -159,7 +159,7 @@ namespace Nawia::Entity {
 			return;
 
 		_control_lock_timer = std::max(_control_lock_timer, duration);
-		for (const auto& ability : _abilities) {
+		for (const auto& ability : getAbilities()) {
 			if (ability)
 				ability->cancel();
 		}

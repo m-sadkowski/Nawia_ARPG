@@ -226,14 +226,6 @@ namespace Nawia::Core {
 			addModel("assets/models/actors/walking_dead/walking_dead_2.glb");
 			addModel("assets/models/fireball.glb");
 			addModel("assets/models/totem.glb");
-			const std::string helper_model = resolveModelPath(
-				readStringAlias(entity_data, {"helper_model", "helper_model_path"}));
-			if (!helper_model.empty())
-				addModel(helper_model);
-			const std::string stone_projectile_model = resolveModelPath(
-				readStringAlias(entity_data, {"stone_projectile_model", "stone_projectile_model_path"}));
-			if (!stone_projectile_model.empty())
-				addModel(stone_projectile_model);
 			return;
 		}
 

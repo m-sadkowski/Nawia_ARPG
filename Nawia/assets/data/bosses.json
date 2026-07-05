@@ -227,10 +227,6 @@
             "enemy_type": "Dragon",
             "max_hp": 420,
             "scale": 0.8,
-            "helper_model": "assets/models/actors/walking_dead/walking_dead_2.glb",
-            "helper_scale": 1.5,
-            "stone_projectile_model": "assets/models/fireball.glb",
-            "stone_projectile_scale": 0.3,
             "music_path": "assets/audio/music/soundsbyamelia-slavic-war-dance-drums-stomps-amp-war-pipes-422949.mp3",
             "music_volume": 0.78,
             "phases": [

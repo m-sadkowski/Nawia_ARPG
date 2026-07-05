@@ -107,11 +107,10 @@ musza przejsc na cele pomocnicze zanim moga dalej bic bossa.
 
 `RiftTotem` jest encja typu Enemy, wiec da sie go targetowac i niszczyc zwyklymi
 atakami. Kazdy totem renderuje model `assets/models/totem.glb`. Kazdy totem
-moze przywolac jednego pomocnika `Sluga Totemu`. Model pomocnika jest
-konfigurowalny w JSON bossa polami `helper_model` / `helper_model_path` oraz
-`helper_scale`; domyslnie uzywany jest
+moze przywolac jednego pomocnika `Sluga Totemu`. Pomocnik uzywa modelu
 `assets/models/actors/walking_dead/walking_dead_2.glb`, ale animacje zostaja z
-bazowego Walking Dead.
+bazowego Walking Dead. Te assety sa czescia implementacji encountera, a nie
+per-boss konfiguracja JSON.
 
 W czasie oslony totemowej boss nie stoi bezczynnie: castuje `Stone Volley`,
 losowo teleportuje sie przez `Dragon Blink` i odpala `Fire Rain`. `Fire Rain`
@@ -120,11 +119,9 @@ kolejnymi stage'ami i zbijaniem totemow w aktualnym stage'u: 10.0-8.5s,
 8.0-6.5s, 6.5-5.5s, 5.5-4.0s. `Stone Volley`
 po zakonczeniu castu tworzy trzy mniejsze encje `Projectile`, czyli zachowuje
 sie podobnie do fireballa. Aktualnie uzywa `assets/models/fireball.glb` z
-szarym tintem, zeby nie dokladac osobnego placeholdera modelu. Model i skala
-pocisku sa konfigurowalne polami `stone_projectile_model` /
-`stone_projectile_model_path` oraz `stone_projectile_scale`. `FireRainHazard` dziedziczy z
-`BossTelegraphHazard`, wiec jest widoczny dla percepcji jak zwykly hazard, ale
-renderuje tez spadajace ogniste pociski nad obszarem.
+szarym tintem, zeby nie dokladac osobnego placeholdera modelu. `FireRainHazard`
+dziedziczy z `BossTelegraphHazard`, wiec jest widoczny dla percepcji jak zwykly
+hazard, ale renderuje tez spadajace ogniste pociski nad obszarem.
 
 Mapowanie animacji smoka: `Death` dla smierci, `Fast_Flying` dla ruchu,
 `Flying_Idle` dla postoju, `HitReact` po realnym otrzymaniu obrazen,

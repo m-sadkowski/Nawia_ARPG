@@ -25,8 +25,6 @@ namespace Nawia::Entity {
 		void takeDamage(int dmg) override;
 		[[nodiscard]] Vector3 getWorldPos3D() const override;
 		[[nodiscard]] bool isVisibleInCamera(const Camera3D& camera, float screen_margin = 96.0f) const override;
-		void setHelperModelOverride(std::string model_path, float scale);
-		void setStoneProjectileModel(std::string model_path, float scale);
 
 	private:
 		RiftBinder();
@@ -108,10 +106,6 @@ namespace Nawia::Entity {
 		float _hit_react_timer = 0.0f;
 
 		std::vector<std::weak_ptr<RiftTotem>> _totems;
-		std::string _helper_model_path = "assets/models/actors/walking_dead/walking_dead_2.glb";
-		float _helper_model_scale = 1.5f;
-		std::string _stone_projectile_model_path = "assets/models/fireball.glb";
-		float _stone_projectile_model_scale = 0.3f;
 
 		static constexpr float DRAGON_TARGET_HEIGHT = 1.25f;
 		static constexpr float VISION_RANGE = 24.0f;
@@ -140,7 +134,7 @@ namespace Nawia::Entity {
 		static constexpr int TOTEM_POSITION_ATTEMPTS = 8;
 		static constexpr int STONE_PROJECTILE_COUNT = 3;
 		static constexpr float STONE_PROJECTILE_SPEED = 8.6f;
-		static constexpr float STONE_PROJECTILE_HIT_RADIUS = 0.42f;
+		static constexpr float STONE_PROJECTILE_HIT_RADIUS = 0.357f;
 		static constexpr float STONE_PROJECTILE_DURATION = 3.0f;
 		static constexpr float STONE_PROJECTILE_SPREAD = 0.85f;
 		static constexpr float STONE_PROJECTILE_SPAWN_FORWARD = 0.78f;
@@ -148,10 +142,11 @@ namespace Nawia::Entity {
 		static constexpr float BLINK_FLARE_RADIUS = 0.95f;
 		static constexpr float BLINK_MIN_RADIUS = 4.4f;
 		static constexpr float BLINK_MAX_RADIUS = 7.0f;
-		static constexpr int STONE_DAMAGE = 13;
+		static constexpr int STONE_DAMAGE = 25;
 		static constexpr float FIRE_RAIN_RADIUS = 4.1f;
 		static constexpr float FIRE_RAIN_ACTIVE_SECONDS = 3.6f;
-		static constexpr int FIRE_RAIN_DAMAGE = 9;
+		static constexpr float FIRE_RAIN_TICK_INTERVAL = 1.0f;
+		static constexpr int FIRE_RAIN_DAMAGE = 5;
 
 		static constexpr int MELEE_DAMAGE = 22;
 		static constexpr float MELEE_COOLDOWN = 1.25f;

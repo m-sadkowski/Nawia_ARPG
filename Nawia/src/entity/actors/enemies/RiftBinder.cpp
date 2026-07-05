@@ -29,6 +29,8 @@ namespace Nawia::Entity {
 		constexpr int DRAGON_ANIM_HIT_REACT = 4;
 		constexpr int DRAGON_ANIM_NO = 5;
 		constexpr int DRAGON_ANIM_PUNCH = 6;
+		constexpr const char* STONE_PROJECTILE_MODEL = "assets/models/fireball.glb";
+		constexpr float STONE_PROJECTILE_MODEL_SCALE = 0.3f;
 		constexpr float MIN_DIRECTION_LENGTH_SQ = 0.0001f;
 		constexpr Color STONE_PROJECTILE_TINT = {125, 125, 125, 255};
 		constexpr std::array<int, 4> TOTEMS_BY_STAGE = {3, 4, 5, 7};
@@ -88,22 +90,6 @@ namespace Nawia::Entity {
 		setMovementSpeed(MOVE_SPEED);
 		setCollider(std::make_unique<RectangleCollider>(this, 1.25f, 1.55f, 0.0f, 0.0f));
 		configureModel();
-	}
-
-	void RiftBinder::setHelperModelOverride(std::string model_path, const float scale)
-	{
-		std::ranges::replace(model_path, '\\', '/');
-		if (!model_path.empty())
-			_helper_model_path = std::move(model_path);
-		_helper_model_scale = std::max(0.05f, scale);
-	}
-
-	void RiftBinder::setStoneProjectileModel(std::string model_path, const float scale)
-	{
-		std::ranges::replace(model_path, '\\', '/');
-		if (!model_path.empty())
-			_stone_projectile_model_path = std::move(model_path);
-		_stone_projectile_model_scale = std::max(0.03f, scale);
 	}
 
 	void RiftBinder::configureModel()
@@ -547,9 +533,7 @@ namespace Nawia::Entity {
 				_map,
 				owner,
 				target,
-				stage_index,
-				_helper_model_path,
-				_helper_model_scale);
+				stage_index);
 			totem->setAltitude(getAltitude());
 			totem->setAudioManager(_audio_manager);
 			_totems.push_back(totem);
@@ -589,8 +573,8 @@ namespace Nawia::Entity {
 				spawn_pos.y,
 				aim_pos.x,
 				aim_pos.y,
-				_stone_projectile_model_path,
-				_stone_projectile_model_scale,
+				STONE_PROJECTILE_MODEL,
+				STONE_PROJECTILE_MODEL_SCALE,
 				stats,
 				this,
 				target_height);
@@ -627,8 +611,8 @@ namespace Nawia::Entity {
 		config.radius = FIRE_RAIN_RADIUS + (_shield_active ? 0.25f * static_cast<float>(std::max(0, _active_stage)) : 0.0f);
 		config.warning_seconds = warning_seconds;
 		config.active_seconds = FIRE_RAIN_ACTIVE_SECONDS;
-		config.damage_per_tick = FIRE_RAIN_DAMAGE + std::max(0, _active_stage);
-		config.tick_interval = 0.62f;
+		config.damage_per_tick = FIRE_RAIN_DAMAGE;
+		config.tick_interval = FIRE_RAIN_TICK_INTERVAL;
 		config.source_context = Entity::makeDamageSourceContext(this, config.name);
 		config.warning_color = {255, 165, 45, 255};
 		config.active_color = {245, 58, 18, 255};

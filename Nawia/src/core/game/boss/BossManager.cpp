@@ -1,335 +1,40 @@
 #include "BossManager.h"
 
-#include <ActorInterface.h>
-#include <Bandit.h>
+#include <BossDefinitionLoader.h>
+#include <BossDialogueBuilder.h>
+#include <BossEnemyFactory.h>
+#include <BossMinionSpawner.h>
+#include <BossPhaseMath.h>
+#include <BossPreloader.h>
+#include <BossRuntimeSerializer.h>
 #include <Collider.h>
-#include <Dialogue.h>
-#include <Devil.h>
 #include <Engine.h>
-#include <Frog.h>
+#include <EnemyInterface.h>
 #include <Logger.h>
 #include <Map.h>
 #include <Player.h>
 #include <QuestManager.h>
-#include <RiftBinder.h>
 #include <UIHandler.h>
-#include <WalkingDead.h>
-#include <witch/Witch.h>
 #include <json.hpp>
 
 #include <algorithm>
-#include <cmath>
-#include <fstream>
 
 namespace Nawia::Game {
 
     BossManager::BossManager() {}
     BossManager::~BossManager() {}
 
-    // -----------------------------------------------------------------------
-    // Helpery parsowania JSON (lokalne w jednostce kompilacji)
-    // -----------------------------------------------------------------------
-
     namespace {
-
-        std::vector<MinionSpawnInfo> parseMinionList(const nlohmann::json& pj) {
-            std::vector<MinionSpawnInfo> result;
-            if (!pj.contains("minions")) return result;
-
-            for (const auto& mj : pj["minions"]) {
-                MinionSpawnInfo minion;
-                minion.enemy_type = mj.value("enemy_type", "WalkingDead");
-                minion.count = mj.value("count", 1);
-                minion.hp = mj.value("hp", 60);
-                minion.offset_x = mj.value("offset_x", 3.0f);
-                minion.offset_y = mj.value("offset_y", 2.0f);
-                result.push_back(minion);
-            }
-            return result;
-        }
-
-        BossPhase parseBossPhase(const nlohmann::json& pj) {
-            BossPhase phase;
-            phase.hp_threshold = pj.value("hp_threshold", 1.0f);
-            phase.name = pj.value("name", "");
-            phase.speed_multiplier = pj.value("speed_multiplier", 1.0f);
-            phase.damage_multiplier = pj.value("damage_multiplier", 1.0f);
-            phase.notification = pj.value("notification", "");
-            phase.screen_flash = pj.value("screen_flash", false);
-
-            if (pj.contains("flash_color")) {
-                const auto& fc = pj["flash_color"];
-                if (fc.is_array() && fc.size() >= 4) {
-                    phase.flash_color = {
-                        static_cast<unsigned char>(fc[0].get<int>()),
-                        static_cast<unsigned char>(fc[1].get<int>()),
-                        static_cast<unsigned char>(fc[2].get<int>()),
-                        static_cast<unsigned char>(fc[3].get<int>())
-                    };
-                }
-            }
-
-            phase.minions = parseMinionList(pj);
-            return phase;
-        }
-
-        BossReward parseBossReward(const nlohmann::json& rj) {
-            BossReward reward;
-            reward.gold = rj.value("gold", 0);
-            reward.exp = rj.value("exp", 0);
-            if (rj.contains("items")) {
-                for (const auto& item_id : rj["items"]) {
-                    reward.item_ids.push_back(item_id.get<int>());
-                }
-            }
-            return reward;
-        }
-
-        BossIntroDialogue parseBossIntroDialogue(const nlohmann::json& bj) {
-            BossIntroDialogue intro;
-            if (!bj.contains("intro_dialogue") || !bj["intro_dialogue"].is_object())
-                return intro;
-
-            const auto& ij = bj["intro_dialogue"];
-            intro.enabled = ij.value("enabled", false);
-            intro.required_active_quest = ij.value("required_active_quest", "");
-            intro.blocking_active_quest = ij.value("blocking_active_quest", "");
-            intro.checkpoint_on_complete = ij.value("checkpoint_on_complete", "");
-            intro.final_option = ij.value("final_option", "Rozumiem.");
-            intro.show_preview = ij.value("show_preview", false);
-
-            if (ij.contains("lines") && ij["lines"].is_array()) {
-                for (const auto& lj : ij["lines"]) {
-                    BossDialogueLine line;
-                    line.speaker = lj.value("speaker", "");
-                    line.text = lj.value("text", "");
-                    line.voice_path = lj.value("voice_path", "");
-                    intro.lines.push_back(std::move(line));
-                }
-            }
-
-            intro.enabled = intro.enabled && !intro.lines.empty();
-            return intro;
-        }
-
-        bool isPlayerDialogueSpeaker(const std::string& speaker) {
-            return speaker == "Logos" || speaker == "Jarko" || speaker == "Player" || speaker == "Gracz";
-        }
-
-        bool isPlaceholderOption(const std::string& text) {
-            return text.empty() || text == "..." || text == "Dalej";
-        }
-
-        std::string resolveFinalOption(
-            const std::string& configured_text,
-            const std::string& current_speaker,
-            const std::string& current_text
-        ) {
-            if (!isPlaceholderOption(configured_text))
-                return configured_text;
-
-            return isPlayerDialogueSpeaker(current_speaker) ? current_text : "Rozumiem.";
-        }
-
-        nlohmann::json loadJsonDocument(const std::string& path) {
-            std::ifstream file(path);
-            if (!file.is_open()) {
-                Core::Logger::errorLog("BossManager: nie mozna otworzyc JSON: " + path);
-                return {};
-            }
-
-            nlohmann::json data;
-            try {
-                file >> data;
-            } catch (const nlohmann::json::parse_error&) {
-                Core::Logger::errorLog("BossManager: blad parsowania JSON: " + path);
-                return {};
-            }
-            return data;
-        }
-
-        std::string resolveOptionalModelPath(std::string model_path) {
-            std::ranges::replace(model_path, '\\', '/');
-            if (model_path.empty() || model_path.rfind("assets/", 0) == 0)
-                return model_path;
-
-            if (model_path.find('/') != std::string::npos)
-                return model_path;
-
-            return "assets/models/" + model_path;
-        }
-
-        void applyRiftBinderConfig(
-            const std::shared_ptr<Entity::Entity>& entity,
-            const BossData& boss_data
-        ) {
-            const auto rift_binder = std::dynamic_pointer_cast<Entity::RiftBinder>(entity);
-            if (!rift_binder)
-                return;
-
-            rift_binder->setHelperModelOverride(boss_data.helper_model_path, boss_data.helper_model_scale);
-            rift_binder->setStoneProjectileModel(
-                boss_data.stone_projectile_model_path,
-                boss_data.stone_projectile_model_scale);
-        }
 
         void applyConfiguredScale(const std::shared_ptr<Entity::Entity>& entity, const float scale) {
             if (entity && scale > 0.0f)
                 entity->setScale(scale);
         }
 
-        DialogueTree buildDialogueFromNpcConfig(const std::string& dialogue_key) {
-            DialogueTree tree;
-            static const nlohmann::json config = loadJsonDocument("assets/data/npc_dialogues.json");
-            if (dialogue_key.empty() || !config.contains(dialogue_key) || !config[dialogue_key].is_object())
-                return tree;
-
-            const auto& dialogue_json = config[dialogue_key];
-            const auto lines_it = dialogue_json.find("lines");
-            if (lines_it == dialogue_json.end() || !lines_it->is_array())
-                return tree;
-
-            const std::string final_option = dialogue_json.value("final_option", "Rozumiem.");
-            for (size_t i = 0; i < lines_it->size(); ++i) {
-                const auto& line = (*lines_it)[i];
-                DialogueNode node;
-                node.id = static_cast<int>(i);
-                node.speaker_name = line.value("speaker", "");
-                node.text = line.value("text", "");
-                node.voice_path = line.value("voice_path", "");
-
-                DialogueOption option;
-                size_t next_line = i + 1;
-                if (next_line < lines_it->size() && isPlayerDialogueSpeaker((*lines_it)[next_line].value("speaker", ""))) {
-                    option.text = (*lines_it)[next_line].value("text", "");
-                } else {
-                    const bool is_final_node = next_line >= lines_it->size();
-                    option.text = is_final_node
-                        ? resolveFinalOption(final_option, node.speaker_name, node.text)
-                        : "Dalej";
-                }
-
-                option.next_node_id = (next_line < lines_it->size()) ? static_cast<int>(next_line) : -1;
-                node.options.push_back(option);
-                tree.addNode(node);
-            }
-
-            return tree;
-        }
-
-        int getPhaseRestartHp(const BossData& boss, const int phase_index, const int max_hp) {
-            if (max_hp <= 0)
-                return 1;
-
-            if (phase_index <= 0 || boss.phases.empty())
-                return max_hp;
-
-            const int clamped_phase = std::clamp(
-                phase_index,
-                0,
-                static_cast<int>(boss.phases.size()) - 1
-            );
-            const int threshold_hp = static_cast<int>(std::floor(
-                static_cast<float>(max_hp) * boss.phases[clamped_phase].hp_threshold
-            ));
-
-            return std::clamp(threshold_hp + 1, 1, max_hp);
-        }
-
-        int resolvePhaseIndexForHp(
-            const BossData& boss,
-            const int current_phase_index,
-            const int hp,
-            const int max_hp
-        ) {
-            if (boss.phases.empty() || max_hp <= 0)
-                return std::max(0, current_phase_index);
-
-            int result = std::clamp(
-                current_phase_index,
-                0,
-                static_cast<int>(boss.phases.size()) - 1
-            );
-            const float hp_pct = static_cast<float>(hp) / static_cast<float>(max_hp);
-            for (int i = static_cast<int>(boss.phases.size()) - 1; i > result; --i) {
-                if (hp_pct <= boss.phases[i].hp_threshold) {
-                    result = i;
-                    break;
-                }
-            }
-
-            return result;
-        }
-
     } // namespace anonimowa
 
     void BossManager::loadFromJson(const std::string& path) {
-        std::ifstream file(path);
-        if (!file.is_open()) {
-            Core::Logger::errorLog("BossManager: Nie udalo sie otworzyc " + path);
-            return;
-        }
-
-        nlohmann::json data;
-        try {
-            file >> data;
-        }
-        catch (const nlohmann::json::parse_error&) {
-            Core::Logger::errorLog("BossManager: Blad parsowania JSON w " + path);
-            return;
-        }
-
-        if (!data.contains("bosses")) return;
-
-        _bosses.clear();
-        for (const auto& bj : data["bosses"]) {
-            BossData boss;
-            boss.id = bj.value("id", "");
-            boss.name = bj.value("name", "");
-            boss.enemy_type = bj.value("enemy_type", "");
-            boss.max_hp = bj.value("max_hp", 1000);
-            boss.scale = bj.value("scale", 1.0f);
-            boss.music_path = bj.value("music_path", "");
-            boss.music_volume = bj.value("music_volume", 0.85f);
-            boss.helper_model_path = resolveOptionalModelPath(bj.value("helper_model", bj.value("helper_model_path", "")));
-            boss.helper_model_scale = bj.value("helper_scale", 1.5f);
-            boss.stone_projectile_model_path = resolveOptionalModelPath(
-                bj.value("stone_projectile_model", bj.value("stone_projectile_model_path", "")));
-            boss.stone_projectile_model_scale = bj.value(
-                "stone_projectile_scale",
-                bj.value("stone_projectile_model_scale", 0.3f));
-            boss.on_player_death = bj.value("on_player_death", "end_fight");
-            boss.intro_dialogue = parseBossIntroDialogue(bj);
-            boss.victory_dialogue_key = bj.value("victory_dialogue_key", "");
-            boss.checkpoint_on_victory = bj.value("checkpoint_on_victory", "");
-
-            // Fazy.
-            if (bj.contains("phases")) {
-                for (const auto& pj : bj["phases"]) {
-                    boss.phases.push_back(parseBossPhase(pj));
-                }
-            }
-
-            // Domyslna faza, jesli zadna nie zostala zdefiniowana.
-            if (boss.phases.empty()) {
-                BossPhase default_phase;
-                default_phase.hp_threshold = 1.0f;
-                default_phase.name = "Faza 1";
-                default_phase.speed_multiplier = 1.0f;
-                default_phase.damage_multiplier = 1.0f;
-                boss.phases.push_back(default_phase);
-            }
-
-            // Nagrody.
-            if (bj.contains("rewards")) {
-                boss.reward = parseBossReward(bj["rewards"]);
-            }
-
-            if (!boss.id.empty()) {
-                _bosses[boss.id] = boss;
-                Core::Logger::debugLog("BossManager: Zaladowano bossa '" + boss.id + "' z " + std::to_string(boss.phases.size()) + " fazami");
-            }
-        }
+        _bosses = BossDefinitionLoader::loadFromJson(path);
     }
 
     std::vector<std::string> BossManager::getDefeatedBossIds() const {
@@ -351,7 +56,7 @@ namespace Nawia::Game {
             return state;
 
         state.boss_id = _active_boss_data->id;
-        state.current_phase_index = resolvePhaseIndexForHp(
+        state.current_phase_index = BossPhaseMath::resolvePhaseIndexForHp(
             *_active_boss_data,
             _current_phase_index,
             _active_boss_entity->getHP(),
@@ -368,47 +73,13 @@ namespace Nawia::Game {
     }
 
     nlohmann::json BossManager::serializeRuntimeState() const {
-        const BossRuntimeState state = getRuntimeState();
-        nlohmann::json result;
-        result["active"] = state.active;
-        if (!state.active)
-            return result;
-
-        result["boss_id"] = state.boss_id;
-        result["current_phase_index"] = state.current_phase_index;
-        result["fight_timer"] = state.fight_timer;
-        result["saved_hp"] = state.saved_hp;
-        result["max_hp"] = state.max_hp;
-        result["position"] = {{"x", state.position.x}, {"y", state.position.y}};
-        result["altitude"] = state.altitude;
-        result["spawn_position"] = {{"x", state.spawn_position.x}, {"y", state.spawn_position.y}};
-        result["spawn_altitude"] = state.spawn_altitude;
-        return result;
+        return BossRuntimeSerializer::toJson(getRuntimeState());
     }
 
     bool BossManager::applyRuntimeState(const nlohmann::json& data, Core::Engine* engine) {
-        if (!data.is_object() || !data.value("active", false))
-            return false;
-
         BossRuntimeState state;
-        state.active = true;
-        state.boss_id = data.value("boss_id", "");
-        state.current_phase_index = data.value("current_phase_index", 0);
-        state.fight_timer = data.value("fight_timer", 0.0f);
-        state.saved_hp = data.value("saved_hp", 0);
-        state.max_hp = data.value("max_hp", 0);
-
-        const auto read_position = [](const nlohmann::json& object) {
-            return Vector2{object.value("x", 0.0f), object.value("y", 0.0f)};
-        };
-
-        if (data.contains("position") && data["position"].is_object())
-            state.position = read_position(data["position"]);
-        if (data.contains("spawn_position") && data["spawn_position"].is_object())
-            state.spawn_position = read_position(data["spawn_position"]);
-
-        state.altitude = data.value("altitude", 0.0f);
-        state.spawn_altitude = data.value("spawn_altitude", 0.0f);
+        if (!BossRuntimeSerializer::fromJson(data, state))
+            return false;
 
         return restoreRuntimeState(state, engine);
     }
@@ -460,7 +131,7 @@ namespace Nawia::Game {
         _active_boss_entity->setAltitude(state.altitude);
         _active_boss_entity->setDormant(false);
 
-        const int restart_hp = getPhaseRestartHp(*_active_boss_data, _current_phase_index, max_hp);
+        const int restart_hp = BossPhaseMath::restartHp(*_active_boss_data, _current_phase_index, max_hp);
         _active_boss_entity->setHP(restart_hp);
 
         if (!_active_boss_data->phases.empty())
@@ -474,61 +145,11 @@ namespace Nawia::Game {
         return true;
     }
 
-    // -----------------------------------------------------------------------
-    // Budowanie encji wroga (wspolne dla bossa i minionow)
-    // -----------------------------------------------------------------------
-
-    std::shared_ptr<Entity::Entity> BossManager::buildEnemyEntity(
-        const std::string& type, const std::string& name,
-        int max_hp, Core::Engine* engine)
-    {
-        auto player = engine->getPlayer();
-        auto* map = engine->getCurrentMap();
-
-        std::shared_ptr<Entity::Entity> entity = nullptr;
-
-        if (type == "Devil") {
-            entity = std::shared_ptr<Entity::Entity>(Entity::DevilBuilder()
-                .setName(name).setMap(map).setMaxHp(max_hp)
-                .setTarget(player).setAudioManager(&engine->getAudioManager())
-                .build());
-        } else if (type == "Witch") {
-            entity = std::shared_ptr<Entity::Entity>(Entity::WitchBuilder()
-                .setName(name).setMap(map).setMaxHp(max_hp)
-                .setTarget(player).setAudioManager(&engine->getAudioManager())
-                .build());
-        } else if (type == "WalkingDead") {
-            entity = std::shared_ptr<Entity::Entity>(Entity::WalkingDeadBuilder()
-                .setName(name).setMap(map).setMaxHp(max_hp)
-                .setTarget(player).setAudioManager(&engine->getAudioManager())
-                .build());
-        } else if (type == "Bandit") {
-            auto bandit = Entity::BanditBuilder()
-                .setName(name).setMap(map).setMaxHp(max_hp)
-                .setTarget(player).setAudioManager(&engine->getAudioManager())
-                .build();
-            bandit->ensureKnifeThrowAbility(&engine->getResourceManager());
-            entity = std::shared_ptr<Entity::Entity>(std::move(bandit));
-        } else if (type == "Frog") {
-            entity = std::shared_ptr<Entity::Entity>(Entity::FrogBuilder()
-                .setName(name).setMap(map).setEngine(engine).setMaxHp(max_hp)
-                .setTarget(player).setAudioManager(&engine->getAudioManager())
-                .build());
-        } else if (type == "RiftBinder" || type == "rift_binder" || type == "Dragon" || type == "dragon") {
-            entity = std::shared_ptr<Entity::Entity>(Entity::RiftBinderBuilder()
-                .setName(name).setMap(map).setMaxHp(max_hp)
-                .setTarget(player).setAudioManager(&engine->getAudioManager())
-                .build());
-        }
-
-        return entity;
-    }
-
     std::shared_ptr<Entity::Entity> BossManager::createPreviewEntity(const BossData& boss_data, Core::Engine* engine) {
         if (!engine)
             return nullptr;
 
-        auto entity = buildEnemyEntity(
+        auto entity = BossEnemyFactory::create(
             boss_data.enemy_type,
             boss_data.name.empty() ? boss_data.id : boss_data.name,
             boss_data.max_hp,
@@ -540,7 +161,6 @@ namespace Nawia::Game {
         entity->setFaction(Entity::Faction::None);
         entity->setTarget(nullptr);
         applyConfiguredScale(entity, boss_data.scale);
-        applyRiftBinderConfig(entity, boss_data);
         return entity;
     }
 
@@ -582,45 +202,9 @@ namespace Nawia::Game {
             return;
         }
 
-        if (preloadBossDefinition(boss_it->second, engine)) {
+        if (BossPreloader::preloadBossDefinition(boss_it->second, engine, _boss_pool, _minion_pools)) {
             Core::Logger::debugLog("BossManager: Preladowano walke z bossem '" + boss_id + "'.");
         }
-    }
-
-    bool BossManager::preloadBossDefinition(const BossData& boss, Core::Engine* engine) {
-        bool preloaded_anything = false;
-
-        if (!_boss_pool.contains(boss.id)) {
-            auto boss_entity = buildEnemyEntity(boss.enemy_type, boss.name, boss.max_hp, engine);
-            if (boss_entity) {
-                applyRiftBinderConfig(boss_entity, boss);
-                boss_entity->setDormant(true);
-                _boss_pool[boss.id] = boss_entity;
-                preloaded_anything = true;
-            }
-        }
-
-        std::map<std::string, int> minion_counts;
-        for (const auto& phase : boss.phases) {
-            for (const auto& minion : phase.minions) {
-                minion_counts[minion.enemy_type] += minion.count;
-            }
-        }
-
-        for (const auto& [type, count] : minion_counts) {
-            auto& pool = _minion_pools[type];
-            while (static_cast<int>(pool.size()) < count) {
-                auto minion = buildEnemyEntity(type, "Minion", 60, engine);
-                if (!minion)
-                    break;
-
-                minion->setDormant(true);
-                pool.push_back(minion);
-                preloaded_anything = true;
-            }
-        }
-
-        return preloaded_anything;
     }
 
     // -----------------------------------------------------------------------
@@ -687,14 +271,13 @@ namespace Nawia::Game {
             0.0f));
         enemy->setMap(engine->getCurrentMap());
         enemy->setHealToFullOnKill(true);
-        applyRiftBinderConfig(enemy, *_active_boss_data);
         _active_boss_entity = enemy;
         engine->getEntityManager().addEntity(_active_boss_entity);
         return true;
     }
 
     bool BossManager::buildAndActivateBoss(Core::Engine* engine) {
-        auto boss_entity = buildEnemyEntity(
+        auto boss_entity = BossEnemyFactory::create(
             _active_boss_data->enemy_type,
             _active_boss_data->name,
             _active_boss_data->max_hp,
@@ -713,7 +296,6 @@ namespace Nawia::Game {
             0.0f,
             0.0f));
         enemy->setHealToFullOnKill(true);
-        applyRiftBinderConfig(enemy, *_active_boss_data);
         _active_boss_entity = enemy;
         placeEntityAtBossSpawn(_active_boss_entity, engine);
         engine->getEntityManager().addEntity(_active_boss_entity);
@@ -950,7 +532,7 @@ namespace Nawia::Game {
         restoreMusicAfterBoss(engine);
 
         if (victory && engine && !victory_dialogue_key.empty()) {
-            DialogueTree tree = buildDialogueFromNpcConfig(victory_dialogue_key);
+            DialogueTree tree = BossDialogueBuilder::buildFromNpcConfig(victory_dialogue_key);
             if (tree.getNode(0)) {
                 engine->getUIHandler().openDialogueFacing(tree, defeated_boss_entity, 0, [engine, checkpoint_on_victory, defeated_boss_entity](const int, const bool completed) {
                     if (defeated_boss_entity)
@@ -1028,66 +610,12 @@ namespace Nawia::Game {
     // -----------------------------------------------------------------------
 
     void BossManager::spawnMinions(const std::vector<MinionSpawnInfo>& minions, Core::Engine* engine) {
-        if (!_active_boss_entity) return;
-
-        for (const auto& info : minions) {
-            for (int i = 0; i < info.count; ++i) {
-                // Rozmieszczenie minionow w okregu wokol bossa.
-                float angle = (2.0f * 3.14159f / static_cast<float>(info.count)) * i;
-                Vector2 spawn_pos = {
-                    _active_boss_entity->getX() + info.offset_x * std::cos(angle),
-                    _active_boss_entity->getY() + info.offset_y * std::sin(angle)
-                };
-
-                std::shared_ptr<Entity::Entity> minion = nullptr;
-
-                // Proba pobrania z puli preladowanych encji.
-                if (_minion_pools.count(info.enemy_type) && !_minion_pools[info.enemy_type].empty()) {
-                    minion = _minion_pools[info.enemy_type].back();
-                    _minion_pools[info.enemy_type].pop_back();
-                    minion->setX(spawn_pos.x);
-                    minion->setY(spawn_pos.y);
-                    minion->setMaxHp(info.hp);
-                    minion->setDormant(false);
-                } else {
-                    // Budowanie w locie, jesli pula jest pusta.
-                    minion = buildEnemyEntity(info.enemy_type, "Minion", info.hp, engine);
-                    if (minion) {
-                        minion->setX(spawn_pos.x);
-                        minion->setY(spawn_pos.y);
-                    }
-                }
-
-                if (minion) {
-                    if (auto actor = std::dynamic_pointer_cast<Entity::ActorInterface>(minion))
-                        actor->setMap(engine->getCurrentMap());
-
-                    auto* map = engine->getCurrentMap();
-                    if (map && map->getNavMesh().isReady()) {
-                        const Vector3 snapped_position = map->getNavMesh().getClosestWalkablePosition(
-                            {minion->getX(), _active_boss_entity->getAltitude(), minion->getY()});
-                        minion->setX(snapped_position.x);
-                        minion->setY(snapped_position.z);
-                        minion->setAltitude(snapped_position.y);
-                    }
-
-                    _active_minions.push_back(minion);
-                    engine->getEntityManager().addEntity(minion);
-                }
-            }
-        }
-
-        Core::Logger::debugLog("BossManager: Przywolano " + std::to_string(_active_minions.size()) + " minionow.");
+        BossMinionSpawner::spawn(minions, _active_boss_entity, _minion_pools, _active_minions, engine);
     }
 
     void BossManager::removeMinions(Core::Engine* engine) {
-        for (auto& minion : _active_minions) {
-            if (minion && !minion->isDead()) {
-                minion->die();
-            }
-        }
-        _active_minions.clear();
-        Core::Logger::debugLog("BossManager: Miniony usuniete.");
+        (void)engine;
+        BossMinionSpawner::remove(_active_minions);
     }
 
 } // namespace Nawia::Game

@@ -17,6 +17,11 @@ namespace Nawia::Entity {
 	class Ability;
 	class Collider;
 	class Entity;
+	class EntityAbilityController;
+	class EntityAudioController;
+	class EntityPendingSpawnQueue;
+	class EntityStatusController;
+	class EntityVisualState;
 }
 
 namespace Nawia::Item {
@@ -150,8 +155,8 @@ namespace Nawia::Entity {
 		[[nodiscard]] bool hasEntityId() const { return _entity_id != INVALID_ENTITY_ID; }
 		void beginCastTelemetry(std::string cast_name, float duration_seconds, bool interruptible);
 		void clearCastTelemetry();
-		[[nodiscard]] const EntityCastState& getCastState() const { return _cast_state; }
-		[[nodiscard]] bool isCasting() const { return _cast_state.active; }
+		[[nodiscard]] const EntityCastState& getCastState() const;
+		[[nodiscard]] bool isCasting() const;
 		[[nodiscard]] Vector2 getCenter() const;
 		virtual void applyRoot(float duration);
 		void applyPoison(float duration, int damage_per_tick, float tick_interval = 1.0f);
@@ -161,10 +166,10 @@ namespace Nawia::Entity {
 			float tick_interval,
 			const DamageSourceContext& source_context);
 		void clearStatusEffects();
-		[[nodiscard]] bool isMovementRooted() const { return _root_timer > 0.0f; }
-		[[nodiscard]] bool isPoisoned() const { return _poison_timer > 0.0f; }
-		[[nodiscard]] float getRootRemaining() const { return _root_timer; }
-		[[nodiscard]] float getPoisonRemaining() const { return _poison_timer; }
+		[[nodiscard]] bool isMovementRooted() const;
+		[[nodiscard]] bool isPoisoned() const;
+		[[nodiscard]] float getRootRemaining() const;
+		[[nodiscard]] float getPoisonRemaining() const;
 
 		/**
 		 * @brief Zwraca pozycję encji w świecie 3D.
@@ -208,9 +213,9 @@ namespace Nawia::Entity {
 		[[nodiscard]] Vector2 getVelocity() const { return _velocity; }
 		void setScale(float scale) { _scale = scale; }
 		[[nodiscard]] float getScale() const { return _scale; }
-		void setModelTint(Color tint) { _model_tint = tint; }
-		[[nodiscard]] Color getModelTint() const { return _model_tint; }
-		void setHovered(bool hovered) { _hovered = hovered; }
+		void setModelTint(Color tint);
+		[[nodiscard]] Color getModelTint() const;
+		void setHovered(bool hovered);
 		void setAudioManager(Audio::AudioManager* audio_manager) { _audio_manager = audio_manager; }
 		void hideMeshIndex(int mesh_index);
 
@@ -338,8 +343,8 @@ namespace Nawia::Entity {
 		/**
 		 * @brief Ustawia wizualny offset modelu względem matematycznego kierunku patrzenia.
 		 */
-		void setModelFacingOffset(float deg) { _model_facing_offset = deg; }
-		[[nodiscard]] float getModelFacingOffset() const { return _model_facing_offset; }
+		void setModelFacingOffset(float deg);
+		[[nodiscard]] float getModelFacingOffset() const;
 
 		/**
 		 * @brief Obraca encję w stronę punktu świata.
@@ -381,7 +386,7 @@ namespace Nawia::Entity {
 		 */
 		[[nodiscard]] std::shared_ptr<Ability> getAbility(int index);
 
-		[[nodiscard]] const std::vector<std::shared_ptr<Ability>>& getAbilities() const { return _abilities; }
+		[[nodiscard]] const std::vector<std::shared_ptr<Ability>>& getAbilities() const;
 
 		/**
 		 * @brief Aktualizuje czasy odnowienia i stan wszystkich umiejętności.
@@ -392,20 +397,17 @@ namespace Nawia::Entity {
 		/**
 		 * @brief Dodaje encję, którą silnik ma dopiąć do świata po zakończeniu aktualizacji.
 		 */
-		void addPendingSpawn(std::shared_ptr<Entity> entity) {
-			if (entity)
-				_pending_spawns.push_back(std::move(entity));
-		}
+		void addPendingSpawn(std::shared_ptr<Entity> entity);
 
 		/**
 		 * @brief Zwraca listę encji oczekujących na dodanie do świata.
 		 */
-		[[nodiscard]] const std::vector<std::shared_ptr<Entity>>& getPendingSpawns() const { return _pending_spawns; }
+		[[nodiscard]] const std::vector<std::shared_ptr<Entity>>& getPendingSpawns() const;
 
 		/**
 		 * @brief Czyści listę encji oczekujących po ich odebraniu przez silnik.
 		 */
-		void clearPendingSpawns() { _pending_spawns.clear(); }
+		void clearPendingSpawns();
 
 		// Frakcje i wybieranie celu.
 		[[nodiscard]] Faction getFaction() const { return _faction; }
@@ -509,7 +511,6 @@ namespace Nawia::Entity {
 		Audio::AudioManager* _audio_manager = nullptr;
 
 		std::unique_ptr<Collider> _collider;
-		std::vector<std::shared_ptr<Entity>> _pending_spawns;
 
 		int _hp = 1;
 		int _max_hp = 1;
@@ -542,8 +543,6 @@ namespace Nawia::Entity {
 		float _anim_speed_multiplier = 1.0f;
 		float _anim_fps = 60.0f;
 		float _rotation = 0.0f;
-		float _model_facing_offset = 90.0f; ///< Offset modelu względem kierunku matematycznego.
-		Color _model_tint = WHITE;
 		bool _model_loaded = false;
 		bool _owns_model = false;
 		bool _cloned_model = false; ///< Model pochodzi z cloneModel — nie zwalniaj tekstur.
@@ -557,12 +556,9 @@ namespace Nawia::Entity {
 		bool _animation_frozen_at_last_frame = false;
 		float _anim_direction = 1.0f;
 		bool _persist_after_death = false;
-		bool _hovered = false;
 		bool _dormant = false;
 		bool _heal_to_full_on_kill = false;
 		bool _combat_death_event_emitted = false;
-		std::vector<int> _hidden_mesh_indices;
-
 		bool _is_dying = false;
 		std::string _death_anim_name = "death";
 
@@ -574,13 +570,6 @@ namespace Nawia::Entity {
 
 		float _speed_multiplier = 1.0f;
 		float _damage_multiplier = 1.0f;
-		float _root_timer = 0.0f;
-		float _poison_timer = 0.0f;
-		float _poison_tick_timer = 0.0f;
-		float _poison_tick_interval = 1.0f;
-		int _poison_damage_per_tick = 0;
-		DamageSourceContext _poison_damage_source;
-		EntityCastState _cast_state;
 
 		// Śledzenie celu.
 		std::weak_ptr<Entity> _target;             ///< Aktualny cel AI/walki, nieposiadany.
@@ -589,18 +578,18 @@ namespace Nawia::Entity {
 
 		Faction _faction = Faction::None;
 		std::string _name;
+		std::unique_ptr<EntityAbilityController> _ability_controller;
+		std::unique_ptr<EntityAudioController> _audio_controller;
+		std::unique_ptr<EntityPendingSpawnQueue> _pending_spawn_queue;
+		std::unique_ptr<EntityStatusController> _status_controller;
+		std::unique_ptr<EntityVisualState> _visual_state;
 
 		void updateAnimation(float dt);
 		void updateStatusEffects(float dt);
 		void updateCastTelemetry(float dt);
 		void updateMovementSound(const std::string& path, bool should_play, float volume = 0.55f, float pitch = 1.0f);
-		[[nodiscard]] float getSpatialAudioVolumeMultiplier() const;
 		void unloadModelData();
 		virtual void onDeathStarted() {}
-
-		std::string _movement_sound_id;
-
-		std::vector<std::shared_ptr<Ability>> _abilities;
 
 		std::unique_ptr<Item::Equipment> _equipment;
 	};
