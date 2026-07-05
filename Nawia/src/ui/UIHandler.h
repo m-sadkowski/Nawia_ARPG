@@ -205,6 +205,7 @@ namespace Nawia::UI {
         void renderAuthorsMenu() const;
         void drawBar(float x, float y, float width, float height, float percentage, Color fg_color, Color bg_color) const;
         void drawOrb(float center_x, float center_y, float radius, float target_percent, float ghost_percent, float wave_speed, Color fill_bright, Color fill_dark, Color bg_color, const char* text, const std::shared_ptr<Texture2D>& frame_texture) const;
+        void updateMenuHoverTimers(float dt);
         bool handleInventoryPanelInput();
         bool handleContainerPanelInput();
         bool pickUpContainerItem(Item::Backpack& container_inventory, int container_slot);

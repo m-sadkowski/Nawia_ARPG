@@ -78,9 +78,9 @@ namespace Nawia::Core {
 		}
 
 		if (_ui_handler) {
-			_ui_handler->render(_camera, &_boss_manager);
 			if (!_show_pause_menu)
 				renderPingSelector();
+			_ui_handler->render(_camera, &_boss_manager);
 		}
 
 		if (_show_pause_menu && _ui_handler) {
