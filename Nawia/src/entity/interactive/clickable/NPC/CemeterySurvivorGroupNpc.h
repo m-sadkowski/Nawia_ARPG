@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GroupNpcSupport.h>
 #include <StoryNpc.h>
 
 #include <json.hpp>
@@ -31,32 +32,25 @@ namespace Nawia::Entity {
 		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
 	private:
-		class GroupVisual;
-
-		struct HubDestination {
-			Vector2 center = {0.0f, 0.0f};
-			float radius = 5.0f;
-		};
-
 		void configureFromJson(const nlohmann::json& data);
 		void initializeMaleSurvivor();
 		void loadModelAndAnimations(Entity& entity, const std::string& model_path) const;
 		void playIdle(Entity& entity) const;
 		void playWalk(Entity& entity) const;
 		void startRoute(Core::Engine& engine);
-		[[nodiscard]] std::optional<HubDestination> resolveHub(Core::Engine& engine) const;
+		[[nodiscard]] std::optional<GroupNpcHubDestination> resolveHub(Core::Engine& engine) const;
 		void buildPathToPoint(Vector2 target);
 		void trimCurrentPathStart();
 		void updatePathMovement(float delta_time);
 		void updateRoute(float delta_time);
-		void startDispersal(const HubDestination& hub);
+		void startDispersal(const GroupNpcHubDestination& hub);
 		void updateDispersal(float delta_time);
 		void finishArrival();
-		[[nodiscard]] Vector2 randomPointInHub(const HubDestination& hub) const;
+		[[nodiscard]] Vector2 randomPointInHub(const GroupNpcHubDestination& hub) const;
 		void stopPathMovement();
 		void snapToNavmesh();
 
-		std::unique_ptr<GroupVisual> _male_survivor;
+		std::unique_ptr<GroupNpcVisual> _male_survivor;
 		std::string _dialogue_key = "cemetery_survivors";
 		std::string _hub_name = "Herbalist Hub";
 		std::string _checkpoint_on_arrival = "cemetery_survivors_arrived";
@@ -70,7 +64,7 @@ namespace Nawia::Entity {
 		bool _arrived = false;
 		bool _path_requested = false;
 		Vector2 _destination = {0.0f, 0.0f};
-		HubDestination _arrival_hub;
+		GroupNpcHubDestination _arrival_hub;
 		std::vector<Vector2> _current_path;
 	};
 

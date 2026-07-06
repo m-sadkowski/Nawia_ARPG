@@ -1,14 +1,9 @@
 #include "CemeterySurvivorGroupNpc.h"
 
 #include <Engine.h>
-#include <EntityManager.h>
-#include <HerbalistHub.h>
-#include <Logger.h>
-#include <Map.h>
+#include <EntityNavigationSupport.h>
 #include <QuestManager.h>
 
-#include <algorithm>
-#include <cmath>
 #include <raymath.h>
 
 namespace Nawia::Entity {
@@ -20,20 +15,6 @@ namespace Nawia::Entity {
 		constexpr const char* ANIM_WALK = "cemetery_walk";
 		constexpr float SURVIVOR_SCALE = 1.55f;
 	}
-
-	class CemeterySurvivorGroupNpc::GroupVisual final : public Entity {
-	public:
-		GroupVisual(const std::string& name, const float x, const float y)
-			: Entity(name, x, y, nullptr, 1)
-		{
-			setType(EntityType::NPCStatic);
-			setFaction(Faction::None);
-		}
-
-		bool isMovingToTarget() const { return isMoving(); }
-		void updateMoveToTarget(const float delta_time) { updateMovement(delta_time); }
-		void updateVisualAnimation(const float delta_time) { updateAnimation(delta_time); }
-	};
 
 	CemeterySurvivorGroupNpc::CemeterySurvivorGroupNpc(
 		const std::string& name,
@@ -73,7 +54,7 @@ namespace Nawia::Entity {
 	}
 
 	void CemeterySurvivorGroupNpc::initializeMaleSurvivor() {
-		_male_survivor = std::make_unique<GroupVisual>("Ocalony z cmentarza", getX() + 1.0f, getY() + 0.35f);
+		_male_survivor = std::make_unique<GroupNpcVisual>("Ocalony z cmentarza", getX() + 1.0f, getY() + 0.35f);
 		_male_survivor->setScale(getScale());
 		_male_survivor->setModelFacingOffset(getModelFacingOffset());
 		loadModelAndAnimations(*_male_survivor, MALE_SURVIVOR_MODEL);
@@ -108,20 +89,9 @@ namespace Nawia::Entity {
 	}
 
 	void CemeterySurvivorGroupNpc::snapToNavmesh() {
-		if (!_engine || !_engine->getCurrentMap() || !_engine->getCurrentMap()->getNavMesh().isReady())
-			return;
-
-		const Vector3 snapped = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(getWorldPos3D());
-		setX(snapped.x);
-		setY(snapped.z);
-		setAltitude(snapped.y);
-		if (_male_survivor) {
-			const Vector3 male_snapped = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(
-				{_male_survivor->getX(), snapped.y, _male_survivor->getY()});
-			_male_survivor->setX(male_snapped.x);
-			_male_survivor->setY(male_snapped.z);
-			_male_survivor->setAltitude(male_snapped.y);
-		}
+		EntityNavigationSupport::snapToNavmesh(*this, _engine ? _engine->getCurrentMap() : nullptr);
+		if (_male_survivor)
+			EntityNavigationSupport::snapToNavmesh(*_male_survivor, _engine ? _engine->getCurrentMap() : nullptr);
 	}
 
 	void CemeterySurvivorGroupNpc::onInteract(Entity& instigator) {
@@ -153,20 +123,8 @@ namespace Nawia::Entity {
 		buildPathToPoint(_destination);
 	}
 
-	std::optional<CemeterySurvivorGroupNpc::HubDestination> CemeterySurvivorGroupNpc::resolveHub(Core::Engine& engine) const {
-		for (const auto& entity : engine.getEntityManager().getEntities()) {
-			if (!entity || entity->getName() != _hub_name)
-				continue;
-
-			HubDestination hub;
-			hub.center = {entity->getX(), entity->getY()};
-			hub.radius = _hub_radius_fallback;
-			if (const auto herbalist_hub = dynamic_cast<HerbalistHub*>(entity.get()))
-				hub.radius = herbalist_hub->getRadius();
-			return hub;
-		}
-
-		return std::nullopt;
+	std::optional<GroupNpcHubDestination> CemeterySurvivorGroupNpc::resolveHub(Core::Engine& engine) const {
+		return GroupNpcSupport::resolveHub(engine, _hub_name, _hub_radius_fallback);
 	}
 
 	void CemeterySurvivorGroupNpc::update(const float delta_time) {
@@ -197,7 +155,7 @@ namespace Nawia::Entity {
 		updateAnimation(delta_time);
 		const float distance = Vector2Distance(getCenter(), _destination);
 		if (distance <= _stop_distance) {
-			HubDestination hub;
+			GroupNpcHubDestination hub;
 			if (_engine) {
 				if (const auto resolved = resolveHub(*_engine))
 					hub = *resolved;
@@ -229,47 +187,22 @@ namespace Nawia::Entity {
 	}
 
 	void CemeterySurvivorGroupNpc::buildPathToPoint(const Vector2 target) {
-		_current_path.clear();
-		if (_engine && _engine->getCurrentMap() && _engine->getCurrentMap()->getNavMesh().isReady())
-			_current_path = _engine->getCurrentMap()->findPath(getWorldPos3D(), {target.x, getAltitude(), target.y});
-
-		if (_current_path.empty())
-			_current_path.push_back(target);
-
-		trimCurrentPathStart();
-		if (!_current_path.empty())
-			moveTo(_current_path.front().x, _current_path.front().y);
-		else
-			stopPathMovement();
+		GroupNpcSupport::buildPathToPoint(*this, _engine, target, _current_path);
 	}
 
 	void CemeterySurvivorGroupNpc::trimCurrentPathStart() {
-		if (_current_path.empty())
-			return;
-
-		const Vector2 first = _current_path.front();
-		const float dx = first.x - getCenter().x;
-		const float dy = first.y - getCenter().y;
-		if (dx * dx + dy * dy < 0.1f)
-			_current_path.erase(_current_path.begin());
+		GroupNpcSupport::trimPathStart(*this, _current_path);
 	}
 
 	void CemeterySurvivorGroupNpc::updatePathMovement(const float delta_time) {
-		if (!isMoving() && !_current_path.empty()) {
-			_current_path.erase(_current_path.begin());
-			if (!_current_path.empty())
-				moveTo(_current_path.front().x, _current_path.front().y);
-		}
-		updateMovement(delta_time);
+		GroupNpcSupport::updatePathMovement(*this, delta_time, _current_path);
 	}
 
-	Vector2 CemeterySurvivorGroupNpc::randomPointInHub(const HubDestination& hub) const {
-		const float angle = static_cast<float>(GetRandomValue(0, 6283)) / 1000.0f;
-		const float radius = std::sqrt(static_cast<float>(GetRandomValue(0, 10000)) / 10000.0f) * std::max(0.1f, hub.radius);
-		return {hub.center.x + std::cos(angle) * radius, hub.center.y + std::sin(angle) * radius};
+	Vector2 CemeterySurvivorGroupNpc::randomPointInHub(const GroupNpcHubDestination& hub) const {
+		return GroupNpcSupport::randomPointInHub(hub);
 	}
 
-	void CemeterySurvivorGroupNpc::startDispersal(const HubDestination& hub) {
+	void CemeterySurvivorGroupNpc::startDispersal(const GroupNpcHubDestination& hub) {
 		_arrival_hub = hub;
 		_dispersing = true;
 		const Vector2 female = randomPointInHub(_arrival_hub);
@@ -320,9 +253,7 @@ namespace Nawia::Entity {
 	}
 
 	void CemeterySurvivorGroupNpc::stopPathMovement() {
-		_current_path.clear();
-		stopMovement();
-		setVelocity(0.0f, 0.0f);
+		GroupNpcSupport::stopPathMovement(*this, _current_path);
 	}
 
 	nlohmann::json CemeterySurvivorGroupNpc::serializeState() const {
@@ -389,9 +320,9 @@ namespace Nawia::Entity {
 		} else if (_dispersing) {
 			if (_arrival_hub.radius <= 0.0f) {
 				if (_engine)
-					_arrival_hub = resolveHub(*_engine).value_or(HubDestination{_destination, _hub_radius_fallback});
+					_arrival_hub = resolveHub(*_engine).value_or(GroupNpcHubDestination{_destination, _hub_radius_fallback});
 				else
-					_arrival_hub = HubDestination{_destination, _hub_radius_fallback};
+					_arrival_hub = GroupNpcHubDestination{_destination, _hub_radius_fallback};
 			}
 			startDispersal(_arrival_hub);
 		} else {

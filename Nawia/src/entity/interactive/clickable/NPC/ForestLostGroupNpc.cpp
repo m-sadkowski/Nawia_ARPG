@@ -1,10 +1,7 @@
 #include "ForestLostGroupNpc.h"
 
 #include <Engine.h>
-#include <EntityManager.h>
-#include <HerbalistHub.h>
-#include <Logger.h>
-#include <Map.h>
+#include <EntityNavigationSupport.h>
 #include <Player.h>
 #include <QuestManager.h>
 #include <UIHandler.h>
@@ -28,12 +25,6 @@ namespace Nawia::Entity {
 		constexpr int MILENA_SCARF_ITEM_ID = 14;
 		constexpr float FOREST_NPC_SCALE = 1.55f;
 
-		Vector2 normalizedOrFallback(const Vector2 vector, const Vector2 fallback) {
-			if (Vector2LengthSqr(vector) <= 0.0001f)
-				return fallback;
-			return Vector2Normalize(vector);
-		}
-
 		bool removeItemFromBackpack(Player& player, const int item_id) {
 			auto& backpack = player.getBackpack();
 			for (int i = 0; i < backpack.getCapacity(); ++i) {
@@ -47,36 +38,6 @@ namespace Nawia::Entity {
 			return false;
 		}
 	}
-
-	class ForestLostGroupNpc::ForestGroupVisual final : public Entity {
-	public:
-		ForestGroupVisual(const std::string& name, const float x, const float y)
-			: Entity(name, x, y, nullptr, 1)
-		{
-			setType(EntityType::NPCStatic);
-			setFaction(Faction::None);
-		}
-
-		bool isMovingToTarget() const {
-			return isMoving();
-		}
-
-		void updateMoveToTarget(const float delta_time) {
-			updateMovement(delta_time);
-		}
-
-		void updateVisualAnimation(const float delta_time) {
-			updateAnimation(delta_time);
-		}
-
-		void holdAnimationFrame(const std::string& animation_name, const int frame) {
-			Entity::holdAnimationFrame(animation_name, frame);
-		}
-
-		void playAnimationReverseOnce(const std::string& animation_name) {
-			Entity::playAnimationReverseOnce(animation_name);
-		}
-	};
 
 	ForestLostGroupNpc::ForestLostGroupNpc(
 		const std::string& name,
@@ -127,13 +88,13 @@ namespace Nawia::Entity {
 	}
 
 	void ForestLostGroupNpc::initializeMembers() {
-		_male_carrier = std::make_unique<ForestGroupVisual>("male_npc_2", getX(), getY());
+		_male_carrier = std::make_unique<GroupNpcVisual>("male_npc_2", getX(), getY());
 		_male_carrier->setScale(getScale());
 		_male_carrier->setModelFacingOffset(getModelFacingOffset());
 		loadGroupModelAndAnimations(*_male_carrier, MALE_CARRIER_MODEL);
 		playIdle(*_male_carrier);
 
-		_milena_sister = std::make_unique<ForestGroupVisual>("milena_sister", getX(), getY());
+		_milena_sister = std::make_unique<GroupNpcVisual>("milena_sister", getX(), getY());
 		_milena_sister->setScale(getScale());
 		_milena_sister->setModelFacingOffset(getModelFacingOffset());
 		loadGroupModelAndAnimations(*_milena_sister, MILENA_SISTER_MODEL);
@@ -144,13 +105,7 @@ namespace Nawia::Entity {
 	}
 
 	void ForestLostGroupNpc::snapGroupToNavmesh() {
-		if (!_engine || !_engine->getCurrentMap() || !_engine->getCurrentMap()->getNavMesh().isReady())
-			return;
-
-		const Vector3 snapped = _engine->getCurrentMap()->getNavMesh().getClosestWalkablePosition(getWorldPos3D());
-		setX(snapped.x);
-		setY(snapped.z);
-		setAltitude(snapped.y);
+		EntityNavigationSupport::snapToNavmesh(*this, _engine ? _engine->getCurrentMap() : nullptr);
 		snapMembersToFormation(_last_travel_direction);
 	}
 
@@ -261,7 +216,7 @@ namespace Nawia::Entity {
 		else
 			_destination = Vector2{getX() + 8.0f, getY()};
 
-		_last_travel_direction = normalizedOrFallback(
+		_last_travel_direction = GroupNpcSupport::normalizedOrFallback(
 			Vector2Subtract(_destination, getCenter()),
 			_last_travel_direction
 		);
@@ -270,20 +225,8 @@ namespace Nawia::Entity {
 		buildPathToPoint(_destination);
 	}
 
-	std::optional<ForestLostGroupNpc::HubDestination> ForestLostGroupNpc::resolveHub(Core::Engine& engine) const {
-		for (const auto& entity : engine.getEntityManager().getEntities()) {
-			if (!entity || entity->getName() != _hub_name)
-				continue;
-
-			HubDestination hub;
-			hub.center = {entity->getX(), entity->getY()};
-			hub.radius = _hub_radius_fallback;
-			if (const auto herbalist_hub = dynamic_cast<HerbalistHub*>(entity.get()))
-				hub.radius = herbalist_hub->getRadius();
-			return hub;
-		}
-
-		return std::nullopt;
+	std::optional<GroupNpcHubDestination> ForestLostGroupNpc::resolveHub(Core::Engine& engine) const {
+		return GroupNpcSupport::resolveHub(engine, _hub_name, _hub_radius_fallback);
 	}
 
 	void ForestLostGroupNpc::update(const float delta_time) {
@@ -337,7 +280,7 @@ namespace Nawia::Entity {
 	void ForestLostGroupNpc::updateCarryMovement(const float delta_time) {
 		const float distance = Vector2Distance(getCenter(), _destination);
 		if (distance <= _stop_distance) {
-			HubDestination hub;
+			GroupNpcHubDestination hub;
 			if (_engine) {
 				if (const auto resolved = resolveHub(*_engine))
 					hub = *resolved;
@@ -367,43 +310,16 @@ namespace Nawia::Entity {
 	}
 
 	void ForestLostGroupNpc::buildPathToPoint(const Vector2 target) {
-		_current_path.clear();
-
-		if (_engine && _engine->getCurrentMap() && _engine->getCurrentMap()->getNavMesh().isReady())
-			_current_path = _engine->getCurrentMap()->findPath(getWorldPos3D(), {target.x, getAltitude(), target.y});
-
-		if (_current_path.empty())
-			_current_path.push_back(target);
-
-		trimCurrentPathStart();
-
-		if (!_current_path.empty())
-			moveTo(_current_path.front().x, _current_path.front().y);
-		else
-			stopPathMovement();
+		GroupNpcSupport::buildPathToPoint(*this, _engine, target, _current_path);
 	}
 
 	void ForestLostGroupNpc::trimCurrentPathStart() {
-		if (_current_path.empty())
-			return;
-
-		const Vector2 first_path_point = _current_path.front();
-		const float dx = first_path_point.x - getCenter().x;
-		const float dy = first_path_point.y - getCenter().y;
-		if (dx * dx + dy * dy < 0.1f)
-			_current_path.erase(_current_path.begin());
+		GroupNpcSupport::trimPathStart(*this, _current_path);
 	}
 
 	void ForestLostGroupNpc::updatePathMovement(const float delta_time) {
-		if (!isMoving() && !_current_path.empty()) {
-			_current_path.erase(_current_path.begin());
-
-			if (!_current_path.empty())
-				moveTo(_current_path.front().x, _current_path.front().y);
-		}
-
 		const Vector2 before = getCenter();
-		updateMovement(delta_time);
+		GroupNpcSupport::updatePathMovement(*this, delta_time, _current_path);
 		const Vector2 after = getCenter();
 		const Vector2 delta = Vector2Subtract(after, before);
 		if (Vector2LengthSqr(delta) > 0.0001f)
@@ -411,9 +327,7 @@ namespace Nawia::Entity {
 	}
 
 	void ForestLostGroupNpc::stopPathMovement() {
-		_current_path.clear();
-		stopMovement();
-		setVelocity(0.0f, 0.0f);
+		GroupNpcSupport::stopPathMovement(*this, _current_path);
 	}
 
 	void ForestLostGroupNpc::updateCarrying(const float delta_time) {
@@ -436,7 +350,7 @@ namespace Nawia::Entity {
 	}
 
 	void ForestLostGroupNpc::snapMembersToFormation(const Vector2 direction) {
-		const Vector2 travel_direction = normalizedOrFallback(direction, {1.0f, 0.0f});
+		const Vector2 travel_direction = GroupNpcSupport::normalizedOrFallback(direction, {1.0f, 0.0f});
 		const Vector2 sister_position = Vector2Subtract(getCenter(), Vector2Scale(travel_direction, _tuning.spacing));
 		// Tylny noszacy jest dalej od punktu siostry, zeby wizualnie trzymal okolice glowy.
 		const Vector2 male_position = Vector2Subtract(
@@ -463,10 +377,10 @@ namespace Nawia::Entity {
 	}
 
 	Vector2 ForestLostGroupNpc::currentTravelDirection() const {
-		return normalizedOrFallback(_last_travel_direction, {1.0f, 0.0f});
+		return GroupNpcSupport::normalizedOrFallback(_last_travel_direction, {1.0f, 0.0f});
 	}
 
-	void ForestLostGroupNpc::startSisterDrop(const HubDestination& hub) {
+	void ForestLostGroupNpc::startSisterDrop(const GroupNpcHubDestination& hub) {
 		_arrival_hub = hub;
 		_state = CarryState::SisterDropping;
 		_sister_drop_timer = 0.0f;
@@ -501,13 +415,8 @@ namespace Nawia::Entity {
 		}
 	}
 
-	Vector2 ForestLostGroupNpc::randomPointInHub(const HubDestination& hub) const {
-		const float angle = static_cast<float>(GetRandomValue(0, 6283)) / 1000.0f;
-		const float radius = std::sqrt(static_cast<float>(GetRandomValue(0, 10000)) / 10000.0f) * std::max(0.1f, hub.radius);
-		return {
-			hub.center.x + std::cos(angle) * radius,
-			hub.center.y + std::sin(angle) * radius
-		};
+	Vector2 ForestLostGroupNpc::randomPointInHub(const GroupNpcHubDestination& hub) const {
+		return GroupNpcSupport::randomPointInHub(hub);
 	}
 
 	void ForestLostGroupNpc::startSisterStandUp() {
@@ -686,7 +595,7 @@ namespace Nawia::Entity {
 			_arrival_hub.radius = state["arrival_hub"].value("radius", _arrival_hub.radius);
 		}
 		if (state.contains("last_travel_direction") && state["last_travel_direction"].is_object()) {
-			_last_travel_direction = normalizedOrFallback({
+			_last_travel_direction = GroupNpcSupport::normalizedOrFallback({
 				state["last_travel_direction"].value("x", _last_travel_direction.x),
 				state["last_travel_direction"].value("y", _last_travel_direction.y)
 			}, _last_travel_direction);
@@ -735,9 +644,9 @@ namespace Nawia::Entity {
 		case CarryState::Dispersing:
 			if (_arrival_hub.radius <= 0.0f) {
 				if (_engine)
-					_arrival_hub = resolveHub(*_engine).value_or(HubDestination{_destination, _hub_radius_fallback});
+					_arrival_hub = resolveHub(*_engine).value_or(GroupNpcHubDestination{_destination, _hub_radius_fallback});
 				else
-					_arrival_hub = HubDestination{_destination, _hub_radius_fallback};
+					_arrival_hub = GroupNpcHubDestination{_destination, _hub_radius_fallback};
 			}
 			startDispersal();
 			break;
