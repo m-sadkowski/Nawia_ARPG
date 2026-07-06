@@ -27,6 +27,7 @@ include_directories(
     src/entity/collider
     src/entity/actors
     src/entity/actors/enemies
+    src/entity/actors/enemies/frog
     src/entity/actors/player
     src/entity/actors/enemies/walking_dead
     src/entity/actors/enemies/devil
