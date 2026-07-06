@@ -13,5 +13,6 @@ namespace Nawia::Entity {
 namespace Nawia::Entity::EntityNavigationSupport {
 
 	bool snapToNavmesh(Entity& entity, const Core::Map* map);
+	bool snapAltitudeToNavmesh(Entity& entity, const Core::Map* map);
 
 } // namespace Nawia::Entity::EntityNavigationSupport

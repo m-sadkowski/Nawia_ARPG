@@ -16,4 +16,13 @@ namespace Nawia::Entity::EntityNavigationSupport {
 		return true;
 	}
 
+	bool snapAltitudeToNavmesh(Entity& entity, const Core::Map* map) {
+		if (!map || !map->getNavMesh().isReady())
+			return false;
+
+		const Vector3 snapped = map->getNavMesh().getClosestWalkablePosition(entity.getWorldPos3D());
+		entity.setAltitude(snapped.y);
+		return true;
+	}
+
 } // namespace Nawia::Entity::EntityNavigationSupport
