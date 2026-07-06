@@ -133,12 +133,12 @@ namespace Nawia::Game {
 
 	/**
 	 * @class AgentPerceptionSystem
-	 * @brief Builds read-only world snapshots for future agent decision systems.
+	 * @brief Builds read-only world snapshots for external tooling and telemetry.
 	 *
 	 * This system does not choose actions. It collects local, factual data:
 	 * nearby entities, current target, ability state, and relevant recent combat
-	 * events. GOAP, roles, threat, and validation should consume these snapshots
-	 * instead of querying the whole world directly.
+	 * events. Tooling should consume these snapshots instead of querying the
+	 * whole world directly.
 	 */
 	class AgentPerceptionSystem {
 	public:

@@ -2,17 +2,14 @@
 
 ## Cel
 
-`AgentPerceptionSystem` buduje snapshot tego, co agent moze wykorzystac jako
-dane wejsciowe. Nie podejmuje decyzji, nie liczy threat table, nie wybiera roli
-i nie wykonuje komend. To warstwa obserwacji dla przyszlych algorytmow pracy
-inzynierskiej.
+`AgentPerceptionSystem` buduje snapshot lokalnego stanu swiata dla narzedzi ET,
+telemetryki i testow runtime. Nie podejmuje decyzji, nie liczy priorytetow, nie
+wybiera roli i nie wykonuje komend.
 
 W kontekscie pracy inzynierskiej ten system jest fundamentem infrastruktury,
-a nie glownym algorytmem wieloagentowym. Przygotowuje ustrukturyzowane dane
-wejsciowe dla pozniejszych systemow decyzyjnych, takich jak koordynacja
-agentow, wybor roli, planowanie akcji, threat reasoning albo fake multiplayer.
-Wlasciwa czesc inzynierska zaczyna sie dopiero tam, gdzie agent wykorzystuje
-te obserwacje do podejmowania decyzji i wspolpracy z innymi agentami.
+a nie algorytmem zachowania. Przygotowuje ustrukturyzowane dane wejsciowe,
+ktore mozna analizowac w dokumentacji, monitorze albo zewnetrznych testach,
+bez dodawania do gry nowych elementow decyzyjnych.
 
 Aktualny przeplyw:
 
@@ -23,7 +20,16 @@ EntityManager + CombatEventBus + MapPingManager -> AgentPerceptionSystem -> snap
 ## Glowny kod
 
 - `src/core/game/agent/AgentPerceptionSystem.h`
-- `src/core/game/agent/AgentPerceptionSystem.cpp`
+- `src/core/game/agent/AgentPerceptionSystem.cpp` - orkiestracja update'u,
+  ustawienia i lookup snapshotow.
+- `src/core/game/agent/AgentPerceptionSnapshot.cpp` - budowanie snapshotu,
+  obserwowane encje, ability i hazard metadata.
+- `src/core/game/agent/AgentPerceptionMemory.cpp` - pamiec `lost_entities`.
+- `src/core/game/agent/AgentPerceptionRules.cpp` - kandydaci, widocznosc,
+  relacje, pingi i powody znikniecia.
+- `src/core/game/agent/AgentPerceptionSupport.h` - klasyfikacja typow encji i
+  wspolne identity helpery.
+- `src/core/game/agent/AgentSystemMath.h` - wspolna matematyka odleglosci.
 - `src/core/Engine.cpp`
 - `src/core/game/telemetry/CombatTelemetryServer.cpp`
 - `docs/ET systems/Boss_Raid_Mechanics.md`
@@ -110,8 +116,8 @@ update swiata.
 
 ### `AgentPerceptionSystem::getSnapshots()`
 
-Zwraca aktualny zestaw snapshotow. To bedzie glowne wejscie dla przyszlych
-systemow decyzyjnych agentow.
+Zwraca aktualny zestaw snapshotow. To jest glowne wejscie dla monitora,
+telemetryki i zewnetrznych testow.
 
 ### `AgentPerceptionSystem::findSnapshot(...)`
 
@@ -180,7 +186,7 @@ nie jest juz jedynym sposobem sprawdzania percepcji.
 
 Zakladka jest jedna, ale zawiera osobny wiersz dla kazdego aktywnego agenta.
 Na razie kandydatami na agentow sa `Player`, `Ally` i `Enemy`. NPC sa
-obserwowalne, ale nie dostaja wlasnych snapshotow decyzyjnych.
+obserwowalne, ale nie dostaja wlasnych snapshotow jako kandydaci.
 
 ## Granice systemu
 
@@ -193,13 +199,13 @@ Ten system nie decyduje:
 - jak liczyc aggro,
 - czy zachowanie bylo poprawne.
 
-Te elementy naleza do kolejnych warstw: Agent Command Interface, walidacji,
-threat table, GOAP albo innego algorytmu decyzyjnego.
+Te elementy naleza do osobnych narzedzi, testow albo warstw badawczych poza
+`AgentPerceptionSystem`.
 
 ## Uwagi wydajnosciowe
 
-Percepcja jest liczona jako infrastruktura debugowo-decyzyjna, a nie jako
+Percepcja jest liczona jako infrastruktura debugowo-telemetryczna, a nie jako
 system renderingu. Aktualnie buduje snapshoty dla aktywnych kandydatow na
-agentow i uzywa indeksu `entity_id -> entity` w ramach pojedynczego update'u.
+snapshot i uzywa indeksu `entity_id -> entity` w ramach pojedynczego update'u.
 Przy wiekszej liczbie agentow kolejnym krokiem bedzie ograniczenie czestotliwosci
 symulacyjnej percepcji i/lub spatial query zamiast pelnego skanowania encji.
