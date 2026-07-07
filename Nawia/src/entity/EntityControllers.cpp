@@ -5,6 +5,7 @@
 #include <EntityAbilityConfig.h>
 #include <EntityAbilityController.h>
 #include <EntityAudioController.h>
+#include <EntityMovementState.h>
 #include <EntityMovementSupport.h>
 #include <EntityPendingSpawnQueue.h>
 #include <EntityTargetingSupport.h>
@@ -64,6 +65,71 @@ namespace Nawia::Entity {
 		_collider = std::move(collider);
 	}
 
+	void Entity::setVelocity(const float x, const float y)
+	{
+		_movement_state->velocity = {x, y};
+	}
+
+	Vector2 Entity::getVelocity() const
+	{
+		return _movement_state->velocity;
+	}
+
+	void Entity::setScale(const float scale)
+	{
+		_movement_state->scale = scale;
+	}
+
+	float Entity::getScale() const
+	{
+		return _movement_state->scale;
+	}
+
+	void Entity::setRotation(const float angle)
+	{
+		_movement_state->rotation = angle;
+	}
+
+	float Entity::getRotation() const
+	{
+		return _movement_state->rotation;
+	}
+
+	void Entity::setMovementSpeed(const float speed)
+	{
+		_movement_state->movement_speed = speed;
+	}
+
+	float Entity::getMovementSpeed() const
+	{
+		return _movement_state->movement_speed;
+	}
+
+	void Entity::setSpeedMultiplier(const float multiplier)
+	{
+		_movement_state->speed_multiplier = multiplier;
+	}
+
+	float Entity::getSpeedMultiplier() const
+	{
+		return _movement_state->speed_multiplier;
+	}
+
+	void Entity::setDamageMultiplier(const float multiplier)
+	{
+		_movement_state->damage_multiplier = multiplier;
+	}
+
+	float Entity::getDamageMultiplier() const
+	{
+		return _movement_state->damage_multiplier;
+	}
+
+	bool Entity::isMoving() const
+	{
+		return _movement_state->is_moving;
+	}
+
 	void Entity::rotateTowards(const float world_x, const float world_y)
 	{
 		const float dx = world_x - getX();
@@ -92,65 +158,65 @@ namespace Nawia::Entity {
 	void Entity::moveTo(const float x, const float y)
 	{
 		if (isMovementRooted()) {
-			_velocity = {0.0f, 0.0f};
-			_is_moving = false;
+			_movement_state->velocity = {0.0f, 0.0f};
+			_movement_state->is_moving = false;
 			return;
 		}
 
-		_target_x = x;
-		_target_y = y;
-		_is_moving = hasMovementTarget(_pos, {_target_x, _target_y});
+		_movement_state->target.x = x;
+		_movement_state->target.y = y;
+		_movement_state->is_moving = hasMovementTarget(_movement_state->position, {_movement_state->target.x, _movement_state->target.y});
 	}
 
 	void Entity::stopMovement()
 	{
-		_velocity = {0.0f, 0.0f};
-		_is_moving = false;
+		_movement_state->velocity = {0.0f, 0.0f};
+		_movement_state->is_moving = false;
 	}
 
 	void Entity::setMovementTarget(const float x, const float y)
 	{
-		_target_x = x;
-		_target_y = y;
+		_movement_state->target.x = x;
+		_movement_state->target.y = y;
 	}
 
 	void Entity::tickPathRecalcTimer(const float dt)
 	{
-		_path_recalc_timer -= dt;
+		_movement_state->path_recalc_timer -= dt;
 	}
 
 	bool Entity::isPathRecalcDue() const
 	{
-		return _path_recalc_timer <= 0.0f;
+		return _movement_state->path_recalc_timer <= 0.0f;
 	}
 
 	void Entity::resetPathRecalcTimer(const float interval)
 	{
-		_path_recalc_timer = interval;
+		_movement_state->path_recalc_timer = interval;
 	}
 
 	void Entity::clearPathRecalcTimer()
 	{
-		_path_recalc_timer = 0.0f;
+		_movement_state->path_recalc_timer = 0.0f;
 	}
 
 	void Entity::updateMovement(const float dt)
 	{
 		if (isMovementRooted()) {
-			_velocity = {0.0f, 0.0f};
-			_is_moving = false;
+			_movement_state->velocity = {0.0f, 0.0f};
+			_movement_state->is_moving = false;
 			return;
 		}
 
-		if (!_is_moving) return;
+		if (!_movement_state->is_moving) return;
 
-		const float move_dist = _movement_speed * _speed_multiplier * dt;
-		const MovementAdvanceResult movement = advanceMovementTowards(_pos, {_target_x, _target_y}, move_dist);
+		const float move_dist = _movement_state->movement_speed * _movement_state->speed_multiplier * dt;
+		const MovementAdvanceResult movement = advanceMovementTowards(_movement_state->position, {_movement_state->target.x, _movement_state->target.y}, move_dist);
 		if (movement.should_face_target)
-			rotateTowards(_target_x, _target_y);
+			rotateTowards(_movement_state->target.x, _movement_state->target.y);
 
-		_pos = movement.position;
-		_is_moving = movement.moving;
+		_movement_state->position = movement.position;
+		_movement_state->is_moving = movement.moving;
 	}
 
 	float Entity::getDistanceToTarget() const
@@ -176,8 +242,8 @@ namespace Nawia::Entity {
 
 		if (isPathRecalcDue() || !isMoving())
 		{
-			const Vector2 target_pos = getTargetPosition();
-			moveTo(target_pos.x, target_pos.y);
+			const Vector2 target_position = getTargetPosition();
+			moveTo(target_position.x, target_position.y);
 			resetPathRecalcTimer(path_recalc_interval);
 		}
 

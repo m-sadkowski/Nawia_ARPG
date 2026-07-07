@@ -1,6 +1,7 @@
 #include "Entity.h"
 
 #include <CombatEventBus.h>
+#include <EntityMovementState.h>
 #include <EntityStatusController.h>
 #include <Logger.h>
 
@@ -15,8 +16,8 @@ namespace Nawia::Entity {
 	void Entity::updateStatusEffects(const float dt)
 	{
 		if (_status_controller->updateRoot(dt)) {
-			_velocity = {0.0f, 0.0f};
-			_is_moving = false;
+			_movement_state->velocity = {0.0f, 0.0f};
+			_movement_state->is_moving = false;
 		}
 
 		for (const auto& tick : _status_controller->updatePoison(dt, !isDead() && !isDying())) {
@@ -29,8 +30,8 @@ namespace Nawia::Entity {
 	void Entity::applyRoot(const float duration)
 	{
 		_status_controller->applyRoot(duration);
-		_velocity = {0.0f, 0.0f};
-		_is_moving = false;
+		_movement_state->velocity = {0.0f, 0.0f};
+		_movement_state->is_moving = false;
 	}
 
 	void Entity::applyPoison(const float duration, const int damage_per_tick, const float tick_interval)
@@ -173,9 +174,9 @@ namespace Nawia::Entity {
 	{
 		return {
 			{"name", _name},
-			{"position", {{"x", _pos.x}, {"y", _pos.y}}},
-			{"altitude", _altitude},
-			{"rotation", _rotation},
+			{"position", {{"x", _movement_state->position.x}, {"y", _movement_state->position.y}}},
+			{"altitude", _movement_state->altitude},
+			{"rotation", _movement_state->rotation},
 			{"hp", _hp},
 			{"max_hp", _max_hp},
 			{"dead", isDead()},
@@ -189,12 +190,12 @@ namespace Nawia::Entity {
 			return;
 
 		if (state.contains("position") && state["position"].is_object()) {
-			_pos.x = state["position"].value("x", _pos.x);
-			_pos.y = state["position"].value("y", _pos.y);
+			_movement_state->position.x = state["position"].value("x", _movement_state->position.x);
+			_movement_state->position.y = state["position"].value("y", _movement_state->position.y);
 		}
 
-		_altitude = state.value("altitude", _altitude);
-		_rotation = state.value("rotation", _rotation);
+		_movement_state->altitude = state.value("altitude", _movement_state->altitude);
+		_movement_state->rotation = state.value("rotation", _movement_state->rotation);
 
 		if (state.contains("max_hp") && state["max_hp"].is_number_integer())
 			setMaxHp(state["max_hp"].get<int>());

@@ -20,12 +20,12 @@ namespace Nawia::Entity {
 		}
 
 		Derived& setMovementSpeed(const float speed) {
-			_entity->_movement_speed = speed;
+			_entity->setMovementSpeed(speed);
 			return self();
 		}
 
 		Derived& setRotation(const float rotation) {
-			_entity->_rotation = rotation;
+			_entity->setRotation(rotation);
 			return self();
 		}
 
@@ -35,17 +35,17 @@ namespace Nawia::Entity {
 		}
 
 		Derived& setPosition(const Vector2 pos) {
-			_entity->_pos = pos;
+			_entity->setPosition(pos);
 			return self();
 		}
 
 		Derived& setX(const float x) {
-			_entity->_pos.x = x;
+			_entity->setX(x);
 			return self();
 		}
 
 		Derived& setY(const float y) {
-			_entity->_pos.y = y;
+			_entity->setY(y);
 			return self();
 		}
 

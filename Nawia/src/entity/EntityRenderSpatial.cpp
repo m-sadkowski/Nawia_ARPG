@@ -1,6 +1,8 @@
 #include "Entity.h"
 
 #include <Collider.h>
+#include <EntityModelState.h>
+#include <EntityMovementState.h>
 #include <EntityVisualState.h>
 
 #include <raymath.h>
@@ -12,20 +14,27 @@ namespace Nawia::Entity {
 
 	void Entity::render(const Camera3D& camera)
 	{
-		if (_dormant) return;
+		if (_dormant)
+			return;
 
-		if (_model_loaded)
+		if (_model_state->model_loaded)
 		{
 			const Vector3 pos3d = getWorldPos3D();
-			const float visual_rotation = _rotation + _visual_state->modelFacingOffset();
+			const float visual_rotation = _movement_state->rotation + _visual_state->modelFacingOffset();
 			auto draw_model = [this, pos3d, visual_rotation](const Color tint) {
 				if (!_visual_state->hasHiddenMeshes()) {
-					DrawModelEx(_model, pos3d, {0.0f, 1.0f, 0.0f}, visual_rotation, {_scale, _scale, _scale}, tint);
+					DrawModelEx(
+						_model_state->model,
+						pos3d,
+						{0.0f, 1.0f, 0.0f},
+						visual_rotation,
+						{_movement_state->scale, _movement_state->scale, _movement_state->scale},
+						tint);
 					return;
 				}
 
-				Model model = _model;
-				const Matrix mat_scale = MatrixScale(_scale, _scale, _scale);
+				Model model = _model_state->model;
+				const Matrix mat_scale = MatrixScale(_movement_state->scale, _movement_state->scale, _movement_state->scale);
 				const Matrix mat_rotation = MatrixRotate({0.0f, 1.0f, 0.0f}, visual_rotation * DEG2RAD);
 				const Matrix mat_translation = MatrixTranslate(pos3d.x, pos3d.y, pos3d.z);
 				model.transform = MatrixMultiply(model.transform, MatrixMultiply(MatrixMultiply(mat_scale, mat_rotation), mat_translation));
@@ -60,14 +69,14 @@ namespace Nawia::Entity {
 			if (_collider)
 				_collider->render(camera);
 
-			if (_model_loaded)
+			if (_model_state->model_loaded)
 				DrawBoundingBox(getBoundingBox(), GREEN);
 		}
 	}
 
 	bool Entity::isMouseOver(const float screen_x, const float screen_y, const Camera3D& camera) const
 	{
-		if (_model_loaded)
+		if (_model_state->model_loaded)
 		{
 			const Ray mouse_ray = GetScreenToWorldRay(Vector2{screen_x, screen_y}, camera);
 			if (!GetRayCollisionBox(mouse_ray, getBoundingBox()).hit)
@@ -76,10 +85,10 @@ namespace Nawia::Entity {
 			return checkRayHitsMesh(mouse_ray);
 		}
 
-		const Vector2 screen_pos = getScreenPosition(camera);
+		const Vector2 screen_position = getScreenPosition(camera);
 		constexpr float click_radius = 30.0f;
-		const float dx = screen_x - screen_pos.x;
-		const float dy = screen_y - screen_pos.y;
+		const float dx = screen_x - screen_position.x;
+		const float dy = screen_y - screen_position.y;
 		return (dx * dx + dy * dy) < (click_radius * click_radius);
 	}
 
@@ -87,24 +96,25 @@ namespace Nawia::Entity {
 	{
 		const Vector3 pos3d = getWorldPos3D();
 		const Matrix mat_translate = MatrixTranslate(pos3d.x, pos3d.y, pos3d.z);
-		const float visual_rotation = (_rotation + _visual_state->modelFacingOffset()) * DEG2RAD;
+		const float visual_rotation = (_movement_state->rotation + _visual_state->modelFacingOffset()) * DEG2RAD;
 		const Matrix mat_rotate = MatrixRotate({0.0f, 1.0f, 0.0f}, visual_rotation);
-		const Matrix mat_scale = MatrixScale(_scale, _scale, _scale);
+		const Matrix mat_scale = MatrixScale(_movement_state->scale, _movement_state->scale, _movement_state->scale);
 		return MatrixMultiply(
-			MatrixMultiply(MatrixMultiply(mat_scale, _model.transform), mat_rotate),
+			MatrixMultiply(MatrixMultiply(mat_scale, _model_state->model.transform), mat_rotate),
 			mat_translate);
 	}
 
 	bool Entity::checkRayHitsMesh(const Ray& ray) const
 	{
-		if (!_model_loaded) return false;
+		if (!_model_state->model_loaded)
+			return false;
 		if (!GetRayCollisionBox(ray, getBoundingBox()).hit)
 			return false;
 
 		const Matrix world_transform = getWorldTransformMatrix();
-		for (int i = 0; i < _model.meshCount; i++)
+		for (int i = 0; i < _model_state->model.meshCount; i++)
 		{
-			const RayCollision collision = GetRayCollisionMesh(ray, _model.meshes[i], world_transform);
+			const RayCollision collision = GetRayCollisionMesh(ray, _model_state->model.meshes[i], world_transform);
 			if (collision.hit)
 				return true;
 		}
@@ -117,14 +127,15 @@ namespace Nawia::Entity {
 		closest.hit = false;
 		closest.distance = 1e30f;
 
-		if (!_model_loaded) return closest;
+		if (!_model_state->model_loaded)
+			return closest;
 		if (!GetRayCollisionBox(ray, getBoundingBox()).hit)
 			return closest;
 
 		const Matrix world_transform = getWorldTransformMatrix();
-		for (int i = 0; i < _model.meshCount; i++)
+		for (int i = 0; i < _model_state->model.meshCount; i++)
 		{
-			const RayCollision collision = GetRayCollisionMesh(ray, _model.meshes[i], world_transform);
+			const RayCollision collision = GetRayCollisionMesh(ray, _model_state->model.meshes[i], world_transform);
 			if (collision.hit && collision.distance < closest.distance)
 				closest = collision;
 		}
@@ -136,7 +147,7 @@ namespace Nawia::Entity {
 		if (_dormant)
 			return false;
 
-		if (!_model_loaded)
+		if (!_model_state->model_loaded)
 			return DebugColliders;
 
 		const int screen_width = GetScreenWidth();
@@ -182,7 +193,7 @@ namespace Nawia::Entity {
 
 	BoundingBox Entity::getBoundingBox() const
 	{
-		if (!_model_loaded)
+		if (!_model_state->model_loaded)
 		{
 			const Vector3 pos = getWorldPos3D();
 			return BoundingBox{
@@ -191,7 +202,9 @@ namespace Nawia::Entity {
 			};
 		}
 
-		const BoundingBox local_bb = _local_model_bounding_box_valid ? _local_model_bounding_box : GetModelBoundingBox(_model);
+		const BoundingBox local_bb = _model_state->local_model_bounding_box_valid
+			? _model_state->local_model_bounding_box
+			: GetModelBoundingBox(_model_state->model);
 		const Matrix world_transform = getWorldTransformMatrix();
 		const Vector3 corners[] = {
 			{local_bb.min.x, local_bb.min.y, local_bb.min.z},
@@ -220,12 +233,13 @@ namespace Nawia::Entity {
 
 	Vector2 Entity::getScreenPosition(const Camera3D& camera) const
 	{
-		const Vector3 world_pos = {_pos.x, 0.0f, _pos.y};
-		return GetWorldToScreen(world_pos, camera);
+		const Vector3 world_position = {_movement_state->position.x, 0.0f, _movement_state->position.y};
+		return GetWorldToScreen(world_position, camera);
 	}
 
-	Vector2 Entity::getCenter() const {
-		return _pos;
+	Vector2 Entity::getCenter() const
+	{
+		return _movement_state->position;
 	}
 
 } // namespace Nawia::Entity

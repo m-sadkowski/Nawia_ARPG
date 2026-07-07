@@ -3,6 +3,8 @@
 #include <Collider.h>
 #include <EntityAbilityController.h>
 #include <EntityAudioController.h>
+#include <EntityModelState.h>
+#include <EntityMovementState.h>
 #include <EntityPendingSpawnQueue.h>
 #include <EntityStatusController.h>
 #include <EntityVisualState.h>
@@ -19,7 +21,8 @@ namespace {
 bool Entity::DebugColliders = false;
 
 	Entity::Entity()
-		: _pos{0.0f, 0.0f}, _velocity{0.0f, 0.0f}, _scale(1.0f),
+		: _model_state(std::make_unique<EntityModelState>()),
+		  _movement_state(std::make_unique<EntityMovementState>()),
 		  _hp(1), _max_hp(1), _type(EntityType::None), _faction(Faction::None),
 		  _ability_controller(std::make_unique<EntityAbilityController>()),
 		  _audio_controller(std::make_unique<EntityAudioController>()),
@@ -33,15 +36,17 @@ bool Entity::DebugColliders = false;
 		const float start_y,
 		const std::shared_ptr<Texture2D>& texture,
 		const int max_hp)
-		: _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
-		  _current_anim_index(0), _anim_frame_counter(0.0f), _rotation(0.0f), _model_loaded(false),
-		  _velocity{0.0f, 0.0f}, _scale(1.0f), _faction(Faction::None), _pos{start_x, start_y},
-		  _anim_looping(true), _anim_locked(false),
+		: _model_state(std::make_unique<EntityModelState>()),
+		  _movement_state(std::make_unique<EntityMovementState>()),
+		  _name(name), _texture(texture), _max_hp(max_hp), _hp(max_hp),
+		  _faction(Faction::None),
 		  _ability_controller(std::make_unique<EntityAbilityController>()),
 		  _audio_controller(std::make_unique<EntityAudioController>()),
 		  _pending_spawn_queue(std::make_unique<EntityPendingSpawnQueue>()),
 		  _status_controller(std::make_unique<EntityStatusController>()),
-		  _visual_state(std::make_unique<EntityVisualState>()) {}
+		  _visual_state(std::make_unique<EntityVisualState>()) {
+		_movement_state->position = {start_x, start_y};
+	}
 
 	Entity::~Entity()
 	{
@@ -73,6 +78,57 @@ bool Entity::DebugColliders = false;
 	{
 		if (_entity_id == INVALID_ENTITY_ID && entity_id != INVALID_ENTITY_ID)
 			_entity_id = entity_id;
+	}
+
+	float Entity::getX() const
+	{
+		return _movement_state->position.x;
+	}
+
+	float Entity::getY() const
+	{
+		return _movement_state->position.y;
+	}
+
+	Vector2 Entity::getPosition() const
+	{
+		return _movement_state->position;
+	}
+
+	float Entity::getAltitude() const
+	{
+		return _movement_state->altitude;
+	}
+
+	void Entity::setX(const float x)
+	{
+		_movement_state->position.x = x;
+	}
+
+	void Entity::setY(const float y)
+	{
+		_movement_state->position.y = y;
+	}
+
+	void Entity::setPosition(const Vector2 position)
+	{
+		_movement_state->position = position;
+	}
+
+	void Entity::translatePosition(const float dx, const float dy)
+	{
+		_movement_state->position.x += dx;
+		_movement_state->position.y += dy;
+	}
+
+	void Entity::setAltitude(const float altitude)
+	{
+		_movement_state->altitude = altitude;
+	}
+
+	Vector3 Entity::getWorldPos3D() const
+	{
+		return {_movement_state->position.x, _movement_state->altitude, _movement_state->position.y};
 	}
 
 	void Entity::beginCastTelemetry(std::string cast_name, const float duration_seconds, const bool interruptible)
@@ -110,6 +166,16 @@ bool Entity::DebugColliders = false;
 		context.source_position = source->getCenter();
 		context.label = std::move(source_label);
 		return context;
+	}
+
+	void Entity::rememberDamageSource(Entity* source, std::string source_label)
+	{
+		_last_damage_source = makeDamageSourceContext(source, std::move(source_label));
+	}
+
+	void Entity::rememberDamageSource(DamageSourceContext source_context)
+	{
+		_last_damage_source = std::move(source_context);
 	}
 
 	void Entity::setAudioListener(const std::shared_ptr<Entity>& listener)
@@ -163,8 +229,8 @@ bool Entity::DebugColliders = false;
 			return;
 		}
 
-		_pos.x += _velocity.x * delta_time;
-		_pos.y += _velocity.y * delta_time;
+		_movement_state->position.x += _movement_state->velocity.x * delta_time;
+		_movement_state->position.y += _movement_state->velocity.y * delta_time;
 		updateAnimation(delta_time);
 	}
 
