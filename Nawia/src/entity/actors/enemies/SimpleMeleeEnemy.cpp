@@ -56,8 +56,7 @@ namespace Nawia::Entity {
 
 		_state = State::GettingHit;
 		clearNavigationPath();
-		setVelocity(0.0f, 0.0f);
-		stopMovement();
+		stopMotion();
 		setAnimationSpeed(1.0f);
 		playAnimation(_hit_animation, false, true, 0, true);
 	}
@@ -106,8 +105,7 @@ namespace Nawia::Entity {
 		if (!hasValidTarget()) {
 			_state = State::Idle;
 			clearNavigationPath();
-			setVelocity(0.0f, 0.0f);
-			stopMovement();
+			stopMotion();
 			setAnimationSpeed(1.0f);
 			playAnimation(_idle_animation);
 			return;
@@ -117,8 +115,7 @@ namespace Nawia::Entity {
 		if (distance > _vision_range * 1.6f) {
 			_state = State::Idle;
 			clearNavigationPath();
-			setVelocity(0.0f, 0.0f);
-			stopMovement();
+			stopMotion();
 			setAnimationSpeed(1.0f);
 			playAnimation(_idle_animation);
 			return;
@@ -129,8 +126,7 @@ namespace Nawia::Entity {
 			_state = State::Attacking;
 			_attack_damage_applied = false;
 			clearNavigationPath();
-			setVelocity(0.0f, 0.0f);
-			stopMovement();
+			stopMotion();
 			setAnimationSpeed(_attack_animation_speed);
 			playAnimation(_attack_animation, false, true, 0, true);
 			return;
@@ -147,20 +143,15 @@ namespace Nawia::Entity {
 	void SimpleMeleeEnemy::handleAttackingState(const float dt) {
 		Entity::update(dt);
 
-		if (const auto target = getTarget())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		// Obrazenia sa podpiete pod klatke animacji, zeby prosty enemy mial czytelny timing ataku.
-		const int attack_frame_count = getAnimationFrameCount(_attack_animation);
-		const float damage_frame = static_cast<float>(attack_frame_count) * _attack_damage_frame_ratio;
-		if (!_attack_damage_applied && attack_frame_count > 0 && hasAnimationReachedFrame(damage_frame)) {
-			if (const auto target = getTarget()) {
-				if (getDistanceToTarget() <= _attack_range * 1.6f) {
-					target->rememberDamageSource(this, "Melee Attack");
-					target->takeDamage(static_cast<int>(_attack_damage * getDamageMultiplier()));
-					_attack_damage_applied = true;
-					onAttackDamageApplied(*target);
-				}
+		if (!_attack_damage_applied && hasAnimationReachedRatio(_attack_animation, _attack_damage_frame_ratio)) {
+			const auto target = getLiveTarget();
+			if (target && getDistanceToTarget() <= _attack_range * 1.6f) {
+				target->rememberDamageSource(this, "Melee Attack");
+				target->takeDamage(static_cast<int>(_attack_damage * getDamageMultiplier()));
+				_attack_damage_applied = true;
+				onAttackDamageApplied(*target);
 			}
 		}
 
@@ -211,8 +202,7 @@ namespace Nawia::Entity {
 		}
 
 		if (_current_nav_path.empty()) {
-			setVelocity(0.0f, 0.0f);
-			stopMovement();
+			stopMotion();
 			return false;
 		}
 

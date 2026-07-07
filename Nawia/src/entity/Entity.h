@@ -116,6 +116,7 @@ namespace Nawia::Entity {
 		virtual void updateMovement(float dt);
 		void stopMovement();
 		void setMovementTarget(float x, float y);
+		void stopMotion();
 		void tickPathRecalcTimer(float dt);
 		[[nodiscard]] bool isPathRecalcDue() const;
 		void resetPathRecalcTimer(float interval);
@@ -177,6 +178,8 @@ namespace Nawia::Entity {
 		[[nodiscard]] float getAnimationSpeed() const;
 		[[nodiscard]] int getAnimationFrameCount(const std::string& name) const;
 		[[nodiscard]] bool hasAnimationReachedFrame(float frame) const;
+		[[nodiscard]] bool hasAnimationReachedRatio(const std::string& animation_name, float frame_ratio) const;
+		bool consumeAnimationFrameTrigger(const std::string& animation_name, float frame_ratio, bool& consumed) const;
 		void holdAnimationFrame(const std::string& animation_name, int frame);
 		void playAnimationReverseOnce(const std::string& animation_name, bool lock_movement = true);
 		bool advanceAnimationTowardFrame(float dt, int target_frame, bool lock_when_reached = true);
@@ -195,6 +198,7 @@ namespace Nawia::Entity {
 		// Combat state.
 		virtual void takeDamage(int dmg);
 		void takeDamage(int dmg, const DamageSourceContext& source_context);
+		bool damageTargetInRange(float max_distance, int damage, std::string source_label);
 		void die();
 		[[nodiscard]] bool isDead() const { return _hp <= 0; }
 		[[nodiscard]] bool isDying() const { return _is_dying; }
@@ -232,6 +236,8 @@ namespace Nawia::Entity {
 		void setFaction(Faction faction) { _faction = faction; }
 		virtual void setTarget(const std::shared_ptr<Entity>& target) { _target = target; }
 		[[nodiscard]] std::shared_ptr<Entity> getTarget() const { return _target.lock(); }
+		[[nodiscard]] std::shared_ptr<Entity> getLiveTarget() const;
+		bool faceTargetCenter();
 		void rememberDamageSource(Entity* source, std::string source_label = {});
 		void rememberDamageSource(DamageSourceContext source_context);
 		[[nodiscard]] static DamageSourceContext makeDamageSourceContext(Entity* source, std::string source_label = {});

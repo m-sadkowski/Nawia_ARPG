@@ -28,7 +28,6 @@ namespace Nawia::Entity {
 		void startRouteToHerbalistHub();
 		void updateRouteToDestination(float delta_time);
 		void buildPathToPoint(Vector2 target);
-		void trimCurrentPathStart();
 		void updatePathMovement(float delta_time);
 		void stopPathMovement();
 

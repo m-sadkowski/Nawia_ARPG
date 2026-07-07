@@ -3,6 +3,7 @@
 #include <Ability.h>
 #include <AllyBrain.h>
 #include <Collider.h>
+#include <EntityPathMotion.h>
 #include <Map.h>
 #include <SoundIds.h>
 
@@ -65,7 +66,7 @@ namespace Nawia::Entity {
 
 		if (isAnimationLocked())
 		{
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+			faceTargetCenter();
 			return;
 		}
 
@@ -109,53 +110,17 @@ namespace Nawia::Entity {
 
 	void Friend::stopPathMovement()
 	{
-		_current_path.clear();
-		stopMovement();
-		setVelocity(0.0f, 0.0f);
+		PathMotion::stopPathMovement(*this, _current_path);
 	}
 
 	void Friend::rebuildPathToTarget(const Entity& target)
 	{
-		if (_map && _map->getNavMesh().isReady())
-		{
-			_current_path = _map->findPath(getWorldPos3D(), target.getWorldPos3D());
-			trimCurrentPathStart();
-		}
-		else
-		{
-			const Vector2 target_pos = target.getCenter();
-			_current_path = {{target_pos.x, target_pos.y}};
-		}
-
-		if (!_current_path.empty())
-			moveTo(_current_path.front().x, _current_path.front().y);
-		else
-			stopPathMovement();
-	}
-
-	void Friend::trimCurrentPathStart()
-	{
-		if (_current_path.empty())
-			return;
-
-		const Vector2 first_path_point = _current_path.front();
-		const float dx = first_path_point.x - getCenter().x;
-		const float dy = first_path_point.y - getCenter().y;
-		if (dx * dx + dy * dy < 0.1f)
-			_current_path.erase(_current_path.begin());
+		PathMotion::buildPathToEntity(*this, _map, target, _current_path);
 	}
 
 	void Friend::updatePathMovement(const float dt)
 	{
-		if (!isMoving() && !_current_path.empty())
-		{
-			_current_path.erase(_current_path.begin());
-
-			if (!_current_path.empty())
-				moveTo(_current_path.front().x, _current_path.front().y);
-		}
-
-		updateMovement(dt);
+		PathMotion::updatePathMovement(*this, dt, _current_path);
 	}
 
 	void Friend::onDeathStarted()

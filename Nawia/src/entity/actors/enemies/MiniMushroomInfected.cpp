@@ -38,8 +38,7 @@ namespace Nawia::Entity {
 		_corpse_frozen = false;
 		setType(EntityType::NPCStatic);
 		setFaction(Faction::None);
-		setVelocity(0.0f, 0.0f);
-		stopMovement();
+		stopMotion();
 		setAnimationSpeed(1.0f);
 		playAnimation("death", false, true, 0, true);
 		spawnLinkedWorm();
@@ -173,8 +172,7 @@ namespace Nawia::Entity {
 		} else if (_corruption_released) {
 			setType(EntityType::NPCStatic);
 			setFaction(Faction::None);
-			setVelocity(0.0f, 0.0f);
-			stopMovement();
+			stopMotion();
 			if (_corpse_frozen)
 				freezeOnDeathFrame();
 			else

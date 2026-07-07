@@ -2,6 +2,7 @@
 
 #include <Engine.h>
 #include <EntityManager.h>
+#include <EntityPathMotion.h>
 #include <HerbalistHub.h>
 #include <Map.h>
 
@@ -67,46 +68,23 @@ namespace Nawia::Entity {
 		}
 
 		void buildPathToPoint(Entity& entity, Core::Engine* engine, const Vector2 target, std::vector<Vector2>& path) {
-			path.clear();
-			if (engine && engine->getCurrentMap() && engine->getCurrentMap()->getNavMesh().isReady())
-				path = engine->getCurrentMap()->findPath(entity.getWorldPos3D(), {target.x, entity.getAltitude(), target.y});
-
-			if (path.empty())
-				path.push_back(target);
-
-			trimPathStart(entity, path);
-
-			if (!path.empty())
-				entity.moveTo(path.front().x, path.front().y);
-			else
-				stopPathMovement(entity, path);
+			PathMotion::buildPathToPoint(
+				entity,
+				engine ? engine->getCurrentMap() : nullptr,
+				target,
+				path);
 		}
 
 		void trimPathStart(const Entity& entity, std::vector<Vector2>& path) {
-			if (path.empty())
-				return;
-
-			const Vector2 first = path.front();
-			const float dx = first.x - entity.getCenter().x;
-			const float dy = first.y - entity.getCenter().y;
-			if (dx * dx + dy * dy < 0.1f)
-				path.erase(path.begin());
+			PathMotion::trimPathStart(entity, path);
 		}
 
 		void updatePathMovement(Entity& entity, const float delta_time, std::vector<Vector2>& path) {
-			if (!entity.isMoving() && !path.empty()) {
-				path.erase(path.begin());
-				if (!path.empty())
-					entity.moveTo(path.front().x, path.front().y);
-			}
-
-			entity.updateMovement(delta_time);
+			PathMotion::updatePathMovement(entity, delta_time, path);
 		}
 
 		void stopPathMovement(Entity& entity, std::vector<Vector2>& path) {
-			path.clear();
-			entity.stopMovement();
-			entity.setVelocity(0.0f, 0.0f);
+			PathMotion::stopPathMovement(entity, path);
 		}
 
 		Vector2 randomPointInHub(const GroupNpcHubDestination& hub) {

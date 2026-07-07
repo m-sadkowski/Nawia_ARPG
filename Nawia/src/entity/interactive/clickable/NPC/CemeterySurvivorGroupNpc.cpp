@@ -190,10 +190,6 @@ namespace Nawia::Entity {
 		GroupNpcSupport::buildPathToPoint(*this, _engine, target, _current_path);
 	}
 
-	void CemeterySurvivorGroupNpc::trimCurrentPathStart() {
-		GroupNpcSupport::trimPathStart(*this, _current_path);
-	}
-
 	void CemeterySurvivorGroupNpc::updatePathMovement(const float delta_time) {
 		GroupNpcSupport::updatePathMovement(*this, delta_time, _current_path);
 	}

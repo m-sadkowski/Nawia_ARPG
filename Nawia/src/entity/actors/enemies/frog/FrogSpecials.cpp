@@ -104,8 +104,7 @@ namespace Nawia::Entity {
 			playAnimation("walk");
 		}
 
-		if (const auto target = getTarget())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
 		updateMovementSound(Audio::SoundPath::DevilStep, isMoving() && !isDormant(), 0.28f, 1.45f);
 		if (_special_timer <= 0.0f || !isMoving())

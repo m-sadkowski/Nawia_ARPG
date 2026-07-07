@@ -174,6 +174,12 @@ namespace Nawia::Entity {
 		_movement_state->is_moving = false;
 	}
 
+	void Entity::stopMotion()
+	{
+		setVelocity(0.0f, 0.0f);
+		stopMovement();
+	}
+
 	void Entity::setMovementTarget(const float x, const float y)
 	{
 		_movement_state->target.x = x;
@@ -232,6 +238,26 @@ namespace Nawia::Entity {
 	bool Entity::hasValidTarget() const
 	{
 		return TargetingSupport::hasLiveTarget(_target);
+	}
+
+	std::shared_ptr<Entity> Entity::getLiveTarget() const
+	{
+		auto target = getTarget();
+		if (!target || target->isDead())
+			return nullptr;
+
+		return target;
+	}
+
+	bool Entity::faceTargetCenter()
+	{
+		const auto target = getLiveTarget();
+		if (!target)
+			return false;
+
+		const Vector2 target_center = target->getCenter();
+		rotateTowardsCenter(target_center.x, target_center.y);
+		return true;
 	}
 
 	void Entity::chaseTarget(const float dt, const float path_recalc_interval)

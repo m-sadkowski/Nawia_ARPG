@@ -40,7 +40,6 @@ namespace Nawia::Entity {
 		void startRoute(Core::Engine& engine);
 		[[nodiscard]] std::optional<GroupNpcHubDestination> resolveHub(Core::Engine& engine) const;
 		void buildPathToPoint(Vector2 target);
-		void trimCurrentPathStart();
 		void updatePathMovement(float delta_time);
 		void updateRoute(float delta_time);
 		void startDispersal(const GroupNpcHubDestination& hub);

@@ -68,7 +68,6 @@ namespace Nawia::Entity {
 		void startCarryRoute(Core::Engine& engine);
 		[[nodiscard]] std::optional<GroupNpcHubDestination> resolveHub(Core::Engine& engine) const;
 		void buildPathToPoint(Vector2 target);
-		void trimCurrentPathStart();
 		void updatePathMovement(float delta_time);
 		void stopPathMovement();
 		void updateCarrying(float delta_time);

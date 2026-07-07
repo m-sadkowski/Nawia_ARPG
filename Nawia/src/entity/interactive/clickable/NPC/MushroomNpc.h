@@ -43,7 +43,6 @@ namespace Nawia::Entity {
 		void startRoute(TravelMode mode);
 		void advanceRoute();
 		void buildPathToPoint(Vector2 target);
-		void trimCurrentPathStart();
 		void updatePathMovement(float delta_time);
 		void stopPathMovement();
 		void sendPurifiedFollowersHome();

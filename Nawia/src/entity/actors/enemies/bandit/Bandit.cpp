@@ -50,7 +50,7 @@ namespace Nawia::Entity {
 			_state_before_hit = _state;
 		
 		_state = State::GettingHit;
-		setVelocity(0, 0);
+		stopMotion();
 	}
 
 	void Bandit::update(const float dt)
@@ -107,8 +107,7 @@ namespace Nawia::Entity {
 		if (!target || target->isDead()) {
 			_state = State::Idle;
 			playAnimation("idle");
-			setVelocity(0, 0);
-			stopMovement();
+			stopMotion();
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
 		}
@@ -118,8 +117,7 @@ namespace Nawia::Entity {
 		if (dist > VISION_RANGE * 1.5f) {
 			_state = State::Idle;
 			playAnimation("idle");
-			setVelocity(0, 0);
-			stopMovement();
+			stopMotion();
 			updateMovementSound(Audio::SoundPath::Footsteps, false);
 			return;
 		}
@@ -133,8 +131,7 @@ namespace Nawia::Entity {
 				setAnimationSpeed(THROW_ANIMATION_SPEED);
 				playAnimation("throw", false, true);
 				rotateTowards(target->getX(), target->getY());
-				setVelocity(0, 0);
-				stopMovement();
+				stopMotion();
 				updateMovementSound(Audio::SoundPath::Footsteps, false);
 				return;
 			}
@@ -224,9 +221,7 @@ namespace Nawia::Entity {
 		}
 
 		// Nóż rzucamy tylko raz, w konkretnej fazie animacji.
-		const int throw_frame_count = getAnimationFrameCount("throw");
-		const float throw_frame = static_cast<float>(throw_frame_count) * THROW_SPAWN_FRAME_RATIO;
-		if (!_knife_thrown_this_cast && throw_frame_count > 0 && hasAnimationReachedFrame(throw_frame))
+		if (!_knife_thrown_this_cast && hasAnimationReachedRatio("throw", THROW_SPAWN_FRAME_RATIO))
 		{
 			if (const auto knife = getAbility(0))
 			{

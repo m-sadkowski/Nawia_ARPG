@@ -117,8 +117,7 @@ namespace Nawia::Entity {
 			_state = State::Idle;
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 			playAnimation("idle");
-			setVelocity(0, 0);
-			stopMovement();
+			stopMotion();
 			return;
 		}
 
@@ -130,8 +129,7 @@ namespace Nawia::Entity {
 			_state = State::Idle;
 			setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 			playAnimation("idle");
-			setVelocity(0, 0);
-			stopMovement();
+			stopMotion();
 			return;
 		}
 
@@ -266,11 +264,9 @@ namespace Nawia::Entity {
 	void Devil::handleJumpingShockwaveState(const float dt)
 	{
 		Entity::update(dt);
-		setVelocity(0, 0);
-		stopMovement();
+		stopMotion();
 
-		if (const auto target = getTarget())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
 		_shockwave_timer += dt;
 		const float progress = std::clamp(_shockwave_timer / SHOCKWAVE_WINDUP_TIME, 0.0f, 1.0f);
@@ -306,16 +302,8 @@ namespace Nawia::Entity {
 
 		if (!isAnimationLocked())
 		{
-			if (const auto target = getTarget())
-			{
-				if (getDistanceToTarget() <= ATTACK_RANGE * 1.5f)
-				{
-					target->rememberDamageSource(this, "Devil Punch");
-					target->takeDamage(static_cast<int>(ATTACK_DAMAGE * getDamageMultiplier()));
-					playSoundEffect(Audio::SoundId::DevilPunch, 0.85f);
-
-				}
-			}
+			if (damageTargetInRange(ATTACK_RANGE * 1.5f, static_cast<int>(ATTACK_DAMAGE * getDamageMultiplier()), "Devil Punch"))
+				playSoundEffect(Audio::SoundId::DevilPunch, 0.85f);
 
 			_attack_cooldown_timer = ATTACK_COOLDOWN;
 			_state = State::Chasing;
@@ -329,8 +317,7 @@ namespace Nawia::Entity {
 		_state = State::Attacking;
 		setAnimationSpeed(DEVIL_ATTACK_ANIMATION_SPEED);
 		playAnimation("attack", false, true);
-		setVelocity(0, 0);
-		stopMovement();
+		stopMotion();
 	}
 
 	void Devil::startDash(const Vector2& target_pos)
@@ -340,8 +327,7 @@ namespace Nawia::Entity {
 		_dash_prepare_timer = DASH_PREPARE_TIME;
 		beginCastTelemetry("Devil Dash", DASH_PREPARE_TIME, false);
 		spawnDashImpactHazard();
-		setVelocity(0, 0);
-		stopMovement();
+		stopMotion();
 		setAnimationSpeed(DEVIL_WALK_ANIMATION_SPEED);
 		playAnimation("idle");
 	}
@@ -359,8 +345,7 @@ namespace Nawia::Entity {
 		_attack_cooldown_timer = std::max(_attack_cooldown_timer, 0.45f);
 		beginCastTelemetry("Ground Slam", SHOCKWAVE_WINDUP_TIME, false);
 		spawnShockwaveHazard();
-		setVelocity(0, 0);
-		stopMovement();
+		stopMotion();
 		setAnimationSpeed(DEVIL_SHOCKWAVE_IDLE_ANIMATION_SPEED);
 		playAnimation("idle", true, false, 0, true);
 	}

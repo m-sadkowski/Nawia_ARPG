@@ -24,7 +24,7 @@ namespace Nawia::Entity {
 
 		if (!_map || _map->isWalkable(next.x, next.y)) {
 			setPosition(next);
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+			faceTargetCenter();
 			playWalk();
 			return;
 		}
@@ -61,8 +61,7 @@ namespace Nawia::Entity {
 
 	void RiftBinder::stopMoving()
 	{
-		setVelocity(0.0f, 0.0f);
-		stopMovement();
+		stopMotion();
 	}
 
 	void RiftBinder::playIdle()

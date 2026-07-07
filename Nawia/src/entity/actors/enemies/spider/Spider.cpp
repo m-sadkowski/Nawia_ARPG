@@ -192,13 +192,10 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		const auto target = getTarget();
-		if (target)
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("melee");
-		const float damage_frame = static_cast<float>(frame_count) * MELEE_DAMAGE_FRAME_RATIO;
-		if (!_melee_damage_applied && frame_count > 0 && hasAnimationReachedFrame(damage_frame)) {
+		if (consumeAnimationFrameTrigger("melee", MELEE_DAMAGE_FRAME_RATIO, _melee_damage_applied)) {
+			const auto target = getLiveTarget();
 			if (target && !target->isDead() && !target->isDying() && getDistanceToTarget() <= MELEE_RANGE * 1.8f) {
 				target->takeDamage(
 					static_cast<int>(MELEE_DAMAGE * getDamageMultiplier()),
@@ -210,7 +207,6 @@ namespace Nawia::Entity {
 					Entity::makeDamageSourceContext(this, "Spider Poison"));
 				playSoundEffect(Audio::SoundId::SpiderMeleeAttack, 0.75f, true, 1.0f);
 			}
-			_melee_damage_applied = true;
 		}
 
 		if (!isAnimationLocked()) {
@@ -224,15 +220,10 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		if (const auto target = getTarget())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("web");
-		const float fire_frame = static_cast<float>(frame_count) * WEB_FIRE_FRAME_RATIO;
-		if (!_web_fired && frame_count > 0 && hasAnimationReachedFrame(fire_frame)) {
+		if (consumeAnimationFrameTrigger("web", WEB_FIRE_FRAME_RATIO, _web_fired))
 			fireWeb();
-			_web_fired = true;
-		}
 
 		if (!isAnimationLocked()) {
 			if (!_web_fired)
@@ -316,8 +307,7 @@ namespace Nawia::Entity {
 
 	void Spider::stopMoving()
 	{
-		setVelocity(0.0f, 0.0f);
-		stopMovement();
+		stopMotion();
 		updateMovementSound(Audio::SoundPath::SpiderWalk, false);
 	}
 

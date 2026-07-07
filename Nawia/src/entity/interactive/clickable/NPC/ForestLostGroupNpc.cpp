@@ -313,10 +313,6 @@ namespace Nawia::Entity {
 		GroupNpcSupport::buildPathToPoint(*this, _engine, target, _current_path);
 	}
 
-	void ForestLostGroupNpc::trimCurrentPathStart() {
-		GroupNpcSupport::trimPathStart(*this, _current_path);
-	}
-
 	void ForestLostGroupNpc::updatePathMovement(const float delta_time) {
 		const Vector2 before = getCenter();
 		GroupNpcSupport::updatePathMovement(*this, delta_time, _current_path);

@@ -149,6 +149,24 @@ namespace Nawia::Entity {
 		return _model_state->anim_frame_counter >= frame;
 	}
 
+	bool Entity::hasAnimationReachedRatio(const std::string& animation_name, const float frame_ratio) const
+	{
+		const int frame_count = getAnimationFrameCount(animation_name);
+		return frame_count > 0 && hasAnimationReachedFrame(static_cast<float>(frame_count) * frame_ratio);
+	}
+
+	bool Entity::consumeAnimationFrameTrigger(
+		const std::string& animation_name,
+		const float frame_ratio,
+		bool& consumed) const
+	{
+		if (consumed || !hasAnimationReachedRatio(animation_name, frame_ratio))
+			return false;
+
+		consumed = true;
+		return true;
+	}
+
 	void Entity::setAnimationSpeed(const float multiplier)
 	{
 		_model_state->anim_speed_multiplier = multiplier;

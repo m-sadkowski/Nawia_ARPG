@@ -53,8 +53,7 @@ namespace Nawia::Entity {
 		setAnimationSpeed(HIT_REACTION_ANIMATION_SPEED);
 		playAnimation("get_hit", false, true, 10, true);
 		
-		// Podczas zachwiania zatrzymujemy ruch.
-		setVelocity(0, 0);
+		stopMotion();
 	}
 
 	void WalkingDead::update(const float dt)
@@ -112,14 +111,13 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);  // Bazowa aktualizacja animacji.
 
-		auto target = getTarget();
+		auto target = getLiveTarget();
 		if (!target || target->isDead())
 		{
 			_state = State::Screaming;
 			playSoundEffect(Audio::SoundId::ZombieScream, 0.85f);
 			playAnimation("scream", false, true);
-			setVelocity(0, 0);
-			stopMovement();
+			stopMotion();
 			return;
 		}
 
@@ -131,8 +129,7 @@ namespace Nawia::Entity {
 			_state = State::Screaming;
 			playSoundEffect(Audio::SoundId::ZombieScream, 0.85f);
 			playAnimation("scream", false, true);
-			setVelocity(0, 0);
-			stopMovement();
+			stopMotion();
 			return;
 		}
 
@@ -143,8 +140,7 @@ namespace Nawia::Entity {
 			_attack_damage_applied = false;
 			setAnimationSpeed(ATTACK_ANIMATION_SPEED);
 			playAnimation("attack", false, true);
-			setVelocity(0, 0);
-			stopMovement();
+			stopMotion();
 			return;
 		}
 
@@ -193,35 +189,18 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		if (const auto target = getTarget())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int attack_frame_count = getAnimationFrameCount("attack");
-		const float damage_frame = static_cast<float>(attack_frame_count) * ATTACK_DAMAGE_FRAME_RATIO;
-		if (!_attack_damage_applied && attack_frame_count > 0 && hasAnimationReachedFrame(damage_frame))
-		{
-			if (const auto target = getTarget())
-			{
-				if (getDistanceToTarget() <= ATTACK_RANGE * 1.7f)
-				{
-					target->rememberDamageSource(this, "Walking Dead Attack");
-					target->takeDamage(ATTACK_DAMAGE);
-					_attack_damage_applied = true;
-				}
-			}
-		}
+		if (!_attack_damage_applied &&
+			hasAnimationReachedRatio("attack", ATTACK_DAMAGE_FRAME_RATIO) &&
+			damageTargetInRange(ATTACK_RANGE * 1.7f, ATTACK_DAMAGE, "Walking Dead Attack"))
+			_attack_damage_applied = true;
 
 		if (!isAnimationLocked())
 		{
 			// Po zakończeniu animacji ataku zadajemy obrażenia.
-			if (const auto target = getTarget())
-			{
-				if (!_attack_damage_applied && getDistanceToTarget() <= ATTACK_RANGE * 1.7f)
-				{
-					target->rememberDamageSource(this, "Walking Dead Attack");
-					target->takeDamage(ATTACK_DAMAGE);
-				}
-			}
+			if (!_attack_damage_applied)
+				damageTargetInRange(ATTACK_RANGE * 1.7f, ATTACK_DAMAGE, "Walking Dead Attack");
 			
 			_attack_cooldown_timer = ATTACK_COOLDOWN;
 			_state = State::Chasing;

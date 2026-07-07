@@ -75,8 +75,7 @@ namespace Nawia::Entity {
 		Entity::update(dt);
 		stopMoving();
 
-		if (const auto target = getTarget())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
 		_cast_timer -= dt;
 		if (_cast_timer <= 0.0f)
@@ -100,12 +99,9 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		if (const auto target = getTarget())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("attack");
-		const float damage_frame = static_cast<float>(frame_count) * MELEE_DAMAGE_FRAME_RATIO;
-		if (!_melee_damage_applied && frame_count > 0 && hasAnimationReachedFrame(damage_frame))
+		if (!_melee_damage_applied && hasAnimationReachedRatio("attack", MELEE_DAMAGE_FRAME_RATIO))
 			applyMeleeDamage();
 
 		if (!isAnimationLocked()) {

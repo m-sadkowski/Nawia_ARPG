@@ -160,15 +160,10 @@ namespace Nawia::Entity {
 	void Witch::handleCastingBoltState(const float dt) {
 		Entity::update(dt);
 
-		if (const auto target = getTarget())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("bolt");
-		const float cast_frame = static_cast<float>(frame_count) * CAST_FRAME_RATIO;
-		if (!_cast_projectile_spawned && frame_count > 0 && hasAnimationReachedFrame(cast_frame)) {
+		if (consumeAnimationFrameTrigger("bolt", CAST_FRAME_RATIO, _cast_projectile_spawned))
 			fireBolt();
-			_cast_projectile_spawned = true;
-		}
 
 		if (!isAnimationLocked()) {
 			_cast_cooldown_timer = CAST_COOLDOWN;
@@ -186,15 +181,10 @@ namespace Nawia::Entity {
 	void Witch::handleRetaliatingState(const float dt) {
 		Entity::update(dt);
 
-		if (const auto target = getTarget())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("bolt");
-		const float effect_frame = static_cast<float>(frame_count) * CAST_FRAME_RATIO;
-		if (!_retaliation_applied && frame_count > 0 && hasAnimationReachedFrame(effect_frame)) {
+		if (consumeAnimationFrameTrigger("bolt", CAST_FRAME_RATIO, _retaliation_applied))
 			applyRetaliation();
-			_retaliation_applied = true;
-		}
 
 		if (!isAnimationLocked()) {
 			_cast_cooldown_timer = CAST_COOLDOWN * 0.65f;
@@ -212,15 +202,10 @@ namespace Nawia::Entity {
 	void Witch::handleSummoningState(const float dt) {
 		Entity::update(dt);
 
-		if (const auto target = getTarget())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("summon");
-		const float effect_frame = static_cast<float>(frame_count) * CAST_FRAME_RATIO;
-		if (!_retaliation_applied && frame_count > 0 && hasAnimationReachedFrame(effect_frame)) {
+		if (consumeAnimationFrameTrigger("summon", CAST_FRAME_RATIO, _retaliation_applied))
 			summonHelper();
-			_retaliation_applied = true;
-		}
 
 		if (!isAnimationLocked()) {
 			_cast_cooldown_timer = CAST_COOLDOWN * 0.75f;
@@ -384,7 +369,7 @@ namespace Nawia::Entity {
 
 		if (!_map || _map->isWalkable(next.x, next.y)) {
 			setPosition(next);
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+			faceTargetCenter();
 			playRun();
 			return;
 		}
@@ -416,8 +401,7 @@ namespace Nawia::Entity {
 	}
 
 	void Witch::stopMoving() {
-		setVelocity(0.0f, 0.0f);
-		stopMovement();
+		stopMotion();
 	}
 
 	void Witch::updateDeathFreeze(const float dt) {

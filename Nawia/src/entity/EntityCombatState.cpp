@@ -6,6 +6,7 @@
 #include <Logger.h>
 
 #include <algorithm>
+#include <utility>
 
 namespace Nawia::Entity {
 
@@ -77,6 +78,17 @@ namespace Nawia::Entity {
 	{
 		_last_damage_source = source_context;
 		takeDamage(dmg);
+	}
+
+	bool Entity::damageTargetInRange(const float max_distance, const int damage, std::string source_label)
+	{
+		const auto target = getLiveTarget();
+		if (!target || getDistanceToTarget() > max_distance)
+			return false;
+
+		target->rememberDamageSource(this, std::move(source_label));
+		target->takeDamage(damage);
+		return true;
 	}
 
 	void Entity::takeDamage(const int dmg)

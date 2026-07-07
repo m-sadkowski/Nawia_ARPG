@@ -72,7 +72,7 @@ namespace Nawia::Entity {
 				moveTowardPositionWithNav({retreat_position.x, retreat_position.z}, dt);
 			} else {
 				clearNavigationPath();
-				stopMovement();
+				stopMotion();
 			}
 
 			updateMovementSound(Audio::SoundPath::DevilStep, isMoving() && !isDormant(), 0.32f, 1.25f);
@@ -113,8 +113,7 @@ namespace Nawia::Entity {
 	}
 
 	void Frog::stopMoving() {
-		setVelocity(0.0f, 0.0f);
-		stopMovement();
+		stopMotion();
 	}
 
 	bool Frog::isBossVariant() const {
