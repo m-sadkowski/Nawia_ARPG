@@ -54,6 +54,10 @@ include_directories(
     src/world
     src/world/map
     src/world/level
+    src/world/level/demo
+    src/world/level/dev
+    src/world/level/first
+    src/world/level/nawia_arena
     src/world/spawn
     src/ui
     src/ui/hud
