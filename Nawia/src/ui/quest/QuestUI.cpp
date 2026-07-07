@@ -19,18 +19,6 @@ namespace Nawia::UI
         constexpr Color QUEST_TITLE = { 100, 46, 24, 255 };
         constexpr Color QUEST_COMPLETED = { 34, 82, 84, 255 };
 
-        /**
-         * @brief Wlacza lagodniejsze skalowanie tekstury UI.
-         */
-        void smoothUiTexture(const std::shared_ptr<Texture2D>& texture)
-        {
-            if (!texture || texture->id <= 0)
-                return;
-
-            GenTextureMipmaps(texture.get());
-            SetTextureFilter(*texture, TEXTURE_FILTER_TRILINEAR);
-        }
-
         std::vector<std::string> wrapText(const Font& font, const std::string& text, const float font_size, const float spacing, const float max_width)
         {
             std::vector<std::string> lines;
@@ -166,8 +154,7 @@ namespace Nawia::UI
         }
         else
         {
-            DrawRectangleRec(panel_rect, withAlpha(COLOR_PANEL_BG, 0.98f));
-            DrawRectangleLinesEx(panel_rect, 2.0f, withAlpha(COLOR_ACCENT, 0.8f));
+            drawPanelFrame(panel_rect);
         }
 
         // Zakladki.
@@ -191,8 +178,7 @@ namespace Nawia::UI
             DrawRectangleLinesEx(rect, 1.5f, tab_border);
             
             const float tab_font_size = Core::GlobalScaling::scaled(18.0f);
-            const Vector2 text_size = MeasureTextEx(font, label, tab_font_size, 1.0f);
-            DrawTextEx(font, label, { rect.x + (rect.width - text_size.x) / 2.0f, rect.y + (rect.height - text_size.y) / 2.0f }, tab_font_size, 1.0f, text_color);
+            drawCenteredText(font, label, rect, tab_font_size, 1.0f, text_color);
         };
 
         draw_tab(tab_active_rect, "Aktywne", _current_tab == QuestTab::Active);

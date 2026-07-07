@@ -66,8 +66,8 @@ namespace Nawia::World {
 	{
 		const auto basics = EntityFactoryDetail::readBasics(data, "Obiekt", 9999);
 		auto* engine = context.engine;
-		const std::string model_path = EntityFactoryDetail::resolveModelPath(
-			EntityFactoryDetail::readStringAlias(data, {"model", "model_path", "texture"})
+		const std::string model_path = Core::AssetPathUtils::resolveModelPath(
+			Core::JsonUtils::readStringAlias(data, {"model", "model_path", "texture"})
 		);
 
 		auto object = Entity::StaticObjectBuilder()

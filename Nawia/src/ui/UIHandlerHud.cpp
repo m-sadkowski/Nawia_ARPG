@@ -60,8 +60,7 @@ namespace Nawia::UI
             x + (bar_width - name_size.x) * 0.5f,
             y - name_size.y - Core::GlobalScaling::scaled(8.0f)
         };
-        DrawTextEx(_font, name.c_str(), {name_position.x + 2.0f, name_position.y + 2.0f}, name_font_size, spacing, Fade(BLACK, 0.8f));
-        DrawTextEx(_font, name.c_str(), name_position, name_font_size, spacing, GOLD);
+        drawTextWithShadow(_font, name.c_str(), name_position, name_font_size, spacing, GOLD, {2.0f, 2.0f}, Fade(BLACK, 0.8f));
     }
 
     void UIHandler::renderBossPhaseMarkers(const Game::BossData& boss_data, const float x, const float y, const float bar_width, const float bar_height) const
@@ -142,8 +141,7 @@ namespace Nawia::UI
             x + (bar_width - hp_size.x) * 0.5f,
             y + (bar_height - hp_size.y) * 0.5f
         };
-        DrawTextEx(_font, hp_text, {hp_position.x + 1.0f, hp_position.y + 1.0f}, hp_font_size, spacing, Fade(BLACK, 0.6f));
-        DrawTextEx(_font, hp_text, hp_position, hp_font_size, spacing, WHITE);
+        drawTextWithShadow(_font, hp_text, hp_position, hp_font_size, spacing, WHITE, {1.0f, 1.0f}, Fade(BLACK, 0.6f));
         renderBossFightInfo(boss_manager, x, y, bar_width, bar_height, spacing);
     }
 
@@ -213,9 +211,15 @@ namespace Nawia::UI
         }
 
         const float font_size = Core::GlobalScaling::scaled(18.0f);
-        const Vector2 text_size = MeasureTextEx(_font, text, font_size, 1.0f);
-        DrawTextEx(_font, text, {center_x - text_size.x / 2.0f + 1.0f, center_y - text_size.y / 2.0f + 1.0f}, font_size, 1.0f, withAlpha(BLACK, 0.6f));
-        DrawTextEx(_font, text, {center_x - text_size.x / 2.0f, center_y - text_size.y / 2.0f}, font_size, 1.0f, WHITE);
+        drawTextWithShadow(
+            _font,
+            text,
+            centeredTextPosition(_font, text, {center_x - radius, center_y - radius, radius * 2.0f, radius * 2.0f}, font_size, 1.0f),
+            font_size,
+            1.0f,
+            WHITE,
+            {1.0f, 1.0f},
+            withAlpha(BLACK, 0.6f));
     }
 
     void UIHandler::renderPlayerHealthBar() const
@@ -375,8 +379,7 @@ namespace Nawia::UI
                 icon_rect.x + (icon_rect.width - text_size.x) * 0.5f,
                 icon_rect.y - Core::GlobalScaling::scaled(20.0f)
             };
-            DrawTextEx(_font, key_text, {text_pos.x + 1.0f, text_pos.y + 1.0f}, font_size, 1.0f, Fade(BLACK, 0.85f));
-            DrawTextEx(_font, key_text, text_pos, font_size, 1.0f, COLOR_GOLDEN_TEXT);
+            drawTextWithShadow(_font, key_text, text_pos, font_size, 1.0f, COLOR_GOLDEN_TEXT, {1.0f, 1.0f}, Fade(BLACK, 0.85f));
         };
 
         for (int i = 0; i < 4; ++i)
@@ -395,8 +398,7 @@ namespace Nawia::UI
             food_rectangle.x + (food_rectangle.width - count_size.x) * 0.5f,
             food_rectangle.y + food_rectangle.height - Core::GlobalScaling::scaled(2.0f)
         };
-        DrawTextEx(_font, food_count_text, {count_pos.x + 1.0f, count_pos.y + 1.0f}, count_font_size, 1.0f, Fade(BLACK, 0.9f));
-        DrawTextEx(_font, food_count_text, count_pos, count_font_size, 1.0f, WHITE);
+        drawTextWithShadow(_font, food_count_text, count_pos, count_font_size, 1.0f, WHITE, {1.0f, 1.0f}, Fade(BLACK, 0.9f));
     }
 
     void UIHandler::renderPlayerExperienceBar() const

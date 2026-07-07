@@ -8,21 +8,6 @@
 
 namespace Nawia::UI
 {
-    namespace
-    {
-        /**
-         * @brief Wlacza lagodniejsze skalowanie tekstury UI.
-         */
-        void smoothUiTexture(const std::shared_ptr<Texture2D>& texture)
-        {
-            if (!texture || texture->id <= 0)
-                return;
-
-            GenTextureMipmaps(texture.get());
-            SetTextureFilter(*texture, TEXTURE_FILTER_TRILINEAR);
-        }
-    }
-
     StatsUI::StatsUI(const std::shared_ptr<Entity::Player>& player) : _player(player) {}
 
     void StatsUI::loadResources(Core::ResourceManager& resource_manager)
@@ -52,8 +37,7 @@ namespace Nawia::UI
         }
         else
         {
-            DrawRectangleRec(panel_rect, withAlpha(COLOR_PANEL_BG, 0.95f));
-            DrawRectangleLinesEx(panel_rect, 1.5f, withAlpha(COLOR_ACCENT, 0.8f));
+            drawPanelFrame(panel_rect, 0.95f, 1.5f);
         }
         
         const auto& stats = _player->getStats();
@@ -66,8 +50,7 @@ namespace Nawia::UI
         const float x_padding = width * 0.16f;
         const float line_height = Core::GlobalScaling::scaled(32.0f);
 
-        const Vector2 title_size = MeasureTextEx(font, "STATYSTYKI", title_font_size, spacing);
-        DrawTextEx(font, "STATYSTYKI", { x + (width - title_size.x) / 2.0f, current_y }, title_font_size, spacing, COLOR_ACCENT);
+        drawCenteredText(font, "STATYSTYKI", { x, current_y, width, title_font_size }, title_font_size, spacing, COLOR_ACCENT);
         current_y += line_height * 1.35f;
         
         auto draw_stat_row = [&](const char* label, const char* value, Color value_color)

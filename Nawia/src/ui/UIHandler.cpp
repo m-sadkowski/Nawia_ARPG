@@ -17,18 +17,6 @@
 
 namespace Nawia::UI
 {
-    namespace
-    {
-        void smoothUiTexture(const std::shared_ptr<Texture2D>& texture)
-        {
-            if (!texture || texture->id <= 0)
-                return;
-
-            GenTextureMipmaps(texture.get());
-            SetTextureFilter(*texture, TEXTURE_FILTER_TRILINEAR);
-        }
-    }
-
     UIHandler::UIHandler() : _player(nullptr), _entity_manager(nullptr) {}
 
     UIHandler::~UIHandler()

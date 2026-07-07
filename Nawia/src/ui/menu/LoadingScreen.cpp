@@ -3,6 +3,7 @@
 #include <Constants.h>
 #include <GlobalScaling.h>
 #include <UIDefines.h>
+#include <UIRenderUtils.h>
 
 #include <algorithm>
 #include <cmath>
@@ -108,8 +109,7 @@ namespace Nawia::UI {
 		if (has_font) {
 			const Vector2 hsz = MeasureTextEx(_font, header, header_size, spacing);
 			const Vector2 hpos = {(screen_w - hsz.x) * 0.5f, screen_h * 0.5f - screen_h * 0.09f};
-			DrawTextEx(_font, header, {hpos.x + 3.0f, hpos.y + 3.0f}, header_size, spacing, Fade(BLACK, 0.6f));
-			DrawTextEx(_font, header, hpos, header_size, spacing, COLOR_PARCHMENT);
+			drawTextWithShadow(_font, header, hpos, header_size, spacing, COLOR_PARCHMENT, {3.0f, 3.0f}, Fade(BLACK, 0.6f));
 		} else {
 			const int sz = static_cast<int>(screen_h * 0.055f);
 			const int tw = MeasureText(header, sz);
@@ -144,8 +144,7 @@ namespace Nawia::UI {
 		if (has_font) {
 			const Vector2 psz = MeasureTextEx(_font, pct_text.c_str(), pct_size, spacing);
 			const Vector2 ppos = {(screen_w - psz.x) * 0.5f, bar_y + (bar_h - psz.y) * 0.5f};
-			DrawTextEx(_font, pct_text.c_str(), {ppos.x + 1.0f, ppos.y + 1.0f}, pct_size, spacing, Fade(BLACK, 0.5f));
-			DrawTextEx(_font, pct_text.c_str(), ppos, pct_size, spacing, WHITE);
+			drawTextWithShadow(_font, pct_text.c_str(), ppos, pct_size, spacing, WHITE, {1.0f, 1.0f}, Fade(BLACK, 0.5f));
 		} else {
 			const int sz = static_cast<int>(pct_size);
 			const int tw = MeasureText(pct_text.c_str(), sz);
@@ -169,8 +168,7 @@ namespace Nawia::UI {
 		if (has_font) {
 			const Vector2 qsz = MeasureTextEx(_font, quote, quote_size, spacing);
 			const Vector2 qpos = {(screen_w - qsz.x) * 0.5f, quote_y};
-			DrawTextEx(_font, quote, {qpos.x + 1.0f, qpos.y + 1.0f}, quote_size, spacing, Fade(BLACK, 0.4f));
-			DrawTextEx(_font, quote, qpos, quote_size, spacing, Fade(COLOR_PARCHMENT, 0.65f));
+			drawTextWithShadow(_font, quote, qpos, quote_size, spacing, Fade(COLOR_PARCHMENT, 0.65f), {1.0f, 1.0f}, Fade(BLACK, 0.4f));
 		} else {
 			const int sz = static_cast<int>(quote_size);
 			const int tw = MeasureText(quote, sz);

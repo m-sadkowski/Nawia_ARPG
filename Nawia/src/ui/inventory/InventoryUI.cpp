@@ -1,5 +1,6 @@
 #include "InventoryUI.h"
 
+#include <InventoryRenderUtils.h>
 #include <ResourceManager.h>
 #include <UIDefines.h>
 #include <UIRenderUtils.h>
@@ -8,21 +9,6 @@
 
 namespace Nawia::UI
 {
-    namespace
-    {
-        /**
-         * @brief Wlacza lagodniejsze skalowanie tekstury UI.
-         */
-        void smoothUiTexture(const std::shared_ptr<Texture2D>& texture)
-        {
-            if (!texture || texture->id <= 0)
-                return;
-
-            GenTextureMipmaps(texture.get());
-            SetTextureFilter(*texture, TEXTURE_FILTER_TRILINEAR);
-        }
-    }
-
     InventoryUI::InventoryUI() {}
 
     void InventoryUI::loadResources(Core::ResourceManager& resource_manager)
@@ -116,8 +102,7 @@ namespace Nawia::UI
         }
         else
         {
-            DrawRectangleRec(inventory_rect, withAlpha(COLOR_PANEL_BG, 0.98f));
-            DrawRectangleLinesEx(inventory_rect, 2.0f, withAlpha(COLOR_ACCENT, 0.8f));
+            drawPanelFrame(inventory_rect);
         }
 
         const Vector2 mouse_pos = GetMousePosition();
@@ -141,7 +126,7 @@ namespace Nawia::UI
             const bool is_hovered = CheckCollisionPointRec(mouse_pos, slot_rect);
             const std::shared_ptr<Item::Item> item = (i < static_cast<int>(backpack_items.size())) ? backpack_items[i] : nullptr;
 
-            drawSlot(i, slot_rect, is_hovered, item);
+            InventoryRender::drawItemSlot(slot_rect, is_hovered, item, SLOT_PADDING);
 
             if (is_hovered && item != nullptr)
             {
@@ -151,11 +136,10 @@ namespace Nawia::UI
         }
 
         const std::string gold_text = "ZLOTO: " + std::to_string(player.getGold());
-        const Vector2 gold_size = MeasureTextEx(font, gold_text.c_str(), font_size, 1.0f);
-        DrawTextEx(font, gold_text.c_str(), { inventory_rect.x + (inventory_rect.width - gold_size.x) / 2.0f, inventory_rect.y + inventory_rect.height - gold_y_offset }, font_size, 1.0f, COLOR_ACCENT);
+        drawCenteredText(font, gold_text.c_str(), { inventory_rect.x, inventory_rect.y + inventory_rect.height - gold_y_offset, inventory_rect.width, font_size }, font_size, 1.0f, COLOR_ACCENT);
     
         if (item_tooltip != nullptr)
-            drawTooltip(font, item_tooltip, tooltip_pos.x, tooltip_pos.y);
+            InventoryRender::drawItemTooltip(font, item_tooltip, tooltip_pos.x, tooltip_pos.y, font_size);
     }
 
     void InventoryUI::drawSpecificSlot(const Item::EquipmentSlot slot_type, const Entity::Player& player, const Vector2 mouse_pos) const
@@ -165,47 +149,10 @@ namespace Nawia::UI
         const auto item = player.getEquipment().getItemAt(slot_type);
         const bool is_hovered = CheckCollisionPointRec(mouse_pos, slot_rect);
 
-        drawSlot(-1, slot_rect, is_hovered, item);
+        InventoryRender::drawItemSlot(slot_rect, is_hovered, item, SLOT_PADDING);
 
         if (item == nullptr)
             DrawRectangleLinesEx(slot_rect, 1.0f, withAlpha(RAYWHITE, 0.10f));
-    }
-
-    void InventoryUI::drawSlot([[maybe_unused]] const int index, const Rectangle slot_rect, const bool is_hovered, const std::shared_ptr<Item::Item>& item) const
-    {
-        const float slot_padding = Core::GlobalScaling::scaled(SLOT_PADDING);
-
-        if (is_hovered)
-            DrawRectangleRec(slot_rect, withAlpha(COLOR_ACCENT, 0.20f));
-
-        if (item != nullptr)
-        {
-            const Texture2D icon = item->getIcon();
-            if (icon.id > 0)
-            {
-                const Rectangle dest = {
-                    slot_rect.x + slot_padding,
-                    slot_rect.y + slot_padding,
-                    slot_rect.width - (slot_padding * 2.0f),
-                    slot_rect.height - (slot_padding * 2.0f)
-                };
-                DrawTexturePro(icon, { 0.0f, 0.0f, static_cast<float>(icon.width), static_cast<float>(icon.height) }, dest, { 0, 0 }, 0.0f, WHITE);
-            }
-        }
-    }
-
-    void InventoryUI::drawTooltip(const Font& font, const std::shared_ptr<Item::Item>& item, float x, float y) const
-    {
-        const float font_size = Core::GlobalScaling::scaled(FONT_SIZE);
-        const char* item_name = item->getName().c_str();
-
-        const Vector2 text_size = MeasureTextEx(font, item_name, font_size, 1.0f);
-        const float padding = 12.0f;
-
-        DrawRectangleRec({ x, y, text_size.x + (padding * 2.0f), text_size.y + (padding * 2.0f) }, withAlpha(COLOR_PANEL_BG, 0.98f));
-        DrawRectangleLinesEx({ x, y, text_size.x + (padding * 2.0f), text_size.y + (padding * 2.0f) }, 1.0f, COLOR_ACCENT);
-
-        DrawTextEx(font, item_name, { x + padding, y + padding }, font_size, 1.0f, COLOR_GOLDEN_TEXT);
     }
 
     int InventoryUI::handleInput() const

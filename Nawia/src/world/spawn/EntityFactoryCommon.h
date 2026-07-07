@@ -2,15 +2,14 @@
 
 #include "EntityFactory.h"
 
+#include <AssetPathUtils.h>
 #include <Engine.h>
 #include <Item.h>
+#include <JsonUtils.h>
 #include <Loottable.h>
 
 #include <json.hpp>
 
-#include <algorithm>
-#include <filesystem>
-#include <initializer_list>
 #include <memory>
 #include <string>
 
@@ -40,26 +39,6 @@ namespace Nawia::World::EntityFactoryDetail {
 		if (loottable_name == "CAT") return Item::LOOTTABLE_TYPE::CAT;
 		if (loottable_name == "CHEST_NOOB") return Item::LOOTTABLE_TYPE::CHEST_NOOB;
 		return default_type;
-	}
-
-	inline std::string readStringAlias(const json& data, const std::initializer_list<const char*> keys) {
-		for (const char* key : keys) {
-			if (data.contains(key) && data[key].is_string())
-				return data[key].get<std::string>();
-		}
-
-		return "";
-	}
-
-	inline std::string resolveModelPath(std::string model_path) {
-		std::ranges::replace(model_path, '\\', '/');
-		if (model_path.empty() || model_path.rfind("assets/", 0) == 0)
-			return model_path;
-
-		if (std::filesystem::path(model_path).has_parent_path())
-			return model_path;
-
-		return "assets/models/" + model_path;
 	}
 
 	template <typename AddItem>

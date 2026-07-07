@@ -3,6 +3,7 @@
 #include <Engine.h>
 #include <EntityManager.h>
 #include <EntityPathMotion.h>
+#include <JsonUtils.h>
 #include <Level.h>
 #include <Logger.h>
 #include <Map.h>
@@ -26,14 +27,6 @@ namespace Nawia::Entity {
 		constexpr float BABA_YAGA_IDLE_BOB_SPEED = 1.25f;
 		constexpr float BABA_YAGA_TILT_DEGREES = 2.8f;
 		constexpr float BABA_YAGA_TILT_SPEED = 0.9f;
-
-		std::string readStringAlias(const nlohmann::json& data, const std::initializer_list<const char*> keys) {
-			for (const char* key : keys) {
-				if (data.contains(key) && data[key].is_string())
-					return data[key].get<std::string>();
-			}
-			return "";
-		}
 
 		bool questCompleted(Core::Engine* engine, const std::string& quest_id) {
 			if (!engine)
@@ -109,7 +102,7 @@ namespace Nawia::Entity {
 	}
 
 	void GenericStoryNpc::configureModel(const nlohmann::json& data) {
-		_model_path = readStringAlias(data, {"model", "model_path"});
+		_model_path = Core::JsonUtils::readStringAlias(data, {"model", "model_path"});
 		_animation_bundle_path = data.value("animation_bundle", _model_path);
 		_idle_animation = data.value("idle_animation", _idle_animation);
 		_walk_animation = data.value("walk_animation", _walk_animation);

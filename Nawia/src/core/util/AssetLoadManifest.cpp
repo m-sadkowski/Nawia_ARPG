@@ -1,9 +1,10 @@
 #include "AssetLoadManifest.h"
 
+#include <AssetPathUtils.h>
+#include <JsonUtils.h>
 #include <LocationJsonLoader.h>
 #include <Logger.h>
 
-#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <set>
@@ -14,25 +15,6 @@ namespace Nawia::Core {
 
 		bool isPlaceholderMapName(const std::string& model_name) {
 			return model_name.empty() || model_name == "placeholder";
-		}
-
-		std::string resolveModelPath(std::string model_path) {
-			std::ranges::replace(model_path, '\\', '/');
-			if (model_path.empty() || model_path.rfind("assets/", 0) == 0)
-				return model_path;
-
-			if (std::filesystem::path(model_path).has_parent_path())
-				return model_path;
-
-			return "assets/models/" + model_path;
-		}
-
-		std::string readStringAlias(const nlohmann::json& data, const std::initializer_list<const char*> keys) {
-			for (const char* key : keys) {
-				if (data.contains(key) && data[key].is_string())
-					return data[key].get<std::string>();
-			}
-			return "";
 		}
 
 		void collectItemIconPaths(std::set<std::string>& paths) {
@@ -332,10 +314,10 @@ namespace Nawia::Core {
 				addModel("assets/models/actors/npcs/male_npc_1.glb");
 				addAnimation("assets/models/actors/npcs/male_npc_1.glb");
 			} else if (npc_class == "story_human" || npc_class == "herbalist") {
-				const std::string model_path = resolveModelPath(
-					readStringAlias(entity_data, {"model", "model_path"}));
-				std::string animation_bundle = resolveModelPath(
-					readStringAlias(entity_data, {"animation_bundle"}));
+				const std::string model_path = AssetPathUtils::resolveModelPath(
+					JsonUtils::readStringAlias(entity_data, {"model", "model_path"}));
+				std::string animation_bundle = AssetPathUtils::resolveModelPath(
+					JsonUtils::readStringAlias(entity_data, {"animation_bundle"}));
 				if (!model_path.empty())
 					addModel(model_path);
 
@@ -359,8 +341,8 @@ namespace Nawia::Core {
 		}
 
 		if (entity_type == "static_object") {
-			const std::string model_path = resolveModelPath(
-				readStringAlias(entity_data, {"model", "model_path", "texture"}));
+			const std::string model_path = AssetPathUtils::resolveModelPath(
+				JsonUtils::readStringAlias(entity_data, {"model", "model_path", "texture"}));
 			if (!model_path.empty())
 				addModel(model_path);
 			return;
