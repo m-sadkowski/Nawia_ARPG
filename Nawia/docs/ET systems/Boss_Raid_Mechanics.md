@@ -4,9 +4,8 @@
 
 Ten system dodaje minimalny raidowy fundament dla bossow: cast metadata,
 telegraphy i hazardy obszarowe. To nadal nie jest algorytm pracy
-inzynierskiej. Jest to srodowisko testowe, na ktorym przyszly system
-wieloagentowy bedzie mogl podejmowac decyzje typu: uniknij AoE, poczekaj na
-koniec castu, rozpoznaj aktywna strefe zagrozenia.
+inzynierskiej. Jest to srodowisko runtime, ktore wystawia czytelne fakty do
+percepcji, telemetryki i testow.
 
 ## Glowny kod
 
@@ -18,11 +17,12 @@ koniec castu, rozpoznaj aktywna strefe zagrozenia.
 - `src/core/game/EntityManager.cpp`
 - `src/core/game/agent/AgentPerceptionSystem.h`
 - `src/core/game/agent/AgentPerceptionSystem.cpp`
+- `src/core/game/agent/AgentPerceptionSnapshot.cpp`
 - `src/entity/actors/enemies/devil/Devil.cpp`
-- `src/entity/actors/enemies/RiftBinder.cpp`
+- `src/entity/actors/enemies/rift_binder/RiftBinder.cpp`
 - `src/entity/actors/enemies/RiftTotem.cpp`
 - `src/entity/effects/FireRainHazard.cpp`
-- `src/entity/actors/enemies/Frog.cpp`
+- `src/entity/actors/enemies/frog/Frog.cpp`
 
 ## Cast metadata
 
@@ -32,7 +32,7 @@ Kazda encja moze wystawic lekki stan castu przez:
 - `Entity::clearCastTelemetry()`
 - `Entity::getCastState()`
 
-To jest telemetryka i metadata decyzyjne, a nie system wykonywania ability.
+To jest telemetryka i metadata runtime, a nie system wykonywania ability.
 Boss sam nadal steruje animacja i momentem odpalenia mechaniki.
 
 `AgentPerceptionSystem` publikuje dla encji pola:
@@ -50,8 +50,8 @@ Boss sam nadal steruje animacja i momentem odpalenia mechaniki.
 - `Warning` - obszar jest widoczny, ale jeszcze nie zadaje obrazen.
 - `Active` - obszar zadaje tick damage celom wrogiej frakcji.
 
-Hazard nie blokuje ruchu i nie zmienia navmesha. Agent ma go zobaczyc w
-percepcji i zdecydowac, czy oraz jak go ominac.
+Hazard nie blokuje ruchu i nie zmienia navmesha. Jest widoczny w percepcji i
+telemetryce jako fakt o swiecie.
 
 Wizualnie hazard uzywa `drawSoftGroundDisc(...)`: gladkiego, wypelnionego
 dysku bez wireframe'owych krawedzi. Dzieki temu AoE nie wyglada jak zestaw
@@ -102,8 +102,8 @@ wystepuje jako `Dragon` i uzywa modelu `assets/models/actors/dragon/dragon.glb`.
 Widoczna nazwa walki to `Siewca Chaosu`. Boss ma cztery stage'e totemowe:
 na start spawnuje 3 totemy, potem przy progach HP 75/50/25% spawnuje kolejno
 4, 5 i 7 totemow.
-Dopoki stage'owe totemy zyja, boss ignoruje obrazenia, wiec gracze i agenci
-musza przejsc na cele pomocnicze zanim moga dalej bic bossa.
+Dopoki stage'owe totemy zyja, boss ignoruje obrazenia, wiec gracz musi niszczyc
+cele pomocnicze zanim moze dalej bic bossa.
 
 `RiftTotem` jest encja typu Enemy, wiec da sie go targetowac i niszczyc zwyklymi
 atakami. Kazdy totem renderuje model `assets/models/totem.glb`. Kazdy totem
@@ -119,19 +119,19 @@ kolejnymi stage'ami i zbijaniem totemow w aktualnym stage'u: 10.0-8.5s,
 8.0-6.5s, 6.5-5.5s, 5.5-4.0s. `Stone Volley`
 po zakonczeniu castu tworzy trzy mniejsze encje `Projectile`, czyli zachowuje
 sie podobnie do fireballa. Aktualnie uzywa `assets/models/fireball.glb` z
-szarym tintem, zeby nie dokladac osobnego placeholdera modelu. `FireRainHazard`
-dziedziczy z `BossTelegraphHazard`, wiec jest widoczny dla percepcji jak zwykly
-hazard, ale renderuje tez spadajace ogniste pociski nad obszarem.
+szarym tintem, dopoki nie powstanie dedykowany asset kamiennego pocisku.
+`FireRainHazard` dziedziczy z `BossTelegraphHazard`, wiec jest widoczny dla
+percepcji jak zwykly hazard, ale renderuje tez spadajace ogniste pociski nad
+obszarem.
 
 Mapowanie animacji smoka: `Death` dla smierci, `Fast_Flying` dla ruchu,
 `Flying_Idle` dla postoju, `HitReact` po realnym otrzymaniu obrazen,
 `Headbutt` dla `Fire Rain`, `Punch` dla `Stone Volley` i `No` przed
 teleportacja `Dragon Blink`.
 
-Ten boss jest przydatny przed praca inzynierska, bo daje agentom kilka klas
-decyzji naraz: target switching na totemy, priorytetyzacje addow, unikanie
-obszarow, reakcje na teleport bossa i rozpoznawanie, kiedy boss jest odporny na
-obrazenia.
+Ten boss jest przydatny jako testowy encounter ET, bo publikuje kilka rodzajow
+faktow naraz: cele pomocnicze, addy, hazardy obszarowe, teleport bossa i stan
+odpornosci na obrazenia.
 
 ## Telemetria i percepcja
 

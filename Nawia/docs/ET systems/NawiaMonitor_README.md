@@ -83,19 +83,12 @@ Przykladowy event:
   tego samego typu,
 - surowy JSON zaznaczonego eventu.
 
-## Miejsca rozbudowy
+## Zakres monitora
 
-Monitor jest przygotowany pod kolejne panele:
-
-- Agent Perception,
-- Agent Command Interface,
-- map pings,
-- stan agentow,
-- decision tree / behavior tree,
-- przyszly GOAP planner,
-- boss phase timeline,
-- threat table,
-- replay lub eksport danych do analizy.
+Monitor pokazuje dane emitowane przez aktualny runtime. Nie steruje gra, nie
+wybiera akcji i nie zawiera logiki zachowania. Nowe panele powinny opisywac
+konkretne schematy telemetryki, ktore gra juz publikuje albo ktore sa dodawane
+razem z kodem runtime.
 
 ## Granice systemu
 

@@ -54,8 +54,8 @@ Encja jest dormant, gdy:
 - czeka na podejscie gracza,
 - zostala zamrozona przez zmiane lokacji.
 
-Dormant encja nie renderuje sie, nie aktualizuje AI, nie bierze udzialu w
-kolizjach i nie reaguje na hover.
+Dormant encja nie renderuje sie, nie aktualizuje zachowania, nie bierze
+udzialu w kolizjach i nie reaguje na hover.
 
 ## Powiazane dokumenty
 
@@ -65,3 +65,23 @@ kolizjach i nie reaguje na hover.
 - `docs/guides/Interactive_Guide.md`
 - `docs/guides/Item_Guide.md`
 - `docs/guides/UI_Guide.md`
+
+## Organizacja kodu leveli
+
+Wspolne klasy systemu leveli zostaja w `src/world/level`:
+
+- `Level.*`
+- `LevelManager.*`
+- `LocationDefinition.h`
+- `LocationJsonLoader.*`
+- `LocationJsonUtils.*`
+
+Konkretne levele sa w osobnych katalogach:
+
+- `src/world/level/demo`
+- `src/world/level/dev`
+- `src/world/level/first`
+- `src/world/level/nawia_arena`
+
+Include'y pozostaja plaskie przez katalogi include w CMake, np.
+`#include <FirstLevel.h>`, bez sciezek z `/`.

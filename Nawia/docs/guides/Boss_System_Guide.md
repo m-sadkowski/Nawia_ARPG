@@ -35,11 +35,11 @@ W Przedsionku Nawii uzywamy `boss_id: "bies"`. To osobna definicja bossa o
 nazwie wyswietlanej `Bies`, ale `enemy_type` zostaje `Devil`, wiec korzysta z
 tej samej klasy przeciwnika i animacji.
 
-Boss `czarownica` uzywa `enemy_type: "Witch"`. To dystansowy boss placeholder:
-strzela malymi fireballami jako piorunami, po trafieniu powala gracza i
-przywoluje `WalkingDead`. Definicja moze miec `victory_dialogue_key` oraz
-`checkpoint_on_victory`; Czarownica uzywa tego do dialogu po smierci i
-checkpointa `witch_truth_resolved`.
+Boss `czarownica` uzywa `enemy_type: "Witch"`. To dystansowy boss oparty o
+klase `Witch`: strzela malymi fireballami jako obecnym wariantem pocisku, po
+trafieniu powala gracza i przywoluje `WalkingDead`. Definicja moze miec
+`victory_dialogue_key` oraz `checkpoint_on_victory`; Czarownica uzywa tego do
+dialogu po smierci i checkpointa `witch_truth_resolved`.
 
 ### Blokowanie teleportow
 

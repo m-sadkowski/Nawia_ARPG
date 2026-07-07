@@ -3,10 +3,9 @@
 ## Cel
 
 `CombatEventBus` jest niskopoziomowym strumieniem faktow z walki. Nie zawiera
-logiki AI, threat table, walidacji ani rol. Jego zadaniem jest zapisanie tego,
-co realnie wydarzylo sie w grze, tak aby pozniejsze systemy pracy
-inzynierskiej mogly budowac na tych danych percepcje, metryki, aggro,
-adaptacje i debugowanie zachowan agentow.
+logiki zachowania, tabel priorytetow, walidacji ani rol. Jego zadaniem jest
+zapisanie tego, co realnie wydarzylo sie w grze, tak aby narzedzia ET mogly
+budowac na tych danych percepcje, metryki i debugowanie runtime.
 
 ## Glowny kod
 
@@ -77,8 +76,8 @@ Dodaje event rozpoczecia uzycia ability. Wolane przez `Ability::beginCast`.
 
 ### `CombatEventBus::getRecentEvents(float seconds)`
 
-Zwraca kopie eventow z ostatnich `seconds` sekund. To bedzie podstawowy punkt
-wejscia dla przyszlego `AgentPerception`, np. "co stalo sie w ostatnich 2 s".
+Zwraca kopie eventow z ostatnich `seconds` sekund. `AgentPerceptionSystem`
+uzywa tego jako wejscia do pola `recent_combat_events`.
 
 ### `CombatEventBus::subscribe(Listener listener)`
 
@@ -113,19 +112,19 @@ ability, ruch, smierc i teraz emisje eventow walki.
 ### `Ability`
 
 Wspolna baza ability. `beginCast` jest miejscem, w ktorym rejestrowane jest
-rozpoczecie castu. Dzieki temu przyszle cast windows, interrupt windows i
-percepcja agentow moga korzystac z jednego zrodla danych.
+rozpoczecie castu. Dzieki temu cast metadata i percepcja korzystaja z jednego
+zrodla danych.
 
 ### `EntityManager`
 
-Nadal odpowiada za update encji, kolizje ability i targetowanie. W przyszlosci
-nie powinien implementowac AI ani threat table; powinien raczej dostarczac
-aktywny swiat, z ktorego korzysta percepcja.
+Nadal odpowiada za update encji, kolizje ability i targetowanie. Nie powinien
+przejmowac logiki zachowania ani dodatkowych tabel priorytetow; powinien
+dostarczac aktywny swiat, z ktorego korzysta percepcja.
 
 ### `BossManager`
 
-Juz ma fazy, miniony i stan aktywnej walki. Dalsze raid-like mechaniki powinny
-emitowac eventy przez te same hooki, zamiast tworzyc osobny system logowania.
+Ma fazy, miniony i stan aktywnej walki. Raid-like mechaniki powinny emitowac
+eventy przez te same hooki, zamiast tworzyc osobny system logowania.
 
 ## Granice systemu
 
@@ -133,12 +132,12 @@ Ten system nie decyduje:
 
 - kto ma miec aggro,
 - czy agent powinien uniknac AoE,
-- jak mierzyc skutecznosc AI,
-- jak koordynowac wielu agentow,
+- jak mierzyc skutecznosc zachowania,
+- jak koordynowac wiele encji,
 - czy dana akcja byla dobra.
 
-To wszystko nalezy do pozniejszych systemow inzynierskich. `CombatEventBus`
-ma tylko dostarczyc wiarygodne, spojne dane wejsciowe.
+To wszystko nalezy do osobnych narzedzi albo warstw badawczych poza event
+busem. `CombatEventBus` ma tylko dostarczyc wiarygodne, spojne dane wejsciowe.
 
 ## Podglad w NawiaMonitor
 

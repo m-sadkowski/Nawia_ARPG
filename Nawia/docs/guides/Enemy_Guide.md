@@ -28,7 +28,8 @@ Typowa klasa enemy/ally nie musi recznie wyszukiwac celu. Powinna tylko reagowac
 - cel w zasiegu ability,
 - animacje ataku albo hit react.
 
-Nietypowy priorytet celu mozna zrobic lokalnie w klasie albo w przyszlym brainie.
+Nietypowy priorytet celu mozna zrobic lokalnie w klasie albo w osobnym brainie,
+jesli encja faktycznie go potrzebuje.
 
 ## Nowy enemy
 
@@ -73,7 +74,8 @@ Ally dziala analogicznie, ale:
 - walczy po stronie gracza,
 - moze delegowac decyzje do `AllyBrain`.
 
-Aktualny wzorzec to `Friend`, ktory ma `SwordSlashAbility` i prosty fallback bez braina.
+Aktualny wzorzec to `Friend`, ktory ma `SwordSlashAbility` i proste zachowanie,
+gdy nie ma podpietego braina.
 
 ## Czarownica
 
@@ -90,7 +92,7 @@ Aktualny wzorzec to `Friend`, ktory ma `SwordSlashAbility` i prosty fallback bez
 Walka:
 
 - stara sie utrzymac dystans od celu,
-- strzela malym fireballem jako placeholder pioruna,
+- strzela malym fireballem jako obecnym wariantem pocisku,
 - po trafieniu odgrywa hit, a potem kontruje: powala gracza i przywoluje
   `WalkingDead`.
 
@@ -192,12 +194,14 @@ Przyklad:
 }
 ```
 
-Factory sklada obiekt i podpina assety. AI ma zostac w klasie aktora albo brainie.
+Factory sklada obiekt i podpina assety. Zachowanie ma zostac w klasie aktora
+albo brainie.
 
 ## Dobre praktyki
 
 - Nie duplikuj wyszukiwania celu w kazdej klasie.
-- Dla ally najpierw sprawdz, czy wystarczy fallback, a dopiero potem dodawaj brain.
+- Dla ally najpierw sprawdz, czy wystarczy proste lokalne zachowanie, a dopiero
+  potem dodawaj brain.
 - Collider jednostki nie zastepuje collidera efektu ataku.
-- Stan animacji i stan AI trzymaj jawnie, gdy logika robi sie wieksza.
-- Nie mieszaj respawnu, lokacji i AI w jednej klasie.
+- Stan animacji i stan zachowania trzymaj jawnie, gdy logika robi sie wieksza.
+- Nie mieszaj respawnu, lokacji i zachowania aktora w jednej klasie.

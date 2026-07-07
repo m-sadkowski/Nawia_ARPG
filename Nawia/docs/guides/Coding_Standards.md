@@ -62,7 +62,7 @@ Preferowany format:
 
 ```cpp
 /**
- * @brief Aktualizuje stan AI i animacji bandyty.
+ * @brief Aktualizuje stan zachowania i animacji bandyty.
  * @param dt Czas od poprzedniej klatki w sekundach.
  */
 void update(float dt) override;
@@ -93,7 +93,7 @@ Komentarze w kodzie pisz po polsku. W nowych plikach trzymaj ASCII, zeby unikac 
 - `Entity` zbiera wspolny stan obiektow swiata: pozycje, model, animacje, HP, frakcje, target, abilities i pending spawns.
 - `ActorInterface` trzyma wspolne elementy jednostek bojowych: mape i target.
 - `EnemyInterface` i `AllyInterface` dodaja specjalizacje bojowa.
-- `EntityFactory` sklada encje z JSON, ale nie prowadzi AI.
+- `EntityFactory` sklada encje z JSON, ale nie prowadzi zachowania aktorow.
 - `SpawnManager` zarzadza aktywacja encji per lokacja i proximity.
 - `UIHandler` koordynuje ekrany UI i HUD, a mniejsze klasy rysuja konkretne panele.
 
