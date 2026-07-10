@@ -39,7 +39,7 @@ namespace Nawia::World {
 
 				cat->initializeInventory(
 					loottable,
-					EntityFactoryDetail::parseLoottableType(loottable_name, Item::LOOTTABLE_TYPE::CAT)
+					Item::parseLoottableType(loottable_name, Item::LOOTTABLE_TYPE::CAT)
 				);
 			}
 

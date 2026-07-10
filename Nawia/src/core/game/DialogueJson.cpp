@@ -1,31 +1,13 @@
 #include "DialogueJson.h"
 
-#include <Logger.h>
+#include <JsonUtils.h>
 
-#include <fstream>
 #include <utility>
 #include <vector>
 
 namespace Nawia::Game::DialogueJson {
 
 	namespace {
-		nlohmann::json loadJsonDocument(const std::string& path) {
-			std::ifstream file(path);
-			if (!file.is_open()) {
-				Nawia::Core::Logger::errorLog("DialogueJson: nie mozna otworzyc JSON: " + path);
-				return {};
-			}
-
-			nlohmann::json data;
-			try {
-				file >> data;
-			} catch (const nlohmann::json::parse_error&) {
-				Nawia::Core::Logger::errorLog("DialogueJson: blad parsowania JSON: " + path);
-				return {};
-			}
-			return data;
-		}
-
 		bool isPlaceholderOption(const std::string& text) {
 			return text.empty() || text == "..." || text == "Dalej";
 		}
@@ -104,7 +86,7 @@ namespace Nawia::Game::DialogueJson {
 	}
 
 	const nlohmann::json& getNpcDialogueConfig() {
-		static const nlohmann::json config = loadJsonDocument("assets/data/npc_dialogues.json");
+		static const nlohmann::json config = Core::JsonUtils::loadDocument("assets/data/npc_dialogues.json", "DialogueJson");
 		return config;
 	}
 

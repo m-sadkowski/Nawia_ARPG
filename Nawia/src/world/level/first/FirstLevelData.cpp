@@ -1,12 +1,13 @@
 #include "FirstLevelInternal.h"
 
+#include <DialogueJson.h>
 #include <GlobalScaling.h>
+#include <JsonUtils.h>
 #include <Logger.h>
 #include <UIDefines.h>
 #include <UIRenderUtils.h>
 
 #include <algorithm>
-#include <fstream>
 
 namespace Nawia::World::FirstLevelSupport {
 
@@ -16,24 +17,6 @@ namespace Nawia::World::FirstLevelSupport {
 			{"", "assets/data/locations/wczora.json"},
 			{"", "assets/data/locations/przedsionek_nawii.json"},
 		};
-
-		[[nodiscard]] nlohmann::json loadJsonDocument(const std::string& path) {
-			std::ifstream file(path);
-			if (!file.is_open()) {
-				Core::Logger::errorLog("FirstLevel: nie mozna otworzyc pliku JSON: " + path);
-				return {};
-			}
-
-			nlohmann::json data;
-			try {
-				file >> data;
-			} catch (const nlohmann::json::parse_error&) {
-				Core::Logger::errorLog("FirstLevel: blad parsowania JSON: " + path);
-				return {};
-			}
-
-			return data;
-		}
 
 		[[nodiscard]] float getSoundDurationSeconds(const std::string& path) {
 			if (path.empty() || !IsAudioDeviceReady())
@@ -48,25 +31,6 @@ namespace Nawia::World::FirstLevelSupport {
 			const float duration = static_cast<float>(sound.frameCount) / static_cast<float>(sound.stream.sampleRate);
 			UnloadSound(sound);
 			return duration;
-		}
-
-		[[nodiscard]] bool isPlayerDialogueSpeaker(const std::string& speaker) {
-			return speaker == "Logos" || speaker == "Jarko" || speaker == "Player" || speaker == "Gracz";
-		}
-
-		[[nodiscard]] bool isPlaceholderOption(const std::string& text) {
-			return text.empty() || text == "..." || text == "Dalej";
-		}
-
-		[[nodiscard]] std::string resolveFinalOption(
-			const std::string& configured_text,
-			const std::string& current_speaker,
-			const std::string& current_text)
-		{
-			if (!isPlaceholderOption(configured_text))
-				return configured_text;
-
-			return isPlayerDialogueSpeaker(current_speaker) ? current_text : "Rozumiem.";
 		}
 
 	}
@@ -89,12 +53,12 @@ namespace Nawia::World::FirstLevelSupport {
 	}
 
 	const nlohmann::json& introConfig() {
-		static const nlohmann::json config = loadJsonDocument("assets/data/wczora_intro.json");
+		static const nlohmann::json config = Core::JsonUtils::loadDocument("assets/data/wczora_intro.json", "FirstLevel");
 		return config;
 	}
 
 	const nlohmann::json& outroConfig() {
-		static const nlohmann::json config = loadJsonDocument("assets/data/wczora_outro.json");
+		static const nlohmann::json config = Core::JsonUtils::loadDocument("assets/data/wczora_outro.json", "FirstLevel");
 		return config;
 	}
 
@@ -112,34 +76,7 @@ namespace Nawia::World::FirstLevelSupport {
 		const nlohmann::json& lines,
 		const std::string& final_option_text)
 	{
-		Game::DialogueTree tree;
-		if (!lines.is_array())
-			return tree;
-
-		for (size_t i = 0; i < lines.size(); ++i) {
-			const auto& line = lines[i];
-			Game::DialogueNode node;
-			node.id = static_cast<int>(i);
-			node.speaker_name = line.value("speaker", "");
-			node.text = line.value("text", "");
-			node.voice_path = line.value("voice_path", "");
-
-			Game::DialogueOption option;
-			size_t next_line = i + 1;
-			if (next_line < lines.size() && isPlayerDialogueSpeaker(lines[next_line].value("speaker", ""))) {
-				option.text = lines[next_line].value("text", "");
-			} else {
-				const bool is_final_node = next_line >= lines.size();
-				option.text = is_final_node
-					? resolveFinalOption(final_option_text, node.speaker_name, node.text)
-					: "Dalej";
-			}
-			option.next_node_id = (next_line < lines.size()) ? static_cast<int>(next_line) : -1;
-			node.options.push_back(option);
-			tree.addNode(node);
-		}
-
-		return tree;
+		return Game::DialogueJson::buildLinearTree({{"lines", lines}, {"final_option", final_option_text}});
 	}
 
 	Game::DialogueTree buildSingleNodeDialogueTreeFromJson(const nlohmann::json& data) {

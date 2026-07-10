@@ -35,7 +35,6 @@ namespace Nawia::Entity {
 			const std::string& hub_name,
 			float fallback_radius);
 		void buildPathToPoint(Entity& entity, Core::Engine* engine, Vector2 target, std::vector<Vector2>& path);
-		void trimPathStart(const Entity& entity, std::vector<Vector2>& path);
 		void updatePathMovement(Entity& entity, float delta_time, std::vector<Vector2>& path);
 		void stopPathMovement(Entity& entity, std::vector<Vector2>& path);
 		[[nodiscard]] Vector2 randomPointInHub(const GroupNpcHubDestination& hub);

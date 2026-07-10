@@ -17,33 +17,29 @@
 namespace Nawia::Entity {
 
 	Devil::Devil() {
-		setScale(0.025f);
+		configureModel();
 		setFaction(Faction::Enemy);
-
-		loadModel("assets/models/actors/devil/devil_idle.glb");
-		addAnimation("idle", "assets/models/actors/devil/devil_idle.glb");
-		addAnimation("walk", "assets/models/actors/devil/devil_walk.glb");
-		addAnimation("run", "assets/models/actors/devil/devil_run.glb");
-		addAnimation("attack", "assets/models/actors/devil/devil_attack.glb");
-		addAnimation("death", "assets/models/actors/devil/devil_dead.glb");
 		setMovementSpeed(SPEED);
 	}
 
 	Devil::Devil(const float x, const float y, Core::Map* map)
 		: EnemyInterface("Devil", x, y, nullptr, 120, map)
 	{
-		setScale(0.025f);
+		configureModel();
 		setFaction(Faction::Enemy);
+		setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, 0.0f, 0.0f));
+		setMovementSpeed(SPEED);
+	}
 
+	void Devil::configureModel()
+	{
+		setScale(0.025f);
 		loadModel("assets/models/actors/devil/devil_idle.glb");
 		addAnimation("idle", "assets/models/actors/devil/devil_idle.glb");
 		addAnimation("walk", "assets/models/actors/devil/devil_walk.glb");
 		addAnimation("run", "assets/models/actors/devil/devil_run.glb");
 		addAnimation("attack", "assets/models/actors/devil/devil_attack.glb");
 		addAnimation("death", "assets/models/actors/devil/devil_dead.glb");
-
-		setCollider(std::make_unique<RectangleCollider>(this, 1.f, 1.2f, 0.0f, 0.0f));
-		setMovementSpeed(SPEED);
 	}
 
 	void Devil::update(const float dt)

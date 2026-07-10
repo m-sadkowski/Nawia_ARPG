@@ -31,7 +31,7 @@ namespace Nawia::World {
 
 			chest->initializeInventory(
 				loottable,
-				EntityFactoryDetail::parseLoottableType(loottable_name, Item::LOOTTABLE_TYPE::CHEST_NOOB)
+				Item::parseLoottableType(loottable_name, Item::LOOTTABLE_TYPE::CHEST_NOOB)
 			);
 		}
 

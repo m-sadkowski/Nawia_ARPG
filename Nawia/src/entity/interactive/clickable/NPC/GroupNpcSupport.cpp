@@ -75,10 +75,6 @@ namespace Nawia::Entity {
 				path);
 		}
 
-		void trimPathStart(const Entity& entity, std::vector<Vector2>& path) {
-			PathMotion::trimPathStart(entity, path);
-		}
-
 		void updatePathMovement(Entity& entity, const float delta_time, std::vector<Vector2>& path) {
 			PathMotion::updatePathMovement(entity, delta_time, path);
 		}

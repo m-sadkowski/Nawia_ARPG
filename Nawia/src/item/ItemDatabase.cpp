@@ -2,6 +2,7 @@
 
 #include <Boots.h>
 #include <Chestplate.h>
+#include <Equipment.h>
 #include <Head.h>
 #include <Legs.h>
 #include <Logger.h>
@@ -91,7 +92,7 @@ namespace Nawia::Item {
             }
             smoothItemIcon(icon);
 
-            const EquipmentSlot slot = stringToSlot(slot_name);
+            const EquipmentSlot slot = Equipment::slotFromString(slot_name);
             std::shared_ptr<Item> item_template;
 
             if (slot == EquipmentSlot::Weapon) {
@@ -158,18 +159,6 @@ namespace Nawia::Item {
             return template_it->second;
 
         return nullptr;
-    }
-
-    EquipmentSlot ItemDatabase::stringToSlot(const std::string& slot_name) const {
-        if (slot_name == "Head") return EquipmentSlot::Head;
-        if (slot_name == "Neck") return EquipmentSlot::Neck;
-        if (slot_name == "Chest") return EquipmentSlot::Chest;
-        if (slot_name == "Legs") return EquipmentSlot::Legs;
-        if (slot_name == "Feet") return EquipmentSlot::Feet;
-        if (slot_name == "Weapon") return EquipmentSlot::Weapon;
-        if (slot_name == "OffHand") return EquipmentSlot::OffHand;
-        if (slot_name == "Ring") return EquipmentSlot::Ring;
-        return EquipmentSlot::None;
     }
 
 } // namespace Nawia::Item

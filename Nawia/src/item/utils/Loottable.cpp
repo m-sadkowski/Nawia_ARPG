@@ -13,17 +13,12 @@ using json = nlohmann::json;
 
 namespace Nawia::Item {
 
-    namespace {
-
-        LOOTTABLE_TYPE stringToLootType(const std::string& type_name) {
-            if (type_name == "CAT") return LOOTTABLE_TYPE::CAT;
-            if (type_name == "CHEST_NOOB") return LOOTTABLE_TYPE::CHEST_NOOB;
-            if (type_name == "CHEST_BAD") return LOOTTABLE_TYPE::CHEST_BAD;
-            if (type_name == "CHEST_GOOD") return LOOTTABLE_TYPE::CHEST_GOOD;
-
-            return LOOTTABLE_TYPE::CHEST_NOOB;
-        }
-
+    LOOTTABLE_TYPE parseLoottableType(const std::string& type_name, const LOOTTABLE_TYPE default_type) {
+        if (type_name == "CAT") return LOOTTABLE_TYPE::CAT;
+        if (type_name == "CHEST_NOOB") return LOOTTABLE_TYPE::CHEST_NOOB;
+        if (type_name == "CHEST_BAD") return LOOTTABLE_TYPE::CHEST_BAD;
+        if (type_name == "CHEST_GOOD") return LOOTTABLE_TYPE::CHEST_GOOD;
+        return default_type;
     }
 
     bool Loottable::loadLootTables(const std::string& filename, ItemDatabase& item_database) {
@@ -50,7 +45,7 @@ namespace Nawia::Item {
 
         for (const auto& table_entry : json_data) {
             const std::string type_name = table_entry.value("type", "UNKNOWN");
-            const LOOTTABLE_TYPE type = stringToLootType(type_name);
+            const LOOTTABLE_TYPE type = parseLoottableType(type_name);
             auto& loot_entries = _loot_tables[type];
             loot_entries.clear();
 

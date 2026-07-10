@@ -31,16 +31,6 @@ namespace Nawia::World::EntityFactoryDetail {
 		};
 	}
 
-	inline Item::LOOTTABLE_TYPE parseLoottableType(
-		const std::string& loottable_name,
-		Item::LOOTTABLE_TYPE default_type
-	) {
-		if (loottable_name == "CHEST_BAD") return Item::LOOTTABLE_TYPE::CHEST_BAD;
-		if (loottable_name == "CAT") return Item::LOOTTABLE_TYPE::CAT;
-		if (loottable_name == "CHEST_NOOB") return Item::LOOTTABLE_TYPE::CHEST_NOOB;
-		return default_type;
-	}
-
 	template <typename AddItem>
 	void addItemsFromJson(const json& data, Core::Engine* engine, AddItem add_item) {
 		if (!engine || !data.contains("items") || !data["items"].is_array())
