@@ -1,5 +1,10 @@
 # Nawia: Slavic Action RPG
 
+![Language](https://img.shields.io/badge/Language-C%2B%2B20-blue)
+![Library](https://img.shields.io/badge/Library-raylib-red)
+![Build](https://img.shields.io/badge/Build-CMake-green)
+![Status](https://img.shields.io/badge/Status-Beta-orange)
+
 Nawia is an isometric action RPG built in C++ with raylib and a custom game
 engine. The game is set in a dark fantasy world inspired by Slavic mythology,
 folklore, and bestiaries. It focuses on dynamic hack'n'slash combat, atmospheric
