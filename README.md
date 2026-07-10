@@ -1,108 +1,80 @@
-# Nawia: Slavic Action-RPG
+# Nawia: Slavic Action RPG
 
-![Language](https://img.shields.io/badge/language-C%2B%2B20-blue.svg)
-![Library](https://img.shields.io/badge/library-raylib-orange.svg)
-![Status](https://img.shields.io/badge/status-In%20Development-yellow)
+Nawia is an isometric action RPG built in C++ with raylib. The project combines
+custom engine code, data-driven gameplay, boss encounters, dialogue, quests,
+level tooling, and a dedicated telemetry monitor used for Engineering Thesis
+experiments.
 
-**Nawia** is an isometric, top-down Action RPG built on a custom game engine. Set in a dark fantasy world deeply rooted in **Slavic mythology**, the game focuses on dynamic combat, epic boss encounters, and atmospheric storytelling.
+The current technical direction is not a full ECS. Runtime gameplay is centered
+around `Engine`, `EntityManager`, `Entity`, actor/interactable subclasses,
+data-driven factories, and focused manager systems.
 
-This project is developed from scratch using **C++** and **raylib**, emphasizing performance and architectural modularity.
+## Academic Context
 
----
+The project is developed at Gdansk University of Technology and is being used as
+a foundation for Engineering Thesis work around believable fake multiplayer:
+limited agent perception, tactical communication, role behavior, imperfect human
+decision-making, support, retreat, grouping, and boss mechanics.
 
-## 🎓 Academic Context
-
-This project is currently being developed as a group project at the **Gdańsk University of Technology (Politechnika Gdańska)**.
-It is intended to evolve into a full **Engineering Thesis**.
-
-**Core Team:**
-* **Michał Sadkowski**
-* **Dawid Wesołowski**
-* **Michał Matysiak**
-* **Ostap Lozovyy**
-
----
-
-## ⚔️ Key Features
-
-* **Custom Engine:** Built purely in C++ with raylib for low-level control over rendering and inputs.
-* **Slavic Atmosphere:** Visuals and narrative inspired by the myths, legends, and bestiaries of ancient Slavs.
-* **Dynamic Combat:** Fast-paced hack'n'slash gameplay inspired by genre classics like *Diablo 3*.
-* **Advanced AI:** Smart enemy behaviors and challenging, multi-stage boss fights.
-* **Isometric View:** Classic 2.5D perspective.
-
----
-
-## 📂 Project Architecture
-
-The project follows a modular architecture, separating the core engine subsystems from the specific gameplay logic.
+## Main Modules
 
 ```text
 Nawia/
-├── assets/             # Game multimedia resources (Graphics, Audio, Data)
-├── docs/               # Project documentation (GDD, Doxygen API docs)
-├── external/           # External libraries (raylib, ImGui, etc.)
-├── scripts/            # Helper scripts (build scripts, utilities)
-├── src/                # Main C++ source code
-│   ├── audio/          # Systems and classes for managing sound and music
-│   ├── core/           # Engine foundations and main loops
-│   │   ├── game/       # The Game class (main loop, game states)
-│   │   ├── system/     # Low-level systems (Renderer, Input, Time)
-│   │   └── util/       # Utility classes (Math, data structures)
-│   ├── entity/         # Entity Component System (ECS) implementation
-│   │   ├── actors/     # Concrete entities (Player, NPC, Enemy)
-│   │   ├── components/ # Data components (Position, Health, Inventory)
-│   │   └── systems/    # Logic processing components (MovementSystem, CombatSystem)
-│   ├── ui/             # User Interface elements
-│   │   ├── hud/        # Head-Up Display elements (health bars, minimap)
-│   │   └── menu/       # Main menu, inventory screen, options
-│   └── world/          # World and map management
-│       ├── level/      # Level logic (triggers, enemy spawning)
-│       └── map/        # Map loading and rendering, tile handling
-└── tests/              # Unit and integration tests
-````
+  assets/             Game data, models, maps, textures, audio
+  docs/
+    guides/           Practical architecture and workflow guides
+    ET systems/       Engineering Thesis telemetry/agent infrastructure docs
+  external/           Vendored dependencies
+  scripts/            Utility scripts
+  src/
+    audio/            Sound and music management
+    core/             Engine, camera, input, map, saves, ET systems
+    entity/           Entities, actors, abilities, effects, colliders
+    item/             Items, equipment, backpack, loot tables
+    ui/               HUD, menus, dialogue, inventory, quest UI
+    world/            Levels, locations, spawning, navmesh
+NawiaMonitor/         PyQt telemetry monitor for combat, perception and commands
+```
 
------
+## ET Infrastructure
 
-## 🛠️ Tech Stack
+The ET layer currently provides:
 
-  * **Language:** C++ (Standard 20/23)
-  * **Graphics & Input:** raylib
-  * **Build System:** CMake
-  * **Scripting/Tooling:** Python
+- stable runtime `entity_id` values,
+- combat event hooks,
+- agent perception snapshots,
+- map pings,
+- boss cast and hazard telemetry,
+- agent command execution/status tracking,
+- localhost NDJSON telemetry,
+- a PyQt monitor for debugging combat, perception and command state.
 
-## 🚀 Getting Started
+Start with:
 
-### Prerequisites
+- `Nawia/docs/ET systems/Agent_Perception.md`
+- `Nawia/docs/ET systems/Agent_Command_Interface.md`
+- `Nawia/docs/ET systems/NawiaMonitor_README.md`
 
-  * C++ Compiler supporting C++20 (GCC, Clang, or MSVC)
-  * CMake (3.20+)
-  * Git
+## Build
 
-### Build Instructions
+The repository is typically built from the generated Visual Studio/CMake output
+directory:
 
-1.  Clone the repository:
+```powershell
+cmake --build Nawia/out/build/x64-Release --config Release
+```
 
-    ```bash
-    git clone https://github.com/m-sadkowski/Nawia_ARPG.git
-    cd Nawia_ARPG/Nawia
-    ```
+When building from a plain shell on Windows, use the Visual Studio developer
+environment first.
 
-2.  Configure the project with CMake:
+## Monitor
 
-    ```bash
-    mkdir build
-    cd build
-    cmake ..
-    ```
+```powershell
+cd NawiaMonitor
+python -m venv .venv
+.\.venv\Scripts\pip install -r requirements.txt
+.\.venv\Scripts\python run_monitor.py
+```
 
-3.  Build and Run:
-
-    ```bash
-    cmake --build .
-    .\src\Debug\Nawia.exe
-    ```
-
------
-
-*Copyright © 2025 Nawia Team*
+The game publishes best-effort telemetry to `127.0.0.1:19777`; the monitor can
+be opened before or after the game starts.

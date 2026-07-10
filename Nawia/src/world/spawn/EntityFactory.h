@@ -16,6 +16,11 @@ namespace Nawia {
 
 namespace Nawia::World {
 
+	struct SpawnContext {
+		Core::Engine* engine = nullptr;
+		Core::Map* map = nullptr;
+	};
+
 	/**
 	 * @class EntityFactory
 	 * @brief Tworzy encje gry na podstawie definicji spawnu z JSON.
@@ -43,27 +48,27 @@ namespace Nawia::World {
 		);
 
 	private:
-		static std::shared_ptr<Entity::Entity> createDevil(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
-		static std::shared_ptr<Entity::Entity> createRiftBinder(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
-		static std::shared_ptr<Entity::Entity> createWitch(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
-		static std::shared_ptr<Entity::Entity> createBandit(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
-		static std::shared_ptr<Entity::Entity> createWalkingDead(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
-		static std::shared_ptr<Entity::Entity> createFrog(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
-		static std::shared_ptr<Entity::Entity> createWorm(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
-		static std::shared_ptr<Entity::Entity> createSpider(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
-		static std::shared_ptr<Entity::Entity> createMiniMushroomInfected(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
-		static std::shared_ptr<Entity::Entity> createFriend(const nlohmann::json& data, Core::Engine* engine, Core::Map* map);
-		static std::shared_ptr<Entity::Entity> createChest(const nlohmann::json& data, Core::Engine* engine);
-		static std::shared_ptr<Entity::Entity> createNPC(const nlohmann::json& data, Core::Engine* engine);
-		static std::shared_ptr<Entity::Entity> createMiniMushroomProp(const nlohmann::json& data, Core::Engine* engine);
-		static std::shared_ptr<Entity::Entity> createStaticObject(const nlohmann::json& data, Core::Engine* engine);
-		static std::shared_ptr<Entity::Entity> createCheckpoint(const nlohmann::json& data);
-		static std::shared_ptr<Entity::Entity> createMushroomWaypoint(const nlohmann::json& data);
-		static std::shared_ptr<Entity::Entity> createStoryAnchor(const nlohmann::json& data);
-		static std::shared_ptr<Entity::Entity> createHerbalistHub(const nlohmann::json& data);
-		static std::shared_ptr<Entity::Entity> createTeleport(const nlohmann::json& data, Core::Engine* engine);
-		static std::shared_ptr<Entity::Entity> createBossTrigger(const nlohmann::json& data, Core::Engine* engine);
-		static std::shared_ptr<Entity::Entity> createStoryTrigger(const nlohmann::json& data, Core::Engine* engine);
+		static std::shared_ptr<Entity::Entity> createDevil(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createRiftBinder(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createWitch(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createBandit(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createWalkingDead(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createFrog(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createWorm(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createSpider(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createMiniMushroomInfected(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createFriend(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createChest(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createNPC(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createMiniMushroomProp(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createStaticObject(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createCheckpoint(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createMushroomWaypoint(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createStoryAnchor(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createHerbalistHub(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createTeleport(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createBossTrigger(const nlohmann::json& data, const SpawnContext& context);
+		static std::shared_ptr<Entity::Entity> createStoryTrigger(const nlohmann::json& data, const SpawnContext& context);
 	};
 
 } // namespace Nawia::World

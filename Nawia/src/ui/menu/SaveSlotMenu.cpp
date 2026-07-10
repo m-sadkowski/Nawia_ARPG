@@ -120,10 +120,7 @@ namespace Nawia::UI {
         const float body_x = rect.x + Core::GlobalScaling::scaled(20.0f);
 
         const std::string slot_title = "ZAPIS " + std::to_string(slot.slot);
-        const Vector2 title_size = MeasureTextEx(font, slot_title.c_str(), subtitle_font, font_spacing);
-        DrawTextEx(font, slot_title.c_str(),
-            {rect.x + (rect.width - title_size.x) * 0.5f, rect.y + Core::GlobalScaling::scaled(20.0f)},
-            subtitle_font, font_spacing, WHITE);
+        drawCenteredText(font, slot_title.c_str(), {rect.x, rect.y + Core::GlobalScaling::scaled(20.0f), rect.width, subtitle_font}, subtitle_font, font_spacing, WHITE);
 
         const float separator_y = rect.y + Core::GlobalScaling::scaled(75.0f);
         DrawLineEx({body_x, separator_y}, {rect.x + rect.width - Core::GlobalScaling::scaled(20.0f), separator_y},
@@ -162,14 +159,7 @@ namespace Nawia::UI {
         const float font_spacing = Core::GlobalScaling::scaled(2.0f);
         const float title_font_size = Core::GlobalScaling::scaled(FONT_SIZE_TITLE);
         const char* menu_title = titleForMode(_mode);
-        const Vector2 title_size = MeasureTextEx(ui.getFont(), menu_title, title_font_size, font_spacing);
-        DrawTextEx(
-            ui.getFont(),
-            menu_title,
-            {(screen_width - title_size.x) * 0.5f, Core::GlobalScaling::scaled(60.0f)},
-            title_font_size,
-            font_spacing,
-            COLOR_ACCENT);
+        drawCenteredText(ui.getFont(), menu_title, {0.0f, Core::GlobalScaling::scaled(60.0f), screen_width, title_font_size}, title_font_size, font_spacing, COLOR_ACCENT);
 
         const int slot_count = static_cast<int>(_slots.size());
         const auto cards = buildCardLayout(slot_count);
@@ -187,10 +177,7 @@ namespace Nawia::UI {
         DrawRectangle(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), Fade(BLACK, 0.55f));
         const char* confirm_text = TextFormat("NADPISAC ZAPIS %d?", _pending_overwrite_slot);
         const float confirm_font = Core::GlobalScaling::scaled(MODAL_CONFIRM_FONT_SIZE);
-        const Vector2 confirm_size = MeasureTextEx(ui.getFont(), confirm_text, confirm_font, font_spacing);
-        DrawTextEx(ui.getFont(), confirm_text,
-            {(screen_width - confirm_size.x) * 0.5f, getModalGroupTopY()},
-            confirm_font, font_spacing, WHITE);
+        drawCenteredText(ui.getFont(), confirm_text, {0.0f, getModalGroupTopY(), screen_width, confirm_font}, confirm_font, font_spacing, WHITE);
 
         const char* modal_labels[] = {"TAK", "NIE"};
         for (int i = 0; i < 2; ++i) {

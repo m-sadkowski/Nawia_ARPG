@@ -53,8 +53,7 @@ namespace Nawia::Entity {
 		setAnimationSpeed(HIT_REACTION_ANIMATION_SPEED);
 		playAnimation("get_hit", false, true, 10, true);
 		
-		// Podczas zachwiania zatrzymujemy ruch.
-		setVelocity(0, 0);
+		stopMotion();
 	}
 
 	void WalkingDead::update(const float dt)
@@ -97,7 +96,7 @@ namespace Nawia::Entity {
 		Entity::update(dt);
 
 		// Próba wykrycia celu.
-		if (auto target = _target.lock())
+		if (auto target = getTarget())
 		{
 			const float dist = getDistanceToTarget();
 			if (dist <= VISION_RANGE)
@@ -112,14 +111,13 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);  // Bazowa aktualizacja animacji.
 
-		auto target = _target.lock();
+		auto target = getLiveTarget();
 		if (!target || target->isDead())
 		{
 			_state = State::Screaming;
 			playSoundEffect(Audio::SoundId::ZombieScream, 0.85f);
 			playAnimation("scream", false, true);
-			setVelocity(0, 0);
-			_is_moving = false;
+			stopMotion();
 			return;
 		}
 
@@ -131,8 +129,7 @@ namespace Nawia::Entity {
 			_state = State::Screaming;
 			playSoundEffect(Audio::SoundId::ZombieScream, 0.85f);
 			playAnimation("scream", false, true);
-			setVelocity(0, 0);
-			_is_moving = false;
+			stopMotion();
 			return;
 		}
 
@@ -143,8 +140,7 @@ namespace Nawia::Entity {
 			_attack_damage_applied = false;
 			setAnimationSpeed(ATTACK_ANIMATION_SPEED);
 			playAnimation("attack", false, true);
-			setVelocity(0, 0);
-			_is_moving = false;
+			stopMotion();
 			return;
 		}
 
@@ -166,24 +162,23 @@ namespace Nawia::Entity {
 		// Z bliska używamy prostego ruchu bez przeliczania ścieżki.
 		if (dist <= DIRECT_MOVE_DISTANCE)
 		{
-			_is_moving = false;  // Zatrzymujemy ruch po wyznaczonej ścieżce.
+			stopMovement();  // Zatrzymujemy ruch po wyznaczonej ścieżce.
 			const Vector2 my_pos = getCenter();
 			const Vector2 dir = Vector2Normalize(Vector2Subtract(target_pos, my_pos));
 			
 			rotateTowards(target->getX(), target->getY());
 			
-			_pos.x += dir.x * current_speed * dt;
-			_pos.y += dir.y * current_speed * dt;
+			translatePosition(dir.x * current_speed * dt, dir.y * current_speed * dt);
 		}
 		else
 		{
 			// Dalej od celu wracamy do wyznaczania ścieżki.
-			_path_recalc_timer -= dt;
+			tickPathRecalcTimer(dt);
 			
-			if (_path_recalc_timer <= 0.0f || !_is_moving)
+			if (isPathRecalcDue() || !isMoving())
 			{
 				moveTo(target_pos.x, target_pos.y);
-				_path_recalc_timer = DEFAULT_PATH_RECALC_INTERVAL;
+				resetPathRecalcTimer(DEFAULT_PATH_RECALC_INTERVAL);
 			}
 			
 			updateMovement(dt);
@@ -194,35 +189,18 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		if (const auto target = _target.lock())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int attack_frame_count = getAnimationFrameCount("attack");
-		const float damage_frame = static_cast<float>(attack_frame_count) * ATTACK_DAMAGE_FRAME_RATIO;
-		if (!_attack_damage_applied && attack_frame_count > 0 && _anim_frame_counter >= damage_frame)
-		{
-			if (const auto target = _target.lock())
-			{
-				if (getDistanceToTarget() <= ATTACK_RANGE * 1.7f)
-				{
-					target->rememberDamageSource(this, "Walking Dead Attack");
-					target->takeDamage(ATTACK_DAMAGE);
-					_attack_damage_applied = true;
-				}
-			}
-		}
+		if (!_attack_damage_applied &&
+			hasAnimationReachedRatio("attack", ATTACK_DAMAGE_FRAME_RATIO) &&
+			damageTargetInRange(ATTACK_RANGE * 1.7f, ATTACK_DAMAGE, "Walking Dead Attack"))
+			_attack_damage_applied = true;
 
 		if (!isAnimationLocked())
 		{
 			// Po zakończeniu animacji ataku zadajemy obrażenia.
-			if (const auto target = _target.lock())
-			{
-				if (!_attack_damage_applied && getDistanceToTarget() <= ATTACK_RANGE * 1.7f)
-				{
-					target->rememberDamageSource(this, "Walking Dead Attack");
-					target->takeDamage(ATTACK_DAMAGE);
-				}
-			}
+			if (!_attack_damage_applied)
+				damageTargetInRange(ATTACK_RANGE * 1.7f, ATTACK_DAMAGE, "Walking Dead Attack");
 			
 			_attack_cooldown_timer = ATTACK_COOLDOWN;
 			_state = State::Chasing;

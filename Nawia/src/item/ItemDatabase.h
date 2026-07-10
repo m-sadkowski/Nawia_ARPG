@@ -40,8 +40,6 @@ namespace Nawia::Item {
 
     private:
         std::map<int, std::shared_ptr<Item>> _templates;
-
-        [[nodiscard]] EquipmentSlot stringToSlot(const std::string& slot_name) const;
     };
 
 } // namespace Nawia::Item

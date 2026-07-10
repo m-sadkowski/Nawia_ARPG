@@ -2,7 +2,9 @@
 
 #include <Boots.h>
 #include <Chestplate.h>
+#include <Equipment.h>
 #include <Head.h>
+#include <JsonUtils.h>
 #include <Legs.h>
 #include <Logger.h>
 #include <Necklace.h>
@@ -13,7 +15,6 @@
 
 #include <json.hpp>
 
-#include <fstream>
 #include <set>
 
 using json = nlohmann::json;
@@ -58,17 +59,9 @@ namespace Nawia::Item {
     }
 
     void ItemDatabase::loadDatabase(const std::string& filepath, Core::ResourceManager& resource_manager) {
-        std::ifstream file(filepath);
-        if (!file.is_open()) {
-            Core::Logger::errorLog("ItemDatabase: nie mozna otworzyc bazy przedmiotow: " + filepath);
-            return;
-        }
-
-        json data;
-        try {
-            file >> data;
-        } catch (const json::parse_error& error) {
-            Core::Logger::errorLog("ItemDatabase: blad parsowania JSON: " + std::string(error.what()));
+        const json data = Core::JsonUtils::loadDocument(filepath, "ItemDatabase");
+        if (!data.is_array()) {
+            Core::Logger::errorLog("ItemDatabase: niepoprawny format JSON: " + filepath);
             return;
         }
 
@@ -91,7 +84,7 @@ namespace Nawia::Item {
             }
             smoothItemIcon(icon);
 
-            const EquipmentSlot slot = stringToSlot(slot_name);
+            const EquipmentSlot slot = Equipment::slotFromString(slot_name);
             std::shared_ptr<Item> item_template;
 
             if (slot == EquipmentSlot::Weapon) {
@@ -158,18 +151,6 @@ namespace Nawia::Item {
             return template_it->second;
 
         return nullptr;
-    }
-
-    EquipmentSlot ItemDatabase::stringToSlot(const std::string& slot_name) const {
-        if (slot_name == "Head") return EquipmentSlot::Head;
-        if (slot_name == "Neck") return EquipmentSlot::Neck;
-        if (slot_name == "Chest") return EquipmentSlot::Chest;
-        if (slot_name == "Legs") return EquipmentSlot::Legs;
-        if (slot_name == "Feet") return EquipmentSlot::Feet;
-        if (slot_name == "Weapon") return EquipmentSlot::Weapon;
-        if (slot_name == "OffHand") return EquipmentSlot::OffHand;
-        if (slot_name == "Ring") return EquipmentSlot::Ring;
-        return EquipmentSlot::None;
     }
 
 } // namespace Nawia::Item

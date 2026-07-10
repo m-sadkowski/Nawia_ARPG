@@ -2,6 +2,8 @@
 
 #include <Engine.h>
 #include <EntityManager.h>
+#include <EntityPathMotion.h>
+#include <JsonUtils.h>
 #include <Level.h>
 #include <Logger.h>
 #include <Map.h>
@@ -25,14 +27,6 @@ namespace Nawia::Entity {
 		constexpr float BABA_YAGA_IDLE_BOB_SPEED = 1.25f;
 		constexpr float BABA_YAGA_TILT_DEGREES = 2.8f;
 		constexpr float BABA_YAGA_TILT_SPEED = 0.9f;
-
-		std::string readStringAlias(const nlohmann::json& data, const std::initializer_list<const char*> keys) {
-			for (const char* key : keys) {
-				if (data.contains(key) && data[key].is_string())
-					return data[key].get<std::string>();
-			}
-			return "";
-		}
 
 		bool questCompleted(Core::Engine* engine, const std::string& quest_id) {
 			if (!engine)
@@ -77,7 +71,7 @@ namespace Nawia::Entity {
 		const nlohmann::json& data)
 		: StoryNpc(name, x, y, engine)
 	{
-		_type = EntityType::NPCActor;
+		setType(EntityType::NPCActor);
 		_npc_class_name = data.value("npc_class", "story_human");
 		_can_talk = data.value("can_talk", true);
 		_disable_interaction_after_talk = data.value("disable_interaction_after_talk", false);
@@ -108,7 +102,7 @@ namespace Nawia::Entity {
 	}
 
 	void GenericStoryNpc::configureModel(const nlohmann::json& data) {
-		_model_path = readStringAlias(data, {"model", "model_path"});
+		_model_path = Core::JsonUtils::readStringAlias(data, {"model", "model_path"});
 		_animation_bundle_path = data.value("animation_bundle", _model_path);
 		_idle_animation = data.value("idle_animation", _idle_animation);
 		_walk_animation = data.value("walk_animation", _walk_animation);
@@ -223,7 +217,7 @@ namespace Nawia::Entity {
 		const float bob = _use_baba_yaga_idle_visual
 			? std::sin(_idle_visual_time * BABA_YAGA_IDLE_BOB_SPEED) * BABA_YAGA_IDLE_BOB_AMPLITUDE
 			: 0.0f;
-		return {_pos.x, _altitude + bob, _pos.y};
+		return {getX(), getAltitude() + bob, getY()};
 	}
 
 	void GenericStoryNpc::handleQuestTalkCompleted(Core::Engine& engine) {
@@ -426,53 +420,24 @@ namespace Nawia::Entity {
 		}
 
 		updatePathMovement(delta_time);
-		if (_is_moving)
+		if (isMoving())
 			playWalkAnimation();
 	}
 
 	void GenericStoryNpc::buildPathToPoint(const Vector2 target) {
-		_current_path.clear();
-
-		if (_engine && _engine->getCurrentMap() && _engine->getCurrentMap()->getNavMesh().isReady())
-			_current_path = _engine->getCurrentMap()->findPath(getWorldPos3D(), {target.x, getAltitude(), target.y});
-
-		if (_current_path.empty())
-			_current_path.push_back(target);
-
-		trimCurrentPathStart();
-
-		if (!_current_path.empty())
-			moveTo(_current_path.front().x, _current_path.front().y);
-		else
-			stopPathMovement();
-	}
-
-	void GenericStoryNpc::trimCurrentPathStart() {
-		if (_current_path.empty())
-			return;
-
-		const Vector2 first_path_point = _current_path.front();
-		const float dx = first_path_point.x - getCenter().x;
-		const float dy = first_path_point.y - getCenter().y;
-		if (dx * dx + dy * dy < 0.1f)
-			_current_path.erase(_current_path.begin());
+		PathMotion::buildPathToPoint(
+			*this,
+			_engine ? _engine->getCurrentMap() : nullptr,
+			target,
+			_current_path);
 	}
 
 	void GenericStoryNpc::updatePathMovement(const float delta_time) {
-		if (!_is_moving && !_current_path.empty()) {
-			_current_path.erase(_current_path.begin());
-
-			if (!_current_path.empty())
-				moveTo(_current_path.front().x, _current_path.front().y);
-		}
-
-		updateMovement(delta_time);
+		PathMotion::updatePathMovement(*this, delta_time, _current_path);
 	}
 
 	void GenericStoryNpc::stopPathMovement() {
-		_current_path.clear();
-		_is_moving = false;
-		setVelocity(0.0f, 0.0f);
+		PathMotion::stopPathMovement(*this, _current_path);
 	}
 
 	void GenericStoryNpc::playIdleAnimation() {

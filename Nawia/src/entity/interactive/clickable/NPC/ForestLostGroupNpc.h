@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GroupNpcSupport.h>
 #include <StoryNpc.h>
 
 #include <json.hpp>
@@ -32,8 +33,6 @@ namespace Nawia::Entity {
 		void applyState(const nlohmann::json& state, Item::ItemDatabase* item_database = nullptr) override;
 
 	private:
-		class ForestGroupVisual;
-
 		enum class CarryState {
 			Waiting,
 			Carrying,
@@ -41,11 +40,6 @@ namespace Nawia::Entity {
 			SisterStandingUp,
 			Dispersing,
 			Arrived
-		};
-
-		struct HubDestination {
-			Vector2 center = {0.0f, 0.0f};
-			float radius = 5.0f;
 		};
 
 		struct CarryTuning {
@@ -72,15 +66,14 @@ namespace Nawia::Entity {
 		void playWalk(Entity& entity) const;
 		void playWalkBack(Entity& entity) const;
 		void startCarryRoute(Core::Engine& engine);
-		[[nodiscard]] std::optional<HubDestination> resolveHub(Core::Engine& engine) const;
+		[[nodiscard]] std::optional<GroupNpcHubDestination> resolveHub(Core::Engine& engine) const;
 		void buildPathToPoint(Vector2 target);
-		void trimCurrentPathStart();
 		void updatePathMovement(float delta_time);
 		void stopPathMovement();
 		void updateCarrying(float delta_time);
 		void updateCarryMovement(float delta_time);
 		void updateCarryFormation(float delta_time);
-		void startSisterDrop(const HubDestination& hub);
+		void startSisterDrop(const GroupNpcHubDestination& hub);
 		void updateSisterDrop(float delta_time);
 		void startSisterStandUp();
 		void finishSisterStandUpIfReady();
@@ -88,14 +81,14 @@ namespace Nawia::Entity {
 		void updateDispersal(float delta_time);
 		void finishArrival();
 		void promoteMainEntityToMilenaSister(bool adopt_sister_position = true);
-		[[nodiscard]] Vector2 randomPointInHub(const HubDestination& hub) const;
+		[[nodiscard]] Vector2 randomPointInHub(const GroupNpcHubDestination& hub) const;
 		void snapMembersToFormation(Vector2 direction);
 		void faceAlongDirection(Entity& entity, Vector2 direction) const;
 		[[nodiscard]] Vector2 currentTravelDirection() const;
 		void updateMemberAnimations(float delta_time);
 
-		std::unique_ptr<ForestGroupVisual> _male_carrier;
-		std::unique_ptr<ForestGroupVisual> _milena_sister;
+		std::unique_ptr<GroupNpcVisual> _male_carrier;
+		std::unique_ptr<GroupNpcVisual> _milena_sister;
 
 		std::string _dialogue_key = "forest_lost_group";
 		std::string _hub_name = "Herbalist Hub";
@@ -114,7 +107,7 @@ namespace Nawia::Entity {
 		bool _sister_is_standing = false;
 		bool _main_is_milena_sister = false;
 		CarryState _state = CarryState::Waiting;
-		HubDestination _arrival_hub;
+		GroupNpcHubDestination _arrival_hub;
 		Vector2 _destination = {0.0f, 0.0f};
 		Vector2 _last_travel_direction = {1.0f, 0.0f};
 		std::vector<Vector2> _current_path;

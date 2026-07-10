@@ -50,10 +50,5 @@ namespace Nawia::UI {
         /** @brief Oblicza prostokat slotu skrzyni na podstawie indeksu. */
         [[nodiscard]] Rectangle getSlotRect(int index) const;
 
-        /** @brief Rysuje pojedynczy slot skrzyni z ewentualnym przedmiotem. */
-        void drawSlot(Rectangle slot_rect, bool is_hovered, const std::shared_ptr<Item::Item>& item) const;
-
-        /** @brief Rysuje podpowiedz przedmiotu przy kursorze. */
-        void drawTooltip(const Font& font, const std::shared_ptr<Item::Item>& item, float x, float y) const;
     };
 } // namespace Nawia::UI

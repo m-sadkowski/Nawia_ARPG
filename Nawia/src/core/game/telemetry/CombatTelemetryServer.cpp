@@ -205,6 +205,36 @@ namespace Nawia::Game {
 			};
 		}
 
+		[[nodiscard]] nlohmann::json commandRequestToJson(const AgentCommandRequest& request) {
+			return {
+				{"type", toString(request.type)},
+				{"agent_entity_id", static_cast<std::uint64_t>(request.agent_entity_id)},
+				{"target_entity_id", static_cast<std::uint64_t>(request.target_entity_id)},
+				{"ability_slot", request.ability_slot},
+				{"has_world_position", request.has_world_position},
+				{"world_position", vectorToJson(request.world_position)},
+				{"acceptance_radius", request.acceptance_radius}
+			};
+		}
+
+		[[nodiscard]] nlohmann::json commandStateToJson(const AgentCommandState& command) {
+			return {
+				{"command_id", command.command_id},
+				{"agent_entity_id", static_cast<std::uint64_t>(command.request.agent_entity_id)},
+				{"type", toString(command.request.type)},
+				{"status", toString(command.status)},
+				{"failure_reason", toString(command.failure_reason)},
+				{"age_seconds", command.age_seconds},
+				{"started_time_seconds", command.started_time_seconds},
+				{"completed_time_seconds", command.completed_time_seconds},
+				{"message", command.message},
+				{"path_index", command.path_index},
+				{"path_length", command.path.size()},
+				{"path_rebuild_timer", command.path_rebuild_timer},
+				{"request", commandRequestToJson(command.request)}
+			};
+		}
+
 #ifdef _WIN32
 		[[nodiscard]] SOCKET toNativeSocket(const TelemetrySocketHandle socket) {
 			return static_cast<SOCKET>(socket);
@@ -285,6 +315,16 @@ namespace Nawia::Game {
 			return;
 
 		queueMessage(serializeAgentPerception(snapshot));
+	}
+
+	void CombatTelemetryServer::publishAgentCommands(
+		const std::map<Entity::EntityId, AgentCommandState>& active_commands,
+		const std::vector<AgentCommandState>& completed_commands)
+	{
+		if (!_running.load())
+			return;
+
+		queueMessage(serializeAgentCommands(active_commands, completed_commands));
 	}
 
 	void CombatTelemetryServer::queueMessage(std::string payload) {
@@ -389,6 +429,27 @@ namespace Nawia::Game {
 		};
 
 		return json_snapshot.dump() + '\n';
+	}
+
+	std::string CombatTelemetryServer::serializeAgentCommands(
+		const std::map<Entity::EntityId, AgentCommandState>& active_commands,
+		const std::vector<AgentCommandState>& completed_commands) const
+	{
+		nlohmann::json active = nlohmann::json::array();
+		for (const auto& [_, command] : active_commands)
+			active.push_back(commandStateToJson(command));
+
+		nlohmann::json completed = nlohmann::json::array();
+		for (const auto& command : completed_commands)
+			completed.push_back(commandStateToJson(command));
+
+		const nlohmann::json payload = {
+			{"schema", "nawia.telemetry.agent_command.v1"},
+			{"active_commands", active},
+			{"completed_commands", completed}
+		};
+
+		return payload.dump() + '\n';
 	}
 
 	void CombatTelemetryServer::setLastError(std::string error) {

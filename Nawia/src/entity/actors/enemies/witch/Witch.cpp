@@ -112,7 +112,7 @@ namespace Nawia::Entity {
 	void Witch::handleIdleState(const float dt) {
 		Entity::update(dt);
 
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target || target->isDead())
 			return;
 
@@ -133,7 +133,7 @@ namespace Nawia::Entity {
 	void Witch::handleRepositioningState(const float dt) {
 		Entity::update(dt);
 
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target || target->isDead()) {
 			stopMoving();
 			_state = State::Idle;
@@ -160,15 +160,10 @@ namespace Nawia::Entity {
 	void Witch::handleCastingBoltState(const float dt) {
 		Entity::update(dt);
 
-		if (const auto target = _target.lock())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("bolt");
-		const float cast_frame = static_cast<float>(frame_count) * CAST_FRAME_RATIO;
-		if (!_cast_projectile_spawned && frame_count > 0 && _anim_frame_counter >= cast_frame) {
+		if (consumeAnimationFrameTrigger("bolt", CAST_FRAME_RATIO, _cast_projectile_spawned))
 			fireBolt();
-			_cast_projectile_spawned = true;
-		}
 
 		if (!isAnimationLocked()) {
 			_cast_cooldown_timer = CAST_COOLDOWN;
@@ -186,15 +181,10 @@ namespace Nawia::Entity {
 	void Witch::handleRetaliatingState(const float dt) {
 		Entity::update(dt);
 
-		if (const auto target = _target.lock())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("bolt");
-		const float effect_frame = static_cast<float>(frame_count) * CAST_FRAME_RATIO;
-		if (!_retaliation_applied && frame_count > 0 && _anim_frame_counter >= effect_frame) {
+		if (consumeAnimationFrameTrigger("bolt", CAST_FRAME_RATIO, _retaliation_applied))
 			applyRetaliation();
-			_retaliation_applied = true;
-		}
 
 		if (!isAnimationLocked()) {
 			_cast_cooldown_timer = CAST_COOLDOWN * 0.65f;
@@ -212,15 +202,10 @@ namespace Nawia::Entity {
 	void Witch::handleSummoningState(const float dt) {
 		Entity::update(dt);
 
-		if (const auto target = _target.lock())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("summon");
-		const float effect_frame = static_cast<float>(frame_count) * CAST_FRAME_RATIO;
-		if (!_retaliation_applied && frame_count > 0 && _anim_frame_counter >= effect_frame) {
+		if (consumeAnimationFrameTrigger("summon", CAST_FRAME_RATIO, _retaliation_applied))
 			summonHelper();
-			_retaliation_applied = true;
-		}
 
 		if (!isAnimationLocked()) {
 			_cast_cooldown_timer = CAST_COOLDOWN * 0.75f;
@@ -245,7 +230,7 @@ namespace Nawia::Entity {
 	}
 
 	void Witch::fireBolt() {
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target)
 			return;
 
@@ -290,10 +275,10 @@ namespace Nawia::Entity {
 		_reposition_after_retaliation = true;
 		stopMoving();
 
-		if (const auto target = std::dynamic_pointer_cast<Player>(_target.lock())) {
+		if (const auto target = std::dynamic_pointer_cast<Player>(getTarget())) {
 			target->rememberDamageSource(this, "Witch Retaliation");
 			pushRetaliationTarget(*target);
-			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * _damage_multiplier));
+			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * getDamageMultiplier()));
 		}
 
 		setAnimationSpeed(SUMMON_ANIMATION_SPEED);
@@ -301,11 +286,11 @@ namespace Nawia::Entity {
 	}
 
 	void Witch::applyRetaliation() {
-		const auto target = std::dynamic_pointer_cast<Player>(_target.lock());
+		const auto target = std::dynamic_pointer_cast<Player>(getTarget());
 		if (target) {
 			target->rememberDamageSource(this, "Witch Retaliation");
 			pushRetaliationTarget(*target);
-			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * _damage_multiplier));
+			target->knockDown(static_cast<int>(RETALIATION_DAMAGE * getDamageMultiplier()));
 		}
 
 		summonHelper();
@@ -342,7 +327,7 @@ namespace Nawia::Entity {
 	}
 
 	void Witch::summonHelper() {
-		auto target = _target.lock();
+		auto target = getTarget();
 		Vector2 spawn_pos = getCenter();
 		if (target) {
 			const Vector2 dir = Vector2Normalize(Vector2Subtract(target->getCenter(), getCenter()));
@@ -364,7 +349,7 @@ namespace Nawia::Entity {
 			.setMap(_map)
 			.setMaxHp(55)
 			.setTarget(target)
-			.setAudioManager(_audio_manager)
+			.setAudioManager(getAudioManager())
 			.build());
 
 		helper->setAltitude(getAltitude());
@@ -372,7 +357,7 @@ namespace Nawia::Entity {
 	}
 
 	void Witch::moveAwayFromTarget(const float dt) {
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target)
 			return;
 
@@ -383,8 +368,8 @@ namespace Nawia::Entity {
 		};
 
 		if (!_map || _map->isWalkable(next.x, next.y)) {
-			_pos = next;
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+			setPosition(next);
+			faceTargetCenter();
 			playRun();
 			return;
 		}
@@ -393,12 +378,12 @@ namespace Nawia::Entity {
 	}
 
 	void Witch::chaseToCastRange(const float dt) {
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target)
 			return;
 
-		_path_recalc_timer -= dt;
-		if (_path_recalc_timer <= 0.0f || !_is_moving) {
+		tickPathRecalcTimer(dt);
+		if (isPathRecalcDue() || !isMoving()) {
 			const Vector2 my_pos = getCenter();
 			const Vector2 target_pos = target->getCenter();
 			const Vector2 toward = Vector2Normalize(Vector2Subtract(target_pos, my_pos));
@@ -407,17 +392,16 @@ namespace Nawia::Entity {
 				target_pos.y - toward.y * PREFERRED_DISTANCE
 			};
 			moveTo(desired.x, desired.y);
-			_path_recalc_timer = DEFAULT_PATH_RECALC_INTERVAL;
+			resetPathRecalcTimer(DEFAULT_PATH_RECALC_INTERVAL);
 		}
 
 		updateMovement(dt);
-		if (_is_moving)
+		if (isMoving())
 			playRun();
 	}
 
 	void Witch::stopMoving() {
-		setVelocity(0.0f, 0.0f);
-		_is_moving = false;
+		stopMotion();
 	}
 
 	void Witch::updateDeathFreeze(const float dt) {
@@ -427,15 +411,9 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		const float final_frame = static_cast<float>(std::max(0, frame_count - 1));
-		_anim_frame_counter += dt * _anim_fps * _anim_speed_multiplier / ANIMATION_DURATION_SCALE;
-		if (_anim_frame_counter >= final_frame) {
-			_anim_frame_counter = final_frame;
-			_anim_locked = true;
-			_hp = 0;
+		if (advanceAnimationTowardFrame(dt, frame_count - 1)) {
+			setHP(0);
 		}
-
-		applyCurrentAnimationFrame();
 	}
 
 	void Witch::playIdle() {

@@ -1,46 +1,28 @@
 #include "Loottable.h"
 
 #include <ItemDatabase.h>
+#include <JsonUtils.h>
 #include <Logger.h>
 
 #include <json.hpp>
 
 #include <exception>
-#include <fstream>
 #include <string>
 
 using json = nlohmann::json;
 
 namespace Nawia::Item {
 
-    namespace {
-
-        LOOTTABLE_TYPE stringToLootType(const std::string& type_name) {
-            if (type_name == "CAT") return LOOTTABLE_TYPE::CAT;
-            if (type_name == "CHEST_NOOB") return LOOTTABLE_TYPE::CHEST_NOOB;
-            if (type_name == "CHEST_BAD") return LOOTTABLE_TYPE::CHEST_BAD;
-            if (type_name == "CHEST_GOOD") return LOOTTABLE_TYPE::CHEST_GOOD;
-
-            return LOOTTABLE_TYPE::CHEST_NOOB;
-        }
-
+    LOOTTABLE_TYPE parseLoottableType(const std::string& type_name, const LOOTTABLE_TYPE default_type) {
+        if (type_name == "CAT") return LOOTTABLE_TYPE::CAT;
+        if (type_name == "CHEST_NOOB") return LOOTTABLE_TYPE::CHEST_NOOB;
+        if (type_name == "CHEST_BAD") return LOOTTABLE_TYPE::CHEST_BAD;
+        if (type_name == "CHEST_GOOD") return LOOTTABLE_TYPE::CHEST_GOOD;
+        return default_type;
     }
 
     bool Loottable::loadLootTables(const std::string& filename, ItemDatabase& item_database) {
-        std::ifstream file(filename);
-        if (!file.is_open()) {
-            Core::Logger::errorLog("Loottable: nie mozna otworzyc pliku: " + filename);
-            return false;
-        }
-
-        json json_data;
-        try {
-            file >> json_data;
-        } catch (const json::parse_error& error) {
-            Core::Logger::errorLog("Loottable: blad parsowania JSON: " + std::string(error.what()));
-            return false;
-        }
-
+        const json json_data = Core::JsonUtils::loadDocument(filename, "Loottable");
         if (!json_data.is_array()) {
             Core::Logger::errorLog("Loottable: niepoprawny format JSON.");
             return false;
@@ -50,7 +32,7 @@ namespace Nawia::Item {
 
         for (const auto& table_entry : json_data) {
             const std::string type_name = table_entry.value("type", "UNKNOWN");
-            const LOOTTABLE_TYPE type = stringToLootType(type_name);
+            const LOOTTABLE_TYPE type = parseLoottableType(type_name);
             auto& loot_entries = _loot_tables[type];
             loot_entries.clear();
 

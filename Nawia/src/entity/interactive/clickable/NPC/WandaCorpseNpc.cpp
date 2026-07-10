@@ -17,7 +17,7 @@ namespace Nawia::Entity {
 		Core::Engine* engine)
 		: StoryNpc(name, x, y, engine)
 	{
-		_type = EntityType::NPCStatic;
+		setType(EntityType::NPCStatic);
 		setDialogueStageKey("wanda_corpse");
 		setFaction(Faction::None);
 		replaceModel(WANDA_CORPSE_MODEL, false);

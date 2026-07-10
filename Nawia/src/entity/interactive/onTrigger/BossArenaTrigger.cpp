@@ -2,29 +2,13 @@
 
 #include <Collider.h>
 #include <Dialogue.h>
+#include <DialogueJson.h>
 #include <Engine.h>
 #include <BossManager.h>
 #include <Player.h>
 #include <QuestManager.h>
 
 namespace Nawia::Entity {
-
-    namespace {
-        bool isPlayerDialogueSpeaker(const std::string& speaker) {
-            return speaker == "Logos" || speaker == "Jarko" || speaker == "Player" || speaker == "Gracz";
-        }
-
-        bool isPlaceholderOption(const std::string& text) {
-            return text.empty() || text == "..." || text == "Dalej";
-        }
-
-        std::string resolveFinalOption(const std::string& configured_text, const std::string& current_speaker, const std::string& current_text) {
-            if (!isPlaceholderOption(configured_text))
-                return configured_text;
-
-            return isPlayerDialogueSpeaker(current_speaker) ? current_text : "Rozumiem.";
-        }
-    }
 
     BossArenaTrigger::BossArenaTrigger(const std::string& boss_id, float x, float y, float width, float height)
         : InteractiveTrigger("BossTrigger_" + boss_id, x, y, nullptr, 1), _boss_id(boss_id)
@@ -129,12 +113,12 @@ namespace Nawia::Entity {
 
             Game::DialogueOption option;
             size_t next_line = i + 1;
-            if (next_line < intro.lines.size() && isPlayerDialogueSpeaker(intro.lines[next_line].speaker)) {
+            if (next_line < intro.lines.size() && Game::DialogueJson::isPlayerSpeaker(intro.lines[next_line].speaker)) {
                 option.text = intro.lines[next_line].text;
             } else {
                 const bool is_final_node = next_line >= intro.lines.size();
                 if (is_final_node)
-                    option.text = resolveFinalOption(intro.final_option, node.speaker_name, node.text);
+                    option.text = Game::DialogueJson::resolveFinalOption(intro.final_option, node.speaker_name, node.text);
                 else
                     option.text = "Dalej";
             }
@@ -177,8 +161,8 @@ namespace Nawia::Entity {
     }
 
     void BossArenaTrigger::render(const Camera3D& camera) {
-        if (DebugColliders && _collider) {
-            auto* rect_collider = dynamic_cast<RectangleCollider*>(_collider.get());
+        if (DebugColliders) {
+            auto* rect_collider = dynamic_cast<RectangleCollider*>(getCollider());
             if (rect_collider) {
                 Vector2 center = rect_collider->getPosition();
                 float w = rect_collider->getWidth();

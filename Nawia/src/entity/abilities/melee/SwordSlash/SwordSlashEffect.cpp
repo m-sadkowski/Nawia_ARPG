@@ -37,8 +37,10 @@ namespace Nawia::Entity {
 	void SwordSlashEffect::render(const Camera3D& camera) {
 		// Na razie renderujemy tylko diagnostyczny kolider; tekstura 2D jest starym wariantem.
 		// DO ZROBIENIA: dodać trójwymiarowy efekt wizualny cięcia.
-		if (DebugColliders && _collider)
-			_collider->render(camera);
+		if (DebugColliders) {
+			if (Collider* collider = getCollider())
+				collider->render(camera);
+		}
 	}
 
 	bool SwordSlashEffect::checkCollision(const std::shared_ptr<Entity>& target) const {

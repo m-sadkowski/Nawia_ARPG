@@ -2,19 +2,34 @@
 
 namespace Nawia::Item {
 
-    Equipment::Equipment(Core::ResourceManager& resource_manager) : _resource_manager(resource_manager) {
-        _slots[EquipmentSlot::Head] = nullptr;
-        _slots[EquipmentSlot::Neck] = nullptr;
-        _slots[EquipmentSlot::Chest] = nullptr;
-        _slots[EquipmentSlot::Legs] = nullptr;
-        _slots[EquipmentSlot::Weapon] = nullptr;
-        _slots[EquipmentSlot::OffHand] = nullptr;
-        _slots[EquipmentSlot::Feet] = nullptr;
-        _slots[EquipmentSlot::Ring] = nullptr;
+	namespace {
+		constexpr EquipmentSlot EQUIPMENT_SLOTS[] = {
+			EquipmentSlot::Head,
+			EquipmentSlot::Neck,
+			EquipmentSlot::Chest,
+			EquipmentSlot::Legs,
+			EquipmentSlot::Weapon,
+			EquipmentSlot::OffHand,
+			EquipmentSlot::Feet,
+			EquipmentSlot::Ring
+		};
 
-		modelEmpty(EquipmentSlot::Feet);
-		modelEmpty(EquipmentSlot::Legs);
-		modelEmpty(EquipmentSlot::Chest);
+		const char* baseModelPath(const EquipmentSlot slot) {
+			switch (slot) {
+				case EquipmentSlot::Feet: return "assets/models/actors/player/parts/player_feet.glb";
+				case EquipmentSlot::Legs: return "assets/models/actors/player/parts/player_legs.glb";
+				case EquipmentSlot::Chest: return "assets/models/actors/player/parts/player_body.glb";
+				default: return nullptr;
+			}
+		}
+	}
+
+    Equipment::Equipment(Core::ResourceManager& resource_manager) : _resource_manager(resource_manager) {
+		for (const EquipmentSlot slot : EQUIPMENT_SLOTS)
+			_slots[slot] = nullptr;
+
+		for (const EquipmentSlot slot : {EquipmentSlot::Feet, EquipmentSlot::Legs, EquipmentSlot::Chest})
+			modelEmpty(slot);
     }
 
 	Equipment::~Equipment() {
@@ -48,30 +63,16 @@ namespace Nawia::Item {
     }
 
 	bool Equipment::hasBaseModel(EquipmentSlot slot) const {
-		return slot == EquipmentSlot::Feet
-			|| slot == EquipmentSlot::Legs
-			|| slot == EquipmentSlot::Chest;
+		return baseModelPath(slot) != nullptr;
 	}
 
 	void Equipment::modelEmpty(EquipmentSlot slot) {
-		if (slot == EquipmentSlot::Feet) {
-			Model* feet = _resource_manager.getModel("assets/models/actors/player/parts/player_feet.glb");
-			if (feet != nullptr) {
-				_models[EquipmentSlot::Feet] = feet;
-			}
-		}
-		else if (slot == EquipmentSlot::Legs) {
-			Model* legs = _resource_manager.getModel("assets/models/actors/player/parts/player_legs.glb");
-			if (legs != nullptr) {
-				_models[EquipmentSlot::Legs] = legs;
-			}
-		}
-		else if (slot == EquipmentSlot::Chest) {
-			Model* chest = _resource_manager.getModel("assets/models/actors/player/parts/player_body.glb");
-			if (chest != nullptr) {
-				_models[EquipmentSlot::Chest] = chest;
-			}
-		}
+		const char* path = baseModelPath(slot);
+		if (!path)
+			return;
+
+		if (Model* model = _resource_manager.getModel(path))
+			_models[slot] = model;
 	}
 
     std::shared_ptr<Item> Equipment::getItemAt(const EquipmentSlot slot) const {
@@ -102,9 +103,8 @@ namespace Nawia::Item {
 			item = nullptr;
 
 		_models.clear();
-		modelEmpty(EquipmentSlot::Feet);
-		modelEmpty(EquipmentSlot::Legs);
-		modelEmpty(EquipmentSlot::Chest);
+		for (const EquipmentSlot slot : {EquipmentSlot::Feet, EquipmentSlot::Legs, EquipmentSlot::Chest})
+			modelEmpty(slot);
 	}
 
 	void Equipment::updateAnimations(const ModelAnimation& current_anim, int frame) {

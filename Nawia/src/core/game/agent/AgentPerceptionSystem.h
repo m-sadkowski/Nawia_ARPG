@@ -12,6 +12,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace Nawia::Core {
@@ -132,12 +133,12 @@ namespace Nawia::Game {
 
 	/**
 	 * @class AgentPerceptionSystem
-	 * @brief Builds read-only world snapshots for future agent decision systems.
+	 * @brief Builds read-only world snapshots for external tooling and telemetry.
 	 *
 	 * This system does not choose actions. It collects local, factual data:
 	 * nearby entities, current target, ability state, and relevant recent combat
-	 * events. GOAP, roles, threat, and validation should consume these snapshots
-	 * instead of querying the whole world directly.
+	 * events. Tooling should consume these snapshots instead of querying the
+	 * whole world directly.
 	 */
 	class AgentPerceptionSystem {
 	public:
@@ -172,6 +173,8 @@ namespace Nawia::Game {
 		[[nodiscard]] const AgentPerceptionSnapshot* findSnapshot(const Entity::Entity& entity) const;
 
 	private:
+		using EntityLookup = std::unordered_map<Entity::EntityId, std::shared_ptr<Entity::Entity>>;
+
 		struct AgentMemoryRecord {
 			AgentEntitySnapshot last_known_entity;
 			AgentRelation relation = AgentRelation::Unknown;
@@ -188,7 +191,9 @@ namespace Nawia::Game {
 		[[nodiscard]] AgentPerceptionSnapshot buildSnapshot(
 			const std::shared_ptr<Entity::Entity>& agent,
 			const std::vector<std::shared_ptr<Entity::Entity>>& entities,
+			const EntityLookup& entity_lookup,
 			const std::vector<CombatEvent>& recent_events,
+			const std::vector<MapPing>& remembered_pings,
 			const MapPingManager& ping_manager,
 			float time_seconds,
 			std::uint64_t frame_id);
@@ -206,12 +211,13 @@ namespace Nawia::Game {
 		[[nodiscard]] bool isPingRelevantToAgent(const Entity::Entity& agent, const MapPing& ping) const;
 		void updateMemory(
 			AgentPerceptionSnapshot& snapshot,
+			const std::vector<AgentObservedEntity>& all_observed_entities,
 			const std::shared_ptr<Entity::Entity>& agent,
-			const std::vector<std::shared_ptr<Entity::Entity>>& entities,
+			const EntityLookup& entity_lookup,
 			float time_seconds,
 			std::uint64_t frame_id);
 		[[nodiscard]] std::shared_ptr<Entity::Entity> findEntityById(
-			const std::vector<std::shared_ptr<Entity::Entity>>& entities,
+			const EntityLookup& entity_lookup,
 			Entity::EntityId entity_id) const;
 		[[nodiscard]] std::string getDisappearanceReason(
 			const std::shared_ptr<Entity::Entity>& entity,

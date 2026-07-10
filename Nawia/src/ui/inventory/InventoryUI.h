@@ -67,14 +67,8 @@ namespace Nawia::UI {
         /** @brief Oblicza prostokat slotu wyposazenia na podstawie typu slotu. */
         [[nodiscard]] Rectangle getEquipmentSlotRect(Item::EquipmentSlot slot_type) const;
 
-        /** @brief Rysuje slot plecaka wraz z ikona przedmiotu. */
-        void drawSlot(int index, Rectangle slot_rect, bool is_hovered, const std::shared_ptr<Item::Item>& item) const;
-
         /** @brief Rysuje konkretny slot wyposazenia, np. bron albo buty. */
         void drawSpecificSlot(Item::EquipmentSlot slot_type, const Entity::Player& player, Vector2 mouse_position) const;
-
-        /** @brief Rysuje podpowiedz przedmiotu przy kursorze. */
-        void drawTooltip(const Font& font, const std::shared_ptr<Item::Item>& item, float x, float y) const;
     };
 
 } // namespace Nawia::UI

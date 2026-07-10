@@ -1,9 +1,10 @@
 #include "AssetLoadManifest.h"
 
+#include <AssetPathUtils.h>
+#include <JsonUtils.h>
 #include <LocationJsonLoader.h>
 #include <Logger.h>
 
-#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <set>
@@ -14,25 +15,6 @@ namespace Nawia::Core {
 
 		bool isPlaceholderMapName(const std::string& model_name) {
 			return model_name.empty() || model_name == "placeholder";
-		}
-
-		std::string resolveModelPath(std::string model_path) {
-			std::ranges::replace(model_path, '\\', '/');
-			if (model_path.empty() || model_path.rfind("assets/", 0) == 0)
-				return model_path;
-
-			if (std::filesystem::path(model_path).has_parent_path())
-				return model_path;
-
-			return "assets/models/" + model_path;
-		}
-
-		std::string readStringAlias(const nlohmann::json& data, const std::initializer_list<const char*> keys) {
-			for (const char* key : keys) {
-				if (data.contains(key) && data[key].is_string())
-					return data[key].get<std::string>();
-			}
-			return "";
 		}
 
 		void collectItemIconPaths(std::set<std::string>& paths) {
@@ -143,8 +125,33 @@ namespace Nawia::Core {
 		addUnique({AssetLoadEntry::Kind::Texture, path, label});
 	}
 
+	void AssetLoadManifest::addModelAndAnimation(const std::string& path) {
+		addModel(path);
+		addAnimation(path);
+	}
+
+	void AssetLoadManifest::addModels(const std::initializer_list<const char*> paths) {
+		for (const char* path : paths)
+			addModel(path);
+	}
+
+	void AssetLoadManifest::addAnimations(const std::initializer_list<const char*> paths) {
+		for (const char* path : paths)
+			addAnimation(path);
+	}
+
+	void AssetLoadManifest::addModelAndAnimations(const std::initializer_list<const char*> paths) {
+		for (const char* path : paths)
+			addModelAndAnimation(path);
+	}
+
+	void AssetLoadManifest::addTextures(const std::initializer_list<const char*> paths) {
+		for (const char* path : paths)
+			addTexture(path);
+	}
+
 	void AssetLoadManifest::appendStartupDefaults() {
-		for (const char* path : {
+		addModelAndAnimations({
 			"assets/models/animations/anims.glb",
 			"assets/models/animations/anims2.glb",
 			"assets/models/actors/player/parts/player_head.glb",
@@ -182,10 +189,7 @@ namespace Nawia::Core {
 			"assets/models/actors/player/player_walk.glb",
 			"assets/models/actors/player/player_auto_attack.glb",
 			"assets/models/actors/player/player_knocked.glb"
-		}) {
-			addAnimation(path);
-			addModel(path);
-		}
+		});
 
 		std::set<std::string> map_models;
 		collectLocationMapModelsFromDisk(map_models);
@@ -197,108 +201,106 @@ namespace Nawia::Core {
 		for (const auto& icon : icon_paths)
 			addTexture(icon);
 
-		addTexture("assets/textures/icons/sword_slash_icon.png");
-		addTexture("assets/textures/icons/fireball_icon.png");
-		addTexture("assets/textures/icons/punch_icon.png");
-		addTexture("assets/textures/icons/strong_hit_icon.png");
-		addTexture("assets/textures/icons/empty_ability_icon.png");
-		addTexture("assets/textures/icons/food_icon.png");
-		addTexture("assets/textures/outro/odgruzowanie_przejscia.png");
-		addTexture("assets/textures/outro/dziady_przy_potoku.png");
-		addTexture("assets/textures/outro/droga_do_twierdzy.png");
+		addTextures({
+			"assets/textures/icons/sword_slash_icon.png",
+			"assets/textures/icons/fireball_icon.png",
+			"assets/textures/icons/punch_icon.png",
+			"assets/textures/icons/strong_hit_icon.png",
+			"assets/textures/icons/empty_ability_icon.png",
+			"assets/textures/icons/food_icon.png",
+			"assets/textures/outro/odgruzowanie_przejscia.png",
+			"assets/textures/outro/dziady_przy_potoku.png",
+			"assets/textures/outro/droga_do_twierdzy.png"
+		});
 	}
 
 	void AssetLoadManifest::appendEntityTypeAssets(const std::string& entity_type, const nlohmann::json& entity_data) {
 		if (entity_type == "devil") {
 			addModel("assets/models/actors/devil/devil_idle.glb");
-			addAnimation("assets/models/actors/devil/devil_idle.glb");
-			addAnimation("assets/models/actors/devil/devil_walk.glb");
-			addAnimation("assets/models/actors/devil/devil_run.glb");
-			addAnimation("assets/models/actors/devil/devil_attack.glb");
-			addAnimation("assets/models/actors/devil/devil_dead.glb");
+			addAnimations({
+				"assets/models/actors/devil/devil_idle.glb",
+				"assets/models/actors/devil/devil_walk.glb",
+				"assets/models/actors/devil/devil_run.glb",
+				"assets/models/actors/devil/devil_attack.glb",
+				"assets/models/actors/devil/devil_dead.glb"
+			});
 			return;
 		}
 
 		if (entity_type == "rift_binder" || entity_type == "dragon") {
-			addModel("assets/models/actors/dragon/dragon.glb");
-			addAnimation("assets/models/actors/dragon/dragon.glb");
+			addModelAndAnimation("assets/models/actors/dragon/dragon.glb");
 			appendEntityTypeAssets("walking_dead", entity_data);
-			addModel("assets/models/actors/walking_dead/walking_dead_2.glb");
-			addModel("assets/models/fireball.glb");
-			addModel("assets/models/totem.glb");
-			const std::string helper_model = resolveModelPath(
-				readStringAlias(entity_data, {"helper_model", "helper_model_path"}));
-			if (!helper_model.empty())
-				addModel(helper_model);
-			const std::string stone_projectile_model = resolveModelPath(
-				readStringAlias(entity_data, {"stone_projectile_model", "stone_projectile_model_path"}));
-			if (!stone_projectile_model.empty())
-				addModel(stone_projectile_model);
+			addModels({
+				"assets/models/actors/walking_dead/walking_dead_2.glb",
+				"assets/models/fireball.glb",
+				"assets/models/totem.glb"
+			});
 			return;
 		}
 
 		if (entity_type == "bandit") {
 			addModel("assets/models/actors/bandit/bandit_idle.glb");
-			addAnimation("assets/models/actors/bandit/bandit_idle.glb");
-			addAnimation("assets/models/actors/bandit/bandit_walk_backwards3.glb");
-			addAnimation("assets/models/actors/bandit/bandit_throw.glb");
-			addAnimation("assets/models/actors/bandit/bandit_death.glb");
+			addAnimations({
+				"assets/models/actors/bandit/bandit_idle.glb",
+				"assets/models/actors/bandit/bandit_walk_backwards3.glb",
+				"assets/models/actors/bandit/bandit_throw.glb",
+				"assets/models/actors/bandit/bandit_death.glb"
+			});
 			addModel("assets/models/knife.glb");
 			return;
 		}
 
 		if (entity_type == "walking_dead") {
-			addModel("assets/models/actors/walking_dead/walking_dead.glb");
-			addAnimation("assets/models/actors/walking_dead/walking_dead.glb");
+			addModelAndAnimation("assets/models/actors/walking_dead/walking_dead.glb");
 			return;
 		}
 
 		if (entity_type == "frog") {
-			addModel("assets/models/actors/frog/frog.glb");
-			addAnimation("assets/models/actors/frog/frog.glb");
-			addModel("assets/models/actors/village_head/village_head.glb");
-			addAnimation("assets/models/actors/village_head/village_head.glb");
+			addModelAndAnimations({
+				"assets/models/actors/frog/frog.glb",
+				"assets/models/actors/village_head/village_head.glb"
+			});
 			return;
 		}
 
 		if (entity_type == "worm") {
-			addModel("assets/models/actors/worm/worm.glb");
-			addAnimation("assets/models/actors/worm/worm.glb");
+			addModelAndAnimation("assets/models/actors/worm/worm.glb");
 			return;
 		}
 
 		if (entity_type == "spider") {
-			addModel("assets/models/actors/spider/spider.glb");
-			addAnimation("assets/models/actors/spider/spider.glb");
+			addModelAndAnimation("assets/models/actors/spider/spider.glb");
 			addModel("assets/models/cobweb.glb");
 			return;
 		}
 
 		if (entity_type == "mini_mushroom_infected") {
-			addModel("assets/models/actors/mini_mushroom/mini_mushroom_infected.glb");
-			addAnimation("assets/models/actors/mini_mushroom/mini_mushroom_infected.glb");
-			addModel("assets/models/actors/mini_mushroom/mini_mushroom.glb");
-			addAnimation("assets/models/actors/mini_mushroom/mini_mushroom.glb");
-			addModel("assets/models/actors/worm/worm.glb");
-			addAnimation("assets/models/actors/worm/worm.glb");
+			addModelAndAnimations({
+				"assets/models/actors/mini_mushroom/mini_mushroom_infected.glb",
+				"assets/models/actors/mini_mushroom/mini_mushroom.glb",
+				"assets/models/actors/worm/worm.glb"
+			});
 			return;
 		}
 
 		if (entity_type == "friend") {
-			addModel("assets/models/actors/player/player_idle.glb");
-			addAnimation("assets/models/actors/player/player_idle.glb");
-			addTexture("assets/textures/icons/sword_slash_icon.png");
-			addTexture("assets/textures/icons/punch_icon.png");
-			addTexture("assets/textures/icons/strong_hit_icon.png");
-			addTexture("assets/textures/icons/empty_ability_icon.png");
-			addTexture("assets/textures/icons/food_icon.png");
+			addModelAndAnimation("assets/models/actors/player/player_idle.glb");
+			addTextures({
+				"assets/textures/icons/sword_slash_icon.png",
+				"assets/textures/icons/punch_icon.png",
+				"assets/textures/icons/strong_hit_icon.png",
+				"assets/textures/icons/empty_ability_icon.png",
+				"assets/textures/icons/food_icon.png"
+			});
 			return;
 		}
 
 		if (entity_type == "chest") {
-			addModel("assets/models/chest/chest_close.glb");
-			addModel("assets/models/chest/chest_open.glb");
-			addModel("assets/models/chest/chest_open_full.glb");
+			addModels({
+				"assets/models/chest/chest_close.glb",
+				"assets/models/chest/chest_open.glb",
+				"assets/models/chest/chest_open_full.glb"
+			});
 			return;
 		}
 
@@ -308,8 +310,7 @@ namespace Nawia::Core {
 		}
 
 		if (entity_type == "witch") {
-			addModel("assets/models/actors/witch/witch.glb");
-			addAnimation("assets/models/actors/witch/witch.glb");
+			addModelAndAnimation("assets/models/actors/witch/witch.glb");
 			addModel("assets/models/fireball.glb");
 			appendEntityTypeAssets("walking_dead", entity_data);
 			return;
@@ -318,32 +319,29 @@ namespace Nawia::Core {
 		if (entity_type == "npc") {
 			const std::string npc_class = entity_data.value("npc_class", "cat");
 			if (npc_class == "mushroom") {
-				addModel("assets/models/actors/mushroom/mushroom_raylib_fixed.glb");
-				addAnimation("assets/models/actors/mushroom/mushroom_raylib_fixed.glb");
+				addModelAndAnimation("assets/models/actors/mushroom/mushroom_raylib_fixed.glb");
 			} else if (npc_class == "szeptucha") {
 				addModel("assets/models/actors/baba_yaga/baba_yaga.glb");
 			} else if (npc_class == "village_head") {
-				addModel("assets/models/actors/village_head/village_head.glb");
-				addAnimation("assets/models/actors/village_head/village_head.glb");
+				addModelAndAnimation("assets/models/actors/village_head/village_head.glb");
 			} else if (npc_class == "wanda_corpse") {
 				addModel("assets/models/actors/wanda/woman_dress.glb");
 			} else if (npc_class == "forest_lost_group") {
-				addModel("assets/models/actors/npcs/female_npc_2.glb");
-				addAnimation("assets/models/actors/npcs/female_npc_2.glb");
-				addModel("assets/models/actors/npcs/male_npc_2.glb");
-				addAnimation("assets/models/actors/npcs/male_npc_2.glb");
-				addModel("assets/models/actors/milena_sister/milena_sister.glb");
-				addAnimation("assets/models/actors/milena_sister/milena_sister.glb");
+				addModelAndAnimations({
+					"assets/models/actors/npcs/female_npc_2.glb",
+					"assets/models/actors/npcs/male_npc_2.glb",
+					"assets/models/actors/milena_sister/milena_sister.glb"
+				});
 			} else if (npc_class == "cemetery_survivor_group") {
-				addModel("assets/models/actors/friends/female_warrior/female_warrior.glb");
-				addAnimation("assets/models/actors/friends/female_warrior/female_warrior.glb");
-				addModel("assets/models/actors/npcs/male_npc_1.glb");
-				addAnimation("assets/models/actors/npcs/male_npc_1.glb");
+				addModelAndAnimations({
+					"assets/models/actors/friends/female_warrior/female_warrior.glb",
+					"assets/models/actors/npcs/male_npc_1.glb"
+				});
 			} else if (npc_class == "story_human" || npc_class == "herbalist") {
-				const std::string model_path = resolveModelPath(
-					readStringAlias(entity_data, {"model", "model_path"}));
-				std::string animation_bundle = resolveModelPath(
-					readStringAlias(entity_data, {"animation_bundle"}));
+				const std::string model_path = AssetPathUtils::resolveModelPath(
+					JsonUtils::readStringAlias(entity_data, {"model", "model_path"}));
+				std::string animation_bundle = AssetPathUtils::resolveModelPath(
+					JsonUtils::readStringAlias(entity_data, {"animation_bundle"}));
 				if (!model_path.empty())
 					addModel(model_path);
 
@@ -354,21 +352,19 @@ namespace Nawia::Core {
 				if (!animation_bundle.empty())
 					addAnimation(animation_bundle);
 			} else {
-				addModel("assets/models/actors/cat/cat_bounce.glb");
-				addAnimation("assets/models/actors/cat/cat_bounce.glb");
+				addModelAndAnimation("assets/models/actors/cat/cat_bounce.glb");
 			}
 			return;
 		}
 
 		if (entity_type == "mini_mushroom_prop") {
-			addModel("assets/models/actors/mini_mushroom/mini_mushroom.glb");
-			addAnimation("assets/models/actors/mini_mushroom/mini_mushroom.glb");
+			addModelAndAnimation("assets/models/actors/mini_mushroom/mini_mushroom.glb");
 			return;
 		}
 
 		if (entity_type == "static_object") {
-			const std::string model_path = resolveModelPath(
-				readStringAlias(entity_data, {"model", "model_path", "texture"}));
+			const std::string model_path = AssetPathUtils::resolveModelPath(
+				JsonUtils::readStringAlias(entity_data, {"model", "model_path", "texture"}));
 			if (!model_path.empty())
 				addModel(model_path);
 			return;

@@ -20,13 +20,10 @@ namespace Nawia::Entity {
     Teleport::Teleport(const std::string& name, float x, float y, Core::Engine* engine, const std::string& target_location)
         : InteractiveTrigger(name, x, y, nullptr, 1), _engine(engine), _target_location(target_location)
     {
-        _type = EntityType::Trigger;
+        setType(EntityType::Trigger);
         setFaction(Faction::None);
         loadModel(TELEPORT_MODEL);
-        if (_model_loaded) {
-            const BoundingBox bounds = _local_model_bounding_box_valid ? _local_model_bounding_box : GetModelBoundingBox(_model);
-            _model.transform = MatrixMultiply(MatrixTranslate(0.0f, -bounds.min.y, 0.0f), _model.transform);
-        }
+        alignLoadedModelToGround();
         setScale(1.0f);
         setModelFacingOffset(0.0f);
 
@@ -66,19 +63,11 @@ namespace Nawia::Entity {
     }
 
     void Teleport::render(const Camera3D& camera) {
-        if (!isDormant() && _model_loaded) {
-            const Vector3 pos3d = getWorldPos3D();
-            DrawModelEx(
-                _model,
-                pos3d,
-                {0.0f, 1.0f, 0.0f},
-                getRotation(),
-                {_scale, _scale, _scale},
-                WHITE);
-        }
+        if (!isDormant())
+            renderLoadedModel();
 
-		if (DebugColliders && _collider) {
-            auto* rect_collider = dynamic_cast<RectangleCollider*>(_collider.get());
+		if (DebugColliders) {
+            auto* rect_collider = dynamic_cast<RectangleCollider*>(getCollider());
             if (rect_collider) {
                 Vector2 center = rect_collider->getPosition();
                 float w = rect_collider->getWidth();

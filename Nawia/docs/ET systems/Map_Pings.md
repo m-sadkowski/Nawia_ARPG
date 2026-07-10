@@ -3,18 +3,17 @@
 ## Cel
 
 `MapPingManager` przechowuje krotkotrwale pingi taktyczne stawiane na mapie.
-Ping nie jest encja swiata: nie ma kolizji, AI targetowania ani logiki walki.
-To lekki sygnal komunikacyjny, ktory moze zostac wykorzystany przez przyszly
-fake multiplayer jako "ally/player marked this place".
+Ping nie jest encja swiata: nie ma kolizji, targetowania ani logiki walki.
+To lekki sygnal komunikacyjny publikowany do telemetryki i snapshotow ET.
 
 Sa dwa typy pingow:
 
 - `Info` - niebieski ping informacyjny,
 - `Threat` - czerwony ping zagrozenia.
 
-W kontekscie pracy inzynierskiej jest to infrastruktura wejscia dla agentow,
-a nie algorytm wieloagentowy. Agent moze pozniej zdecydowac, czy ping oznacza
-focus target, miejsce do zebrania sie, unikanie hazardu albo priorytet ruchu.
+W kontekscie pracy inzynierskiej jest to infrastruktura wejscia dla narzedzi i
+testow, a nie algorytm zachowania. Interpretacja pingu nalezy do klienta, ktory
+czyta snapshoty.
 
 ## Glowny kod
 
@@ -40,8 +39,8 @@ focus target, miejsce do zebrania sie, unikanie hazardu albo priorytet ruchu.
 - pingi sa czyszczone przy zmianie poziomu.
 
 Ping moze utworzyc tylko zrodlo typu `Player` albo `Ally`, ktore jest aktualnie
-widoczne dla percepcji. To przygotowuje system pod przyszle ally bez mieszania
-pingow przeciwnikow z komunikacja druzyny.
+widoczne dla percepcji. Dzieki temu pingi przeciwnikow nie mieszaja sie z
+komunikacja strony gracza.
 
 ## Najwazniejsze funkcje
 
@@ -85,13 +84,14 @@ wypelnionego dysku bez kanciastego `DrawCylinderWires()`.
 
 ## Agent Perception
 
-`AgentPerceptionSystem` dolacza pingi do snapshotow gracza i ally-side agentow:
+`AgentPerceptionSystem` dolacza pingi do snapshotow gracza i encji po stronie
+gracza:
 
 - `visible_pings` - aktywne pingi widoczne przez 5 sekund,
 - `remembered_pings` - ostatni znany ping od kazdego zrodla i typu.
 
 Pingi sa traktowane jako komunikacja druzyny, nie jako FOV/raycast. Enemy nie
-dostaja pingow player/ally-side w swoich snapshotach.
+dostaja pingow strony gracza w swoich snapshotach.
 
 ## Telemetria
 

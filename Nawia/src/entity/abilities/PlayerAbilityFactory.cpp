@@ -1,32 +1,12 @@
 #include "PlayerAbilityFactory.h"
 
-#include <Logger.h>
+#include <JsonUtils.h>
 #include <ResourceManager.h>
-
-#include <fstream>
 
 namespace Nawia::Entity::PlayerAbilityFactory {
 
 	namespace {
 		constexpr const char* PLAYER_SETUP_PATH = "assets/data/player_setup.json";
-
-		nlohmann::json loadJsonDocument(const std::string& path) {
-			std::ifstream file(path);
-			if (!file.is_open()) {
-				Core::Logger::errorLog("PlayerAbilityFactory: nie mozna otworzyc JSON: " + path);
-				return {};
-			}
-
-			nlohmann::json data;
-			try {
-				file >> data;
-			} catch (const nlohmann::json::parse_error&) {
-				Core::Logger::errorLog("PlayerAbilityFactory: blad parsowania JSON: " + path);
-				return {};
-			}
-
-			return data;
-		}
 
 		AbilityTargetType parseAbilityTargetType(const std::string& value) {
 			if (value == "UNIT")
@@ -44,7 +24,7 @@ namespace Nawia::Entity::PlayerAbilityFactory {
 	}
 
 	const nlohmann::json& getPlayerSetupConfig() {
-		static const nlohmann::json config = loadJsonDocument(PLAYER_SETUP_PATH);
+		static const nlohmann::json config = Core::JsonUtils::loadDocument(PLAYER_SETUP_PATH, "PlayerAbilityFactory");
 		return config;
 	}
 

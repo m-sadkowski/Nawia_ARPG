@@ -88,6 +88,7 @@ namespace Nawia::Entity {
 		bool _shockwave_impact_played = false;
 
 		// Obsługa stanów.
+		void configureModel();
 		void handleIdleState(float dt);
 		void handleChasingState(float dt);
 		void handlePreparingDashState(float dt);

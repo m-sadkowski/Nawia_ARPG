@@ -2,6 +2,7 @@
 
 #include <GlobalScaling.h>
 #include <UIHandler.h>
+#include <UIRenderUtils.h>
 
 namespace Nawia::UI
 {
@@ -21,9 +22,7 @@ namespace Nawia::UI
         
         const float title_font_size = Core::GlobalScaling::scaled(FONT_SIZE_TITLE); 
         const char* menu_title = LABEL_SELECT_LEVEL; 
-        const Vector2 title_size = MeasureTextEx(ui.getFont(), menu_title, title_font_size, font_spacing);
-        
-        DrawTextEx(ui.getFont(), menu_title, {(screen_width - title_size.x) / 2.0f, Core::GlobalScaling::scaled(60.0f)}, title_font_size, font_spacing, COLOR_ACCENT);
+        drawCenteredText(ui.getFont(), menu_title, {0.0f, Core::GlobalScaling::scaled(60.0f), screen_width, title_font_size}, title_font_size, font_spacing, COLOR_ACCENT);
         
         const float card_width = Core::GlobalScaling::scaled(280.0f);
         const float card_height = Core::GlobalScaling::scaled(200.0f);
@@ -79,14 +78,12 @@ namespace Nawia::UI
 
     void LevelSelectMenu::drawLevelCard(const Rectangle& card_rect, const World::LevelInfo& info, bool is_hovered, const Font& font) const
     {
-        DrawRectangleRec(card_rect, is_hovered ? COLOR_ACCENT_SOFT : Fade(WHITE, 0.10f)); 
+        DrawRectangleRec(card_rect, is_hovered ? COLOR_ACCENT_SOFT : Fade(WHITE, 0.10f));
         DrawRectangleLinesEx(card_rect, Core::GlobalScaling::scaled(2.0f), is_hovered ? COLOR_ACCENT : Fade(WHITE, 0.4f));
         
         const float subtitle_font_size = Core::GlobalScaling::scaled(FONT_SIZE_SUBTITLE);
         const float font_spacing = Core::GlobalScaling::scaled(1.0f); 
-        const Vector2 name_size = MeasureTextEx(font, info.name.c_str(), subtitle_font_size, font_spacing);
-        
-        DrawTextEx(font, info.name.c_str(), { card_rect.x + (card_rect.width - name_size.x) / 2.0f, card_rect.y + Core::GlobalScaling::scaled(20.0f) }, subtitle_font_size, font_spacing, WHITE);
+        drawCenteredText(font, info.name.c_str(), {card_rect.x, card_rect.y + Core::GlobalScaling::scaled(20.0f), card_rect.width, subtitle_font_size}, subtitle_font_size, font_spacing, WHITE);
         
         const float separator_y = card_rect.y + Core::GlobalScaling::scaled(65.0f); 
         DrawLineEx({card_rect.x + Core::GlobalScaling::scaled(20.0f), separator_y}, {card_rect.x + card_rect.width - Core::GlobalScaling::scaled(20.0f), separator_y}, 1.0f, Fade(WHITE, 0.3f));

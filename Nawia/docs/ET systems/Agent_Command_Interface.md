@@ -2,25 +2,35 @@
 
 ## Cel
 
-`AgentCommandInterface` jest warstwa wykonawcza dla przyszlych agentow. Nie
-wybiera akcji, nie planuje, nie liczy threat table i nie waliduje strategii.
-Przyjmuje jawna komende od zewnetrznego systemu decyzyjnego i probuje wykonac
-ja na encji w istniejacej grze.
+`AgentCommandInterface` jest warstwa wykonawcza dla narzedzi ET i testow
+runtime. Nie wybiera akcji, nie planuje, nie liczy priorytetow i nie waliduje
+strategii. Przyjmuje jawna komende od zewnetrznego klienta i probuje wykonac ja
+na encji w istniejacej grze.
 
-W kontekscie pracy inzynierskiej to fundament techniczny: przyszly system
-wieloagentowy moze uzywac percepcji do obserwacji, a command interface do
-wykonania decyzji.
+W kontekscie pracy inzynierskiej to fundament techniczny do powtarzalnej
+obserwacji i sterowania runtime bez dopisywania logiki decyzyjnej do gry.
 
 Aktualny przeplyw:
 
 ```text
-Future agent logic -> AgentCommandInterface -> Entity/Ability/Interactable/Map
+External client/test -> AgentCommandInterface -> Entity/Ability/Interactable/Map
 ```
 
 ## Glowny kod
 
 - `src/core/game/agent/AgentCommandInterface.h`
-- `src/core/game/agent/AgentCommandInterface.cpp`
+- `src/core/game/agent/AgentCommandInterface.cpp` - lifecycle komend, submit,
+  cancel i dispatch.
+- `src/core/game/agent/AgentCommandExecution.cpp` - wykonanie Move/Attack/Cast/
+  Interact.
+- `src/core/game/agent/AgentCommandSupport.cpp` - wyszukiwanie encji, sciezki,
+  zatrzymywanie i finalizacja komend.
+- `src/core/game/agent/AgentCommandStrings.cpp` - stabilne nazwy enumow do
+  telemetryki.
+- `src/core/game/agent/AgentSystemMath.h` - wspolne pomocnicze obliczenia
+  odleglosci dla systemow ET.
+- `src/core/game/telemetry/CombatTelemetryServer.cpp`
+- `NawiaMonitor/nawia_monitor/main_window.py`
 - `src/core/Engine.h`
 - `src/core/Engine.cpp`
 - `docs/ET systems/Entity_Identity_and_Damage_Context.md`
@@ -127,6 +137,29 @@ Jest wolane przez `Engine` po update poziomu i przed update encji. Dzieki temu
 komenda moze ustawic ruch lub ability jeszcze przed fizycznym krokiem encji w
 tej samej klatce.
 
+## Telemetria
+
+`CombatTelemetryServer` publikuje stan komend jako osobny schemat:
+
+```json
+{"schema": "nawia.telemetry.agent_command.v1"}
+```
+
+Payload zawiera:
+
+- `active_commands` - aktualnie wykonywane komendy po agencie,
+- `completed_commands` - krotka historia zakonczonych komend,
+- `command_id`, `agent_entity_id`, `type`, `status`, `failure_reason`,
+  `age_seconds`, `message`,
+- `request` z oryginalnymi parametrami: target, slot ability, pozycja i
+  promien akceptacji,
+- diagnostyke sciezki: `path_index`, `path_length`, `path_rebuild_timer`.
+
+NawiaMonitor ma zakladke `Agent Commands`, ktora pokazuje aktywne i zakonczone
+komendy oraz pozwala podejrzec surowy JSON wybranej komendy. To jest narzedzie
+do sprawdzenia, czy zewnetrzny klient wysyla poprawne polecenia i czy warstwa
+wykonawcza poprawnie je realizuje.
+
 ## Granice systemu
 
 Ten system nie decyduje:
@@ -137,11 +170,13 @@ Ten system nie decyduje:
 - czy role sa dobrze rozdzielone,
 - czy zachowanie spelnia zalozenia raidowe.
 
-To nalezy do przyszlego algorytmu pracy inzynierskiej. `AgentCommandInterface`
-ma tylko bezpiecznie wykonac polecenie i zwrocic status.
+To nalezy do osobnej warstwy badawczej albo testowej poza tym adapterem.
+`AgentCommandInterface` ma tylko bezpiecznie wykonac polecenie i zwrocic
+status.
 
 ## Uwagi integracyjne
 
 Obecny `Friend` nadal ma hardcoded behavior, jesli nie ma podpietego
-`AllyBrain`. To znaczy, ze przyszly brain powinien przejac sterowanie ally
-konsekwentnie, aby nie mieszac decyzji hardcoded AI z komendami systemu ET.
+`AllyBrain`. Nie mieszamy tej logiki z `AgentCommandInterface`: adapter komend
+powinien byc uzywany jawnie przez narzedzia albo testy, a lokalne zachowanie
+encje utrzymuja w swoich istniejacych kontrolerach.

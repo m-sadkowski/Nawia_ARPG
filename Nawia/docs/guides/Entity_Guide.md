@@ -110,7 +110,7 @@ Nadpisuj `takeDamage(...)`, gdy encja ma hit react, stagger albo specjalna logik
 Dormant encja:
 
 - nie renderuje sie,
-- nie aktualizuje AI,
+- nie aktualizuje zachowania,
 - nie bierze udzialu w kolizjach,
 - nie ma healthbara,
 - nie reaguje na hover/klik.
@@ -169,7 +169,7 @@ broni.
 
 ## Dobre praktyki
 
-- Factory sklada obiekt, nie prowadzi AI.
+- Factory sklada obiekt, nie prowadzi zachowania aktora.
 - Do targetowania w walce uzywaj helperow z `Entity`.
 - Nie rob bezposredniego dostepu do `EntityManager` z ability.
 - Debug colliderow wlaczaj przez `Entity::DebugColliders`.

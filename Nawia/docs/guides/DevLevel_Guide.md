@@ -6,7 +6,7 @@ obiektow bezposrednio w grze.
 ## Uruchomienie
 
 W menu wyboru levelu wybierz `Kreator leveli`. Edytor startuje na pustej
-lokacji z placeholderem mapy.
+lokacji z roboczym modelem mapy.
 
 ## Lewy panel
 
@@ -159,9 +159,9 @@ Animacje:
 - `10` przywolanie pomagiera,
 - `16` bieg.
 
-AI Czarownicy trzyma dystans, strzela malymi fireballami, a po otrzymaniu
-obrazen odgrywa hit, potem animacje strzalu bez pocisku, powala gracza i
-przywoluje `WalkingDead`.
+Zachowanie Czarownicy trzyma dystans, strzela malymi fireballami, a po
+otrzymaniu obrazen odgrywa hit, potem animacje strzalu bez pocisku, powala
+gracza i przywoluje `WalkingDead`.
 
 Po powrocie z Nawii dialog `witch_after_bies_placeholder` ma wybory:
 start walki z `czarownica` albo pokojowe poznanie prawdy. Pokojowa sciezka

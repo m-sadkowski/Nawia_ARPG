@@ -31,7 +31,6 @@ namespace Nawia::Entity {
 		void updateHardcodedBehavior(float dt);
 		void stopPathMovement();
 		void rebuildPathToTarget(const Entity& target);
-		void trimCurrentPathStart();
 		void updatePathMovement(float dt);
 		void onDeathStarted() override;
 

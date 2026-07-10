@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Backpack.h>
+#include <EntityBuilder.h>
 #include <Entity.h>
 #include <Equipment.h>
 #include <Stats.h>
@@ -178,6 +179,8 @@ namespace Nawia::Entity {
 		friend class PlayerBuilder;
 		Player();
 		void onDeathStarted() override;
+		void updateAttachedModelAnimation(const ModelAnimation& animation, int frame) override;
+		void drawAttachedModel(Vector3 pos3d, float visual_rotation) const override;
 		void attachEngine(Core::Engine* engine);
 		void updateWeaponVisualModel();
 		void updatePrimaryAttackAbility();
@@ -207,6 +210,8 @@ namespace Nawia::Entity {
 		Stats _base_stats;
 		Stats _current_stats;
 
+		std::unique_ptr<Item::Equipment> _equipment;
+
 		int _gold = 0;
 		int _food_count = 0;
 		int _level = 1;
@@ -233,8 +238,7 @@ namespace Nawia::Entity {
 		/** @brief Ustawia pozycję oraz początkowy cel ruchu i punkt odrodzenia. */
 		PlayerBuilder& setPosition(Vector2 pos) {
 			EntityBuilder<PlayerBuilder>::setPosition(pos);
-			_player_ptr->_target_x = pos.x;
-			_player_ptr->_target_y = pos.y;
+			_player_ptr->setMovementTarget(pos.x, pos.y);
 			_player_ptr->_respawn_point = pos;
 			return *this;
 		}
@@ -242,14 +246,14 @@ namespace Nawia::Entity {
 		/** @brief Ustawia współrzędną X oraz cel ruchu na osi X. */
 		PlayerBuilder& setX(float x) {
 			EntityBuilder<PlayerBuilder>::setX(x);
-			_player_ptr->_target_x = x;
+			_player_ptr->setMovementTarget(x, _player_ptr->getY());
 			return *this;
 		}
 
 		/** @brief Ustawia współrzędną Y oraz cel ruchu na osi Y. */
 		PlayerBuilder& setY(float y) {
 			EntityBuilder<PlayerBuilder>::setY(y);
-			_player_ptr->_target_y = y;
+			_player_ptr->setMovementTarget(_player_ptr->getX(), y);
 			return *this;
 		}
 

@@ -1,6 +1,7 @@
 #include "MushroomNpc.h"
 
 #include <Engine.h>
+#include <EntityPathMotion.h>
 #include <Logger.h>
 #include <Map.h>
 #include <MiniMushroomInfected.h>
@@ -12,6 +13,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 
 namespace Nawia::Entity {
 
@@ -35,7 +37,7 @@ namespace Nawia::Entity {
 		: StoryNpc(name, x, y, engine)
 	{
 		_follow_checkpoint_name = follow_checkpoint_name;
-		_type = EntityType::NPCActor;
+		setType(EntityType::NPCActor);
 		_home_position = getCenter();
 		setMovementSpeed(3.2f);
 
@@ -96,9 +98,9 @@ namespace Nawia::Entity {
 		}
 
 		updateCompanionTravel(delta_time);
-		updateMovementSound(Audio::SoundPath::GzibWalk, _is_moving, 0.42f, 1.12f);
+		updateMovementSound(Audio::SoundPath::GzibWalk, isMoving(), 0.42f, 1.12f);
 
-		if (_is_moving) {
+		if (isMoving()) {
 			playWalkAnimation();
 		} else {
 			rotateToPlayerOnInterval(delta_time);
@@ -217,7 +219,7 @@ namespace Nawia::Entity {
 		}
 
 		updatePathMovement(delta_time);
-		if (_is_moving)
+		if (isMoving())
 			playWalkAnimation();
 	}
 
@@ -260,50 +262,20 @@ namespace Nawia::Entity {
 	}
 
 	void MushroomNpc::buildPathToPoint(const Vector2 target) {
-		_current_path.clear();
-
-		if (_engine && _engine->getCurrentMap() && _engine->getCurrentMap()->getNavMesh().isReady()) {
-			_current_path = _engine->getCurrentMap()->findPath(getWorldPos3D(), {target.x, getAltitude(), target.y});
-			Core::Logger::debugLog("MushroomNpc: sciezka Gziba ma " + std::to_string(_current_path.size()) + " punktow");
-		}
-
-		if (_current_path.empty())
-			_current_path.push_back(target);
-
-		trimCurrentPathStart();
-
-		if (!_current_path.empty())
-			moveTo(_current_path.front().x, _current_path.front().y);
-		else
-			stopPathMovement();
-	}
-
-	void MushroomNpc::trimCurrentPathStart() {
-		if (_current_path.empty())
-			return;
-
-		const Vector2 first_path_point = _current_path.front();
-		const float dx = first_path_point.x - getCenter().x;
-		const float dy = first_path_point.y - getCenter().y;
-		if (dx * dx + dy * dy < 0.1f)
-			_current_path.erase(_current_path.begin());
+		const std::size_t nav_path_size = PathMotion::buildPathToPoint(
+			*this,
+			_engine ? _engine->getCurrentMap() : nullptr,
+			target,
+			_current_path);
+		Core::Logger::debugLog("MushroomNpc: sciezka Gziba ma " + std::to_string(nav_path_size) + " punktow");
 	}
 
 	void MushroomNpc::updatePathMovement(const float delta_time) {
-		if (!_is_moving && !_current_path.empty()) {
-			_current_path.erase(_current_path.begin());
-
-			if (!_current_path.empty())
-				moveTo(_current_path.front().x, _current_path.front().y);
-		}
-
-		updateMovement(delta_time);
+		PathMotion::updatePathMovement(*this, delta_time, _current_path);
 	}
 
 	void MushroomNpc::stopPathMovement() {
-		_current_path.clear();
-		_is_moving = false;
-		setVelocity(0.0f, 0.0f);
+		PathMotion::stopPathMovement(*this, _current_path);
 	}
 
 	void MushroomNpc::sendPurifiedFollowersHome() {

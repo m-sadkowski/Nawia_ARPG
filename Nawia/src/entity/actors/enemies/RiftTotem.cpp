@@ -15,6 +15,9 @@ namespace Nawia::Entity {
 	namespace {
 		constexpr const char* TOTEM_MODEL = "assets/models/totem.glb";
 		constexpr float TOTEM_MODEL_SCALE = 1.0f;
+		constexpr const char* HELPER_MODEL = "assets/models/actors/walking_dead/walking_dead_2.glb";
+		constexpr float HELPER_MODEL_SCALE = 1.5f;
+		constexpr int HELPER_TONGUE_MESH_INDEX = 1;
 	}
 
 	RiftTotem::RiftTotem(
@@ -23,13 +26,9 @@ namespace Nawia::Entity {
 		Core::Map* map,
 		std::weak_ptr<Entity> owner,
 		std::shared_ptr<Entity> target,
-		const int stage_index,
-		std::string helper_model_path,
-		const float helper_model_scale)
+		const int stage_index)
 		: EnemyInterface("Totem Chaosu", x, y, nullptr, BASE_HP + stage_index * HP_PER_STAGE, map),
 		  _owner(std::move(owner)),
-		  _helper_model_path(std::move(helper_model_path)),
-		  _helper_model_scale(helper_model_scale),
 		  _stage_index(stage_index),
 		  _helper_spawn_timer(0.65f + static_cast<float>(GetRandomValue(0, 90)) / 100.0f)
 	{
@@ -37,10 +36,7 @@ namespace Nawia::Entity {
 		setTarget(target);
 		setCollider(std::make_unique<CircleCollider>(this, 0.68f));
 		loadModel(TOTEM_MODEL);
-		if (_model_loaded) {
-			const BoundingBox bounds = _local_model_bounding_box_valid ? _local_model_bounding_box : GetModelBoundingBox(_model);
-			_model.transform = MatrixMultiply(MatrixTranslate(0.0f, -bounds.min.y, 0.0f), _model.transform);
-		}
+		alignLoadedModelToGround();
 		setScale(TOTEM_MODEL_SCALE);
 	}
 
@@ -87,7 +83,7 @@ namespace Nawia::Entity {
 
 	void RiftTotem::spawnHelper()
 	{
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target || target->isDead() || target->isDying())
 			return;
 
@@ -99,15 +95,12 @@ namespace Nawia::Entity {
 			.setMap(_map)
 			.setMaxHp(HELPER_BASE_HP + _stage_index * HELPER_HP_PER_STAGE)
 			.setTarget(target)
-			.setAudioManager(_audio_manager)
+			.setAudioManager(getAudioManager())
 			.build();
 
-		if (!_helper_model_path.empty()) {
-			helper->replaceModel(_helper_model_path);
-			helper->setScale(_helper_model_scale);
-			if (_helper_model_path.find("walking_dead_2.glb") != std::string::npos)
-				helper->hideMeshIndex(1); // Tongue mesh.
-		}
+		helper->replaceModel(HELPER_MODEL);
+		helper->setScale(HELPER_MODEL_SCALE);
+		helper->hideMeshIndex(HELPER_TONGUE_MESH_INDEX);
 
 		helper->setAltitude(getAltitude());
 		addPendingSpawn(std::shared_ptr<Entity>(std::move(helper)));

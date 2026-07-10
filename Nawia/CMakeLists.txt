@@ -27,10 +27,14 @@ include_directories(
     src/entity/collider
     src/entity/actors
     src/entity/actors/enemies
+    src/entity/actors/enemies/frog
     src/entity/actors/player
     src/entity/actors/enemies/walking_dead
     src/entity/actors/enemies/devil
     src/entity/actors/enemies/bandit
+    src/entity/actors/enemies/rift_binder
+    src/entity/actors/enemies/spider
+    src/entity/actors/enemies/witch
     src/entity/actors/allies
     src/entity/actors/allies/friend
     src/entity/components
@@ -50,6 +54,10 @@ include_directories(
     src/world
     src/world/map
     src/world/level
+    src/world/level/demo
+    src/world/level/dev
+    src/world/level/first
+    src/world/level/nawia_arena
     src/world/spawn
     src/ui
     src/ui/hud

@@ -58,7 +58,6 @@ namespace Nawia::Entity {
 		bool _cast_projectile_spawned = false;
 		bool _retaliation_applied = false;
 		bool _reposition_after_retaliation = false;
-		float _path_recalc_timer = 0.0f;
 
 		static constexpr float MODEL_SCALE = 1.55f;
 		static constexpr float VISION_RANGE = 20.0f;

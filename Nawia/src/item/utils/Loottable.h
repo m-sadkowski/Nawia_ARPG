@@ -22,6 +22,10 @@ namespace Nawia::Item {
         CHEST_GOOD
     };
 
+    [[nodiscard]] LOOTTABLE_TYPE parseLoottableType(
+        const std::string& type_name,
+        LOOTTABLE_TYPE default_type = LOOTTABLE_TYPE::CHEST_NOOB);
+
     /**
      * @struct LootEntry
      * @brief Jeden wpis lootu z template'em przedmiotu i szansa wylosowania.

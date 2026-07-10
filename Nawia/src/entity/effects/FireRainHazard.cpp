@@ -55,17 +55,13 @@ namespace Nawia::Entity {
 
 			if (isWarning()) {
 				const float y = getAltitude() + drop.height * (0.85f + 0.15f * std::sin(_visual_time * 4.0f + drop.phase));
-				const Color ember = Fade(Color{255, 185, 70, 255}, 0.34f + warning_fraction * 0.36f);
-				DrawSphere({x, y, z}, drop.size * (0.65f + warning_fraction * 0.45f), ember);
 				DrawLine3D({x, y + 0.45f, z}, {x, y - 0.75f, z}, Fade(Color{255, 95, 30, 255}, 0.38f + warning_fraction * 0.30f));
 				continue;
 			}
 
 			const float y = getAltitude() + 0.25f + (1.0f - cycle) * drop.height;
-			const Color core = Color{255, 226, 130, 255};
 			const Color flame = Color{255, 78, 22, 255};
 			DrawLine3D({x, y + 0.8f, z}, {x, y - 0.35f, z}, Fade(flame, 0.82f));
-			DrawSphere({x, y, z}, drop.size * 0.85f, core);
 
 			if (cycle > 0.90f) {
 				const float impact_alpha = (cycle - 0.90f) / 0.10f;

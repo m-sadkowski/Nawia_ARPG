@@ -17,7 +17,7 @@ Nazwy lokacji sa wazne. Teleporty porownuja zwykle stringi, wiec
 
 ## 2. Dodaj klase levelu
 
-Header, np. `src/world/level/BagnaCzarownicyLevel.h`:
+Header, np. `src/world/level/bagna_czarownicy/BagnaCzarownicyLevel.h`:
 
 ```cpp
 #pragma once
@@ -50,7 +50,7 @@ namespace Nawia::World {
 } // namespace Nawia::World
 ```
 
-Implementacja, np. `src/world/level/BagnaCzarownicyLevel.cpp`:
+Implementacja, np. `src/world/level/bagna_czarownicy/BagnaCzarownicyLevel.cpp`:
 
 ```cpp
 #include "BagnaCzarownicyLevel.h"
@@ -77,7 +77,9 @@ namespace Nawia::World {
 } // namespace Nawia::World
 ```
 
-Potem rejestrujesz poziom w `Engine.cpp`:
+Dodaj katalog levelu do `include_directories` w `Nawia/CMakeLists.txt`, tak jak
+pozostale katalogi pod `src/world/level`, a potem rejestrujesz poziom w
+`Engine.cpp`:
 
 ```cpp
 #include <BagnaCzarownicyLevel.h>
@@ -99,7 +101,7 @@ Dla kazdej lokacji:
 1. Wybierz `Nowa lokacja`.
 2. Wpisz nazwe identyczna jak w kodzie, np. `Mokradla`.
 3. Wpisz plik, np. `mokradla.json`.
-4. Wybierz model mapy albo zostaw placeholder.
+4. Wybierz model mapy albo zostaw roboczy model domyslny.
 5. Ustaw skale, offset, obrot i minimalna wysokosc NavMesh.
 6. Kliknij `Przeladuj`, zeby zobaczyc model z ustawieniami.
 7. Ustaw gracza w miejscu startowym i kliknij `Ustaw spawn`.

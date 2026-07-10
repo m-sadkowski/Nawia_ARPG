@@ -85,9 +85,9 @@ namespace Nawia::Game {
 	 * @class AgentCommandInterface
 	 * @brief Executes explicit commands for entities without choosing actions.
 	 *
-	 * This is the execution adapter between future agent decision systems and the
-	 * current game. It validates basic runtime preconditions, resolves entity ids,
-	 * starts movement/ability/interactions, and exposes command status.
+	 * This is an execution adapter for external tooling and tests. It validates
+	 * runtime preconditions, resolves entity ids, starts movement, abilities, and
+	 * interactions, then exposes command status.
 	 */
 	class AgentCommandInterface {
 	public:

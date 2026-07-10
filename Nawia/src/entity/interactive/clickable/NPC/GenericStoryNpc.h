@@ -54,7 +54,6 @@ namespace Nawia::Entity {
 		[[nodiscard]] std::optional<Vector2> resolveDestination(Core::Engine& engine) const;
 		void updateRouteToDestination(float delta_time);
 		void buildPathToPoint(Vector2 target);
-		void trimCurrentPathStart();
 		void updatePathMovement(float delta_time);
 		void stopPathMovement();
 		void playIdleAnimation();

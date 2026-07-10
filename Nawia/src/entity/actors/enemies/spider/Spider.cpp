@@ -58,7 +58,7 @@ namespace Nawia::Entity {
 		setFaction(Faction::Enemy);
 		setMovementSpeed(MOVE_SPEED);
 		setCollider(std::make_unique<RectangleCollider>(this, 1.6f, 1.35f, 0.0f, 0.0f));
-		_death_anim_name = "death";
+		setDeathAnimationName("death");
 		configureModel();
 	}
 
@@ -148,7 +148,7 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		const float distance = getDistanceToTarget();
 		if (distance > VISION_RANGE * 1.7f) {
 			_state = State::Idle;
@@ -179,7 +179,7 @@ namespace Nawia::Entity {
 		moveTowardPositionWithNav(target_pos, dt);
 		rotateTowardsCenter(target_pos.x, target_pos.y);
 
-		if (_is_moving) {
+		if (isMoving()) {
 			playWalk(chase_speed_multiplier);
 			updateMovementSound(Audio::SoundPath::SpiderWalk, true, 0.48f, target_webbed ? 1.15f : 0.9f);
 		} else {
@@ -192,16 +192,13 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		const auto target = _target.lock();
-		if (target)
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("melee");
-		const float damage_frame = static_cast<float>(frame_count) * MELEE_DAMAGE_FRAME_RATIO;
-		if (!_melee_damage_applied && frame_count > 0 && _anim_frame_counter >= damage_frame) {
+		if (consumeAnimationFrameTrigger("melee", MELEE_DAMAGE_FRAME_RATIO, _melee_damage_applied)) {
+			const auto target = getLiveTarget();
 			if (target && !target->isDead() && !target->isDying() && getDistanceToTarget() <= MELEE_RANGE * 1.8f) {
 				target->takeDamage(
-					static_cast<int>(MELEE_DAMAGE * _damage_multiplier),
+					static_cast<int>(MELEE_DAMAGE * getDamageMultiplier()),
 					Entity::makeDamageSourceContext(this, "Spider Bite"));
 				target->applyPoison(
 					POISON_DURATION,
@@ -210,7 +207,6 @@ namespace Nawia::Entity {
 					Entity::makeDamageSourceContext(this, "Spider Poison"));
 				playSoundEffect(Audio::SoundId::SpiderMeleeAttack, 0.75f, true, 1.0f);
 			}
-			_melee_damage_applied = true;
 		}
 
 		if (!isAnimationLocked()) {
@@ -224,15 +220,10 @@ namespace Nawia::Entity {
 	{
 		Entity::update(dt);
 
-		if (const auto target = _target.lock())
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+		faceTargetCenter();
 
-		const int frame_count = getAnimationFrameCount("web");
-		const float fire_frame = static_cast<float>(frame_count) * WEB_FIRE_FRAME_RATIO;
-		if (!_web_fired && frame_count > 0 && _anim_frame_counter >= fire_frame) {
+		if (consumeAnimationFrameTrigger("web", WEB_FIRE_FRAME_RATIO, _web_fired))
 			fireWeb();
-			_web_fired = true;
-		}
 
 		if (!isAnimationLocked()) {
 			if (!_web_fired)
@@ -276,7 +267,7 @@ namespace Nawia::Entity {
 
 	void Spider::fireWeb()
 	{
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target || target->isDead() || target->isDying())
 			return;
 
@@ -316,8 +307,7 @@ namespace Nawia::Entity {
 
 	void Spider::stopMoving()
 	{
-		setVelocity(0.0f, 0.0f);
-		_is_moving = false;
+		stopMotion();
 		updateMovementSound(Audio::SoundPath::SpiderWalk, false);
 	}
 
@@ -340,18 +330,18 @@ namespace Nawia::Entity {
 			clearNavigationPath();
 			moveTo(target_pos.x, target_pos.y);
 			updateMovement(dt);
-			return _is_moving;
+			return isMoving();
 		}
 
-		_path_recalc_timer -= dt;
+		tickPathRecalcTimer(dt);
 		const bool target_changed = !_has_current_nav_target ||
 			Vector2DistanceSqr(_current_nav_target, target_pos) > NAV_TARGET_CHANGE_DISTANCE_SQ;
 
-		if (_path_recalc_timer <= 0.0f || target_changed) {
+		if (isPathRecalcDue() || target_changed) {
 			_current_nav_path = _map->findPath(getWorldPos3D(), {target_pos.x, getAltitude(), target_pos.y});
 			_current_nav_target = target_pos;
 			_has_current_nav_target = true;
-			_path_recalc_timer = repath_interval;
+			resetPathRecalcTimer(repath_interval);
 		}
 
 		const Vector2 current_pos = getCenter();
@@ -367,7 +357,7 @@ namespace Nawia::Entity {
 
 		moveTo(_current_nav_path.front().x, _current_nav_path.front().y);
 		updateMovement(dt);
-		return _is_moving;
+		return isMoving();
 	}
 
 	bool Spider::canReachPositionWithNav(const Vector2 target_pos) const
@@ -382,7 +372,7 @@ namespace Nawia::Entity {
 	{
 		_current_nav_path.clear();
 		_has_current_nav_target = false;
-		_path_recalc_timer = 0.0f;
+		clearPathRecalcTimer();
 	}
 
 	void Spider::onDeathStarted()

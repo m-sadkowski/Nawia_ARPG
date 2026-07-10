@@ -5,6 +5,7 @@
 
 #include <json.hpp>
 
+#include <initializer_list>
 #include <string>
 #include <vector>
 
@@ -52,6 +53,11 @@ namespace Nawia::Core {
 
 	private:
 		void addUnique(AssetLoadEntry entry);
+		void addModelAndAnimation(const std::string& path);
+		void addModels(std::initializer_list<const char*> paths);
+		void addAnimations(std::initializer_list<const char*> paths);
+		void addModelAndAnimations(std::initializer_list<const char*> paths);
+		void addTextures(std::initializer_list<const char*> paths);
 
 		std::vector<AssetLoadEntry> _entries;
 	};

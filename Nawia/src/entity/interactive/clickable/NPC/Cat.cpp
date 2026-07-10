@@ -17,7 +17,7 @@ namespace Nawia::Entity {
 	Cat::Cat(const std::string& name, const float x, const float y, const std::shared_ptr<Texture2D>& texture)
 		: InteractiveClickable(name, x, y, texture, 1) // NPC ma techniczne 1 HP.
 	{
-		_type = EntityType::NPCStatic;
+		setType(EntityType::NPCStatic);
 		setFaction(Faction::None);
 		setScale(0.024f);
 		loadModel("assets/models/actors/cat/cat_bounce.glb", false);

@@ -22,7 +22,7 @@ namespace Nawia::Entity {
 		Core::Engine* engine)
 		: StoryNpc(name, x, y, engine)
 	{
-		_type = EntityType::NPCStatic;
+		setType(EntityType::NPCStatic);
 		setDialogueStageKey("szeptucha");
 		replaceModel(BABA_YAGA_MODEL, false);
 
@@ -46,7 +46,7 @@ namespace Nawia::Entity {
 	}
 
 	Vector3 SzeptuchaNpc::getWorldPos3D() const {
-		return {_pos.x, _altitude + getIdleBobOffset(), _pos.y};
+		return {getX(), getAltitude() + getIdleBobOffset(), getY()};
 	}
 
 	float SzeptuchaNpc::getIdleBobOffset() const {

@@ -12,6 +12,8 @@ Ten katalog zawiera praktyczne przewodniki po aktualnej architekturze projektu.
 ## Moduly gameplayowe
 
 - `Enemy_Guide.md` - enemy, ally, `ActorInterface`, targetowanie i `AllyBrain`.
+- `Agent_System_Guide.md` - infrastruktura ET: percepcja, komendy, telemetria
+  i granice bez logiki decyzyjnej.
 - `Ability_Guide.md` - ability, cooldown, target type i pending spawn.
 - `AbilityEffect_Guide.md` - efekty, kolizje, frakcje i debug hitboxow.
 - `Interactive_Guide.md` - skrzynie, NPC, teleporty, checkpointy i zasieg interakcji.
@@ -25,4 +27,4 @@ Ten katalog zawiera praktyczne przewodniki po aktualnej architekturze projektu.
 
 ## Dokument przekrojowy
 
-Szerszy opis runtime leveli i lokacji jest w `../level_system.md`.
+Szerszy opis runtime leveli i lokacji jest w `Level_System_Guide.md`.

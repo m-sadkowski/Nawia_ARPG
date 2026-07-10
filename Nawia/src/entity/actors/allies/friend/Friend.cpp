@@ -3,6 +3,7 @@
 #include <Ability.h>
 #include <AllyBrain.h>
 #include <Collider.h>
+#include <EntityPathMotion.h>
 #include <Map.h>
 #include <SoundIds.h>
 
@@ -15,7 +16,7 @@ namespace Nawia::Entity {
 		setScale(0.015f);
 		setMovementSpeed(SPEED);
 		setFaction(Faction::Ally);
-		_death_anim_name = "knocked";
+		setDeathAnimationName("knocked");
 
 		loadModel("assets/models/actors/player/player_idle.glb");
 		addAnimation("walk", "assets/models/actors/player/player_walk.glb");
@@ -53,7 +54,7 @@ namespace Nawia::Entity {
 		Entity::update(dt);
 		updateAbilities(dt);
 
-		const auto target = _target.lock();
+		const auto target = getTarget();
 		if (!target || target->isDead() || target->isDying())
 		{
 			stopPathMovement();
@@ -65,7 +66,7 @@ namespace Nawia::Entity {
 
 		if (isAnimationLocked())
 		{
-			rotateTowardsCenter(target->getCenter().x, target->getCenter().y);
+			faceTargetCenter();
 			return;
 		}
 
@@ -91,17 +92,17 @@ namespace Nawia::Entity {
 			}
 		}
 
-		_path_recalc_timer -= dt;
-		if (_path_recalc_timer <= 0.0f || (_current_path.empty() && !_is_moving))
+		tickPathRecalcTimer(dt);
+		if (isPathRecalcDue() || (_current_path.empty() && !isMoving()))
 		{
 			rebuildPathToTarget(*target);
-			_path_recalc_timer = PATH_RECALC_INTERVAL;
+			resetPathRecalcTimer(PATH_RECALC_INTERVAL);
 		}
 
 		updatePathMovement(dt);
-		updateMovementSound(Audio::SoundPath::Footsteps, _is_moving && !isAnimationLocked(), 0.42f, 1.04f);
+		updateMovementSound(Audio::SoundPath::Footsteps, isMoving() && !isAnimationLocked(), 0.42f, 1.04f);
 
-		if (_is_moving)
+		if (isMoving())
 			playAnimation("walk");
 		else
 			playAnimation("default");
@@ -109,53 +110,17 @@ namespace Nawia::Entity {
 
 	void Friend::stopPathMovement()
 	{
-		_current_path.clear();
-		_is_moving = false;
-		setVelocity(0.0f, 0.0f);
+		PathMotion::stopPathMovement(*this, _current_path);
 	}
 
 	void Friend::rebuildPathToTarget(const Entity& target)
 	{
-		if (_map && _map->getNavMesh().isReady())
-		{
-			_current_path = _map->findPath(getWorldPos3D(), target.getWorldPos3D());
-			trimCurrentPathStart();
-		}
-		else
-		{
-			const Vector2 target_pos = target.getCenter();
-			_current_path = {{target_pos.x, target_pos.y}};
-		}
-
-		if (!_current_path.empty())
-			moveTo(_current_path.front().x, _current_path.front().y);
-		else
-			stopPathMovement();
-	}
-
-	void Friend::trimCurrentPathStart()
-	{
-		if (_current_path.empty())
-			return;
-
-		const Vector2 first_path_point = _current_path.front();
-		const float dx = first_path_point.x - getCenter().x;
-		const float dy = first_path_point.y - getCenter().y;
-		if (dx * dx + dy * dy < 0.1f)
-			_current_path.erase(_current_path.begin());
+		PathMotion::buildPathToEntity(*this, _map, target, _current_path);
 	}
 
 	void Friend::updatePathMovement(const float dt)
 	{
-		if (!_is_moving && !_current_path.empty())
-		{
-			_current_path.erase(_current_path.begin());
-
-			if (!_current_path.empty())
-				moveTo(_current_path.front().x, _current_path.front().y);
-		}
-
-		updateMovement(dt);
+		PathMotion::updatePathMovement(*this, dt, _current_path);
 	}
 
 	void Friend::onDeathStarted()

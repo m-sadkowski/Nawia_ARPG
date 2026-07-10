@@ -87,12 +87,11 @@ namespace Nawia::Entity {
 			return;
 		}
 
-		_pos.x += _vel_x * dt;
-		_pos.y += _vel_y * dt;
+		translatePosition(_vel_x * dt, _vel_y * dt);
 
 		if (_travel_distance > MIN_DIRECTION_LENGTH) {
-			const float traveled_x = _pos.x - _start_x;
-			const float traveled_y = _pos.y - _start_y;
+			const float traveled_x = getX() - _start_x;
+			const float traveled_y = getY() - _start_y;
 			const float traveled_distance = std::sqrt(traveled_x * traveled_x + traveled_y * traveled_y);
 			const float progress = std::clamp(traveled_distance / _travel_distance, 0.0f, 1.0f);
 			_flight_height = _start_height + (_target_height - _start_height) * progress;
@@ -155,8 +154,10 @@ namespace Nawia::Entity {
 			return;
 
 		const BoundingBox target_box = target->getBoundingBox();
-		_pos.x = (target_box.min.x + target_box.max.x) * 0.5f;
-		_pos.y = (target_box.min.z + target_box.max.z) * 0.5f;
+		setPosition({
+			(target_box.min.x + target_box.max.x) * 0.5f,
+			(target_box.min.z + target_box.max.z) * 0.5f
+		});
 		_flight_height = (target_box.min.y + target_box.max.y) * 0.5f;
 	}
 

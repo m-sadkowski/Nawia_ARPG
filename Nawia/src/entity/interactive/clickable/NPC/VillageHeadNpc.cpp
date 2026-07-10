@@ -2,6 +2,7 @@
 
 #include <Engine.h>
 #include <EntityManager.h>
+#include <EntityPathMotion.h>
 #include <Map.h>
 
 #include <raymath.h>
@@ -21,7 +22,7 @@ namespace Nawia::Entity {
 		Core::Engine* engine)
 		: StoryNpc(name, x, y, engine)
 	{
-		_type = EntityType::NPCActor;
+		setType(EntityType::NPCActor);
 		setScale(VILLAGE_HEAD_SCALE);
 		setMovementSpeed(2.0f);
 		loadModel(VILLAGE_HEAD_MODEL);
@@ -129,7 +130,7 @@ namespace Nawia::Entity {
 
 		updatePathMovement(delta_time);
 
-		if (_is_moving) {
+		if (isMoving()) {
 			if (getAnimationFrameCount("Walk") > 0)
 				playAnimation("Walk");
 			else if (getAnimationFrameCount("walk") > 0)
@@ -138,48 +139,19 @@ namespace Nawia::Entity {
 	}
 
 	void VillageHeadNpc::buildPathToPoint(const Vector2 target) {
-		_current_path.clear();
-
-		if (_engine && _engine->getCurrentMap() && _engine->getCurrentMap()->getNavMesh().isReady())
-			_current_path = _engine->getCurrentMap()->findPath(getWorldPos3D(), {target.x, getAltitude(), target.y});
-
-		if (_current_path.empty())
-			_current_path.push_back(target);
-
-		trimCurrentPathStart();
-
-		if (!_current_path.empty())
-			moveTo(_current_path.front().x, _current_path.front().y);
-		else
-			stopPathMovement();
-	}
-
-	void VillageHeadNpc::trimCurrentPathStart() {
-		if (_current_path.empty())
-			return;
-
-		const Vector2 first_path_point = _current_path.front();
-		const float dx = first_path_point.x - getCenter().x;
-		const float dy = first_path_point.y - getCenter().y;
-		if (dx * dx + dy * dy < 0.1f)
-			_current_path.erase(_current_path.begin());
+		PathMotion::buildPathToPoint(
+			*this,
+			_engine ? _engine->getCurrentMap() : nullptr,
+			target,
+			_current_path);
 	}
 
 	void VillageHeadNpc::updatePathMovement(const float delta_time) {
-		if (!_is_moving && !_current_path.empty()) {
-			_current_path.erase(_current_path.begin());
-
-			if (!_current_path.empty())
-				moveTo(_current_path.front().x, _current_path.front().y);
-		}
-
-		updateMovement(delta_time);
+		PathMotion::updatePathMovement(*this, delta_time, _current_path);
 	}
 
 	void VillageHeadNpc::stopPathMovement() {
-		_current_path.clear();
-		_is_moving = false;
-		setVelocity(0.0f, 0.0f);
+		PathMotion::stopPathMovement(*this, _current_path);
 	}
 
 	nlohmann::json VillageHeadNpc::serializeState() const {
