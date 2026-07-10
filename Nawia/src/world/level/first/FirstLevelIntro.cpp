@@ -21,6 +21,28 @@ namespace Nawia::World {
 
 	namespace F = FirstLevelSupport;
 
+	void FirstLevel::loadIntroSlides(Core::Engine& engine, const nlohmann::json& config, const float fallback_duration) {
+		_intro_slides.clear();
+		if (config.contains("slides") && config["slides"].is_array()) {
+			for (const auto& slide_json : config["slides"]) {
+				IntroSlide slide;
+				slide.text = slide_json.value("text", "");
+				slide.voice_path = slide_json.value("voice_path", "");
+				slide.image_path = slide_json.value("image_path", "");
+				slide.duration = F::resolveSlideDuration(slide_json, fallback_duration);
+				_intro_slides.push_back(std::move(slide));
+			}
+		}
+
+		for (auto& slide : _intro_slides) {
+			if (!slide.image_path.empty()) {
+				slide.image_texture = engine.getResourceManager().getTexture(slide.image_path);
+				if (slide.image_texture && slide.image_texture->id > 0)
+					SetTextureFilter(*slide.image_texture, TEXTURE_FILTER_TRILINEAR);
+			}
+		}
+	}
+
 	void FirstLevel::startIntroSequence(Core::Engine* engine) {
 		if (!engine || !engine->getPlayer())
 			return;
@@ -28,26 +50,7 @@ namespace Nawia::World {
 		removeIntroNpc();
 		spawnIntroCorpse(engine);
 
-		_intro_slides.clear();
-		const auto& config = F::introConfig();
-		if (config.contains("slides") && config["slides"].is_array()) {
-			for (const auto& slide_json : config["slides"]) {
-				IntroSlide slide;
-				slide.text = slide_json.value("text", "");
-				slide.voice_path = slide_json.value("voice_path", "");
-				slide.image_path = slide_json.value("image_path", "");
-				slide.duration = F::resolveSlideDuration(slide_json, 6.0f);
-				_intro_slides.push_back(std::move(slide));
-			}
-		}
-
-		for (auto& slide : _intro_slides) {
-			if (!slide.image_path.empty()) {
-				slide.image_texture = engine->getResourceManager().getTexture(slide.image_path);
-				if (slide.image_texture && slide.image_texture->id > 0)
-					SetTextureFilter(*slide.image_texture, TEXTURE_FILTER_TRILINEAR);
-			}
-		}
+		loadIntroSlides(*engine, F::introConfig(), 6.0f);
 
 		_intro_slide_index = 0;
 		_intro_phase = IntroPhase::Slides;
@@ -279,27 +282,7 @@ namespace Nawia::World {
 
 		stopSlideVoice(engine);
 		removeIntroNpc();
-		_intro_slides.clear();
-
-		const auto& config = F::outroConfig();
-		if (config.contains("slides") && config["slides"].is_array()) {
-			for (const auto& slide_json : config["slides"]) {
-				IntroSlide slide;
-				slide.text = slide_json.value("text", "");
-				slide.voice_path = slide_json.value("voice_path", "");
-				slide.image_path = slide_json.value("image_path", "");
-				slide.duration = F::resolveSlideDuration(slide_json, 7.0f);
-				_intro_slides.push_back(std::move(slide));
-			}
-		}
-
-		for (auto& slide : _intro_slides) {
-			if (!slide.image_path.empty()) {
-				slide.image_texture = engine->getResourceManager().getTexture(slide.image_path);
-				if (slide.image_texture && slide.image_texture->id > 0)
-					SetTextureFilter(*slide.image_texture, TEXTURE_FILTER_TRILINEAR);
-			}
-		}
+		loadIntroSlides(*engine, F::outroConfig(), 7.0f);
 
 		_intro_slide_index = 0;
 		_intro_phase = _intro_slides.empty() ? IntroPhase::OutroFadeToMenu : IntroPhase::OutroFadeFromGame;

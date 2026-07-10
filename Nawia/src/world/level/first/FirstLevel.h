@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include <json.hpp>
+
 namespace Nawia::Entity { class Entity; }
 
 namespace Nawia::World {
@@ -74,6 +76,7 @@ namespace Nawia::World {
 		void finishIntroSequence(Core::Engine* engine);
 		void startOutroSequence(Core::Engine* engine);
 		void finishOutroSequence(Core::Engine* engine);
+		void loadIntroSlides(Core::Engine& engine, const nlohmann::json& config, float fallback_duration);
 		void removeIntroNpc();
 		void playSlideVoice(Core::Engine* engine);
 		void stopSlideVoice(Core::Engine* engine);

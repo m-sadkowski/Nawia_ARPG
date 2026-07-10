@@ -4,6 +4,7 @@
 #include <Chestplate.h>
 #include <Equipment.h>
 #include <Head.h>
+#include <JsonUtils.h>
 #include <Legs.h>
 #include <Logger.h>
 #include <Necklace.h>
@@ -14,7 +15,6 @@
 
 #include <json.hpp>
 
-#include <fstream>
 #include <set>
 
 using json = nlohmann::json;
@@ -59,17 +59,9 @@ namespace Nawia::Item {
     }
 
     void ItemDatabase::loadDatabase(const std::string& filepath, Core::ResourceManager& resource_manager) {
-        std::ifstream file(filepath);
-        if (!file.is_open()) {
-            Core::Logger::errorLog("ItemDatabase: nie mozna otworzyc bazy przedmiotow: " + filepath);
-            return;
-        }
-
-        json data;
-        try {
-            file >> data;
-        } catch (const json::parse_error& error) {
-            Core::Logger::errorLog("ItemDatabase: blad parsowania JSON: " + std::string(error.what()));
+        const json data = Core::JsonUtils::loadDocument(filepath, "ItemDatabase");
+        if (!data.is_array()) {
+            Core::Logger::errorLog("ItemDatabase: niepoprawny format JSON: " + filepath);
             return;
         }
 

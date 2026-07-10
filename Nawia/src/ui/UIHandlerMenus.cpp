@@ -1,5 +1,7 @@
 #include "UIHandler.h"
 
+#include "UIRenderUtils.h"
+
 #include <GlobalScaling.h>
 #include <SaveGameManager.h>
 
@@ -53,19 +55,6 @@ namespace Nawia::UI
                 screen_height - rect.height - screen_height * 0.035f,
                 rect.y + screen_height * 0.08f);
             return rect;
-        }
-
-        void drawCenteredText(
-            const Font& font,
-            const char* text,
-            const float y,
-            const float font_size,
-            const float spacing,
-            const Color color)
-        {
-            const float screen_width = static_cast<float>(GetScreenWidth());
-            const Vector2 text_size = MeasureTextEx(font, text, font_size, spacing);
-            DrawTextEx(font, text, {(screen_width - text_size.x) * 0.5f, y}, font_size, spacing, color);
         }
 
         void drawParticlesFx(const float width, const float height, const float time)
@@ -275,24 +264,25 @@ namespace Nawia::UI
         const float author_gap = available_height * 0.012f;
         const float section_gap = available_height * 0.035f;
         const float actor_gap = available_height * 0.007f;
+        const float screen_width = static_cast<float>(GetScreenWidth());
 
         float current_y = available_top;
-        drawCenteredText(_font, "Autorzy:", current_y, title_font_size, 2.0f, COLOR_ACCENT);
+        drawCenteredText(_font, "Autorzy:", {0.0f, current_y, screen_width, title_font_size}, title_font_size, 2.0f, COLOR_ACCENT);
         current_y += title_font_size + author_gap;
 
         for (const auto* name : AUTHOR_NAMES)
         {
-            drawCenteredText(_font, name, current_y, entry_font_size, 2.0f, WHITE);
+            drawCenteredText(_font, name, {0.0f, current_y, screen_width, entry_font_size}, entry_font_size, 2.0f, WHITE);
             current_y += entry_font_size + author_gap;
         }
 
         current_y += section_gap;
-        drawCenteredText(_font, "Aktorzy (w kolejnosci wystepowania):", current_y, heading_font_size, 2.0f, COLOR_ACCENT);
+        drawCenteredText(_font, "Aktorzy (w kolejnosci wystepowania):", {0.0f, current_y, screen_width, heading_font_size}, heading_font_size, 2.0f, COLOR_ACCENT);
         current_y += heading_font_size + actor_gap * 2.0f;
 
         for (const auto* name : ACTOR_NAMES)
         {
-            drawCenteredText(_font, name, current_y, entry_font_size, 1.0f, WHITE);
+            drawCenteredText(_font, name, {0.0f, current_y, screen_width, entry_font_size}, entry_font_size, 1.0f, WHITE);
             current_y += entry_font_size + actor_gap;
         }
 

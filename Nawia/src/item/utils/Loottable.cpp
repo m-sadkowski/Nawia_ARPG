@@ -1,12 +1,12 @@
 #include "Loottable.h"
 
 #include <ItemDatabase.h>
+#include <JsonUtils.h>
 #include <Logger.h>
 
 #include <json.hpp>
 
 #include <exception>
-#include <fstream>
 #include <string>
 
 using json = nlohmann::json;
@@ -22,20 +22,7 @@ namespace Nawia::Item {
     }
 
     bool Loottable::loadLootTables(const std::string& filename, ItemDatabase& item_database) {
-        std::ifstream file(filename);
-        if (!file.is_open()) {
-            Core::Logger::errorLog("Loottable: nie mozna otworzyc pliku: " + filename);
-            return false;
-        }
-
-        json json_data;
-        try {
-            file >> json_data;
-        } catch (const json::parse_error& error) {
-            Core::Logger::errorLog("Loottable: blad parsowania JSON: " + std::string(error.what()));
-            return false;
-        }
-
+        const json json_data = Core::JsonUtils::loadDocument(filename, "Loottable");
         if (!json_data.is_array()) {
             Core::Logger::errorLog("Loottable: niepoprawny format JSON.");
             return false;
